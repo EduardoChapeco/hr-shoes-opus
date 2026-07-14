@@ -36,3 +36,6 @@ export function BottomNav() {
     </nav>
   );
 }
+
+/** Canonical alias (see COMPONENT_CATALOG.md). */
+export const MobileBottomNav = BottomNav;
