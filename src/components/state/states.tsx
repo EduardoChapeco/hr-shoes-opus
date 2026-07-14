@@ -131,3 +131,88 @@ export function UnconfiguredState({
     />
   );
 }
+
+/** Canonical alias for PermissionDenied (see COMPONENT_CATALOG.md). */
+export const PermissionState = PermissionDenied;
+
+/**
+ * StatusBadge — canonical status pill for integrations/entities.
+ * Maps a semantic status to a token-based tone; never hardcodes color.
+ */
+export type EntityStatus =
+  | "unconfigured"
+  | "testing"
+  | "active"
+  | "error"
+  | "planned";
+
+const STATUS_MAP: Record<
+  EntityStatus,
+  { label: string; className: string }
+> = {
+  unconfigured: { label: "Não configurado", className: "bg-muted text-muted-foreground" },
+  testing: { label: "Em teste", className: "bg-warning/15 text-warning-foreground" },
+  active: { label: "Ativo", className: "bg-success/15 text-success" },
+  error: { label: "Erro", className: "bg-destructive/10 text-destructive" },
+  planned: { label: "Planejado", className: "bg-accent text-accent-foreground" },
+};
+
+export function StatusBadge({
+  status,
+  label,
+  className,
+}: {
+  status: EntityStatus;
+  label?: string;
+  className?: string;
+}) {
+  const cfg = STATUS_MAP[status];
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+        cfg.className,
+        className,
+      )}
+    >
+      {label ?? cfg.label}
+    </span>
+  );
+}
+
+/**
+ * SectionFrame — canonical wrapper for a titled content section with
+ * consistent spacing. Presentation only.
+ */
+export function SectionFrame({
+  eyebrow,
+  title,
+  action,
+  children,
+  className,
+}: {
+  eyebrow?: string;
+  title?: ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn("mx-auto max-w-screen-xl px-4 md:px-6", className)}>
+      {(title || action) && (
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            {eyebrow ? <p className="eyebrow text-primary">{eyebrow}</p> : null}
+            {title ? (
+              <h2 className="text-editorial text-2xl text-foreground sm:text-3xl">
+                {title}
+              </h2>
+            ) : null}
+          </div>
+          {action ? <div>{action}</div> : null}
+        </div>
+      )}
+      {children}
+    </section>
+  );
+}
