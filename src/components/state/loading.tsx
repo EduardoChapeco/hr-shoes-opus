@@ -1,9 +1,34 @@
+import { Loader2 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /**
- * Loading skeletons — no layout shift (DESIGN.md §5).
+ * Loading skeletons and status — no layout shift (DESIGN.md §5).
  */
+
+/** Canonical centered loading indicator with accessible status text. */
+export function LoadingState({
+  label = "Carregando…",
+  className,
+}: {
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={cn(
+        "flex flex-col items-center justify-center gap-3 px-6 py-12 text-center",
+        className,
+      )}
+    >
+      <Loader2 className="size-6 animate-spin text-muted-foreground motion-reduce:animate-none" aria-hidden />
+      <span className="text-sm text-muted-foreground">{label}</span>
+    </div>
+  );
+}
 
 export function ProductCardSkeleton() {
   return (
