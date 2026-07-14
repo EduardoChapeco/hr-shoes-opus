@@ -3,7 +3,12 @@ import { useState } from "react";
 import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getCart, removeFromCart, updateCartItemQty, applyCouponToCart } from "@/services/cart.functions";
+import {
+  getCart,
+  removeFromCart,
+  updateCartItemQty,
+  applyCouponToCart,
+} from "@/services/cart.functions";
 import { Trash2, Plus, Minus, ArrowRight, Ticket } from "lucide-react";
 import { EmptyState } from "@/components/state/states";
 import { toast } from "sonner";
@@ -12,7 +17,16 @@ export const Route = createFileRoute("/_store/carrinho")({
   head: () => ({ meta: [{ title: "Meu Carrinho — Hr Shoes" }] }),
   loader: async () => {
     const cart = await getCart();
-    return cart || { items: [], totalCents: 0, subtotalCents: 0, discountCents: 0, itemCount: 0, couponCode: null };
+    return (
+      cart || {
+        items: [],
+        totalCents: 0,
+        subtotalCents: 0,
+        discountCents: 0,
+        itemCount: 0,
+        couponCode: null,
+      }
+    );
   },
   component: StoreCartPage,
 });
@@ -20,7 +34,7 @@ export const Route = createFileRoute("/_store/carrinho")({
 function StoreCartPage() {
   const cart = Route.useLoaderData();
   const router = useRouter();
-  
+
   const [coupon, setCoupon] = useState("");
   const [isApplying, setIsApplying] = useState(false);
 
@@ -79,7 +93,11 @@ function StoreCartPage() {
               <div key={item.id} className="flex gap-6 py-6 border-b">
                 <div className="h-32 w-24 flex-shrink-0 overflow-hidden rounded-md border border-muted bg-muted">
                   {item.coverUrl ? (
-                    <img src={item.coverUrl} alt={item.productTitle} className="h-full w-full object-cover" />
+                    <img
+                      src={item.coverUrl}
+                      alt={item.productTitle}
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
                     <div className="h-full w-full bg-secondary" />
                   )}
@@ -89,22 +107,38 @@ function StoreCartPage() {
                     <div>
                       <h3 className="font-semibold text-base">{item.productTitle}</h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Cor: {item.variantAttributes?.color || "Padrão"} | Tam: {item.variantAttributes?.size || "Único"}
+                        Cor: {item.variantAttributes?.color || "Padrão"} | Tam:{" "}
+                        {item.variantAttributes?.size || "Único"}
                       </p>
                     </div>
                     <p className="font-medium text-base">{formatMoney(item.priceCents)}</p>
                   </div>
                   <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center border rounded-md">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-r-none" onClick={() => handleUpdateQty(item.variantId, -1)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-r-none"
+                        onClick={() => handleUpdateQty(item.variantId, -1)}
+                      >
                         <Minus className="h-3 w-3" />
                       </Button>
                       <span className="text-sm font-medium w-8 text-center">{item.qty}</span>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-l-none" onClick={() => handleUpdateQty(item.variantId, 1)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-l-none"
+                        onClick={() => handleUpdateQty(item.variantId, 1)}
+                      >
                         <Plus className="h-3 w-3" />
                       </Button>
                     </div>
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive" onClick={() => handleRemove(item.id)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={() => handleRemove(item.id)}
+                    >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Remover
                     </Button>
@@ -116,12 +150,12 @@ function StoreCartPage() {
 
           <div className="bg-muted/50 rounded-xl p-6 h-fit sticky top-24">
             <h2 className="text-xl font-semibold mb-4">Resumo do Pedido</h2>
-            
+
             <form onSubmit={handleApplyCoupon} className="flex gap-2 mb-6">
-              <Input 
-                placeholder="Cupom de desconto" 
+              <Input
+                placeholder="Cupom de desconto"
                 value={coupon}
-                onChange={e => setCoupon(e.target.value)}
+                onChange={(e) => setCoupon(e.target.value)}
               />
               <Button type="submit" variant="secondary" disabled={isApplying || !coupon}>
                 Aplicar
@@ -133,7 +167,7 @@ function StoreCartPage() {
                 <span className="text-muted-foreground">Subtotal ({cart.itemCount} itens)</span>
                 <span className="font-medium">{formatMoney(cart.subtotalCents)}</span>
               </div>
-              
+
               {cart.couponCode && (
                 <div className="flex justify-between text-green-600">
                   <span className="flex items-center gap-1">
@@ -142,18 +176,20 @@ function StoreCartPage() {
                   <span className="font-medium">-{formatMoney(cart.discountCents)}</span>
                 </div>
               )}
-              
+
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Frete</span>
                 <span className="text-muted-foreground text-xs">Calculado no próximo passo</span>
               </div>
             </div>
-            
+
             <div className="flex justify-between items-end mb-8">
               <span className="font-semibold text-lg">Total estimado</span>
-              <span className="font-bold text-2xl tracking-tight">{formatMoney(cart.totalCents)}</span>
+              <span className="font-bold text-2xl tracking-tight">
+                {formatMoney(cart.totalCents)}
+              </span>
             </div>
-            
+
             <Link to="/checkout" className="w-full">
               <Button size="lg" className="w-full font-semibold rounded-full shadow-md">
                 Finalizar Compra
@@ -161,7 +197,10 @@ function StoreCartPage() {
               </Button>
             </Link>
             <div className="mt-4 text-center">
-              <Link to="/catalogo" className="text-sm text-muted-foreground underline hover:text-foreground">
+              <Link
+                to="/catalogo"
+                className="text-sm text-muted-foreground underline hover:text-foreground"
+              >
                 Continuar comprando
               </Link>
             </div>

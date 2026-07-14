@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { listSocialPosts, createSocialPost } from "@/services/marketing-engagement.functions";
 import { EmptyState } from "@/components/state/states";
 
@@ -33,11 +39,11 @@ function CreatorPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content) return;
-    
+
     setIsSaving(true);
     try {
       const res = await createSocialPost({
-        data: { platform, content_text: content }
+        data: { platform, content_text: content },
       });
       if (res.status === "success") {
         toast.success("Post arquivado!");
@@ -90,11 +96,11 @@ function CreatorPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Legenda / Texto</label>
-                <Textarea 
-                  placeholder="Escreva a legenda do post..." 
+                <Textarea
+                  placeholder="Escreva a legenda do post..."
                   className="min-h-[150px]"
                   value={content}
-                  onChange={e => setContent(e.target.value)}
+                  onChange={(e) => setContent(e.target.value)}
                   required
                 />
               </div>
@@ -119,7 +125,9 @@ function CreatorPage() {
                 <Card key={post.id}>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
-                      <Badge variant="secondary" className="capitalize">{post.platform}</Badge>
+                      <Badge variant="secondary" className="capitalize">
+                        {post.platform}
+                      </Badge>
                       <span className="text-xs text-muted-foreground">
                         {new Date(post.created_at).toLocaleDateString("pt-BR")}
                       </span>
@@ -129,7 +137,11 @@ function CreatorPage() {
                     <p className="text-sm whitespace-pre-wrap">{post.content_text}</p>
                   </CardContent>
                   <CardFooter className="pt-2 border-t flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(post.content_text)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(post.content_text)}
+                    >
                       <Copy className="mr-2 h-4 w-4" /> Copiar Texto
                     </Button>
                   </CardFooter>

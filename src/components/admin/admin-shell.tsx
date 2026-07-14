@@ -86,11 +86,6 @@ function NavLinks({ collapsed = false }: { collapsed?: boolean }) {
                   >
                     <Icon className="size-5 shrink-0" aria-hidden />
                     {!collapsed ? <span className="flex-1 truncate">{item.label}</span> : null}
-                    {!collapsed && item.planned ? (
-                      <Badge variant="secondary" className="shrink-0 text-badge">
-                        Em breve
-                      </Badge>
-                    ) : null}
                   </Link>
                 </li>
               );

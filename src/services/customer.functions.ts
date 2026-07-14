@@ -15,7 +15,9 @@ const AddressSchema = z.object({
 
 export const getCustomerAddresses = createServerFn({ method: "GET" }).handler(async () => {
   const ssrClient = getSSRClient();
-  const { data: { user } } = await ssrClient.auth.getUser();
+  const {
+    data: { user },
+  } = await ssrClient.auth.getUser();
   if (!user) throw new Error("Não autorizado");
 
   const supabase = getServerClient();
@@ -33,7 +35,9 @@ export const addCustomerAddress = createServerFn({ method: "POST" })
   .validator(AddressSchema)
   .handler(async ({ data: params }) => {
     const ssrClient = getSSRClient();
-    const { data: { user } } = await ssrClient.auth.getUser();
+    const {
+      data: { user },
+    } = await ssrClient.auth.getUser();
     if (!user) throw new Error("Não autorizado");
 
     const supabase = getServerClient();
@@ -59,7 +63,9 @@ export const deleteCustomerAddress = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     const ssrClient = getSSRClient();
-    const { data: { user } } = await ssrClient.auth.getUser();
+    const {
+      data: { user },
+    } = await ssrClient.auth.getUser();
     if (!user) throw new Error("Não autorizado");
 
     const supabase = getServerClient();
@@ -77,11 +83,13 @@ export const setDefaultAddress = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     const ssrClient = getSSRClient();
-    const { data: { user } } = await ssrClient.auth.getUser();
+    const {
+      data: { user },
+    } = await ssrClient.auth.getUser();
     if (!user) throw new Error("Não autorizado");
 
     const supabase = getServerClient();
-    
+
     // Unset current default
     await supabase
       .from("customer_addresses")

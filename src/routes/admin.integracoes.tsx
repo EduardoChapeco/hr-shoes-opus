@@ -6,7 +6,14 @@ import { Settings2, Save } from "lucide-react";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { listIntegrations, upsertIntegration } from "@/services/growth.functions";
 
@@ -25,7 +32,12 @@ function IntegrationsPage() {
   const router = useRouter();
 
   const getIntegration = (provider: string) => {
-    return integrations.find((i: any) => i.provider === provider) || { is_active: false, credentials: {} };
+    return (
+      integrations.find((i: any) => i.provider === provider) || {
+        is_active: false,
+        credentials: {},
+      }
+    );
   };
 
   const [metaPixel, setMetaPixel] = useState(getIntegration("meta_pixel"));
@@ -39,8 +51,8 @@ function IntegrationsPage() {
         data: {
           provider,
           is_active: state.is_active,
-          credentials: state.credentials
-        }
+          credentials: state.credentials,
+        },
       });
       if (res.status === "success") {
         toast.success("Integração salva com sucesso!");
@@ -75,32 +87,36 @@ function IntegrationsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Status da Integração</span>
-              <Switch 
+              <Switch
                 checked={metaPixel.is_active}
                 onCheckedChange={(c) => setMetaPixel({ ...metaPixel, is_active: c })}
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">ID do Pixel</label>
-              <Input 
-                placeholder="Ex: 1234567890" 
+              <Input
+                placeholder="Ex: 1234567890"
                 value={metaPixel.credentials?.pixel_id || ""}
-                onChange={(e) => setMetaPixel({
-                  ...metaPixel, 
-                  credentials: { ...metaPixel.credentials, pixel_id: e.target.value }
-                })}
+                onChange={(e) =>
+                  setMetaPixel({
+                    ...metaPixel,
+                    credentials: { ...metaPixel.credentials, pixel_id: e.target.value },
+                  })
+                }
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Token de Conversão (API) - Opcional</label>
-              <Input 
+              <Input
                 type="password"
-                placeholder="Token de Acesso" 
+                placeholder="Token de Acesso"
                 value={metaPixel.credentials?.access_token || ""}
-                onChange={(e) => setMetaPixel({
-                  ...metaPixel, 
-                  credentials: { ...metaPixel.credentials, access_token: e.target.value }
-                })}
+                onChange={(e) =>
+                  setMetaPixel({
+                    ...metaPixel,
+                    credentials: { ...metaPixel.credentials, access_token: e.target.value },
+                  })
+                }
               />
             </div>
           </CardContent>
@@ -123,25 +139,30 @@ function IntegrationsPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Status da Integração</span>
-              <Switch 
+              <Switch
                 checked={googleAnalytics.is_active}
                 onCheckedChange={(c) => setGoogleAnalytics({ ...googleAnalytics, is_active: c })}
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">ID de Medição (Measurement ID)</label>
-              <Input 
-                placeholder="Ex: G-XXXXXXXXXX" 
+              <Input
+                placeholder="Ex: G-XXXXXXXXXX"
                 value={googleAnalytics.credentials?.measurement_id || ""}
-                onChange={(e) => setGoogleAnalytics({
-                  ...googleAnalytics, 
-                  credentials: { ...googleAnalytics.credentials, measurement_id: e.target.value }
-                })}
+                onChange={(e) =>
+                  setGoogleAnalytics({
+                    ...googleAnalytics,
+                    credentials: { ...googleAnalytics.credentials, measurement_id: e.target.value },
+                  })
+                }
               />
             </div>
           </CardContent>
           <CardFooter>
-            <Button disabled={isSaving} onClick={() => handleSave("google_analytics", googleAnalytics)}>
+            <Button
+              disabled={isSaving}
+              onClick={() => handleSave("google_analytics", googleAnalytics)}
+            >
               <Save className="mr-2 h-4 w-4" /> Salvar Configuração
             </Button>
           </CardFooter>

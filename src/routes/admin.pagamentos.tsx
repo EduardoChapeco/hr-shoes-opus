@@ -31,7 +31,7 @@ function AdminPaymentsPage() {
   const handleApprove = async (id: string) => {
     const res = await updateOrderStatus({ data: { orderId: id, status: "paid" } });
     if (res.status === "ok") {
-      setPayments(payments.map((p: any) => p.id === id ? { ...p, status: "paid" } : p));
+      setPayments(payments.map((p: any) => (p.id === id ? { ...p, status: "paid" } : p)));
     } else {
       alert("Erro ao aprovar");
     }
@@ -76,9 +76,13 @@ function AdminPaymentsPage() {
                     <TableCell>{formatMoney(p.total_cents)}</TableCell>
                     <TableCell>
                       {p.status === "awaiting_payment" ? (
-                        <Badge variant="outline" className="text-yellow-600 border-yellow-600">Aguardando</Badge>
+                        <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                          Aguardando
+                        </Badge>
                       ) : (
-                        <Badge variant="default" className="bg-green-600">Aprovado</Badge>
+                        <Badge variant="default" className="bg-green-600">
+                          Aprovado
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">

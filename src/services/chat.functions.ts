@@ -37,11 +37,13 @@ export const listChatThreads = createServerFn({ method: "GET" }).handler(async (
 
     const { data, error } = await db
       .from("chat_threads")
-      .select(`
+      .select(
+        `
         id, status, subject, updated_at, guest_name, guest_email,
         users:customer_id (id),
         chat_messages (id, message, created_at, is_staff_reply)
-      `)
+      `,
+      )
       .eq("store_id", identity.store_id)
       .order("updated_at", { ascending: false });
 
@@ -50,7 +52,9 @@ export const listChatThreads = createServerFn({ method: "GET" }).handler(async (
     // Transform for UI (get last message)
     const formattedData = data.map((thread: any) => {
       const messages = thread.chat_messages || [];
-      messages.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      messages.sort(
+        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
       const lastMessage = messages[0];
 
       return {
@@ -103,7 +107,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     z.object({
       threadId: z.string().uuid(),
       message: z.string().min(1),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
@@ -128,7 +132,10 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       if (error) throw error;
 
       // Update thread updated_at
-      await db.from("chat_threads").update({ updated_at: new Date().toISOString() }).eq("id", input.threadId);
+      await db
+        .from("chat_threads")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", input.threadId);
 
       return { status: "success" as const, data };
     } catch (e: unknown) {

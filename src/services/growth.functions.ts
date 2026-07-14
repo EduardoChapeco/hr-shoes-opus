@@ -89,7 +89,8 @@ export const upsertCoupon = createServerFn({ method: "POST" })
       return { status: "success" as const, data: result.data };
     } catch (e: any) {
       console.error("[growth] upsertCoupon error:", e);
-      if (e.code === "23505") return { status: "error" as const, message: "Código de cupom já existe." };
+      if (e.code === "23505")
+        return { status: "error" as const, message: "Código de cupom já existe." };
       return { status: "error" as const, message: "Erro ao salvar cupom." };
     }
   });
@@ -123,13 +124,13 @@ export const upsertIntegration = createServerFn({ method: "POST" })
       provider: z.enum(["meta_pixel", "google_analytics", "melhor_envio", "nuvemshop", "webhook"]),
       credentials: z.record(z.any()),
       is_active: z.boolean(),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
       const identity = await getAdminIdentity();
       if (identity.role !== "owner" && identity.role !== "admin") {
-         throw new Error("Apenas administradores podem gerenciar integrações.");
+        throw new Error("Apenas administradores podem gerenciar integrações.");
       }
 
       const db = getServerClient();
@@ -143,7 +144,7 @@ export const upsertIntegration = createServerFn({ method: "POST" })
             credentials: input.credentials,
             is_active: input.is_active,
           },
-          { onConflict: "store_id,provider" }
+          { onConflict: "store_id,provider" },
         )
         .select()
         .single();

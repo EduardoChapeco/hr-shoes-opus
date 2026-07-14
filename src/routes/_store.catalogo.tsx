@@ -117,10 +117,9 @@ function CatalogPage() {
                 <SheetTitle>Filtros</SheetTitle>
               </SheetHeader>
               <div className="py-6">
-                <EmptyState
-                  title="Filtros disponíveis na Fase 3"
-                  description="Os filtros por categoria, cor, tamanho e preço serão ativados na próxima fase."
-                />
+                <p className="text-sm text-muted-foreground text-center">
+                  Selecione filtros no topo para refinar os resultados.
+                </p>
               </div>
             </SheetContent>
           </Sheet>

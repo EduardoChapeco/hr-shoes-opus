@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { getAdminPageDetails, savePageSections } from "@/services/cms.functions";
 import { EmptyState } from "@/components/state/states";
+import { cmsRegistry, cmsBlocksList, type CmsFieldDef } from "@/lib/cms-registry";
 
 export const Route = createFileRoute("/admin/cms/paginas/$id/editor")({
   head: () => ({ meta: [{ title: "Editor de Página — Hr Shoes" }] }),
@@ -29,11 +30,9 @@ export const Route = createFileRoute("/admin/cms/paginas/$id/editor")({
   component: PageEditor,
 });
 
-type SectionType = "hero" | "text" | "product_grid" | "image" | "spacer";
-
 interface SectionData {
   id?: string;
-  section_type: SectionType;
+  section_type: string;
   content: Record<string, unknown>;
   sort_order: number;
 }
@@ -50,7 +49,7 @@ function PageEditor() {
         sort_order: number;
       }) => ({
         id: s.id,
-        section_type: s.section_type as SectionType,
+        section_type: s.section_type,
         content: s.content,
         sort_order: s.sort_order,
       }),
@@ -62,29 +61,15 @@ function PageEditor() {
     setSections([
       ...sections,
       {
-        section_type: "text",
-        content: { text: "Novo bloco de texto" },
+        section_type: cmsBlocksList[0].type,
+        content: {},
         sort_order: sections.length,
       },
     ]);
   };
 
   const removeSection = (index: number) => {
-    const newSections = [...sections];
-    newSections.splice(index, 1);
-    setSections(newSections.map((s, i) => ({ ...s, sort_order: i })));
-  };
-
-  const updateSection = (index: number, key: string, value: unknown) => {
-    const newSections = [...sections];
-    newSections[index] = { ...newSections[index], [key]: value };
-    setSections(newSections);
-  };
-
-  const updateSectionContent = (index: number, contentKey: string, value: unknown) => {
-    const newSections = [...sections];
-    newSections[index].content = { ...newSections[index].content, [contentKey]: value };
-    setSections(newSections);
+    setSections(sections.filter((_, i) => i !== index));
   };
 
   const moveUp = (index: number) => {
@@ -93,136 +78,176 @@ function PageEditor() {
     const temp = newSections[index];
     newSections[index] = newSections[index - 1];
     newSections[index - 1] = temp;
-    setSections(newSections.map((s, i) => ({ ...s, sort_order: i })));
+    setSections(newSections);
+  };
+
+  const updateSection = (index: number, key: string, value: string) => {
+    const newSections = [...sections];
+    if (key === "section_type") {
+      newSections[index].section_type = value;
+      newSections[index].content = {};
+    }
+    setSections(newSections);
+  };
+
+  const updateSectionContent = (index: number, key: string, value: unknown) => {
+    const newSections = [...sections];
+    newSections[index].content = {
+      ...newSections[index].content,
+      [key]: value,
+    };
+    setSections(newSections);
   };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const res = await savePageSections({ data: { page_id: page.id, sections } });
+      // Reassign sort orders based on array position
+      const payload = sections.map((s, i) => ({
+        id: s.id,
+        section_type: s.section_type,
+        content: s.content,
+        sort_order: i,
+      }));
+
+      const res = await savePageSections({ data: { pageId: page.id, sections: payload } });
       if (res.status === "error") throw new Error(res.message);
-      toast.success("Página salva com sucesso!");
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Erro ao salvar.");
+
+      toast.success("Página salva com sucesso");
+      navigate({ to: "/admin/cms/paginas" });
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao salvar página");
     } finally {
       setIsSaving(false);
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" asChild>
-            <Link to="/admin/cms/paginas">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <PageHeader title={`Editando: ${page.title}`} description={`/${page.slug}`} />
+  const renderDynamicField = (index: number, field: CmsFieldDef, section: SectionData) => {
+    const value = String(section.content[field.name] || "");
+
+    if (field.type === "text") {
+      return (
+        <div key={field.name} className="space-y-2">
+          <Label>{field.label}</Label>
+          <Input
+            value={value}
+            onChange={(e) => updateSectionContent(index, field.name, e.target.value)}
+            placeholder={`Digite ${field.label.toLowerCase()}...`}
+          />
         </div>
-        <Button onClick={handleSave} disabled={isSaving}>
-          <Save className="mr-2 h-4 w-4" />
-          {isSaving ? "Salvando..." : "Salvar alterações"}
+      );
+    }
+
+    if (field.type === "image") {
+      return (
+        <div key={field.name} className="space-y-2">
+          <Label>{field.label}</Label>
+          <Input
+            type="url"
+            value={value}
+            onChange={(e) => updateSectionContent(index, field.name, e.target.value)}
+            placeholder="https://..."
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div key={field.name} className="space-y-2">
+        <Label>{field.label}</Label>
+        <Input
+          value={value}
+          onChange={(e) => updateSectionContent(index, field.name, e.target.value)}
+        />
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-8 max-w-4xl pb-24">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" asChild>
+          <Link to="/admin/cms/paginas">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
         </Button>
+        <PageHeader title={`Editando: ${page.title}`} description={`Slug: /${page.slug}`} />
+        <div className="ml-auto">
+          <Button onClick={handleSave} disabled={isSaving}>
+            <Save className="mr-2 h-4 w-4" />
+            {isSaving ? "Salvando..." : "Salvar Página"}
+          </Button>
+        </div>
       </div>
 
-      <div className="max-w-3xl space-y-4">
+      <div className="space-y-4">
         {sections.length === 0 ? (
           <EmptyState
-            title="Nenhuma seção adicionada"
-            description="Esta página ainda está em branco."
+            title="Nenhum bloco"
+            description="Esta página ainda não possui conteúdo."
             action={
               <Button onClick={addSection}>
                 <Plus className="mr-2 h-4 w-4" />
-                Adicionar primeiro bloco
+                Adicionar Bloco
               </Button>
             }
           />
         ) : (
-          sections.map((section, index) => (
-            <Card key={index} className="relative">
-              <div className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center border-r bg-muted/50 rounded-l-md cursor-grab">
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <CardContent className="pl-12 pt-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 space-y-4">
-                    <div className="space-y-2">
-                      <Label>Tipo de Bloco</Label>
-                      <Select
-                        value={section.section_type}
-                        onValueChange={(v) => updateSection(index, "section_type", v)}
-                      >
-                        <SelectTrigger className="w-full sm:w-[200px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="hero">Hero Banner</SelectItem>
-                          <SelectItem value="text">Texto Simples</SelectItem>
-                          <SelectItem value="product_grid">Vitrine de Produtos</SelectItem>
-                          <SelectItem value="image">Imagem</SelectItem>
-                          <SelectItem value="spacer">Espaçamento</SelectItem>
-                        </SelectContent>
-                      </Select>
+          sections.map((section, index) => {
+            const blockDef = cmsRegistry[section.section_type];
+            return (
+              <Card key={index} className="relative">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="mt-2 cursor-move text-muted-foreground">
+                      <GripVertical className="h-5 w-5" />
                     </div>
 
-                    {section.section_type === "text" && (
+                    <div className="flex-1 space-y-4">
                       <div className="space-y-2">
-                        <Label>Conteúdo do Texto</Label>
-                        <Input
-                          value={String(section.content.text || "")}
-                          onChange={(e) => updateSectionContent(index, "text", e.target.value)}
-                          placeholder="Digite o texto do bloco..."
-                        />
+                        <Label>Tipo de Bloco</Label>
+                        <Select
+                          value={section.section_type}
+                          onValueChange={(v) => updateSection(index, "section_type", v)}
+                        >
+                          <SelectTrigger className="w-full sm:w-[250px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {cmsBlocksList.map((block) => (
+                              <SelectItem key={block.type} value={block.type}>
+                                {block.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                    )}
 
-                    {section.section_type === "hero" && (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label>Título (Hero)</Label>
-                          <Input
-                            value={String(section.content.title || "")}
-                            onChange={(e) => updateSectionContent(index, "title", e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Subtítulo</Label>
-                          <Input
-                            value={String(section.content.subtitle || "")}
-                            onChange={(e) =>
-                              updateSectionContent(index, "subtitle", e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>URL da Imagem de Fundo</Label>
-                          <Input
-                            value={String(section.content.bg_url || "")}
-                            onChange={(e) => updateSectionContent(index, "bg_url", e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                      {blockDef?.fields.map((field) => renderDynamicField(index, field, section))}
+                    </div>
 
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => moveUp(index)}
-                      disabled={index === 0}
-                    >
-                      Subir
-                    </Button>
-                    <Button variant="destructive" size="icon" onClick={() => removeSection(index)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => moveUp(index)}
+                        disabled={index === 0}
+                      >
+                        Subir
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => removeSection(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         )}
 
         {sections.length > 0 && (

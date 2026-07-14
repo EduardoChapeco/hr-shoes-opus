@@ -125,13 +125,64 @@ export const updateExchangeStatus = createServerFn({ method: "POST" })
       updates.resolved_at = new Date().toISOString();
     }
 
-    const { error } = await supabase
+    const { data: exchange, error } = await supabase
       .from("exchanges")
       .update(updates)
       .eq("id", exchangeId)
-      .eq("store_id", identity.store_id);
+      .eq("store_id", identity.store_id)
+      .select("order_id")
+      .single();
 
-    if (error) throw new Error("Erro ao atualizar status");
+    if (error || !exchange) throw new Error("Erro ao atualizar status");
+
+    // Side-effects
+    if (status === "received") {
+      // 1. Revert stock via adjust_stock(exchange_in)
+      const { data: orderItems } = await supabase
+        .from("order_items")
+        .select("variant_id, quantity")
+        .eq("order_id", exchange.order_id);
+
+      if (orderItems) {
+        for (const item of orderItems) {
+          await supabase.rpc("adjust_stock", {
+            p_variant_id: item.variant_id,
+            p_qty: item.quantity,
+            p_movement_type: "exchange_in",
+            p_note: `Troca/Devolução #${exchangeId.split("-")[0]}`,
+            p_reference_type: "exchange",
+            p_reference_id: exchangeId,
+          });
+        }
+      }
+    }
+
+    if (status === "refunded") {
+      // 2. Add cash register entry (outflow)
+      const { data: activeRegister } = await supabase
+        .from("cash_registers")
+        .select("id")
+        .eq("store_id", identity.store_id)
+        .eq("status", "open")
+        .limit(1)
+        .maybeSingle();
+
+      if (activeRegister && refundCents) {
+        await supabase.from("cash_register_entries").insert({
+          register_id: activeRegister.id,
+          amount_cents: refundCents,
+          type: "out",
+          method: "other",
+          description: `Estorno Devolução #${exchangeId.split("-")[0]}`,
+          reference_type: "exchange",
+          reference_id: exchangeId,
+          actor_id: identity.id,
+        });
+      }
+
+      // Update order status to refunded
+      await supabase.from("orders").update({ status: "refunded" }).eq("id", exchange.order_id);
+    }
 
     return { status: "success" };
   });

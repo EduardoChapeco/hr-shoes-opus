@@ -21,7 +21,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { listCoupons, upsertCoupon } from "@/services/growth.functions";
 import { formatMoney } from "@/lib/money";
@@ -40,18 +46,18 @@ export const Route = createFileRoute("/admin/marketing/cupons")({
 function CouponsPage() {
   const coupons = Route.useLoaderData() || [];
   const router = useRouter();
-  
+
   const [open, setOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  
+
   const [code, setCode] = useState("");
   const [type, setType] = useState<"percentage" | "fixed_amount" | "free_shipping">("percentage");
   const [value, setValue] = useState("");
-  
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!code || !value) return;
-    
+
     setIsSaving(true);
     try {
       const res = await upsertCoupon({
@@ -59,10 +65,10 @@ function CouponsPage() {
           code: code.toUpperCase(),
           discount_type: type,
           discount_value: parseFloat(value),
-          is_active: true
-        }
+          is_active: true,
+        },
       });
-      
+
       if (res.status === "success") {
         toast.success("Cupom salvo!");
         setOpen(false);
@@ -99,10 +105,10 @@ function CouponsPage() {
               <form onSubmit={handleSave} className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Código</label>
-                  <Input 
-                    placeholder="Ex: BEMVINDO10" 
-                    value={code} 
-                    onChange={e => setCode(e.target.value.toUpperCase())}
+                  <Input
+                    placeholder="Ex: BEMVINDO10"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.toUpperCase())}
                     required
                   />
                 </div>
@@ -122,12 +128,12 @@ function CouponsPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Valor</label>
-                    <Input 
-                      type="number" 
-                      step="0.01" 
-                      placeholder="Ex: 10" 
-                      value={value} 
-                      onChange={e => setValue(e.target.value)}
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="Ex: 10"
+                      value={value}
+                      onChange={(e) => setValue(e.target.value)}
                       disabled={type === "free_shipping"}
                       required={type !== "free_shipping"}
                     />
@@ -163,9 +169,11 @@ function CouponsPage() {
                 <TableRow key={c.id}>
                   <TableCell className="font-semibold">{c.code}</TableCell>
                   <TableCell>
-                    {c.discount_type === "percentage" ? `${c.discount_value}%` : 
-                     c.discount_type === "free_shipping" ? "Frete Grátis" :
-                     formatMoney(c.discount_value * 100)}
+                    {c.discount_type === "percentage"
+                      ? `${c.discount_value}%`
+                      : c.discount_type === "free_shipping"
+                        ? "Frete Grátis"
+                        : formatMoney(c.discount_value * 100)}
                   </TableCell>
                   <TableCell>
                     {c.uses_count} {c.max_uses ? `/ ${c.max_uses}` : ""}

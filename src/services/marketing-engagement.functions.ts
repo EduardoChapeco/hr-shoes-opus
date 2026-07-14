@@ -54,7 +54,7 @@ export const updateAbandonedCartStatus = createServerFn({ method: "POST" })
     z.object({
       id: z.string().uuid(),
       status: z.enum(["pending", "recovered", "lost", "contacted"]),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
@@ -109,7 +109,7 @@ export const upsertMatchTimeCampaign = createServerFn({ method: "POST" })
       starts_at: z.string(),
       ends_at: z.string(),
       status: z.enum(["draft", "active", "finished"]),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
@@ -128,7 +128,12 @@ export const upsertMatchTimeCampaign = createServerFn({ method: "POST" })
 
       let result;
       if (input.id) {
-        result = await db.from("match_time_campaigns").update(payload).eq("id", input.id).select().single();
+        result = await db
+          .from("match_time_campaigns")
+          .update(payload)
+          .eq("id", input.id)
+          .select()
+          .single();
       } else {
         result = await db.from("match_time_campaigns").insert(payload).select().single();
       }
@@ -169,7 +174,7 @@ export const createSocialPost = createServerFn({ method: "POST" })
     z.object({
       platform: z.string(),
       content_text: z.string(),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {

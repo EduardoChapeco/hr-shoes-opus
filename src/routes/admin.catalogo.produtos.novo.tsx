@@ -65,15 +65,15 @@ function NewProductPage() {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
       setFiles((prev) => [...prev, ...newFiles]);
-      
-      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+
+      const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
       setPreviewUrls((prev) => [...prev, ...newPreviews]);
     }
   };
 
   const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
-    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
   const onSubmit = async (values: {
@@ -90,7 +90,7 @@ function NewProductPage() {
 
       // Upload files first
       for (const file of files) {
-        const fileExt = file.name.split('.').pop();
+        const fileExt = file.name.split(".").pop();
         const fileName = `${values.slug}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         const { data, error } = await supabase.storage
           .from("product-media")
@@ -101,7 +101,7 @@ function NewProductPage() {
           setIsSubmitting(false);
           return;
         }
-        
+
         const { data: publicData } = supabase.storage.from("product-media").getPublicUrl(data.path);
         media_urls.push(publicData.publicUrl);
       }
@@ -290,9 +290,12 @@ function NewProductPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {previewUrls.map((url, i) => (
-                <div key={i} className="relative aspect-square border rounded-md overflow-hidden bg-muted group">
+                <div
+                  key={i}
+                  className="relative aspect-square border rounded-md overflow-hidden bg-muted group"
+                >
                   <img src={url} alt={`Preview ${i}`} className="object-cover w-full h-full" />
-                  <button 
+                  <button
                     type="button"
                     onClick={() => removeFile(i)}
                     className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -304,12 +307,12 @@ function NewProductPage() {
               <Label className="flex flex-col items-center justify-center border-2 border-dashed rounded-md aspect-square cursor-pointer hover:bg-muted/50 transition-colors">
                 <ImagePlus className="w-8 h-8 text-muted-foreground mb-2" />
                 <span className="text-sm font-medium text-muted-foreground">Adicionar Fotos</span>
-                <input 
-                  type="file" 
-                  multiple 
-                  accept="image/*" 
-                  className="hidden" 
-                  onChange={handleFileChange} 
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
                 />
               </Label>
             </div>

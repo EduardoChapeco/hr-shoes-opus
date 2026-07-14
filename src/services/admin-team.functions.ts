@@ -59,7 +59,7 @@ export const updateTeamMemberRole = createServerFn({ method: "POST" })
     z.object({
       id: z.string().uuid(),
       role: z.enum(["owner", "admin", "manager", "seller", "finance", "content", "customer"]),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {

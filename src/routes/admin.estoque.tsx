@@ -43,7 +43,7 @@ function AdminStockPage() {
           qty,
           movementType: type,
           note: type === "damage" ? "Avaria reportada" : "Ajuste manual",
-        }
+        },
       });
       if (res.status === "ok") {
         // Optimistic update
@@ -53,7 +53,7 @@ function AdminStockPage() {
               return { ...v, stock_on_hand: Math.max(0, v.stock_on_hand + qty) };
             }
             return v;
-          })
+          }),
         );
       } else {
         alert(res.message);
@@ -65,9 +65,10 @@ function AdminStockPage() {
     }
   };
 
-  const filteredStock = stock.filter((v: any) => 
-    v.sku.toLowerCase().includes(search.toLowerCase()) || 
-    (v.products?.title || "").toLowerCase().includes(search.toLowerCase())
+  const filteredStock = stock.filter(
+    (v: any) =>
+      v.sku.toLowerCase().includes(search.toLowerCase()) ||
+      (v.products?.title || "").toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -111,18 +112,16 @@ function AdminStockPage() {
             <TableBody>
               {filteredStock.map((variant: any) => (
                 <TableRow key={variant.id}>
-                  <TableCell className="font-mono text-sm font-medium">
-                    {variant.sku}
-                  </TableCell>
+                  <TableCell className="font-mono text-sm font-medium">{variant.sku}</TableCell>
                   <TableCell>
                     {variant.products?.title}
                     {variant.products?.status !== "published" && (
-                      <Badge variant="secondary" className="ml-2 text-[10px]">Inativo</Badge>
+                      <Badge variant="secondary" className="ml-2 text-[10px]">
+                        Inativo
+                      </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {variant.stock_on_hand}
-                  </TableCell>
+                  <TableCell className="text-right font-medium">{variant.stock_on_hand}</TableCell>
                   <TableCell className="text-right text-muted-foreground">
                     {variant.stock_reserved}
                   </TableCell>

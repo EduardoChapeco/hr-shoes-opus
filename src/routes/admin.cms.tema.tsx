@@ -106,8 +106,13 @@ function ThemeSettingsPage() {
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label>Fonte de Títulos</Label>
-              <Select defaultValue={theme.font_heading} onValueChange={(v) => setValue("font_heading", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                defaultValue={theme.font_heading}
+                onValueChange={(v) => setValue("font_heading", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Fraunces">Fraunces (Serifada Clássica)</SelectItem>
                   <SelectItem value="Playfair Display">Playfair Display (Elegante)</SelectItem>
@@ -117,8 +122,13 @@ function ThemeSettingsPage() {
             </div>
             <div className="space-y-2">
               <Label>Fonte de Textos</Label>
-              <Select defaultValue={theme.font_body} onValueChange={(v) => setValue("font_body", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                defaultValue={theme.font_body}
+                onValueChange={(v) => setValue("font_body", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Manrope">Manrope (Limpa)</SelectItem>
                   <SelectItem value="Roboto">Roboto (Padrão)</SelectItem>
@@ -128,8 +138,13 @@ function ThemeSettingsPage() {
             </div>
             <div className="space-y-2">
               <Label>Arredondamento de Bordas (Botões/Cards)</Label>
-              <Select defaultValue={theme.border_radius} onValueChange={(v) => setValue("border_radius", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                defaultValue={theme.border_radius}
+                onValueChange={(v) => setValue("border_radius", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="0rem">Quadrado (0rem)</SelectItem>
                   <SelectItem value="0.25rem">Suave (0.25rem)</SelectItem>

@@ -515,7 +515,10 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
     }
 
     if (coupon.min_order_cents && cartDetails.subtotalCents < coupon.min_order_cents) {
-      return { status: "error", message: `Valor mínimo para este cupom é ${(coupon.min_order_cents / 100).toFixed(2)}` };
+      return {
+        status: "error",
+        message: `Valor mínimo para este cupom é ${(coupon.min_order_cents / 100).toFixed(2)}`,
+      };
     }
 
     // Calculate discount
@@ -524,18 +527,22 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
       newDiscountCents = Math.floor(cartDetails.subtotalCents * (coupon.discount_value / 100));
     } else if (coupon.discount_type === "fixed_amount") {
       newDiscountCents = Math.round(coupon.discount_value * 100);
-      if (newDiscountCents > cartDetails.subtotalCents) newDiscountCents = cartDetails.subtotalCents;
+      if (newDiscountCents > cartDetails.subtotalCents)
+        newDiscountCents = cartDetails.subtotalCents;
     } else if (coupon.discount_type === "free_shipping") {
       // Actually we should apply this later during checkout or set a flag.
       // For now we set shipping to 0.
       newDiscountCents = 0;
     }
 
-    await supabase.from("carts").update({
-      coupon_code: code,
-      discount_cents: newDiscountCents,
-      shipping_cents: coupon.discount_type === "free_shipping" ? 0 : cartDetails.shippingCents // if it was free shipping
-    }).eq("id", cart.id);
+    await supabase
+      .from("carts")
+      .update({
+        coupon_code: code,
+        discount_cents: newDiscountCents,
+        shipping_cents: coupon.discount_type === "free_shipping" ? 0 : cartDetails.shippingCents, // if it was free shipping
+      })
+      .eq("id", cart.id);
 
     return { status: "success", message: "Cupom aplicado com sucesso!" };
   });

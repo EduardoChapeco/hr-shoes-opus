@@ -37,7 +37,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { getProductById, updateProduct, upsertProductVariant } from "@/services/admin-catalog.functions";
+import {
+  getProductById,
+  updateProduct,
+  upsertProductVariant,
+} from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/$id")({
   head: () => ({ meta: [{ title: "Editar Produto — Hr Shoes" }] }),
@@ -327,17 +331,29 @@ function VariantsManager({ product }: { product: any }) {
               </div>
               <div className="space-y-2">
                 <Label>Atributos Específicos (JSON)</Label>
-                <Textarea {...register("attributes")} placeholder='{"tamanho": "39", "cor": "Preto"}' />
-                <p className="text-xs text-muted-foreground">Formato JSON estrito com aspas duplas.</p>
+                <Textarea
+                  {...register("attributes")}
+                  placeholder='{"tamanho": "39", "cor": "Preto"}'
+                />
+                <p className="text-xs text-muted-foreground">
+                  Formato JSON estrito com aspas duplas.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label>Preço Específico (R$)</Label>
-                <Input step="0.01" type="number" {...register("price_override_cents")} placeholder="Opcional. Substitui o preço base." />
+                <Input
+                  step="0.01"
+                  type="number"
+                  {...register("price_override_cents")}
+                  placeholder="Opcional. Substitui o preço base."
+                />
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select onValueChange={(v) => setValue("status", v)} defaultValue="active">
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="active">Ativa</SelectItem>
                     <SelectItem value="inactive">Inativa</SelectItem>
@@ -345,8 +361,12 @@ function VariantsManager({ product }: { product: any }) {
                 </Select>
               </div>
               <DialogFooter>
-                <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
-                <Button type="submit" disabled={isSubmitting}>Salvar Variante</Button>
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  Salvar Variante
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -381,9 +401,7 @@ function VariantsManager({ product }: { product: any }) {
                       ? `R$ ${(variant.price_override_cents / 100).toFixed(2)}`
                       : "Padrão"}
                   </TableCell>
-                  <TableCell>
-                    {variant.stock_on_hand} un
-                  </TableCell>
+                  <TableCell>{variant.stock_on_hand} un</TableCell>
                   <TableCell>
                     <Badge variant={variant.status === "active" ? "default" : "secondary"}>
                       {variant.status === "active" ? "Ativa" : "Inativa"}

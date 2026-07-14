@@ -11,11 +11,11 @@ export const Route = createFileRoute("/admin/")({
   component: Dashboard,
 });
 
-const METRICS = [
-  { label: "Produtos publicados", icon: Package, phase: "Fase 1" },
-  { label: "Pedidos", icon: ShoppingCart, phase: "Fase 2" },
-  { label: "Estoque monitorado", icon: Boxes, phase: "Fase 1" },
-  { label: "Clientes", icon: Users, phase: "Fase 4" },
+const QUICK_LINKS = [
+  { label: "Produtos", icon: Package, to: "/admin/catalogo/produtos" },
+  { label: "Pedidos", icon: ShoppingCart, to: "/admin/pedidos" },
+  { label: "Estoque", icon: Boxes, to: "/admin/estoque" },
+  { label: "Clientes", icon: Users, to: "/admin/clientes" },
 ];
 
 function Dashboard() {
@@ -24,11 +24,11 @@ function Dashboard() {
       <PageHeader
         eyebrow="Painel"
         title="Visão geral"
-        description="Bem-vinda ao painel da Hr Shoes. Comece pelo onboarding para configurar sua loja."
+        description="Bem-vinda ao painel da Hr Shoes. Acesse os módulos abaixo ou veja os relatórios."
         actions={
           <Button asChild>
-            <Link to="/admin/onboarding">
-              Começar
+            <Link to="/admin/relatorios">
+              Ver relatórios
               <ArrowRight className="size-4" aria-hidden />
             </Link>
           </Button>
@@ -36,35 +36,62 @@ function Dashboard() {
       />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {METRICS.map((m) => (
-          <Card key={m.label}>
-            <CardHeader className="pb-2">
-              <m.icon className="size-5 text-primary" aria-hidden />
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm font-medium text-foreground">{m.label}</p>
-              <Badge variant="secondary" className="mt-2 text-badge">
-                {m.phase}
-              </Badge>
-            </CardContent>
+        {QUICK_LINKS.map((m) => (
+          <Card key={m.label} className="hover:shadow-md transition-shadow">
+            <Link to={m.to as never}>
+              <CardHeader className="pb-2">
+                <m.icon className="size-5 text-primary" aria-hidden />
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm font-medium text-foreground">{m.label}</p>
+                <p className="text-xs text-muted-foreground mt-1">Ver →</p>
+              </CardContent>
+            </Link>
           </Card>
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Configuração da loja</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground">
-          <p>
-            O sistema está na Fase 0 (fundação). Métricas, catálogo e pedidos reais serão ativados
-            nas próximas fases — nenhum dado é simulado.
-          </p>
-          <Button variant="outline" asChild>
-            <Link to="/admin/configuracoes/loja">Dados da loja</Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Configurações</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button variant="outline" size="sm" className="w-full" asChild>
+              <Link to="/admin/configuracoes/loja">Dados da Loja</Link>
+            </Button>
+            <Button variant="outline" size="sm" className="w-full" asChild>
+              <Link to="/admin/configuracoes/seo">SEO</Link>
+            </Button>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Financeiro</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button variant="outline" size="sm" className="w-full" asChild>
+              <Link to="/admin/caixa">Caixa</Link>
+            </Button>
+            <Button variant="outline" size="sm" className="w-full" asChild>
+              <Link to="/admin/relatorios">Relatórios</Link>
+            </Button>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Pós-venda</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button variant="outline" size="sm" className="w-full" asChild>
+              <Link to="/admin/pedidos/trocas">Trocas e Devoluções</Link>
+            </Button>
+            <Button variant="outline" size="sm" className="w-full" asChild>
+              <Link to="/admin/clientes">CRM</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

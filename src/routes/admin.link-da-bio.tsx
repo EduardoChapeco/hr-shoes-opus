@@ -106,13 +106,22 @@ function LinkInBioPage() {
                 <div key={field.id} className="flex items-end gap-4 p-4 border rounded-md">
                   <div className="flex-1 space-y-2">
                     <Label>Texto do Botão</Label>
-                    <Input {...register(`links.${index}.label`)} placeholder="Ex: Falar no WhatsApp" />
+                    <Input
+                      {...register(`links.${index}.label`)}
+                      placeholder="Ex: Falar no WhatsApp"
+                    />
                   </div>
                   <div className="flex-1 space-y-2">
                     <Label>URL de Destino</Label>
                     <Input {...register(`links.${index}.url`)} placeholder="https://..." />
                   </div>
-                  <Button type="button" variant="outline" size="icon" className="mb-0.5 text-destructive" onClick={() => remove(index)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="mb-0.5 text-destructive"
+                    onClick={() => remove(index)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -120,7 +129,11 @@ function LinkInBioPage() {
             </div>
 
             <div className="mt-6">
-              <Button type="button" variant="secondary" onClick={() => append({ label: "", url: "" })}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => append({ label: "", url: "" })}
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 Adicionar Botão
               </Button>

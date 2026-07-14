@@ -25,14 +25,14 @@ export const Route = createFileRoute("/admin/pedidos")({
 });
 
 function getStatusLabel(status: string) {
-  const map: Record<string, { label: string, variant: any }> = {
-    "draft": { label: "Rascunho", variant: "secondary" },
-    "awaiting_payment": { label: "Aguardando Pagto", variant: "outline" },
-    "paid": { label: "Pago", variant: "default" },
-    "processing": { label: "Processando", variant: "secondary" },
-    "shipped": { label: "Enviado", variant: "default" },
-    "delivered": { label: "Entregue", variant: "default" },
-    "cancelled": { label: "Cancelado", variant: "destructive" },
+  const map: Record<string, { label: string; variant: any }> = {
+    draft: { label: "Rascunho", variant: "secondary" },
+    awaiting_payment: { label: "Aguardando Pagto", variant: "outline" },
+    paid: { label: "Pago", variant: "default" },
+    processing: { label: "Processando", variant: "secondary" },
+    shipped: { label: "Enviado", variant: "default" },
+    delivered: { label: "Entregue", variant: "default" },
+    cancelled: { label: "Cancelado", variant: "destructive" },
   };
   return map[status] || { label: status, variant: "outline" };
 }
@@ -44,7 +44,7 @@ function AdminOrdersPage() {
   const handleStatusChange = async (id: string, newStatus: any) => {
     const res = await updateOrderStatus({ data: { orderId: id, status: newStatus } });
     if (res.status === "ok") {
-      setOrders(orders.map((o: any) => o.id === id ? { ...o, status: newStatus } : o));
+      setOrders(orders.map((o: any) => (o.id === id ? { ...o, status: newStatus } : o)));
     } else {
       alert("Erro ao atualizar status");
     }

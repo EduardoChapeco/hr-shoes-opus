@@ -21,7 +21,7 @@ function SearchPage() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
-    
+
     setIsSearching(true);
     setError(null);
     try {
@@ -40,12 +40,14 @@ function SearchPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-editorial text-foreground mb-8 text-center">Encontre o que procura</h1>
-      
+      <h1 className="text-3xl font-editorial text-foreground mb-8 text-center">
+        Encontre o que procura
+      </h1>
+
       <form onSubmit={handleSearch} className="flex gap-2 max-w-2xl mx-auto mb-12">
-        <Input 
-          className="h-12 text-lg" 
-          placeholder="Ex: Tênis branco, bota de couro..." 
+        <Input
+          className="h-12 text-lg"
+          placeholder="Ex: Tênis branco, bota de couro..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />

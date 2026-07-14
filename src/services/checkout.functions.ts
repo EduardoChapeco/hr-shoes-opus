@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import crypto from "node:crypto";
 import { getServerClient } from "@/lib/supabase";
 import { getCart } from "./cart.functions";
 
@@ -9,15 +10,17 @@ const CheckoutSchema = z.object({
   customerDocument: z.string().optional(),
   customerPhone: z.string().optional(),
   shippingMethod: z.enum(["delivery", "pickup", "manual_quote"]),
-  shippingAddress: z.object({
-    zipcode: z.string().min(8),
-    street: z.string().min(2),
-    number: z.string().min(1),
-    complement: z.string().optional(),
-    neighborhood: z.string().min(2),
-    city: z.string().min(2),
-    state: z.string().length(2),
-  }).optional(), // Optional if pickup
+  shippingAddress: z
+    .object({
+      zipcode: z.string().min(8),
+      street: z.string().min(2),
+      number: z.string().min(1),
+      complement: z.string().optional(),
+      neighborhood: z.string().min(2),
+      city: z.string().min(2),
+      state: z.string().length(2),
+    })
+    .optional(), // Optional if pickup
   paymentMethod: z.enum(["pix", "manual", "credit_card", "boleto"]),
 });
 
@@ -34,20 +37,20 @@ export const processCheckout = createServerFn({ method: "POST" })
   .handler(async ({ data: params }) => {
     try {
       const db = await getServerClient();
-      
+
       // 1. Get the current cart
       const cart = await getCart();
       if (!cart || cart.items.length === 0) {
         throw new Error("Carrinho vazio ou expirado");
       }
-      
+
       // 2. Fetch the store
       const { data: store } = await db.from("stores").select("id").limit(1).single();
       if (!store) throw new Error("Loja não configurada");
 
       // 3. Create Order
       const totalCents = cart.subtotalCents + cart.shippingCents - cart.discountCents;
-      
+
       // 4. Start RPC / Transaction to safely move from cart to order
       // Supabase has an RPC for this, or we just insert it (since we are admin)
       const { data: order, error: orderError } = await db
@@ -68,7 +71,7 @@ export const processCheckout = createServerFn({ method: "POST" })
         })
         .select("id, public_token")
         .single();
-        
+
       if (orderError || !order) throw new Error("Erro ao criar pedido: " + orderError?.message);
 
       // 5. Move Cart Items to Order Items and Reserve Stock permanently
@@ -85,7 +88,8 @@ export const processCheckout = createServerFn({ method: "POST" })
         });
 
         // Delete temporary reservation
-        await db.from("stock_reservations")
+        await db
+          .from("stock_reservations")
           .delete()
           .eq("cart_id", cart.id)
           .eq("variant_id", item.variantId);
@@ -98,7 +102,7 @@ export const processCheckout = createServerFn({ method: "POST" })
           p_movement_type: "sale",
           p_note: `Pedido #${order.public_token}`,
           p_reference_type: "order",
-          p_reference_id: order.id
+          p_reference_id: order.id,
         });
       }
 
@@ -109,7 +113,8 @@ export const processCheckout = createServerFn({ method: "POST" })
         amount_cents: totalCents,
         method: params.paymentMethod,
         status: "pending",
-        provider: "manual"
+        provider: "manual",
+        idempotency_key: `order-${order.id}-${crypto.randomUUID()}`,
       });
 
       // 7. Clear Cart

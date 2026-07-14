@@ -13,7 +13,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { listAbandonedCarts, updateAbandonedCartStatus } from "@/services/marketing-engagement.functions";
+import {
+  listAbandonedCarts,
+  updateAbandonedCartStatus,
+} from "@/services/marketing-engagement.functions";
 import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
 
@@ -34,7 +37,7 @@ function AbandonedCartsPage() {
   const handleUpdateStatus = async (id: string, newStatus: "recovered" | "lost" | "contacted") => {
     try {
       const res = await updateAbandonedCartStatus({
-        data: { id, status: newStatus }
+        data: { id, status: newStatus },
       });
       if (res.status === "success") {
         toast.success("Status atualizado!");
@@ -49,11 +52,24 @@ function AbandonedCartsPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "pending": return <Badge variant="secondary">Pendente</Badge>;
-      case "contacted": return <Badge variant="default" className="bg-blue-600">Contatado</Badge>;
-      case "recovered": return <Badge variant="default" className="bg-green-600">Recuperado</Badge>;
-      case "lost": return <Badge variant="destructive">Perdido</Badge>;
-      default: return <Badge variant="outline">{status}</Badge>;
+      case "pending":
+        return <Badge variant="secondary">Pendente</Badge>;
+      case "contacted":
+        return (
+          <Badge variant="default" className="bg-blue-600">
+            Contatado
+          </Badge>
+        );
+      case "recovered":
+        return (
+          <Badge variant="default" className="bg-green-600">
+            Recuperado
+          </Badge>
+        );
+      case "lost":
+        return <Badge variant="destructive">Perdido</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
@@ -87,26 +103,26 @@ function AbandonedCartsPage() {
                   <TableCell className="font-medium">
                     <div className="flex flex-col">
                       <span>{c.guest_email || "Cliente anônimo"}</span>
-                      <span className="text-xs text-muted-foreground">{c.guest_phone || "Sem telefone"}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {c.guest_phone || "Sem telefone"}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell className="font-semibold">{formatMoney(c.total_cents)}</TableCell>
                   <TableCell>{new Date(c.updated_at).toLocaleDateString("pt-BR")}</TableCell>
-                  <TableCell>
-                    {getStatusBadge(c.status)}
-                  </TableCell>
+                  <TableCell>{getStatusBadge(c.status)}</TableCell>
                   <TableCell className="text-right space-x-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => handleUpdateStatus(c.id, "contacted")}
                       disabled={c.status === "recovered" || c.status === "lost"}
                     >
                       <Send className="mr-2 h-3 w-3" /> Contatar
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="text-destructive"
                       onClick={() => handleUpdateStatus(c.id, "lost")}
                       disabled={c.status === "recovered" || c.status === "lost"}

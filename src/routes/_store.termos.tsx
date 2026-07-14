@@ -1,22 +1,50 @@
 import { createFileRoute } from "@tanstack/react-router";
-
+import { getPageBySlug } from "@/services/cms.functions";
 import { PageHeader } from "@/components/commerce/page-header";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/_store/termos")({
-  head: () => ({ meta: [{ title: "Termos de uso — Hr Shoes" }] }),
+  head: ({ loaderData }) => ({
+    meta: [
+      {
+        title: loaderData?.title
+          ? `${loaderData.title} — Hr Shoes`
+          : "Termos de serviço — Hr Shoes",
+      },
+    ],
+  }),
+  loader: async () => {
+    const res = await getPageBySlug({ data: { slug: "termos" } });
+    if (res.status === "error") throw new Error(res.message);
+    if (res.status === "not_found") return null;
+    return res.data;
+  },
   component: Page,
 });
 
 function Page() {
+  const page = Route.useLoaderData();
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 md:px-6 md:py-12">
-      <PageHeader eyebrow="Documento" title="Termos de uso" />
+      <PageHeader eyebrow="Documento" title={page?.title || "Termos de serviço"} />
       <div className="mt-8">
-        <EmptyState
-          title="Documento em preparação"
-          description="A loja publicará este documento oficial em breve. Nenhum texto legal é exibido antes da versão oficial ser aprovada."
-        />
+        {!page ? (
+          <EmptyState
+            title="Página não encontrada"
+            description="Este documento ainda não foi publicado."
+          />
+        ) : (
+          <div className="prose prose-neutral max-w-none">
+            {page.sections?.map((section) => (
+              <div key={section.id}>
+                {section.section_type === "text" && (
+                  <div dangerouslySetInnerHTML={{ __html: section.content.html || "" }} />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

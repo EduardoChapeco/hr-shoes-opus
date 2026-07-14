@@ -6,14 +6,30 @@ import { Input } from "@/components/ui/input";
 import { getCart } from "@/services/cart.functions";
 import { processCheckout } from "@/services/checkout.functions";
 import { CheckCircle2, Ticket } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Hr Shoes" }] }),
   loader: async () => {
     const cart = await getCart();
-    return cart || { items: [], totalCents: 0, subtotalCents: 0, discountCents: 0, shippingCents: 0, couponCode: null, itemCount: 0 };
+    return (
+      cart || {
+        items: [],
+        totalCents: 0,
+        subtotalCents: 0,
+        discountCents: 0,
+        shippingCents: 0,
+        couponCode: null,
+        itemCount: 0,
+      }
+    );
   },
   component: CheckoutPage,
 });
@@ -39,13 +55,13 @@ function CheckoutPage() {
       neighborhood: "",
       city: "",
       state: "",
-    }
+    },
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
-    
+
     if (formData.shippingMethod === "delivery") {
       const { zipcode, street, number, neighborhood, city, state } = formData.shippingAddress;
       if (!zipcode || !street || !number || !neighborhood || !city || !state) {
@@ -53,11 +69,11 @@ function CheckoutPage() {
         return;
       }
     }
-    
+
     setIsSubmitting(true);
     try {
       const res = await processCheckout({
-        data: formData
+        data: formData,
       });
       if (res.status === "success") {
         setSuccessToken(res.orderToken);
@@ -77,7 +93,8 @@ function CheckoutPage() {
         <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-6" />
         <h1 className="text-3xl font-serif font-bold mb-4">Pedido Realizado!</h1>
         <p className="text-muted-foreground mb-8">
-          Seu pedido <strong>#{successToken}</strong> foi criado com sucesso e está aguardando pagamento.
+          Seu pedido <strong>#{successToken}</strong> foi criado com sucesso e está aguardando
+          pagamento.
         </p>
         <Button onClick={() => navigate({ to: "/" })}>Voltar para a Loja</Button>
       </div>
@@ -87,7 +104,7 @@ function CheckoutPage() {
   return (
     <div className="container max-w-5xl py-12 mx-auto px-4">
       <h1 className="text-3xl font-serif font-bold tracking-tight mb-8">Finalizar Compra</h1>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2">
           <form id="checkout-form" onSubmit={handleSubmit} className="space-y-8">
@@ -96,34 +113,34 @@ function CheckoutPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium">Nome Completo *</label>
-                  <Input 
-                    required 
+                  <Input
+                    required
                     value={formData.customerName}
-                    onChange={e => setFormData({ ...formData, customerName: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">E-mail *</label>
-                  <Input 
-                    type="email" 
-                    required 
+                  <Input
+                    type="email"
+                    required
                     value={formData.customerEmail}
-                    onChange={e => setFormData({ ...formData, customerEmail: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Telefone / WhatsApp</label>
-                  <Input 
+                  <Input
                     type="tel"
                     value={formData.customerPhone}
-                    onChange={e => setFormData({ ...formData, customerPhone: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium">CPF / CNPJ</label>
-                  <Input 
+                  <Input
                     value={formData.customerDocument}
-                    onChange={e => setFormData({ ...formData, customerDocument: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, customerDocument: e.target.value })}
                   />
                 </div>
               </div>
@@ -131,17 +148,17 @@ function CheckoutPage() {
 
             <div className="space-y-4">
               <h2 className="text-xl font-semibold border-b pb-2">Entrega</h2>
-              
+
               <div className="flex gap-4 mb-4">
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant={formData.shippingMethod === "delivery" ? "default" : "outline"}
                   onClick={() => setFormData({ ...formData, shippingMethod: "delivery" })}
                 >
                   Entregar no meu endereço
                 </Button>
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant={formData.shippingMethod === "pickup" ? "default" : "outline"}
                   onClick={() => setFormData({ ...formData, shippingMethod: "pickup" })}
                 >
@@ -153,58 +170,101 @@ function CheckoutPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-muted/30 p-4 rounded-lg border">
                   <div className="space-y-2 md:col-span-1">
                     <label className="text-sm font-medium">CEP *</label>
-                    <Input 
-                      required 
+                    <Input
+                      required
                       value={formData.shippingAddress.zipcode}
-                      onChange={e => setFormData({ ...formData, shippingAddress: { ...formData.shippingAddress, zipcode: e.target.value } })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          shippingAddress: { ...formData.shippingAddress, zipcode: e.target.value },
+                        })
+                      }
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-sm font-medium">Rua / Avenida *</label>
-                    <Input 
-                      required 
+                    <Input
+                      required
                       value={formData.shippingAddress.street}
-                      onChange={e => setFormData({ ...formData, shippingAddress: { ...formData.shippingAddress, street: e.target.value } })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          shippingAddress: { ...formData.shippingAddress, street: e.target.value },
+                        })
+                      }
                     />
                   </div>
                   <div className="space-y-2 md:col-span-1">
                     <label className="text-sm font-medium">Número *</label>
-                    <Input 
-                      required 
+                    <Input
+                      required
                       value={formData.shippingAddress.number}
-                      onChange={e => setFormData({ ...formData, shippingAddress: { ...formData.shippingAddress, number: e.target.value } })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          shippingAddress: { ...formData.shippingAddress, number: e.target.value },
+                        })
+                      }
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-sm font-medium">Complemento</label>
-                    <Input 
+                    <Input
                       value={formData.shippingAddress.complement}
-                      onChange={e => setFormData({ ...formData, shippingAddress: { ...formData.shippingAddress, complement: e.target.value } })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          shippingAddress: {
+                            ...formData.shippingAddress,
+                            complement: e.target.value,
+                          },
+                        })
+                      }
                     />
                   </div>
                   <div className="space-y-2 md:col-span-1">
                     <label className="text-sm font-medium">Bairro *</label>
-                    <Input 
-                      required 
+                    <Input
+                      required
                       value={formData.shippingAddress.neighborhood}
-                      onChange={e => setFormData({ ...formData, shippingAddress: { ...formData.shippingAddress, neighborhood: e.target.value } })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          shippingAddress: {
+                            ...formData.shippingAddress,
+                            neighborhood: e.target.value,
+                          },
+                        })
+                      }
                     />
                   </div>
                   <div className="space-y-2 md:col-span-1">
                     <label className="text-sm font-medium">Cidade *</label>
-                    <Input 
-                      required 
+                    <Input
+                      required
                       value={formData.shippingAddress.city}
-                      onChange={e => setFormData({ ...formData, shippingAddress: { ...formData.shippingAddress, city: e.target.value } })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          shippingAddress: { ...formData.shippingAddress, city: e.target.value },
+                        })
+                      }
                     />
                   </div>
                   <div className="space-y-2 md:col-span-1">
                     <label className="text-sm font-medium">Estado (UF) *</label>
-                    <Select 
-                      value={formData.shippingAddress.state} 
-                      onValueChange={(v) => setFormData({ ...formData, shippingAddress: { ...formData.shippingAddress, state: v } })}
+                    <Select
+                      value={formData.shippingAddress.state}
+                      onValueChange={(v) =>
+                        setFormData({
+                          ...formData,
+                          shippingAddress: { ...formData.shippingAddress, state: v },
+                        })
+                      }
                     >
-                      <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                      <SelectTrigger>
+                        <SelectValue placeholder="UF" />
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="SP">SP</SelectItem>
                         <SelectItem value="RJ">RJ</SelectItem>
@@ -224,15 +284,15 @@ function CheckoutPage() {
             <div className="space-y-4">
               <h2 className="text-xl font-semibold border-b pb-2">Pagamento</h2>
               <div className="flex gap-4">
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant={formData.paymentMethod === "pix" ? "default" : "outline"}
                   onClick={() => setFormData({ ...formData, paymentMethod: "pix" })}
                 >
                   PIX
                 </Button>
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant={formData.paymentMethod === "manual" ? "default" : "outline"}
                   onClick={() => setFormData({ ...formData, paymentMethod: "manual" })}
                 >
@@ -240,9 +300,14 @@ function CheckoutPage() {
                 </Button>
               </div>
             </div>
-            
+
             <div className="hidden lg:block">
-               <Button type="submit" size="lg" className="w-full text-lg h-14 rounded-full" disabled={isSubmitting || cart.items.length === 0}>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full text-lg h-14 rounded-full"
+                disabled={isSubmitting || cart.items.length === 0}
+              >
                 {isSubmitting ? "Processando..." : "Confirmar e Pagar"}
               </Button>
             </div>
@@ -254,7 +319,9 @@ function CheckoutPage() {
           <div className="space-y-4 mb-6">
             {cart.items.map((item: any) => (
               <div key={item.id} className="flex justify-between text-sm">
-                <span>{item.qty}x {item.productTitle}</span>
+                <span>
+                  {item.qty}x {item.productTitle}
+                </span>
                 <span className="font-medium">{formatMoney(item.lineTotalCents)}</span>
               </div>
             ))}
@@ -274,18 +341,22 @@ function CheckoutPage() {
             )}
             <div className="flex justify-between text-muted-foreground">
               <span>Frete {formData.shippingMethod === "pickup" ? "(Retirada)" : ""}</span>
-              <span>
-                {formData.shippingMethod === "pickup" ? "Grátis" : "A combinar"}
-              </span>
+              <span>{formData.shippingMethod === "pickup" ? "Grátis" : "A combinar"}</span>
             </div>
           </div>
           <div className="flex justify-between items-end border-t pt-4 mb-8">
             <span className="font-semibold">Total</span>
             <span className="font-bold text-2xl">{formatMoney(cart.totalCents)}</span>
           </div>
-          
+
           <div className="lg:hidden">
-            <Button form="checkout-form" type="submit" size="lg" className="w-full text-lg h-14 rounded-full" disabled={isSubmitting || cart.items.length === 0}>
+            <Button
+              form="checkout-form"
+              type="submit"
+              size="lg"
+              className="w-full text-lg h-14 rounded-full"
+              disabled={isSubmitting || cart.items.length === 0}
+            >
               {isSubmitting ? "Processando..." : "Confirmar e Pagar"}
             </Button>
           </div>

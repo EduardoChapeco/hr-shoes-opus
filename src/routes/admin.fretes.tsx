@@ -8,7 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { listShippingZones, upsertShippingZone, upsertShippingRate, deleteShippingRate } from "@/services/shipping.functions";
+import {
+  listShippingZones,
+  upsertShippingZone,
+  upsertShippingRate,
+  deleteShippingRate,
+} from "@/services/shipping.functions";
 import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
 import {
@@ -40,15 +45,15 @@ function ShippingPage() {
   const handleCreateZone = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newZoneName) return;
-    
+
     setIsSaving(true);
     try {
       const res = await upsertShippingZone({
         data: {
           name: newZoneName,
           regions: ["*"], // default all
-          is_active: true
-        }
+          is_active: true,
+        },
       });
       if (res.status === "success") {
         toast.success("Zona criada!");
@@ -66,7 +71,7 @@ function ShippingPage() {
   const handleToggleZone = async (zone: any, active: boolean) => {
     try {
       await upsertShippingZone({
-        data: { id: zone.id, name: zone.name, regions: zone.regions, is_active: active }
+        data: { id: zone.id, name: zone.name, regions: zone.regions, is_active: active },
       });
       router.invalidate();
     } catch {
@@ -94,10 +99,10 @@ function ShippingPage() {
               <form onSubmit={handleCreateZone} className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Nome da Zona</label>
-                  <Input 
-                    placeholder="Ex: Região Sul e Sudeste" 
-                    value={newZoneName} 
-                    onChange={e => setNewZoneName(e.target.value)}
+                  <Input
+                    placeholder="Ex: Região Sul e Sudeste"
+                    value={newZoneName}
+                    onChange={(e) => setNewZoneName(e.target.value)}
                     required
                   />
                 </div>
@@ -124,17 +129,22 @@ function ShippingPage() {
                   <MapPin className="h-5 w-5 text-muted-foreground" />
                   {zone.name}
                 </CardTitle>
-                <Switch 
-                  checked={zone.is_active} 
-                  onCheckedChange={(c) => handleToggleZone(zone, c)} 
+                <Switch
+                  checked={zone.is_active}
+                  onCheckedChange={(c) => handleToggleZone(zone, c)}
                 />
               </CardHeader>
               <CardContent>
                 <div className="text-sm text-muted-foreground mb-4">
-                  Regiões: {zone.regions.join(", ") === "*" ? "Todo o Brasil" : zone.regions.join(", ")}
+                  Regiões:{" "}
+                  {zone.regions.join(", ") === "*" ? "Todo o Brasil" : zone.regions.join(", ")}
                 </div>
-                
-                <RatesTable zoneId={zone.id} rates={zone.rates || []} onRefresh={router.invalidate} />
+
+                <RatesTable
+                  zoneId={zone.id}
+                  rates={zone.rates || []}
+                  onRefresh={router.invalidate}
+                />
               </CardContent>
             </Card>
           ))}
@@ -144,7 +154,15 @@ function ShippingPage() {
   );
 }
 
-function RatesTable({ zoneId, rates, onRefresh }: { zoneId: string, rates: any[], onRefresh: () => void }) {
+function RatesTable({
+  zoneId,
+  rates,
+  onRefresh,
+}: {
+  zoneId: string;
+  rates: any[];
+  onRefresh: () => void;
+}) {
   const [openRate, setOpenRate] = useState(false);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -159,8 +177,8 @@ function RatesTable({ zoneId, rates, onRefresh }: { zoneId: string, rates: any[]
           zone_id: zoneId,
           name,
           price_cents: Math.round(parseFloat(price) * 100),
-          is_active: true
-        }
+          is_active: true,
+        },
       });
       if (res.status === "success") {
         setOpenRate(false);
@@ -201,18 +219,26 @@ function RatesTable({ zoneId, rates, onRefresh }: { zoneId: string, rates: any[]
             <form onSubmit={handleAddRate} className="space-y-4 pt-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nome (Ex: PAC, Sedex, Fixo)</label>
-                <Input value={name} onChange={e => setName(e.target.value)} required />
+                <Input value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Valor (R$)</label>
-                <Input type="number" step="0.01" value={price} onChange={e => setPrice(e.target.value)} required />
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  required
+                />
               </div>
-              <Button type="submit" className="w-full" disabled={isSaving}>Salvar Taxa</Button>
+              <Button type="submit" className="w-full" disabled={isSaving}>
+                Salvar Taxa
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
-      
+
       {rates.length === 0 ? (
         <div className="p-4 text-center text-sm text-muted-foreground">
           Nenhuma taxa configurada para esta zona.
@@ -220,12 +246,22 @@ function RatesTable({ zoneId, rates, onRefresh }: { zoneId: string, rates: any[]
       ) : (
         <div className="p-0">
           {rates.map((rate) => (
-            <div key={rate.id} className="flex items-center justify-between p-3 border-b last:border-0 hover:bg-muted/50">
+            <div
+              key={rate.id}
+              className="flex items-center justify-between p-3 border-b last:border-0 hover:bg-muted/50"
+            >
               <div>
                 <div className="font-medium text-sm">{rate.name}</div>
-                <div className="text-xs text-muted-foreground">Preço: {formatMoney(rate.price_cents)}</div>
+                <div className="text-xs text-muted-foreground">
+                  Preço: {formatMoney(rate.price_cents)}
+                </div>
               </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(rate.id)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive"
+                onClick={() => handleDelete(rate.id)}
+              >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>

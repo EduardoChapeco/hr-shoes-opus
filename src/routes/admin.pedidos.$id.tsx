@@ -1,8 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { getServerClient } from "@/lib/supabase";
+import { confirmPayment } from "@/services/payment.functions";
 
 export const Route = createFileRoute("/admin/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido — Hr Shoes" }] }),
@@ -10,11 +14,13 @@ export const Route = createFileRoute("/admin/pedidos/$id")({
     const db = await getServerClient();
     const { data, error } = await db
       .from("orders")
-      .select(`
+      .select(
+        `
         id, public_token, status, total_cents, subtotal_cents, shipping_cents,
         customer_name, customer_email, created_at, shipping_address,
         order_items ( id, product_title, variant_sku, quantity, unit_price_cents, total_price_cents )
-      `)
+      `,
+      )
       .eq("id", params.id)
       .single();
     if (error) throw new Error("Pedido não encontrado");
@@ -25,7 +31,22 @@ export const Route = createFileRoute("/admin/pedidos/$id")({
 
 function AdminOrderDetailPage() {
   const order = Route.useLoaderData();
+  const router = useRouter();
+  const [isConfirming, setIsConfirming] = useState(false);
   const date = new Date(order.created_at).toLocaleDateString("pt-BR");
+
+  const handleConfirmPayment = async () => {
+    setIsConfirming(true);
+    try {
+      await confirmPayment({ data: { orderId: order.id } });
+      toast.success("Pagamento confirmado e estoque atualizado!");
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao confirmar pagamento");
+    } finally {
+      setIsConfirming(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -41,14 +62,19 @@ function AdminOrderDetailPage() {
             <h3 className="font-semibold text-lg mb-4">Itens do Pedido</h3>
             <div className="space-y-4">
               {order.order_items?.map((item: any) => (
-                <div key={item.id} className="flex justify-between items-center border-b pb-4 last:border-0 last:pb-0">
+                <div
+                  key={item.id}
+                  className="flex justify-between items-center border-b pb-4 last:border-0 last:pb-0"
+                >
                   <div>
                     <p className="font-medium">{item.product_title}</p>
                     <p className="text-sm text-muted-foreground">SKU: {item.variant_sku}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-medium">{formatMoney(item.total_price_cents)}</p>
-                    <p className="text-sm text-muted-foreground">{item.quantity}x {formatMoney(item.unit_price_cents)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.quantity}x {formatMoney(item.unit_price_cents)}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -77,9 +103,15 @@ function AdminOrderDetailPage() {
 
           <div className="rounded-md border p-6 bg-card text-card-foreground">
             <h3 className="font-semibold text-lg mb-4">Status</h3>
-            <Badge variant="outline" className="text-lg py-1 px-3">
+            <Badge variant="outline" className="text-lg py-1 px-3 mb-4 block text-center">
               {order.status}
             </Badge>
+
+            {order.status === "awaiting_payment" && (
+              <Button className="w-full" onClick={handleConfirmPayment} disabled={isConfirming}>
+                {isConfirming ? "Confirmando..." : "Confirmar Pagamento"}
+              </Button>
+            )}
           </div>
         </div>
       </div>

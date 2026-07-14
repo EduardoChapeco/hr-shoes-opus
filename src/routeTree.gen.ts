@@ -44,8 +44,8 @@ import { Route as StoreRecuperarSenhaRouteImport } from './routes/_store.recuper
 import { Route as StorePromocoesRouteImport } from './routes/_store.promocoes'
 import { Route as StorePrivacidadeRouteImport } from './routes/_store.privacidade'
 import { Route as StorePerfilDaLojaRouteImport } from './routes/_store.perfil-da-loja'
+import { Route as StoreMatchTimeRouteImport } from './routes/_store.match-time'
 import { Route as StoreLinksRouteImport } from './routes/_store.links'
-import { Route as StoreInstalarRouteImport } from './routes/_store.instalar'
 import { Route as StoreFaqRouteImport } from './routes/_store.faq'
 import { Route as StoreEntrarRouteImport } from './routes/_store.entrar'
 import { Route as StoreContatoRouteImport } from './routes/_store.contato'
@@ -56,6 +56,7 @@ import { Route as StoreCarrinhoRouteImport } from './routes/_store.carrinho'
 import { Route as StoreCadastroRouteImport } from './routes/_store.cadastro'
 import { Route as StoreBuscarRouteImport } from './routes/_store.buscar'
 import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index'
+import { Route as AdminPedidosTrocasRouteImport } from './routes/admin.pedidos.trocas'
 import { Route as AdminPedidosIdRouteImport } from './routes/admin.pedidos.$id'
 import { Route as AdminMarketingNotificacoesRouteImport } from './routes/admin.marketing.notificacoes'
 import { Route as AdminMarketingGiftCardsRouteImport } from './routes/admin.marketing.gift-cards'
@@ -88,8 +89,6 @@ import { Route as StorePaginasSlugRouteImport } from './routes/_store.paginas.$s
 import { Route as StoreGiftCardClaimTokenRouteImport } from './routes/_store.gift-card.$claimToken'
 import { Route as StoreDestaquesSlugRouteImport } from './routes/_store.destaques.$slug'
 import { Route as StoreContaTrocasRouteImport } from './routes/_store.conta.trocas'
-import { Route as StoreContaSuporteRouteImport } from './routes/_store.conta.suporte'
-import { Route as StoreContaPrivacidadeRouteImport } from './routes/_store.conta.privacidade'
 import { Route as StoreContaPerfilRouteImport } from './routes/_store.conta.perfil'
 import { Route as StoreContaPedidosRouteImport } from './routes/_store.conta.pedidos'
 import { Route as StoreContaPagamentosRouteImport } from './routes/_store.conta.pagamentos'
@@ -283,14 +282,14 @@ const StorePerfilDaLojaRoute = StorePerfilDaLojaRouteImport.update({
   path: '/perfil-da-loja',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreMatchTimeRoute = StoreMatchTimeRouteImport.update({
+  id: '/match-time',
+  path: '/match-time',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreLinksRoute = StoreLinksRouteImport.update({
   id: '/links',
   path: '/links',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreInstalarRoute = StoreInstalarRouteImport.update({
-  id: '/instalar',
-  path: '/instalar',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreFaqRoute = StoreFaqRouteImport.update({
@@ -342,6 +341,11 @@ const StoreContaIndexRoute = StoreContaIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => StoreContaRoute,
+} as any)
+const AdminPedidosTrocasRoute = AdminPedidosTrocasRouteImport.update({
+  id: '/trocas',
+  path: '/trocas',
+  getParentRoute: () => AdminPedidosRoute,
 } as any)
 const AdminPedidosIdRoute = AdminPedidosIdRouteImport.update({
   id: '/$id',
@@ -506,16 +510,6 @@ const StoreContaTrocasRoute = StoreContaTrocasRouteImport.update({
   path: '/trocas',
   getParentRoute: () => StoreContaRoute,
 } as any)
-const StoreContaSuporteRoute = StoreContaSuporteRouteImport.update({
-  id: '/suporte',
-  path: '/suporte',
-  getParentRoute: () => StoreContaRoute,
-} as any)
-const StoreContaPrivacidadeRoute = StoreContaPrivacidadeRouteImport.update({
-  id: '/privacidade',
-  path: '/privacidade',
-  getParentRoute: () => StoreContaRoute,
-} as any)
 const StoreContaPerfilRoute = StoreContaPerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
@@ -624,8 +618,8 @@ export interface FileRoutesByFullPath {
   '/contato': typeof StoreContatoRoute
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
-  '/instalar': typeof StoreInstalarRoute
   '/links': typeof StoreLinksRoute
+  '/match-time': typeof StoreMatchTimeRoute
   '/perfil-da-loja': typeof StorePerfilDaLojaRoute
   '/privacidade': typeof StorePrivacidadeRoute
   '/promocoes': typeof StorePromocoesRoute
@@ -666,8 +660,6 @@ export interface FileRoutesByFullPath {
   '/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/conta/pedidos': typeof StoreContaPedidosRouteWithChildren
   '/conta/perfil': typeof StoreContaPerfilRoute
-  '/conta/privacidade': typeof StoreContaPrivacidadeRoute
-  '/conta/suporte': typeof StoreContaSuporteRoute
   '/conta/trocas': typeof StoreContaTrocasRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
@@ -700,6 +692,7 @@ export interface FileRoutesByFullPath {
   '/admin/marketing/gift-cards': typeof AdminMarketingGiftCardsRoute
   '/admin/marketing/notificacoes': typeof AdminMarketingNotificacoesRoute
   '/admin/pedidos/$id': typeof AdminPedidosIdRoute
+  '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
   '/conta/': typeof StoreContaIndexRoute
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
@@ -721,8 +714,8 @@ export interface FileRoutesByTo {
   '/contato': typeof StoreContatoRoute
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
-  '/instalar': typeof StoreInstalarRoute
   '/links': typeof StoreLinksRoute
+  '/match-time': typeof StoreMatchTimeRoute
   '/perfil-da-loja': typeof StorePerfilDaLojaRoute
   '/privacidade': typeof StorePrivacidadeRoute
   '/promocoes': typeof StorePromocoesRoute
@@ -764,8 +757,6 @@ export interface FileRoutesByTo {
   '/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/conta/pedidos': typeof StoreContaPedidosRouteWithChildren
   '/conta/perfil': typeof StoreContaPerfilRoute
-  '/conta/privacidade': typeof StoreContaPrivacidadeRoute
-  '/conta/suporte': typeof StoreContaSuporteRoute
   '/conta/trocas': typeof StoreContaTrocasRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
@@ -798,6 +789,7 @@ export interface FileRoutesByTo {
   '/admin/marketing/gift-cards': typeof AdminMarketingGiftCardsRoute
   '/admin/marketing/notificacoes': typeof AdminMarketingNotificacoesRoute
   '/admin/pedidos/$id': typeof AdminPedidosIdRoute
+  '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
   '/conta': typeof StoreContaIndexRoute
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
@@ -823,8 +815,8 @@ export interface FileRoutesById {
   '/_store/contato': typeof StoreContatoRoute
   '/_store/entrar': typeof StoreEntrarRoute
   '/_store/faq': typeof StoreFaqRoute
-  '/_store/instalar': typeof StoreInstalarRoute
   '/_store/links': typeof StoreLinksRoute
+  '/_store/match-time': typeof StoreMatchTimeRoute
   '/_store/perfil-da-loja': typeof StorePerfilDaLojaRoute
   '/_store/privacidade': typeof StorePrivacidadeRoute
   '/_store/promocoes': typeof StorePromocoesRoute
@@ -866,8 +858,6 @@ export interface FileRoutesById {
   '/_store/conta/pagamentos': typeof StoreContaPagamentosRoute
   '/_store/conta/pedidos': typeof StoreContaPedidosRouteWithChildren
   '/_store/conta/perfil': typeof StoreContaPerfilRoute
-  '/_store/conta/privacidade': typeof StoreContaPrivacidadeRoute
-  '/_store/conta/suporte': typeof StoreContaSuporteRoute
   '/_store/conta/trocas': typeof StoreContaTrocasRoute
   '/_store/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/_store/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
@@ -900,6 +890,7 @@ export interface FileRoutesById {
   '/admin/marketing/gift-cards': typeof AdminMarketingGiftCardsRoute
   '/admin/marketing/notificacoes': typeof AdminMarketingNotificacoesRoute
   '/admin/pedidos/$id': typeof AdminPedidosIdRoute
+  '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
   '/_store/conta/': typeof StoreContaIndexRoute
   '/_store/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/_store/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
@@ -926,8 +917,8 @@ export interface FileRouteTypes {
     | '/contato'
     | '/entrar'
     | '/faq'
-    | '/instalar'
     | '/links'
+    | '/match-time'
     | '/perfil-da-loja'
     | '/privacidade'
     | '/promocoes'
@@ -968,8 +959,6 @@ export interface FileRouteTypes {
     | '/conta/pagamentos'
     | '/conta/pedidos'
     | '/conta/perfil'
-    | '/conta/privacidade'
-    | '/conta/suporte'
     | '/conta/trocas'
     | '/destaques/$slug'
     | '/gift-card/$claimToken'
@@ -1002,6 +991,7 @@ export interface FileRouteTypes {
     | '/admin/marketing/gift-cards'
     | '/admin/marketing/notificacoes'
     | '/admin/pedidos/$id'
+    | '/admin/pedidos/trocas'
     | '/conta/'
     | '/conta/conversas/$id'
     | '/conta/pedidos/$id'
@@ -1023,8 +1013,8 @@ export interface FileRouteTypes {
     | '/contato'
     | '/entrar'
     | '/faq'
-    | '/instalar'
     | '/links'
+    | '/match-time'
     | '/perfil-da-loja'
     | '/privacidade'
     | '/promocoes'
@@ -1066,8 +1056,6 @@ export interface FileRouteTypes {
     | '/conta/pagamentos'
     | '/conta/pedidos'
     | '/conta/perfil'
-    | '/conta/privacidade'
-    | '/conta/suporte'
     | '/conta/trocas'
     | '/destaques/$slug'
     | '/gift-card/$claimToken'
@@ -1100,6 +1088,7 @@ export interface FileRouteTypes {
     | '/admin/marketing/gift-cards'
     | '/admin/marketing/notificacoes'
     | '/admin/pedidos/$id'
+    | '/admin/pedidos/trocas'
     | '/conta'
     | '/conta/conversas/$id'
     | '/conta/pedidos/$id'
@@ -1124,8 +1113,8 @@ export interface FileRouteTypes {
     | '/_store/contato'
     | '/_store/entrar'
     | '/_store/faq'
-    | '/_store/instalar'
     | '/_store/links'
+    | '/_store/match-time'
     | '/_store/perfil-da-loja'
     | '/_store/privacidade'
     | '/_store/promocoes'
@@ -1167,8 +1156,6 @@ export interface FileRouteTypes {
     | '/_store/conta/pagamentos'
     | '/_store/conta/pedidos'
     | '/_store/conta/perfil'
-    | '/_store/conta/privacidade'
-    | '/_store/conta/suporte'
     | '/_store/conta/trocas'
     | '/_store/destaques/$slug'
     | '/_store/gift-card/$claimToken'
@@ -1201,6 +1188,7 @@ export interface FileRouteTypes {
     | '/admin/marketing/gift-cards'
     | '/admin/marketing/notificacoes'
     | '/admin/pedidos/$id'
+    | '/admin/pedidos/trocas'
     | '/_store/conta/'
     | '/_store/conta/conversas/$id'
     | '/_store/conta/pedidos/$id'
@@ -1466,18 +1454,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StorePerfilDaLojaRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/match-time': {
+      id: '/_store/match-time'
+      path: '/match-time'
+      fullPath: '/match-time'
+      preLoaderRoute: typeof StoreMatchTimeRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/links': {
       id: '/_store/links'
       path: '/links'
       fullPath: '/links'
       preLoaderRoute: typeof StoreLinksRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/instalar': {
-      id: '/_store/instalar'
-      path: '/instalar'
-      fullPath: '/instalar'
-      preLoaderRoute: typeof StoreInstalarRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/faq': {
@@ -1549,6 +1537,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/conta/'
       preLoaderRoute: typeof StoreContaIndexRouteImport
       parentRoute: typeof StoreContaRoute
+    }
+    '/admin/pedidos/trocas': {
+      id: '/admin/pedidos/trocas'
+      path: '/trocas'
+      fullPath: '/admin/pedidos/trocas'
+      preLoaderRoute: typeof AdminPedidosTrocasRouteImport
+      parentRoute: typeof AdminPedidosRoute
     }
     '/admin/pedidos/$id': {
       id: '/admin/pedidos/$id'
@@ -1774,20 +1769,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreContaTrocasRouteImport
       parentRoute: typeof StoreContaRoute
     }
-    '/_store/conta/suporte': {
-      id: '/_store/conta/suporte'
-      path: '/suporte'
-      fullPath: '/conta/suporte'
-      preLoaderRoute: typeof StoreContaSuporteRouteImport
-      parentRoute: typeof StoreContaRoute
-    }
-    '/_store/conta/privacidade': {
-      id: '/_store/conta/privacidade'
-      path: '/privacidade'
-      fullPath: '/conta/privacidade'
-      preLoaderRoute: typeof StoreContaPrivacidadeRouteImport
-      parentRoute: typeof StoreContaRoute
-    }
     '/_store/conta/perfil': {
       id: '/_store/conta/perfil'
       path: '/perfil'
@@ -1936,8 +1917,6 @@ interface StoreContaRouteChildren {
   StoreContaPagamentosRoute: typeof StoreContaPagamentosRoute
   StoreContaPedidosRoute: typeof StoreContaPedidosRouteWithChildren
   StoreContaPerfilRoute: typeof StoreContaPerfilRoute
-  StoreContaPrivacidadeRoute: typeof StoreContaPrivacidadeRoute
-  StoreContaSuporteRoute: typeof StoreContaSuporteRoute
   StoreContaTrocasRoute: typeof StoreContaTrocasRoute
   StoreContaIndexRoute: typeof StoreContaIndexRoute
   StoreContaConversasIdRoute: typeof StoreContaConversasIdRoute
@@ -1951,8 +1930,6 @@ const StoreContaRouteChildren: StoreContaRouteChildren = {
   StoreContaPagamentosRoute: StoreContaPagamentosRoute,
   StoreContaPedidosRoute: StoreContaPedidosRouteWithChildren,
   StoreContaPerfilRoute: StoreContaPerfilRoute,
-  StoreContaPrivacidadeRoute: StoreContaPrivacidadeRoute,
-  StoreContaSuporteRoute: StoreContaSuporteRoute,
   StoreContaTrocasRoute: StoreContaTrocasRoute,
   StoreContaIndexRoute: StoreContaIndexRoute,
   StoreContaConversasIdRoute: StoreContaConversasIdRoute,
@@ -1972,8 +1949,8 @@ interface StoreRouteChildren {
   StoreContatoRoute: typeof StoreContatoRoute
   StoreEntrarRoute: typeof StoreEntrarRoute
   StoreFaqRoute: typeof StoreFaqRoute
-  StoreInstalarRoute: typeof StoreInstalarRoute
   StoreLinksRoute: typeof StoreLinksRoute
+  StoreMatchTimeRoute: typeof StoreMatchTimeRoute
   StorePerfilDaLojaRoute: typeof StorePerfilDaLojaRoute
   StorePrivacidadeRoute: typeof StorePrivacidadeRoute
   StorePromocoesRoute: typeof StorePromocoesRoute
@@ -2002,8 +1979,8 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreContatoRoute: StoreContatoRoute,
   StoreEntrarRoute: StoreEntrarRoute,
   StoreFaqRoute: StoreFaqRoute,
-  StoreInstalarRoute: StoreInstalarRoute,
   StoreLinksRoute: StoreLinksRoute,
+  StoreMatchTimeRoute: StoreMatchTimeRoute,
   StorePerfilDaLojaRoute: StorePerfilDaLojaRoute,
   StorePrivacidadeRoute: StorePrivacidadeRoute,
   StorePromocoesRoute: StorePromocoesRoute,
@@ -2081,10 +2058,12 @@ const AdminFretesRouteWithChildren = AdminFretesRoute._addFileChildren(
 
 interface AdminPedidosRouteChildren {
   AdminPedidosIdRoute: typeof AdminPedidosIdRoute
+  AdminPedidosTrocasRoute: typeof AdminPedidosTrocasRoute
 }
 
 const AdminPedidosRouteChildren: AdminPedidosRouteChildren = {
   AdminPedidosIdRoute: AdminPedidosIdRoute,
+  AdminPedidosTrocasRoute: AdminPedidosTrocasRoute,
 }
 
 const AdminPedidosRouteWithChildren = AdminPedidosRoute._addFileChildren(

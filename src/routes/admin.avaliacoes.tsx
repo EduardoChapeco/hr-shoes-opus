@@ -76,7 +76,10 @@ function ReviewsPage() {
                   </TableCell>
                   <TableCell>
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <span key={i} className={i < review.rating ? "text-yellow-500" : "text-gray-300"}>
+                      <span
+                        key={i}
+                        className={i < review.rating ? "text-yellow-500" : "text-gray-300"}
+                      >
                         ★
                       </span>
                     ))}
@@ -90,15 +93,15 @@ function ReviewsPage() {
                         review.status === "approved"
                           ? "default"
                           : review.status === "rejected"
-                          ? "destructive"
-                          : "secondary"
+                            ? "destructive"
+                            : "secondary"
                       }
                     >
                       {review.status === "approved"
                         ? "Aprovada"
                         : review.status === "rejected"
-                        ? "Rejeitada"
-                        : "Pendente"}
+                          ? "Rejeitada"
+                          : "Pendente"}
                     </Badge>
                   </TableCell>
                   <TableCell>{new Date(review.created_at).toLocaleDateString("pt-BR")}</TableCell>

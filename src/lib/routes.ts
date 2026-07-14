@@ -49,7 +49,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 0,
-    },
+  },
   {
     path: "/buscar",
     label: "Buscar",
@@ -57,7 +57,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 1,
-    },
+  },
   {
     path: "/catalogo",
     label: "Catálogo",
@@ -65,7 +65,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 1,
-    },
+  },
   {
     path: "/categoria/:slug",
     label: "Categoria",
@@ -73,7 +73,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 1,
-      dynamic: true,
+    dynamic: true,
   },
   {
     path: "/colecao/:slug",
@@ -82,7 +82,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 1,
-      dynamic: true,
+    dynamic: true,
   },
   {
     path: "/produto/:slug",
@@ -91,7 +91,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 1,
-      dynamic: true,
+    dynamic: true,
   },
   {
     path: "/promocoes",
@@ -100,7 +100,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 1,
-    },
+  },
   {
     path: "/stories",
     label: "Stories",
@@ -108,7 +108,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 3,
-    },
+  },
   {
     path: "/destaques/:slug",
     label: "Destaque",
@@ -116,7 +116,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 3,
-      dynamic: true,
+    dynamic: true,
   },
   {
     path: "/perfil-da-loja",
@@ -125,7 +125,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 3,
-    },
+  },
   {
     path: "/links",
     label: "Links",
@@ -133,7 +133,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 3,
-    },
+  },
   {
     path: "/faq",
     label: "Perguntas frequentes",
@@ -141,7 +141,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 3,
-    },
+  },
   {
     path: "/contato",
     label: "Contato",
@@ -149,7 +149,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 0,
-    },
+  },
   {
     path: "/carrinho",
     label: "Carrinho",
@@ -157,7 +157,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 2,
-    },
+  },
   {
     path: "/checkout",
     label: "Finalizar Compra",
@@ -167,10 +167,6 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     phase: 2,
   },
 
-
-
-
-
   {
     path: "/pedido/:publicToken/confirmacao",
     label: "Confirmação",
@@ -178,7 +174,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 2,
-      dynamic: true,
+    dynamic: true,
   },
   {
     path: "/gift-card/:claimToken",
@@ -187,7 +183,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 4,
-      dynamic: true,
+    dynamic: true,
   },
 
   {
@@ -197,7 +193,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 0,
-      dynamic: true,
+    dynamic: true,
   },
   {
     path: "/privacidade",
@@ -206,7 +202,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 0,
-    },
+  },
   {
     path: "/termos",
     label: "Termos",
@@ -214,7 +210,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 0,
-    },
+  },
   {
     path: "/trocas-e-devolucoes",
     label: "Trocas e devoluções",
@@ -222,7 +218,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 0,
-    },
+  },
 ];
 
 const CUSTOMER: Role[] = ["customer"];
@@ -235,7 +231,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 1,
-    },
+  },
   {
     path: "/cadastro",
     label: "Cadastro",
@@ -243,7 +239,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 1,
-    },
+  },
   {
     path: "/recuperar-senha",
     label: "Recuperar senha",
@@ -251,7 +247,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "public",
     roles: ["visitor"],
     phase: 1,
-    },
+  },
   {
     path: "/conta",
     label: "Minha conta",
@@ -259,7 +255,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "customer",
     roles: CUSTOMER,
     phase: 1,
-    },
+  },
   {
     path: "/conta/perfil",
     label: "Perfil",
@@ -267,7 +263,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "customer",
     roles: CUSTOMER,
     phase: 1,
-    },
+  },
   {
     path: "/conta/enderecos",
     label: "Endereços",
@@ -275,7 +271,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "customer",
     roles: CUSTOMER,
     phase: 2,
-    },
+  },
   {
     path: "/conta/pedidos",
     label: "Pedidos",
@@ -283,7 +279,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "customer",
     roles: CUSTOMER,
     phase: 2,
-    },
+  },
   {
     path: "/conta/pedidos/:id",
     label: "Pedido",
@@ -291,7 +287,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "customer",
     roles: CUSTOMER,
     phase: 2,
-      dynamic: true,
+    dynamic: true,
   },
   {
     path: "/conta/pagamentos",
@@ -300,7 +296,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "customer",
     roles: CUSTOMER,
     phase: 2,
-    },
+  },
   {
     path: "/conta/creditos",
     label: "Créditos",
@@ -308,7 +304,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "customer",
     roles: CUSTOMER,
     phase: 4,
-    },
+  },
   {
     path: "/conta/gift-cards",
     label: "Gift cards",
@@ -316,7 +312,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "customer",
     roles: CUSTOMER,
     phase: 4,
-    },
+  },
   {
     path: "/conta/avaliacoes",
     label: "Avaliações",
@@ -324,7 +320,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "customer",
     roles: CUSTOMER,
     phase: 3,
-    },
+  },
   {
     path: "/conta/trocas",
     label: "Trocas",
@@ -332,7 +328,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "customer",
     roles: CUSTOMER,
     phase: 4,
-    },
+  },
 
   {
     path: "/conta/conversas/:id",
@@ -341,9 +337,8 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     audience: "customer",
     roles: CUSTOMER,
     phase: 4,
-      dynamic: true,
+    dynamic: true,
   },
-
 ];
 
 const STAFF: Role[] = ["owner", "admin", "manager"];
@@ -366,7 +361,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: STAFF_ALL,
     phase: 0,
-      navGroup: "Geral",
+    navGroup: "Geral",
     navIcon: "LayoutDashboard",
   },
   {
@@ -376,7 +371,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: STAFF,
     phase: 0,
-      navGroup: "Geral",
+    navGroup: "Geral",
     navIcon: "Store",
   },
   {
@@ -386,7 +381,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "stock", "content"],
     phase: 1,
-      navGroup: "Catálogo",
+    navGroup: "Catálogo",
     navIcon: "Package",
     navPlanned: true,
   },
@@ -397,7 +392,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "content"],
     phase: 1,
-    },
+  },
   {
     path: "/admin/catalogo/produtos/:id",
     label: "Editar produto",
@@ -405,7 +400,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "content"],
     phase: 1,
-      dynamic: true,
+    dynamic: true,
   },
   {
     path: "/admin/catalogo/tipos",
@@ -414,7 +409,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: STAFF,
     phase: 1,
-    },
+  },
   {
     path: "/admin/catalogo/categorias",
     label: "Categorias",
@@ -422,7 +417,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: STAFF,
     phase: 1,
-    },
+  },
   {
     path: "/admin/catalogo/colecoes",
     label: "Coleções",
@@ -430,7 +425,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: STAFF,
     phase: 1,
-    },
+  },
   {
     path: "/admin/catalogo/atributos",
     label: "Atributos",
@@ -438,7 +433,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: STAFF,
     phase: 1,
-    },
+  },
   {
     path: "/admin/midias",
     label: "Mídias",
@@ -446,7 +441,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "content"],
     phase: 1,
-    },
+  },
   {
     path: "/admin/estoque",
     label: "Estoque",
@@ -454,7 +449,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "stock"],
     phase: 1,
-    },
+  },
   {
     path: "/admin/estoque/movimentos",
     label: "Movimentos",
@@ -462,7 +457,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "stock"],
     phase: 1,
-    },
+  },
   {
     path: "/admin/estoque/alertas",
     label: "Alertas",
@@ -470,7 +465,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "stock"],
     phase: 1,
-    },
+  },
   {
     path: "/admin/pedidos",
     label: "Pedidos",
@@ -478,7 +473,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "seller", "finance"],
     phase: 2,
-    },
+  },
   {
     path: "/admin/pedidos/:id",
     label: "Pedido",
@@ -486,7 +481,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "seller", "finance"],
     phase: 2,
-      dynamic: true,
+    dynamic: true,
   },
   {
     path: "/admin/fretes",
@@ -495,7 +490,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: STAFF,
     phase: 2,
-    },
+  },
   {
     path: "/admin/fretes/tabelas",
     label: "Tabelas de frete",
@@ -503,7 +498,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: STAFF,
     phase: 2,
-    },
+  },
   {
     path: "/admin/fretes/cotacoes",
     label: "Cotações",
@@ -511,7 +506,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: STAFF,
     phase: 2,
-    },
+  },
   {
     path: "/admin/pagamentos",
     label: "Pagamentos",
@@ -519,7 +514,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "finance"],
     phase: 2,
-    },
+  },
   {
     path: "/admin/comprovantes",
     label: "Comprovantes",
@@ -527,7 +522,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "finance"],
     phase: 2,
-    },
+  },
   {
     path: "/admin/clientes",
     label: "Clientes",
@@ -535,7 +530,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "seller", "support"],
     phase: 4,
-    },
+  },
   {
     path: "/admin/clientes/:id",
     label: "Cliente",
@@ -543,7 +538,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "seller", "support"],
     phase: 4,
-      dynamic: true,
+    dynamic: true,
   },
   {
     path: "/admin/suporte",
@@ -552,7 +547,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "support"],
     phase: 4,
-    },
+  },
   {
     path: "/admin/conversas",
     label: "Conversas",
@@ -560,7 +555,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "support"],
     phase: 4,
-    },
+  },
   {
     path: "/admin/trocas",
     label: "Trocas",
@@ -568,7 +563,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "support"],
     phase: 4,
-    },
+  },
   {
     path: "/admin/avaliacoes",
     label: "Avaliações",
@@ -576,7 +571,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "content"],
     phase: 3,
-    },
+  },
   {
     path: "/admin/cms/paginas",
     label: "Páginas",
@@ -584,7 +579,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "content"],
     phase: 3,
-    },
+  },
   {
     path: "/admin/cms/paginas/:id/editor",
     label: "Editor de página",
@@ -592,7 +587,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "content"],
     phase: 3,
-      dynamic: true,
+    dynamic: true,
   },
   {
     path: "/admin/cms/navegacao",
@@ -601,7 +596,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "content"],
     phase: 3,
-    },
+  },
   {
     path: "/admin/cms/tema",
     label: "Tema",
@@ -609,7 +604,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "content"],
     phase: 3,
-    },
+  },
   {
     path: "/admin/stories",
     label: "Stories",
@@ -617,7 +612,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "content"],
     phase: 3,
-    },
+  },
   {
     path: "/admin/destaques",
     label: "Destaques",
@@ -625,7 +620,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "content"],
     phase: 3,
-    },
+  },
   {
     path: "/admin/perfil-publico",
     label: "Perfil público",
@@ -633,7 +628,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "content"],
     phase: 3,
-    },
+  },
   {
     path: "/admin/link-da-bio",
     label: "Link da bio",
@@ -641,7 +636,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "content"],
     phase: 3,
-    },
+  },
   {
     path: "/admin/marketing/cupons",
     label: "Cupons",
@@ -649,7 +644,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager"],
     phase: 5,
-    },
+  },
   {
     path: "/admin/marketing/gift-cards",
     label: "Gift cards",
@@ -657,7 +652,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "finance"],
     phase: 4,
-    },
+  },
   {
     path: "/admin/marketing/carrinhos",
     label: "Carrinhos",
@@ -665,7 +660,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager"],
     phase: 5,
-    },
+  },
   {
     path: "/admin/marketing/notificacoes",
     label: "Notificações",
@@ -673,7 +668,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager"],
     phase: 5,
-    },
+  },
   {
     path: "/admin/marketing/feed",
     label: "Feeds",
@@ -681,7 +676,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager"],
     phase: 5,
-    },
+  },
   {
     path: "/admin/match-time",
     label: "Match Time",
@@ -689,7 +684,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager"],
     phase: 5,
-    },
+  },
   {
     path: "/admin/criador",
     label: "Criador",
@@ -697,7 +692,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "content"],
     phase: 5,
-    },
+  },
   {
     path: "/admin/caixa",
     label: "Caixa",
@@ -705,7 +700,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "seller", "finance"],
     phase: 4,
-    },
+  },
   {
     path: "/admin/caixa/turnos",
     label: "Turnos",
@@ -713,7 +708,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "finance"],
     phase: 4,
-    },
+  },
   {
     path: "/admin/caixa/lancamentos",
     label: "Lançamentos",
@@ -721,7 +716,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "finance"],
     phase: 4,
-    },
+  },
   {
     path: "/admin/comissoes",
     label: "Comissões",
@@ -729,7 +724,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "finance"],
     phase: 4,
-    },
+  },
   {
     path: "/admin/equipe",
     label: "Equipe",
@@ -737,7 +732,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin"],
     phase: 1,
-    },
+  },
   {
     path: "/admin/relatorios",
     label: "Relatórios",
@@ -745,7 +740,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "manager", "finance"],
     phase: 4,
-    },
+  },
   {
     path: "/admin/integracoes",
     label: "Integrações",
@@ -753,7 +748,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin"],
     phase: 5,
-    },
+  },
   {
     path: "/admin/configuracoes/loja",
     label: "Loja",
@@ -761,7 +756,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin"],
     phase: 0,
-    },
+  },
   {
     path: "/admin/configuracoes/politicas",
     label: "Políticas",
@@ -769,7 +764,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin"],
     phase: 3,
-    },
+  },
   {
     path: "/admin/configuracoes/lgpd",
     label: "LGPD",
@@ -777,7 +772,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin"],
     phase: 3,
-    },
+  },
   {
     path: "/admin/configuracoes/auditoria",
     label: "Auditoria",
@@ -785,7 +780,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin"],
     phase: 4,
-    },
+  },
   {
     path: "/admin/configuracoes/seo",
     label: "SEO",
@@ -793,7 +788,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     audience: "admin",
     roles: ["owner", "admin", "content"],
     phase: 3,
-    },
+  },
 ];
 
 export const ALL_ROUTES: RouteEntry[] = [...PUBLIC_ROUTES, ...CUSTOMER_ROUTES, ...ADMIN_ROUTES];
@@ -839,38 +834,38 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
   {
     title: "Catálogo",
     items: [
-      { path: "/admin/catalogo/produtos", label: "Produtos", icon: "Package", planned: true },
-      { path: "/admin/estoque", label: "Estoque", icon: "Boxes", planned: true },
-      { path: "/admin/midias", label: "Mídias", icon: "Images", planned: true },
+      { path: "/admin/catalogo/produtos", label: "Produtos", icon: "Package" },
+      { path: "/admin/estoque", label: "Estoque", icon: "Boxes" },
+      { path: "/admin/midias", label: "Mídias", icon: "Images" },
     ],
   },
   {
     title: "Vendas",
     items: [
-      { path: "/admin/pedidos", label: "Pedidos", icon: "ShoppingCart", planned: true },
-      { path: "/admin/fretes", label: "Fretes", icon: "Truck", planned: true },
-      { path: "/admin/pagamentos", label: "Pagamentos", icon: "CreditCard", planned: true },
+      { path: "/admin/pedidos", label: "Pedidos", icon: "ShoppingCart" },
+      { path: "/admin/fretes", label: "Fretes", icon: "Truck" },
+      { path: "/admin/pagamentos", label: "Pagamentos", icon: "CreditCard" },
     ],
   },
   {
     title: "Relacionamento",
     items: [
-      { path: "/admin/clientes", label: "Clientes", icon: "Users", planned: true },
-      { path: "/admin/conversas", label: "Conversas", icon: "MessagesSquare", planned: true },
+      { path: "/admin/clientes", label: "Clientes", icon: "Users" },
+      { path: "/admin/conversas", label: "Conversas", icon: "MessagesSquare" },
     ],
   },
   {
     title: "Conteúdo",
     items: [
-      { path: "/admin/cms/paginas", label: "Páginas", icon: "FileText", planned: true },
-      { path: "/admin/marketing/cupons", label: "Marketing", icon: "Megaphone", planned: true },
+      { path: "/admin/cms/paginas", label: "Páginas", icon: "FileText" },
+      { path: "/admin/marketing/cupons", label: "Marketing", icon: "Megaphone" },
     ],
   },
   {
     title: "Operação",
     items: [
-      { path: "/admin/caixa", label: "Caixa", icon: "Wallet", planned: true },
-      { path: "/admin/relatorios", label: "Relatórios", icon: "BarChart3", planned: true },
+      { path: "/admin/caixa", label: "Caixa", icon: "Wallet" },
+      { path: "/admin/relatorios", label: "Relatórios", icon: "BarChart3" },
       { path: "/admin/configuracoes/loja", label: "Configurações", icon: "Settings" },
     ],
   },

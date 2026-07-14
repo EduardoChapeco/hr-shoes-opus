@@ -11,6 +11,8 @@ import {
 } from "@/services/catalog.functions";
 import type { StoreConfigDTO, ProductCardDTO, CategoryDTO } from "@/types/catalog";
 
+import { getPublicPageBySlug } from "@/services/cms.functions";
+
 export const Route = createFileRoute("/_store/")({
   head: () => ({
     meta: [
@@ -25,12 +27,18 @@ export const Route = createFileRoute("/_store/")({
     ],
   }),
   loader: async () => {
-    const [storeConfig, products, categories] = await Promise.all([
+    const [storeConfig, products, categories, homePageRes] = await Promise.all([
       getStoreConfig(),
       listPublishedProducts(),
       listPublishedCategories(),
+      getPublicPageBySlug({ data: { slug: "home" } }),
     ]);
-    return { storeConfig, products, categories };
+    return {
+      storeConfig,
+      products,
+      categories,
+      homePage: homePageRes.status === "ok" ? homePageRes.data : null,
+    };
   },
   component: Home,
 });
@@ -57,37 +65,36 @@ function AnnouncementBar({ config }: { config: StoreConfigDTO }) {
 }
 
 // ---------------------------------------------------------------------------
-// Hero Banner
+// CMS Dynamic Blocks
 // ---------------------------------------------------------------------------
 
-function HeroBanner({ config }: { config: StoreConfigDTO }) {
-  const banner = config.heroBanners[0] ?? null;
+function DynamicHero({ content }: { content: Record<string, unknown> }) {
+  const title = String(content.title || "");
+  const subtitle = String(content.subtitle || "");
+  const bg_url = String(content.image_url || content.bg_url || "");
+  const button_text = String(content.button_text || "");
+  const button_link = String(content.button_link || "");
 
   return (
     <section className="relative overflow-hidden bg-secondary">
       <div className="mx-auto max-w-screen-xl px-4 py-10 md:px-6 md:py-16">
         <div className="grid items-center gap-8 md:grid-cols-2 md:gap-14">
-          {/* Text */}
           <div>
-            {banner?.headline ? (
+            {title && (
               <h1 className="text-editorial text-4xl text-foreground sm:text-5xl lg:text-6xl">
-                {banner.headline}
-              </h1>
-            ) : (
-              <h1 className="text-editorial text-4xl text-foreground sm:text-5xl lg:text-6xl">
-                {config.name}
+                {title}
               </h1>
             )}
-            {banner?.subheadline && (
-              <p className="mt-4 max-w-md text-base text-muted-foreground">{banner.subheadline}</p>
+            {subtitle && (
+              <p className="mt-4 max-w-md text-base text-muted-foreground">{subtitle}</p>
             )}
             <div className="mt-7 flex flex-wrap gap-3">
-              {banner?.ctaLink && banner.ctaLabel ? (
+              {button_link && button_text ? (
                 <Button size="lg" asChild>
-                  <a href={banner.ctaLink}>
-                    {banner.ctaLabel}
+                  <Link to={button_link as never}>
+                    {button_text}
                     <ChevronRight className="size-4" aria-hidden />
-                  </a>
+                  </Link>
                 </Button>
               ) : (
                 <Button size="lg" asChild>
@@ -97,34 +104,63 @@ function HeroBanner({ config }: { config: StoreConfigDTO }) {
                   </Link>
                 </Button>
               )}
-              <Button size="lg" variant="outline" asChild>
-                <Link to="/buscar">
-                  <Search className="size-4" aria-hidden />
-                  Buscar produtos
-                </Link>
-              </Button>
             </div>
           </div>
-
-          {/* Image */}
           <div className="order-first md:order-last">
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-muted">
-              {banner?.imageUrl ? (
-                <img
-                  src={banner.imageUrl}
-                  alt={banner.imageAlt ?? config.name}
-                  loading="eager"
-                  className="size-full object-cover"
-                />
+              {bg_url ? (
+                <img src={bg_url} alt="" loading="eager" className="size-full object-cover" />
               ) : (
                 <div className="flex size-full flex-col items-center justify-center gap-3 text-muted-foreground">
                   <ImageOff className="size-10" aria-hidden />
-                  <p className="text-xs">Adicione um banner no painel de administração</p>
                 </div>
               )}
             </div>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function DynamicRichText({ content }: { content: Record<string, unknown> }) {
+  const text = String(content.content || content.text || "");
+  return (
+    <section className="mx-auto max-w-screen-xl px-4 md:px-6 py-8">
+      <div className="prose dark:prose-invert max-w-3xl mx-auto text-center">
+        <p className="text-lg text-muted-foreground">{text}</p>
+      </div>
+    </section>
+  );
+}
+
+function DynamicFeaturedProducts({
+  content,
+  publishedProducts,
+}: {
+  content: Record<string, unknown>;
+  publishedProducts: ProductCardDTO[];
+}) {
+  const title = String(content.title || "Destaques");
+  if (publishedProducts.length === 0) return null;
+
+  return (
+    <section className="mx-auto max-w-screen-xl px-4 md:px-6">
+      <div className="mb-5 flex items-end justify-between gap-3">
+        <div>
+          <h2 className="text-editorial mt-1 text-2xl text-foreground sm:text-3xl">{title}</h2>
+        </div>
+        <Button variant="ghost" size="sm" asChild>
+          <Link to="/catalogo">
+            Ver tudo
+            <ChevronRight className="size-4" aria-hidden />
+          </Link>
+        </Button>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {publishedProducts.slice(0, 8).map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
       </div>
     </section>
   );
@@ -144,7 +180,7 @@ function CategoryRail({ categories }: { categories: CategoryDTO[] }) {
             key={cat.id}
             to="/categoria/$slug"
             params={{ slug: cat.slug }}
-            className="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
           >
             {cat.coverUrl && (
               <img
@@ -160,7 +196,7 @@ function CategoryRail({ categories }: { categories: CategoryDTO[] }) {
         ))}
         <Link
           to="/catalogo"
-          className="flex min-h-11 shrink-0 items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-h-11 shrink-0 items-center gap-1 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
           Ver tudo
           <ChevronRight className="size-4" aria-hidden />
@@ -171,55 +207,8 @@ function CategoryRail({ categories }: { categories: CategoryDTO[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Product Rail (Horizontal scroll)
-// ---------------------------------------------------------------------------
-
-function ProductRailSection({
-  title,
-  eyebrow,
-  products,
-  viewAllTo,
-}: {
-  title: string;
-  eyebrow?: string;
-  products: ProductCardDTO[];
-  viewAllTo?: string;
-}) {
-  if (products.length === 0) return null;
-  return (
-    <section className="mx-auto max-w-screen-xl px-4 md:px-6">
-      <div className="mb-5 flex items-end justify-between gap-3">
-        <div>
-          {eyebrow && <p className="eyebrow text-primary">{eyebrow}</p>}
-          <h2 className="text-editorial mt-1 text-2xl text-foreground sm:text-3xl">{title}</h2>
-        </div>
-        {viewAllTo && (
-          <Button variant="ghost" size="sm" asChild>
-            <Link to={viewAllTo as never}>
-              Ver tudo
-              <ChevronRight className="size-4" aria-hidden />
-            </Link>
-          </Button>
-        )}
-      </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Benefits Bar
 // ---------------------------------------------------------------------------
-
-const BENEFIT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  // Lazy dynamic icon resolution isn't possible with Lucide at build time.
-  // Icons are referenced by name from the server config; we map them here.
-  // Add more mappings as needed — never hardcode benefit content here.
-};
 
 function BenefitsSection({ config }: { config: StoreConfigDTO }) {
   if (config.benefits.length === 0) return null;
@@ -230,8 +219,6 @@ function BenefitsSection({ config }: { config: StoreConfigDTO }) {
           {config.benefits.map((benefit) => (
             <div key={benefit.id} className="flex flex-col items-start gap-2 p-4">
               <span className="text-2xl" aria-hidden>
-                {/* Icon name from server: render as emoji/text fallback until
-                    Phase 3 when we add full icon resolution via the CMS registry */}
                 ✓
               </span>
               <h3 className="text-sm font-semibold text-foreground">{benefit.title}</h3>
@@ -243,10 +230,6 @@ function BenefitsSection({ config }: { config: StoreConfigDTO }) {
     </section>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Unconfigured storefront shell (when Supabase not set up yet)
-// ---------------------------------------------------------------------------
 
 function UnconfiguredStorefront() {
   return (
@@ -268,69 +251,90 @@ function UnconfiguredStorefront() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Home Page Component
-// ---------------------------------------------------------------------------
-
 function Home() {
-  const { storeConfig, products, categories } = Route.useLoaderData();
+  const { storeConfig, products, categories, homePage } = Route.useLoaderData();
 
-  // If store is not configured at all, show a graceful non-fake empty shell.
-  if (storeConfig.status === "unconfigured") {
-    return <UnconfiguredStorefront />;
-  }
-
-  if (storeConfig.status === "error") {
+  if (storeConfig.status === "unconfigured") return <UnconfiguredStorefront />;
+  if (storeConfig.status === "error")
     return (
       <div className="p-8">
         <ErrorState description={storeConfig.message} />
       </div>
     );
-  }
-
-  if (storeConfig.status === "empty") {
+  if (storeConfig.status === "empty")
     return (
       <div className="p-8">
         <ErrorState description="Loja sem configuração" />
       </div>
     );
-  }
 
   const config = storeConfig.data;
-
   const publishedProducts = products.status === "ok" ? products.data : [];
-
   const publishedCategories = categories.status === "ok" ? categories.data : [];
 
+  // Fallback to static render if no dynamic page is published
+  if (!homePage || homePage.sections.length === 0) {
+    return (
+      <div className="flex flex-col gap-10 pb-12">
+        <AnnouncementBar config={config} />
+
+        {/* Fallback to config hero if no sections */}
+        {config.heroBanners[0] && (
+          <DynamicHero
+            content={{
+              title: config.heroBanners[0].headline,
+              subtitle: config.heroBanners[0].subheadline,
+              image_url: config.heroBanners[0].imageUrl,
+              button_text: config.heroBanners[0].ctaLabel,
+              button_link: config.heroBanners[0].ctaLink,
+            }}
+          />
+        )}
+
+        {publishedCategories.length > 0 && <CategoryRail categories={publishedCategories} />}
+
+        {publishedProducts.length > 0 && (
+          <DynamicFeaturedProducts
+            content={{ title: "Novidades" }}
+            publishedProducts={publishedProducts}
+          />
+        )}
+
+        <BenefitsSection config={config} />
+      </div>
+    );
+  }
+
+  // Dynamic Render based on CMS Block Registry
   return (
     <div className="flex flex-col gap-10 pb-12">
-      {/* 1. Announcement Bar */}
       <AnnouncementBar config={config} />
 
-      {/* 2. Hero Banner */}
-      <HeroBanner config={config} />
+      {/* 
+        This is where we actually render the dynamic blocks from the CMS Registry!
+        Each section from Supabase Maps to its corresponding React Component.
+      */}
+      {homePage.sections.map((section: any) => {
+        switch (section.section_type) {
+          case "hero":
+            return <DynamicHero key={section.id} content={section.content} />;
+          case "rich_text":
+          case "text":
+            return <DynamicRichText key={section.id} content={section.content} />;
+          case "featured_products":
+          case "product_grid":
+            return (
+              <DynamicFeaturedProducts
+                key={section.id}
+                content={section.content}
+                publishedProducts={publishedProducts}
+              />
+            );
+          default:
+            return null;
+        }
+      })}
 
-      {/* 3. Category Navigation */}
-      {publishedCategories.length > 0 && <CategoryRail categories={publishedCategories} />}
-
-      {/* 4. Products — Novidades */}
-      {publishedProducts.length > 0 ? (
-        <ProductRailSection
-          eyebrow="Vitrine"
-          title="Novidades"
-          products={publishedProducts.slice(0, 8)}
-          viewAllTo="/catalogo"
-        />
-      ) : (
-        <section className="mx-auto max-w-screen-xl px-4 md:px-6">
-          <EmptyState
-            title="Ainda não há produtos publicados"
-            description="Assim que a loja publicar os primeiros produtos, eles aparecerão aqui automaticamente."
-          />
-        </section>
-      )}
-
-      {/* 5. Benefits */}
       <BenefitsSection config={config} />
     </div>
   );

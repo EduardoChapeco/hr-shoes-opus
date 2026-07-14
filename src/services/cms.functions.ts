@@ -101,11 +101,11 @@ export const createPage = createServerFn({ method: "POST" })
 export const savePageSections = createServerFn({ method: "POST" })
   .validator(
     z.object({
-      page_id: z.string().uuid(),
+      pageId: z.string().uuid(),
       sections: z.array(
         z.object({
           id: z.string().uuid().optional(),
-          section_type: z.enum(["hero", "text", "product_grid", "image", "spacer"]),
+          section_type: z.string(),
           content: z.record(z.unknown()),
           sort_order: z.number().int(),
         }),
@@ -118,7 +118,7 @@ export const savePageSections = createServerFn({ method: "POST" })
 
       // Delete existing sections not in the payload
       const sectionIds = input.sections.map((s) => s.id).filter(Boolean);
-      let deleteQuery = db.from("page_sections").delete().eq("page_id", input.page_id);
+      let deleteQuery = db.from("page_sections").delete().eq("page_id", input.pageId);
       if (sectionIds.length > 0) {
         deleteQuery = deleteQuery.not("id", "in", `(${sectionIds.join(",")})`);
       }
@@ -127,7 +127,7 @@ export const savePageSections = createServerFn({ method: "POST" })
       // Upsert sections
       for (const section of input.sections) {
         const payload = {
-          page_id: input.page_id,
+          page_id: input.pageId,
           section_type: section.section_type,
           content: section.content,
           sort_order: section.sort_order,
@@ -213,7 +213,7 @@ export const getThemeSettings = createServerFn({ method: "GET" }).handler(async 
         .insert({ store_id: storeData.id })
         .select()
         .single();
-        
+
       if (insertError) throw insertError;
       data = newData;
     }
@@ -235,7 +235,7 @@ export const updateThemeSettings = createServerFn({ method: "POST" })
       font_heading: z.string().min(1),
       font_body: z.string().min(1),
       border_radius: z.string().min(1),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
@@ -266,7 +266,7 @@ export const updateThemeSettings = createServerFn({ method: "POST" })
 export const getNavigationMenus = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const db = getServerClient();
-    
+
     const { data: storeData } = await db.from("stores").select("id").limit(1).single();
     if (!storeData) throw new Error("No store found");
 
@@ -292,12 +292,12 @@ export const upsertNavigationMenu = createServerFn({ method: "POST" })
       handle: z.string().regex(/^[a-z0-9-]+$/),
       name: z.string().min(1),
       items: z.array(z.any()), // array of link objects
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
       const db = getServerClient();
-      
+
       const { data: storeData } = await db.from("stores").select("id").limit(1).single();
       if (!storeData) throw new Error("No store found");
 
@@ -332,15 +332,17 @@ export const upsertNavigationMenu = createServerFn({ method: "POST" })
 export const listReviews = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const db = getServerClient();
-    
+
     // Join with products and users to get display names
     const { data, error } = await db
       .from("reviews")
-      .select(`
+      .select(
+        `
         id, rating, comment, status, created_at,
         products (title),
         users:user_id (id)
-      `)
+      `,
+      )
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -357,7 +359,7 @@ export const updateReviewStatus = createServerFn({ method: "POST" })
     z.object({
       id: z.string().uuid(),
       status: z.enum(["pending", "approved", "rejected"]),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
@@ -404,7 +406,7 @@ export const getLinkInBio = createServerFn({ method: "GET" }).handler(async () =
         .insert({ store_id: storeData.id })
         .select()
         .single();
-        
+
       if (insertError) throw insertError;
       data = newData;
     }
@@ -424,7 +426,7 @@ export const upsertLinkInBio = createServerFn({ method: "POST" })
       description: z.string().optional().nullable(),
       avatar_url: z.string().optional().nullable(),
       links: z.array(z.any()), // array of link objects
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
@@ -455,7 +457,7 @@ export const upsertLinkInBio = createServerFn({ method: "POST" })
 export const listAdminStories = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const db = getServerClient();
-    
+
     const { data: storeData } = await db.from("stores").select("id").limit(1).single();
     if (!storeData) throw new Error("No store found");
 
@@ -482,12 +484,12 @@ export const upsertStory = createServerFn({ method: "POST" })
       link_url: z.string().optional().nullable(),
       status: z.enum(["active", "inactive", "archived"]).default("active"),
       sort_order: z.number().int().default(0),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
       const db = getServerClient();
-      
+
       const { data: storeData } = await db.from("stores").select("id").limit(1).single();
       if (!storeData) throw new Error("No store found");
 
@@ -521,13 +523,50 @@ export const deleteStory = createServerFn({ method: "POST" })
   .handler(async ({ data: { id } }) => {
     try {
       const db = getServerClient();
-      
+
       const { error } = await db.from("stories").delete().eq("id", id);
       if (error) throw error;
-      
+
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[cms.functions] deleteStory error:", e);
       return { status: "error" as const, message: "Erro ao excluir story." };
+    }
+  });
+
+export const getPageBySlug = createServerFn({ method: "GET" })
+  .validator(z.object({ slug: z.string() }))
+  .handler(async ({ data: { slug } }) => {
+    try {
+      const db = getServerClient();
+
+      // Get the first store id
+      const { data: store } = await db.from("stores").select("id").limit(1).single();
+      if (!store) return { status: "error" as const, message: "Loja não encontrada." };
+
+      const { data: page, error } = await db
+        .from("pages")
+        .select(
+          `
+          id, title, slug, seo_title, seo_description, updated_at,
+          sections:page_sections(
+            id, section_type, content, sort_order
+          )
+        `,
+        )
+        .eq("store_id", store.id)
+        .eq("slug", slug)
+        .eq("status", "published")
+        .single();
+
+      if (error) {
+        if (error.code === "PGRST116") return { status: "not_found" as const };
+        throw error;
+      }
+
+      return { status: "success" as const, data: page };
+    } catch (e: unknown) {
+      console.error("[cms.functions] getPageBySlug error:", e);
+      return { status: "error" as const, message: "Erro ao carregar página." };
     }
   });

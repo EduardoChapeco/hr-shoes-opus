@@ -1,12 +1,23 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { getCustomerAddresses, addCustomerAddress, deleteCustomerAddress, setDefaultAddress } from "@/services/customer.functions";
+import {
+  getCustomerAddresses,
+  addCustomerAddress,
+  deleteCustomerAddress,
+  setDefaultAddress,
+} from "@/services/customer.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapPin, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/state/states";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/_store/conta/enderecos")({
   head: () => ({ meta: [{ title: "Meus Endereços — Hr Shoes" }] }),
@@ -34,13 +45,19 @@ function AddressesPage() {
     e.preventDefault();
     if (isSubmitting) return;
     setIsSubmitting(true);
-    
+
     try {
       await addCustomerAddress({ data: formData });
       toast.success("Endereço adicionado com sucesso!");
       setIsAdding(false);
       setFormData({
-        zipcode: "", street: "", number: "", complement: "", neighborhood: "", city: "", state: "",
+        zipcode: "",
+        street: "",
+        number: "",
+        complement: "",
+        neighborhood: "",
+        city: "",
+        state: "",
       });
       router.invalidate();
     } catch (error: any) {
@@ -75,54 +92,89 @@ function AddressesPage() {
     <section>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-editorial text-2xl text-foreground">Endereços</h2>
-        {!isAdding && (
-          <Button onClick={() => setIsAdding(true)}>Novo Endereço</Button>
-        )}
+        {!isAdding && <Button onClick={() => setIsAdding(true)}>Novo Endereço</Button>}
       </div>
 
       {isAdding && (
-        <form onSubmit={handleSubmit} className="bg-card p-6 rounded-xl border border-border mb-8 space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-card p-6 rounded-xl border border-border mb-8 space-y-4"
+        >
           <h3 className="font-semibold text-lg mb-4">Adicionar Endereço</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2 md:col-span-1">
               <label className="text-sm font-medium">CEP *</label>
-              <Input required value={formData.zipcode} onChange={e => setFormData({ ...formData, zipcode: e.target.value })} />
+              <Input
+                required
+                value={formData.zipcode}
+                onChange={(e) => setFormData({ ...formData, zipcode: e.target.value })}
+              />
             </div>
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium">Rua / Avenida *</label>
-              <Input required value={formData.street} onChange={e => setFormData({ ...formData, street: e.target.value })} />
+              <Input
+                required
+                value={formData.street}
+                onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+              />
             </div>
             <div className="space-y-2 md:col-span-1">
               <label className="text-sm font-medium">Número *</label>
-              <Input required value={formData.number} onChange={e => setFormData({ ...formData, number: e.target.value })} />
+              <Input
+                required
+                value={formData.number}
+                onChange={(e) => setFormData({ ...formData, number: e.target.value })}
+              />
             </div>
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-medium">Complemento</label>
-              <Input value={formData.complement} onChange={e => setFormData({ ...formData, complement: e.target.value })} />
+              <Input
+                value={formData.complement}
+                onChange={(e) => setFormData({ ...formData, complement: e.target.value })}
+              />
             </div>
             <div className="space-y-2 md:col-span-1">
               <label className="text-sm font-medium">Bairro *</label>
-              <Input required value={formData.neighborhood} onChange={e => setFormData({ ...formData, neighborhood: e.target.value })} />
+              <Input
+                required
+                value={formData.neighborhood}
+                onChange={(e) => setFormData({ ...formData, neighborhood: e.target.value })}
+              />
             </div>
             <div className="space-y-2 md:col-span-1">
               <label className="text-sm font-medium">Cidade *</label>
-              <Input required value={formData.city} onChange={e => setFormData({ ...formData, city: e.target.value })} />
+              <Input
+                required
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              />
             </div>
             <div className="space-y-2 md:col-span-1">
               <label className="text-sm font-medium">Estado (UF) *</label>
-              <Select value={formData.state} onValueChange={v => setFormData({ ...formData, state: v })}>
-                <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+              <Select
+                value={formData.state}
+                onValueChange={(v) => setFormData({ ...formData, state: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="UF" />
+                </SelectTrigger>
                 <SelectContent>
-                  {["SP","RJ","MG","RS","PR","SC","BA","DF","GO","PE","CE"].map(uf => (
-                    <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                  {["SP", "RJ", "MG", "RS", "PR", "SC", "BA", "DF", "GO", "PE", "CE"].map((uf) => (
+                    <SelectItem key={uf} value={uf}>
+                      {uf}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="flex gap-4 pt-4">
-            <Button type="button" variant="outline" onClick={() => setIsAdding(false)}>Cancelar</Button>
-            <Button type="submit" disabled={isSubmitting}>Salvar Endereço</Button>
+            <Button type="button" variant="outline" onClick={() => setIsAdding(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              Salvar Endereço
+            </Button>
           </div>
         </form>
       )}
@@ -160,7 +212,12 @@ function AddressesPage() {
                     Tornar padrão
                   </Button>
                 )}
-                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDelete(addr.id)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => handleDelete(addr.id)}
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Excluir
                 </Button>

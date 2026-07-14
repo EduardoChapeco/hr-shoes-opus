@@ -113,8 +113,12 @@ function StoriesPage() {
                   <Input {...register("link_url")} placeholder="https://..." />
                 </div>
                 <DialogFooter>
-                  <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
-                  <Button type="submit" disabled={isSubmitting}>Publicar</Button>
+                  <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    Publicar
+                  </Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -137,7 +141,7 @@ function StoriesPage() {
                 ) : (
                   <img src={story.media_url} alt="Story" className="w-full h-full object-cover" />
                 )}
-                
+
                 <div className="absolute top-2 right-2">
                   <Badge variant={story.status === "active" ? "default" : "secondary"}>
                     {story.status === "active" ? "Ativo" : "Inativo"}
@@ -146,11 +150,21 @@ function StoriesPage() {
 
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                   {story.link_url && (
-                    <Button variant="secondary" size="sm" className="w-24 text-xs" onClick={() => window.open(story.link_url, "_blank")}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="w-24 text-xs"
+                      onClick={() => window.open(story.link_url, "_blank")}
+                    >
                       Testar Link
                     </Button>
                   )}
-                  <Button variant="destructive" size="sm" className="w-24 text-xs" onClick={() => handleDelete(story.id)}>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-24 text-xs"
+                    onClick={() => handleDelete(story.id)}
+                  >
                     <Trash2 className="mr-2 h-3 w-3" />
                     Excluir
                   </Button>

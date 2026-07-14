@@ -73,8 +73,7 @@ function ReceiptsPage() {
               {receipts.map((r: any) => (
                 <TableRow key={r.id}>
                   <TableCell className="font-medium flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    #{r.public_token}
+                    <FileText className="h-4 w-4 text-muted-foreground" />#{r.public_token}
                   </TableCell>
                   <TableCell>{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
                   <TableCell className="font-semibold">{formatMoney(r.total_cents)}</TableCell>

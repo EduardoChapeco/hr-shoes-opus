@@ -230,9 +230,7 @@ function CashRegisterPage() {
                 {register.opened_by_profile.full_name}
               </CardDescription>
             </div>
-            <Badge variant="success">
-              Ativo
-            </Badge>
+            <Badge variant="success">Ativo</Badge>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-2 gap-4">

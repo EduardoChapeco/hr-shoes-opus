@@ -25,8 +25,16 @@ function NavigationMenusPage() {
   const menus = Route.useLoaderData() || [];
 
   // If no menus exist, we will show default forms for "header" and "footer"
-  const headerMenu = menus.find((m: any) => m.handle === "header") || { handle: "header", name: "Menu Principal", items: [] };
-  const footerMenu = menus.find((m: any) => m.handle === "footer") || { handle: "footer", name: "Rodapé", items: [] };
+  const headerMenu = menus.find((m: any) => m.handle === "header") || {
+    handle: "header",
+    name: "Menu Principal",
+    items: [],
+  };
+  const footerMenu = menus.find((m: any) => m.handle === "footer") || {
+    handle: "footer",
+    name: "Rodapé",
+    items: [],
+  };
 
   return (
     <div className="space-y-8 max-w-4xl">
@@ -35,13 +43,29 @@ function NavigationMenusPage() {
         description="Construa os menus que aparecem no cabeçalho e rodapé da sua vitrine."
       />
 
-      <MenuEditor menu={headerMenu} title="Menu Principal (Cabeçalho)" description="Aparece no topo de todas as páginas." />
-      <MenuEditor menu={footerMenu} title="Menu Secundário (Rodapé)" description="Aparece no fim de todas as páginas." />
+      <MenuEditor
+        menu={headerMenu}
+        title="Menu Principal (Cabeçalho)"
+        description="Aparece no topo de todas as páginas."
+      />
+      <MenuEditor
+        menu={footerMenu}
+        title="Menu Secundário (Rodapé)"
+        description="Aparece no fim de todas as páginas."
+      />
     </div>
   );
 }
 
-function MenuEditor({ menu, title, description }: { menu: any; title: string; description: string }) {
+function MenuEditor({
+  menu,
+  title,
+  description,
+}: {
+  menu: any;
+  title: string;
+  description: string;
+}) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -98,9 +122,18 @@ function MenuEditor({ menu, title, description }: { menu: any; title: string; de
                 </div>
                 <div className="flex-1 space-y-2">
                   <Label>Destino (URL)</Label>
-                  <Input {...register(`items.${index}.url`)} placeholder="Ex: /categoria/esportivos" />
+                  <Input
+                    {...register(`items.${index}.url`)}
+                    placeholder="Ex: /categoria/esportivos"
+                  />
                 </div>
-                <Button type="button" variant="ghost" size="icon" className="mb-0.5 text-destructive" onClick={() => remove(index)}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="mb-0.5 text-destructive"
+                  onClick={() => remove(index)}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -108,7 +141,12 @@ function MenuEditor({ menu, title, description }: { menu: any; title: string; de
           </div>
 
           <div className="flex justify-between items-center pt-4 border-t mt-6">
-            <Button type="button" variant="outline" size="sm" onClick={() => append({ label: "", url: "" })}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => append({ label: "", url: "" })}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Adicionar Link
             </Button>

@@ -67,43 +67,41 @@ function AdminProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map(
-                (product: AdminProductRow) => {
-                  const cover = product.product_media?.[0]?.url;
-                  return (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          {cover ? (
-                            <img src={cover} alt="" className="h-10 w-10 rounded object-cover" />
-                          ) : (
-                            <div className="h-10 w-10 rounded bg-muted" />
-                          )}
-                          <div className="flex flex-col">
-                            <span className="font-medium">{product.title}</span>
-                            <span className="text-xs text-muted-foreground">{product.slug}</span>
-                          </div>
+              {products.map((product: AdminProductRow) => {
+                const cover = product.product_media?.[0]?.url;
+                return (
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        {cover ? (
+                          <img src={cover} alt="" className="h-10 w-10 rounded object-cover" />
+                        ) : (
+                          <div className="h-10 w-10 rounded bg-muted" />
+                        )}
+                        <div className="flex flex-col">
+                          <span className="font-medium">{product.title}</span>
+                          <span className="text-xs text-muted-foreground">{product.slug}</span>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={product.status === "published" ? "default" : "secondary"}>
-                          {product.status === "published"
-                            ? "Publicado"
-                            : product.status === "archived"
-                              ? "Arquivado"
-                              : "Rascunho"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {product.product_types && product.product_types.length > 0
-                          ? product.product_types[0].name
-                          : "Genérico"}
-                      </TableCell>
-                      <TableCell>{formatMoney(product.price_cents)}</TableCell>
-                    </TableRow>
-                  );
-                },
-              )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={product.status === "published" ? "default" : "secondary"}>
+                        {product.status === "published"
+                          ? "Publicado"
+                          : product.status === "archived"
+                            ? "Arquivado"
+                            : "Rascunho"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {product.product_types && product.product_types.length > 0
+                        ? product.product_types[0].name
+                        : "Genérico"}
+                    </TableCell>
+                    <TableCell>{formatMoney(product.price_cents)}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

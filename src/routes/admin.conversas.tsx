@@ -65,10 +65,7 @@ function ChatInboxPage() {
 
   return (
     <div className="space-y-6 h-[calc(100vh-8rem)] flex flex-col">
-      <PageHeader
-        title="Conversas (Chat)"
-        description="Atenda seus clientes em tempo real."
-      />
+      <PageHeader title="Conversas (Chat)" description="Atenda seus clientes em tempo real." />
 
       <div className="flex-1 border rounded-md overflow-hidden flex bg-card">
         {/* Sidebar */}
@@ -98,7 +95,8 @@ function ChatInboxPage() {
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground truncate line-clamp-2">
-                    {t.is_last_reply_staff ? "Você: " : ""}{t.last_message || t.subject}
+                    {t.is_last_reply_staff ? "Você: " : ""}
+                    {t.last_message || t.subject}
                   </p>
                 </div>
               ))
@@ -143,7 +141,9 @@ function ChatInboxPage() {
                         {m.message}
                         <div
                           className={`text-[10px] mt-1 ${
-                            m.is_staff_reply ? "text-primary-foreground/70" : "text-muted-foreground"
+                            m.is_staff_reply
+                              ? "text-primary-foreground/70"
+                              : "text-muted-foreground"
                           }`}
                         >
                           {new Date(m.created_at).toLocaleTimeString([], {

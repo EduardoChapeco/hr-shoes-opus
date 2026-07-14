@@ -311,11 +311,13 @@ export const getProductById = createServerFn({ method: "GET" })
 
       const { data, error } = await db
         .from("products")
-        .select(`
+        .select(
+          `
           *,
           product_variants (*),
           product_media (*)
-        `)
+        `,
+        )
         .eq("id", id)
         .single();
 
