@@ -22,3 +22,6 @@ export function Logo({
     />
   );
 }
+
+/** Canonical alias (see COMPONENT_CATALOG.md). */
+export const BrandLogo = Logo;

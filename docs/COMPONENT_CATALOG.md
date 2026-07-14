@@ -17,17 +17,20 @@
 |---|---|---|
 | `EmptyState` | Sem dados (honesto, sem fake) | empty |
 | `ErrorState` | Falha de carga + retry | error |
-| `PermissionDenied` | Sem autorização | permission |
+| `PermissionState` (alias de `PermissionDenied`) | Sem autorização | permission |
 | `UnconfiguredState` | Integração sem credencial | unconfigured |
+| `LoadingState` | Indicador central com `role="status"` | loading |
 | `ProductCardSkeleton` / `ProductGridSkeleton` / `LinesSkeleton` | Carregamento sem layout shift | loading |
-| `PhaseGate` (admin) | Funcionalidade não construída | "Planejado para a Fase X" (somente painel) |
+| `StatusBadge` | Pílula de status por token (`unconfigured/testing/active/error/planned`) | status |
+| `SectionFrame` | Wrapper de seção com eyebrow/título/ação | — |
+| `PlannedFeature` / `PhaseGate` (admin) | Funcionalidade não construída | "Planejado para a Fase X" (somente painel) |
 
 ## Vitrine (src/components/commerce)
 | Componente | Descrição | Notas de estado |
 |---|---|---|
-| `Logo` | Marca real Hr Shoes (imagem) | — |
-| `PublicHeader` | Cabeçalho + menu mobile (Sheet) | navegação sempre válida |
-| `BottomNav` | Navegação inferior sticky (mobile) | alvos >= 44px, `pb-safe` |
+| `BrandLogo` / `Logo` | Marca real Hr Shoes (imagem) | — |
+| `PublicHeader` | Cabeçalho + menu mobile (Sheet) | navegação sempre válida (derivada do registry) |
+| `MobileBottomNav` / `BottomNav` | Navegação inferior sticky (mobile) | alvos >= 44px, `pb-safe` |
 | `PublicFooter` | Rodapé com colunas | links reais |
 | `PageHeader` | Título/eyebrow/ações | responsivo (grid + min-w-0) |
 | `ProductCard` | Card de produto (DTO server-side) | loading via skeleton; sem cálculo local |
@@ -37,7 +40,7 @@
 | Componente | Descrição | Notas |
 |---|---|---|
 | `AdminShell` | Sidebar recolhível (desktop) + topbar + bottom nav (mobile) | responsivo, safe-area |
-| `PhaseGate` | Estado honesto de fase | nunca na vitrine |
+| `PlannedFeature` / `PhaseGate` | Estado honesto de fase | nunca na vitrine |
 
 ## Acessibilidade (todos)
 - Alvos interativos >= 44x44px; foco visível (ring = brand); navegação por teclado.

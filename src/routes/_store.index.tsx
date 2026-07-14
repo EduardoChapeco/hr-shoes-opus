@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Sparkles } from "lucide-react";
 
-import heroImg from "@/assets/hero-editorial.jpg";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/state/states";
 
@@ -53,14 +52,30 @@ function Home() {
           </div>
         </div>
         <div className="order-1 md:order-2">
-          <div className="overflow-hidden rounded-3xl bg-secondary shadow-md">
-            <img
-              src={heroImg}
-              alt="Composição editorial da Hr Shoes com scarpin e tecido acetinado"
-              width={1280}
-              height={1600}
-              className="aspect-[4/5] w-full object-cover"
+          <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-border bg-secondary">
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 1px 1px, var(--color-border) 1px, transparent 0)",
+                backgroundSize: "22px 22px",
+                opacity: 0.5,
+              }}
+              aria-hidden
             />
+            <div className="relative flex h-full flex-col justify-between p-8 md:p-10">
+              <span className="eyebrow text-primary">Hr Shoes</span>
+              <div>
+                <p className="text-editorial text-3xl leading-tight text-foreground sm:text-4xl">
+                  Conforto <span className="text-primary">&amp;</span> Estilo
+                </p>
+                <div className="mt-6 h-px w-24 bg-primary" aria-hidden />
+                <p className="mt-4 max-w-xs text-sm text-muted-foreground">
+                  A campanha visual será publicada pela loja no painel de
+                  conteúdo. Nenhuma imagem fictícia é exibida aqui.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
