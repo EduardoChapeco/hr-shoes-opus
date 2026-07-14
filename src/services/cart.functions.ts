@@ -89,6 +89,9 @@ export const getCart = createServerFn({ method: "GET" }).handler(
         `
         id,
         status,
+        coupon_code,
+        discount_cents,
+        shipping_cents,
         cart_items (
           id,
           variant_id,
@@ -164,9 +167,10 @@ export const getCart = createServerFn({ method: "GET" }).handler(
       id: cart.id,
       items,
       subtotalCents: totalCents,
-      totalCents: totalCents,
-      shippingCents: 0,
-      discountCents: 0,
+      totalCents: totalCents + cart.shipping_cents - cart.discount_cents,
+      shippingCents: cart.shipping_cents,
+      discountCents: cart.discount_cents,
+      couponCode: cart.coupon_code,
       itemCount: items.reduce((acc: number, item: { qty: number }) => acc + item.qty, 0),
     };
   },
@@ -467,4 +471,71 @@ export const updateCartItemQty = createServerFn({ method: "POST" })
     await supabase.from("cart_items").update({ qty: newTotalQty }).eq("id", existingItem.id);
 
     return { status: "success" };
+  });
+
+export const applyCouponToCart = createServerFn({ method: "POST" })
+  .validator(z.object({ code: z.string().toUpperCase() }))
+  .handler(async ({ data: { code } }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    let cartQuery = supabase.from("carts").select("id").eq("status", "active");
+    if (identity.customer_id) cartQuery = cartQuery.eq("customer_id", identity.customer_id);
+    else cartQuery = cartQuery.eq("session_token", identity.session_token);
+
+    const { data: cart } = await cartQuery.maybeSingle();
+    if (!cart) throw new Error("Carrinho não encontrado");
+
+    // Get current cart details to check subtotal
+    const cartDetails = await getCart();
+    if (!cartDetails) throw new Error("Erro ao buscar detalhes do carrinho");
+
+    // Search for coupon
+    const { data: store } = await supabase.from("stores").select("id").limit(1).single();
+    if (!store) throw new Error("Loja não configurada");
+
+    const { data: coupon } = await supabase
+      .from("coupons")
+      .select("*")
+      .eq("store_id", store.id)
+      .eq("code", code)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (!coupon) return { status: "error", message: "Cupom inválido ou expirado." };
+
+    // Check expiration
+    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
+      return { status: "error", message: "Este cupom já expirou." };
+    }
+
+    // Check limits
+    if (coupon.max_uses && coupon.uses_count >= coupon.max_uses) {
+      return { status: "error", message: "Este cupom atingiu o limite de usos." };
+    }
+
+    if (coupon.min_order_cents && cartDetails.subtotalCents < coupon.min_order_cents) {
+      return { status: "error", message: `Valor mínimo para este cupom é ${(coupon.min_order_cents / 100).toFixed(2)}` };
+    }
+
+    // Calculate discount
+    let newDiscountCents = 0;
+    if (coupon.discount_type === "percentage") {
+      newDiscountCents = Math.floor(cartDetails.subtotalCents * (coupon.discount_value / 100));
+    } else if (coupon.discount_type === "fixed_amount") {
+      newDiscountCents = Math.round(coupon.discount_value * 100);
+      if (newDiscountCents > cartDetails.subtotalCents) newDiscountCents = cartDetails.subtotalCents;
+    } else if (coupon.discount_type === "free_shipping") {
+      // Actually we should apply this later during checkout or set a flag.
+      // For now we set shipping to 0.
+      newDiscountCents = 0;
+    }
+
+    await supabase.from("carts").update({
+      coupon_code: code,
+      discount_cents: newDiscountCents,
+      shipping_cents: coupon.discount_type === "free_shipping" ? 0 : cartDetails.shippingCents // if it was free shipping
+    }).eq("id", cart.id);
+
+    return { status: "success", message: "Cupom aplicado com sucesso!" };
   });

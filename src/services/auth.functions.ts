@@ -124,3 +124,51 @@ export const signOut = createServerFn({ method: "POST" }).handler(async () => {
     return { status: "error" as const };
   }
 });
+
+export const getProfile = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getSSRClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Não autorizado");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  return {
+    id: user.id,
+    email: user.email,
+    fullName: user.user_metadata?.full_name || profile?.full_name || "",
+    phone: user.user_metadata?.phone || profile?.phone || "",
+    role: profile?.role || "customer"
+  };
+});
+
+export const updateProfile = createServerFn({ method: "POST" })
+  .validator(z.object({
+    fullName: z.string().min(2),
+    phone: z.string().optional(),
+  }))
+  .handler(async ({ data }) => {
+    const supabase = getSSRClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Não autorizado");
+
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        full_name: data.fullName,
+        phone: data.phone,
+      }
+    });
+
+    if (error) throw new Error(error.message);
+    
+    // Also update profiles table
+    await supabase.from("profiles").update({
+      full_name: data.fullName,
+      phone: data.phone,
+    }).eq("id", user.id);
+
+    return { status: "success" };
+  });

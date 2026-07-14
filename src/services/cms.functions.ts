@@ -186,3 +186,348 @@ export const getPublicPageBySlug = createServerFn({ method: "GET" })
       return { status: "error" as const, message: "Erro inesperado ao carregar página." };
     }
   });
+
+// ---------------------------------------------------------------------------
+// Theme Settings
+// ---------------------------------------------------------------------------
+
+export const getThemeSettings = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+
+    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+    if (!storeData) throw new Error("No store found");
+
+    let { data, error } = await db
+      .from("theme_settings")
+      .select("*")
+      .eq("store_id", storeData.id)
+      .single();
+
+    if (error && error.code !== "PGRST116") throw error; // PGRST116 is not found
+
+    if (!data) {
+      // Create default if it doesn't exist
+      const { data: newData, error: insertError } = await db
+        .from("theme_settings")
+        .insert({ store_id: storeData.id })
+        .select()
+        .single();
+        
+      if (insertError) throw insertError;
+      data = newData;
+    }
+
+    return { status: "ok" as const, data };
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    console.error("[cms.functions] getThemeSettings error:", e);
+    return { status: "error" as const, message: "Erro ao buscar tema." };
+  }
+});
+
+export const updateThemeSettings = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      primary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      background_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      text_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      font_heading: z.string().min(1),
+      font_body: z.string().min(1),
+      border_radius: z.string().min(1),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+
+      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      if (!storeData) throw new Error("No store found");
+
+      const { data, error } = await db
+        .from("theme_settings")
+        .update(input)
+        .eq("store_id", storeData.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[cms.functions] updateThemeSettings error:", e);
+      return { status: "error" as const, message: "Erro ao atualizar tema." };
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// Navigation Menus
+// ---------------------------------------------------------------------------
+
+export const getNavigationMenus = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+    
+    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+    if (!storeData) throw new Error("No store found");
+
+    const { data, error } = await db
+      .from("navigation_menus")
+      .select("*")
+      .eq("store_id", storeData.id)
+      .order("handle", { ascending: true });
+
+    if (error) throw error;
+    return { status: "ok" as const, data };
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    console.error("[cms.functions] getNavigationMenus error:", e);
+    return { status: "error" as const, message: "Erro ao buscar menus de navegação." };
+  }
+});
+
+export const upsertNavigationMenu = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid().optional(),
+      handle: z.string().regex(/^[a-z0-9-]+$/),
+      name: z.string().min(1),
+      items: z.array(z.any()), // array of link objects
+    })
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+      
+      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      if (!storeData) throw new Error("No store found");
+
+      const payload = {
+        store_id: storeData.id,
+        handle: input.handle,
+        name: input.name,
+        items: input.items,
+      };
+
+      let query = db.from("navigation_menus");
+      let result;
+
+      if (input.id) {
+        result = await query.update(payload).eq("id", input.id).select().single();
+      } else {
+        result = await query.insert(payload).select().single();
+      }
+
+      if (result.error) throw result.error;
+      return { status: "success" as const, data: result.data };
+    } catch (e: unknown) {
+      console.error("[cms.functions] upsertNavigationMenu error:", e);
+      return { status: "error" as const, message: "Erro ao salvar menu de navegação." };
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// Reviews (Avaliações)
+// ---------------------------------------------------------------------------
+
+export const listReviews = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+    
+    // Join with products and users to get display names
+    const { data, error } = await db
+      .from("reviews")
+      .select(`
+        id, rating, comment, status, created_at,
+        products (title),
+        users:user_id (id)
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return { status: "ok" as const, data };
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    console.error("[cms.functions] listReviews error:", e);
+    return { status: "error" as const, message: "Erro ao listar avaliações." };
+  }
+});
+
+export const updateReviewStatus = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+      status: z.enum(["pending", "approved", "rejected"]),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+
+      const { data, error } = await db
+        .from("reviews")
+        .update({ status: input.status })
+        .eq("id", input.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[cms.functions] updateReviewStatus error:", e);
+      return { status: "error" as const, message: "Erro ao atualizar avaliação." };
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// Link-in-Bio
+// ---------------------------------------------------------------------------
+
+export const getLinkInBio = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+
+    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+    if (!storeData) throw new Error("No store found");
+
+    let { data, error } = await db
+      .from("link_in_bio")
+      .select("*")
+      .eq("store_id", storeData.id)
+      .single();
+
+    if (error && error.code !== "PGRST116") throw error; // PGRST116 is not found
+
+    if (!data) {
+      // Create default if it doesn't exist
+      const { data: newData, error: insertError } = await db
+        .from("link_in_bio")
+        .insert({ store_id: storeData.id })
+        .select()
+        .single();
+        
+      if (insertError) throw insertError;
+      data = newData;
+    }
+
+    return { status: "ok" as const, data };
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    console.error("[cms.functions] getLinkInBio error:", e);
+    return { status: "error" as const, message: "Erro ao buscar Link da Bio." };
+  }
+});
+
+export const upsertLinkInBio = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      title: z.string().min(1).max(200),
+      description: z.string().optional().nullable(),
+      avatar_url: z.string().optional().nullable(),
+      links: z.array(z.any()), // array of link objects
+    })
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+
+      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      if (!storeData) throw new Error("No store found");
+
+      const { data, error } = await db
+        .from("link_in_bio")
+        .update(input)
+        .eq("store_id", storeData.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[cms.functions] upsertLinkInBio error:", e);
+      return { status: "error" as const, message: "Erro ao atualizar Link da Bio." };
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// Stories
+// ---------------------------------------------------------------------------
+
+export const listAdminStories = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+    
+    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+    if (!storeData) throw new Error("No store found");
+
+    const { data, error } = await db
+      .from("stories")
+      .select("*")
+      .eq("store_id", storeData.id)
+      .order("sort_order", { ascending: true });
+
+    if (error) throw error;
+    return { status: "ok" as const, data };
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    console.error("[cms.functions] listAdminStories error:", e);
+    return { status: "error" as const, message: "Erro ao listar stories." };
+  }
+});
+
+export const upsertStory = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid().optional(),
+      media_url: z.string().url(),
+      link_url: z.string().optional().nullable(),
+      status: z.enum(["active", "inactive", "archived"]).default("active"),
+      sort_order: z.number().int().default(0),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+      
+      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      if (!storeData) throw new Error("No store found");
+
+      const payload = {
+        store_id: storeData.id,
+        media_url: input.media_url,
+        link_url: input.link_url,
+        status: input.status,
+        sort_order: input.sort_order,
+      };
+
+      let query = db.from("stories");
+      let result;
+
+      if (input.id) {
+        result = await query.update(payload).eq("id", input.id).select().single();
+      } else {
+        result = await query.insert(payload).select().single();
+      }
+
+      if (result.error) throw result.error;
+      return { status: "success" as const, data: result.data };
+    } catch (e: unknown) {
+      console.error("[cms.functions] upsertStory error:", e);
+      return { status: "error" as const, message: "Erro ao salvar story." };
+    }
+  });
+
+export const deleteStory = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    try {
+      const db = getServerClient();
+      
+      const { error } = await db.from("stories").delete().eq("id", id);
+      if (error) throw error;
+      
+      return { status: "success" as const };
+    } catch (e: unknown) {
+      console.error("[cms.functions] deleteStory error:", e);
+      return { status: "error" as const, message: "Erro ao excluir story." };
+    }
+  });

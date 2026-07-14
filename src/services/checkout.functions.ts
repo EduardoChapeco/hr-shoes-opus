@@ -9,7 +9,15 @@ const CheckoutSchema = z.object({
   customerDocument: z.string().optional(),
   customerPhone: z.string().optional(),
   shippingMethod: z.enum(["delivery", "pickup", "manual_quote"]),
-  shippingAddress: z.any().optional(),
+  shippingAddress: z.object({
+    zipcode: z.string().min(8),
+    street: z.string().min(2),
+    number: z.string().min(1),
+    complement: z.string().optional(),
+    neighborhood: z.string().min(2),
+    city: z.string().min(2),
+    state: z.string().length(2),
+  }).optional(), // Optional if pickup
   paymentMethod: z.enum(["pix", "manual", "credit_card", "boleto"]),
 });
 

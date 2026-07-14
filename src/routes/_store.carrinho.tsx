@@ -1,15 +1,18 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
 import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
-import { getCart, removeFromCart, updateCartItemQty } from "@/services/cart.functions";
-import { Trash2, Plus, Minus, ArrowRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { getCart, removeFromCart, updateCartItemQty, applyCouponToCart } from "@/services/cart.functions";
+import { Trash2, Plus, Minus, ArrowRight, Ticket } from "lucide-react";
 import { EmptyState } from "@/components/state/states";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/carrinho")({
   head: () => ({ meta: [{ title: "Meu Carrinho — Hr Shoes" }] }),
   loader: async () => {
     const cart = await getCart();
-    return cart || { items: [], totalCents: 0, subtotalCents: 0, itemCount: 0 };
+    return cart || { items: [], totalCents: 0, subtotalCents: 0, discountCents: 0, itemCount: 0, couponCode: null };
   },
   component: StoreCartPage,
 });
@@ -17,6 +20,9 @@ export const Route = createFileRoute("/_store/carrinho")({
 function StoreCartPage() {
   const cart = Route.useLoaderData();
   const router = useRouter();
+  
+  const [coupon, setCoupon] = useState("");
+  const [isApplying, setIsApplying] = useState(false);
 
   const handleRemove = async (itemId: string) => {
     await removeFromCart({ data: { itemId } });
@@ -28,7 +34,27 @@ function StoreCartPage() {
       await updateCartItemQty({ data: { variantId, delta } });
       router.invalidate();
     } catch (e: any) {
-      alert("Erro ao atualizar carrinho.");
+      toast.error("Erro ao atualizar carrinho.");
+    }
+  };
+
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!coupon) return;
+    setIsApplying(true);
+    try {
+      const res = await applyCouponToCart({ data: { code: coupon } });
+      if (res.status === "success") {
+        toast.success(res.message);
+        setCoupon("");
+        router.invalidate();
+      } else {
+        toast.error(res.message);
+      }
+    } catch {
+      toast.error("Erro ao aplicar cupom.");
+    } finally {
+      setIsApplying(false);
     }
   };
 
@@ -89,19 +115,42 @@ function StoreCartPage() {
           </div>
 
           <div className="bg-muted/50 rounded-xl p-6 h-fit sticky top-24">
-            <h2 className="text-xl font-semibold mb-6">Resumo do Pedido</h2>
+            <h2 className="text-xl font-semibold mb-4">Resumo do Pedido</h2>
+            
+            <form onSubmit={handleApplyCoupon} className="flex gap-2 mb-6">
+              <Input 
+                placeholder="Cupom de desconto" 
+                value={coupon}
+                onChange={e => setCoupon(e.target.value)}
+              />
+              <Button type="submit" variant="secondary" disabled={isApplying || !coupon}>
+                Aplicar
+              </Button>
+            </form>
+
             <div className="space-y-4 text-sm mb-6 border-b pb-6">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal ({cart.itemCount} itens)</span>
                 <span className="font-medium">{formatMoney(cart.subtotalCents)}</span>
               </div>
+              
+              {cart.couponCode && (
+                <div className="flex justify-between text-green-600">
+                  <span className="flex items-center gap-1">
+                    <Ticket className="h-4 w-4" /> Cupom ({cart.couponCode})
+                  </span>
+                  <span className="font-medium">-{formatMoney(cart.discountCents)}</span>
+                </div>
+              )}
+              
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Frete</span>
-                <span className="font-medium text-green-600">Grátis</span>
+                <span className="text-muted-foreground text-xs">Calculado no próximo passo</span>
               </div>
             </div>
+            
             <div className="flex justify-between items-end mb-8">
-              <span className="font-semibold text-lg">Total</span>
+              <span className="font-semibold text-lg">Total estimado</span>
               <span className="font-bold text-2xl tracking-tight">{formatMoney(cart.totalCents)}</span>
             </div>
             

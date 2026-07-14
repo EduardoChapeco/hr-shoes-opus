@@ -7,7 +7,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr";
 
 export const confirmPayment = createServerFn({ method: "POST" })
@@ -100,4 +100,46 @@ export const confirmPayment = createServerFn({ method: "POST" })
     }
 
     return { status: "success" };
+  });
+
+export const listPendingManualPayments = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+    if (!storeData) throw new Error("No store found");
+
+    const { data, error } = await db
+      .from("orders")
+      .select("id, public_token, total_cents, created_at, customer_id")
+      .eq("store_id", storeData.id)
+      .eq("status", "pending_payment")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return { status: "ok" as const, data };
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    return { status: "error" as const, message: "Erro ao listar comprovantes" };
+  }
+});
+
+export const approvePayment = createServerFn({ method: "POST" })
+  .validator(z.object({ orderId: z.string().uuid() }))
+  .handler(async ({ data: { orderId } }) => {
+    try {
+      const db = getServerClient();
+      
+      const { data, error } = await db
+        .from("orders")
+        .update({ status: "processing" })
+        .eq("id", orderId)
+        .select()
+        .single();
+        
+      if (error) throw error;
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[payment] approvePayment error:", e);
+      return { status: "error" as const, message: "Erro ao aprovar." };
+    }
   });

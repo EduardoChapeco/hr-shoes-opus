@@ -249,3 +249,71 @@ export const getStoreConfig = createServerFn({ method: "GET" }).handler(
     }
   },
 );
+export const searchProducts = createServerFn({ method: "GET" })
+  .validator(z.object({ query: z.string().min(1) }))
+  .handler(async ({ data: { query } }): Promise<ProductListResult> => {
+    try {
+      const db = await getAnonServerClient();
+      const { data: store } = await db.from("stores").select("id").limit(1).single();
+
+      if (!store) {
+        return { status: "unconfigured", reason: "Loja não encontrada." };
+      }
+
+      const { data, error } = await db
+        .from("products")
+        .select(
+          `
+          id,
+          title:name,
+          slug,
+          status,
+          priceCents:price_cents,
+          compareAtCents:compare_at_price_cents,
+          media:product_media(id, url, alt, sort_order)
+        `,
+        )
+        .eq("store_id", store.id)
+        .eq("status", "published")
+        .ilike("name", `%${query}%`)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        return { status: "error", message: error.message };
+      }
+
+      if (!data || data.length === 0) {
+        return { status: "ok", data: [] };
+      }
+
+      // Map to DTO
+      const mapped: ProductCardDTO[] = data.map((item: any) => {
+        const sortedMedia = item.media.sort(
+          (a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0),
+        );
+        return {
+          id: item.id,
+          title: item.title,
+          slug: item.slug,
+          priceCents: item.priceCents,
+          compareAtCents: item.compareAtCents,
+          coverImage: sortedMedia[0]
+            ? {
+                url: sortedMedia[0].url,
+                alt: sortedMedia[0].alt,
+              }
+            : null,
+          hoverImage: sortedMedia[1]
+            ? {
+                url: sortedMedia[1].url,
+                alt: sortedMedia[1].alt,
+              }
+            : null,
+        };
+      });
+
+      return { status: "ok", data: mapped };
+    } catch (e: any) {
+      return { status: "error", message: e.message || "Erro desconhecido" };
+    }
+  });

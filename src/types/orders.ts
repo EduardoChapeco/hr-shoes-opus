@@ -100,6 +100,7 @@ export interface CartDTO {
   discountCents: number;
   totalCents: number;
   itemCount: number;
+  couponCode?: string | null;
 }
 
 // ---------------------------------------------------------------------------

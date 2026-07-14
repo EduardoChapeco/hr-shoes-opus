@@ -189,14 +189,7 @@ export const PUBLIC_ROUTES: RouteEntry[] = [
     phase: 4,
       dynamic: true,
   },
-  {
-    path: "/instalar",
-    label: "Instalar app",
-    description: "Instruções PWA",
-    audience: "public",
-    roles: ["visitor"],
-    phase: 3,
-    },
+
   {
     path: "/politicas/:slug",
     label: "Políticas",
@@ -340,14 +333,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     roles: CUSTOMER,
     phase: 4,
     },
-  {
-    path: "/conta/suporte",
-    label: "Suporte",
-    description: "Atendimento",
-    audience: "customer",
-    roles: CUSTOMER,
-    phase: 4,
-    },
+
   {
     path: "/conta/conversas/:id",
     label: "Conversa",
@@ -357,14 +343,7 @@ export const CUSTOMER_ROUTES: RouteEntry[] = [
     phase: 4,
       dynamic: true,
   },
-  {
-    path: "/conta/privacidade",
-    label: "Privacidade",
-    description: "Consentimentos e LGPD",
-    audience: "customer",
-    roles: CUSTOMER,
-    phase: 3,
-    },
+
 ];
 
 const STAFF: Role[] = ["owner", "admin", "manager"];

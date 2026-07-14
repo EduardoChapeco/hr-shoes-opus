@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ImagePlus, X } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { listProductTypes, createProduct } from "@/services/admin-catalog.functions";
+import { getBrowserClient } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/novo")({
   head: () => ({ meta: [{ title: "Novo produto — Hr Shoes" }] }),
@@ -32,6 +33,8 @@ function NewProductPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedTypeId, setSelectedTypeId] = useState<string | "generic">("generic");
+  const [files, setFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
   const selectedType = types.find(
     (t: { id: string; name: string; field_schema: unknown[] }) => t.id === selectedTypeId,
@@ -58,6 +61,21 @@ function NewProductPage() {
     },
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setFiles((prev) => [...prev, ...newFiles]);
+      
+      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+      setPreviewUrls((prev) => [...prev, ...newPreviews]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
   const onSubmit = async (values: {
     title: string;
     slug: string;
@@ -67,6 +85,27 @@ function NewProductPage() {
   }) => {
     setIsSubmitting(true);
     try {
+      const supabase = getBrowserClient();
+      const media_urls: string[] = [];
+
+      // Upload files first
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${values.slug}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const { data, error } = await supabase.storage
+          .from("product-media")
+          .upload(fileName, file, { upsert: false });
+
+        if (error) {
+          toast.error("Erro no upload: " + error.message);
+          setIsSubmitting(false);
+          return;
+        }
+        
+        const { data: publicData } = supabase.storage.from("product-media").getPublicUrl(data.path);
+        media_urls.push(publicData.publicUrl);
+      }
+
       const priceCents = parseInt(values.price_cents.replace(/\D/g, ""), 10) || 0;
 
       const res = await createProduct({
@@ -77,6 +116,7 @@ function NewProductPage() {
           status: values.status as "draft" | "published" | "archived",
           type_id: selectedTypeId === "generic" ? null : selectedTypeId,
           attributes: values.attributes,
+          media_urls,
         },
       });
 
@@ -239,6 +279,39 @@ function NewProductPage() {
                   <p className="text-xs text-destructive">{errors.price_cents.message}</p>
                 )}
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Mídia (Imagens)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {previewUrls.map((url, i) => (
+                <div key={i} className="relative aspect-square border rounded-md overflow-hidden bg-muted group">
+                  <img src={url} alt={`Preview ${i}`} className="object-cover w-full h-full" />
+                  <button 
+                    type="button"
+                    onClick={() => removeFile(i)}
+                    className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <Label className="flex flex-col items-center justify-center border-2 border-dashed rounded-md aspect-square cursor-pointer hover:bg-muted/50 transition-colors">
+                <ImagePlus className="w-8 h-8 text-muted-foreground mb-2" />
+                <span className="text-sm font-medium text-muted-foreground">Adicionar Fotos</span>
+                <input 
+                  type="file" 
+                  multiple 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleFileChange} 
+                />
+              </Label>
             </div>
           </CardContent>
         </Card>

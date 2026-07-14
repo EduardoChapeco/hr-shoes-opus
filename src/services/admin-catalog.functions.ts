@@ -122,6 +122,94 @@ export const createProduct = createServerFn({ method: "POST" })
       cost_cents: z.number().int().min(0).optional().nullable(),
       attributes: z.record(z.any()).default({}), // Dynamic fields based on type
       weight_grams: z.number().int().min(0).optional().nullable(),
+      media_urls: z.array(z.string().url()).optional(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+
+      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      if (!storeData) throw new Error("No store found");
+
+      const { media_urls, ...productInput } = input;
+
+      const { data, error } = await db
+        .from("products")
+        .insert({
+          store_id: storeData.id,
+          ...productInput,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Create a default variant
+      const { data: variant, error: variantError } = await db
+        .from("product_variants")
+        .insert({
+          product_id: data.id,
+          sku: `${input.slug}-01`,
+          price_cents: input.price_cents,
+          compare_at_price_cents: input.compare_at_cents,
+          attributes: input.attributes,
+        })
+        .select()
+        .single();
+
+      if (variantError) throw variantError;
+
+      // Insert media if provided
+      if (media_urls && media_urls.length > 0) {
+        const mediaRecords = media_urls.map((url, idx) => ({
+          product_id: data.id,
+          url,
+          sort_order: idx,
+        }));
+        await db.from("product_media").insert(mediaRecords);
+      }
+
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] createProduct error:", e);
+      return {
+        status: "error" as const,
+        message: e instanceof Error ? e.message : "Erro ao criar produto.",
+      };
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// Categories
+// ---------------------------------------------------------------------------
+
+export const listCategories = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+
+    const { data, error } = await db
+      .from("categories")
+      .select("id, name, slug, status, sort_order, parent_id")
+      .order("sort_order", { ascending: true });
+
+    if (error) throw error;
+
+    return { status: "ok" as const, data };
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    console.error("[admin-catalog] listCategories error:", e);
+    return { status: "error" as const, message: "Erro ao listar categorias." };
+  }
+});
+
+export const createCategory = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      name: z.string().min(1).max(100),
+      slug: z.string().regex(/^[a-z0-9-]+$/),
+      parent_id: z.string().uuid().optional().nullable(),
+      status: z.enum(["active", "inactive"]).default("active"),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -132,7 +220,7 @@ export const createProduct = createServerFn({ method: "POST" })
       if (!storeData) throw new Error("No store found");
 
       const { data, error } = await db
-        .from("products")
+        .from("categories")
         .insert({
           store_id: storeData.id,
           ...input,
@@ -144,10 +232,186 @@ export const createProduct = createServerFn({ method: "POST" })
 
       return { status: "success" as const, data };
     } catch (e: unknown) {
-      console.error("[admin-catalog] createProduct error:", e);
+      console.error("[admin-catalog] createCategory error:", e);
       return {
         status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao criar produto.",
+        message: e instanceof Error ? e.message : "Erro ao criar categoria.",
+      };
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// Collections
+// ---------------------------------------------------------------------------
+
+export const listCollections = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+
+    const { data, error } = await db
+      .from("collections")
+      .select("id, name, slug, status, sort_order")
+      .order("sort_order", { ascending: true });
+
+    if (error) throw error;
+
+    return { status: "ok" as const, data };
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    console.error("[admin-catalog] listCollections error:", e);
+    return { status: "error" as const, message: "Erro ao listar coleções." };
+  }
+});
+
+export const createCollection = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      name: z.string().min(1).max(100),
+      slug: z.string().regex(/^[a-z0-9-]+$/),
+      status: z.enum(["active", "inactive"]).default("active"),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+
+      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      if (!storeData) throw new Error("No store found");
+
+      const { data, error } = await db
+        .from("collections")
+        .insert({
+          store_id: storeData.id,
+          ...input,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] createCollection error:", e);
+      return {
+        status: "error" as const,
+        message: e instanceof Error ? e.message : "Erro ao criar coleção.",
+      };
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// Product Edit & Variants
+// ---------------------------------------------------------------------------
+
+export const getProductById = createServerFn({ method: "GET" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    try {
+      const db = getServerClient();
+
+      const { data, error } = await db
+        .from("products")
+        .select(`
+          *,
+          product_variants (*),
+          product_media (*)
+        `)
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+
+      return { status: "ok" as const, data };
+    } catch (e) {
+      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      console.error("[admin-catalog] getProductById error:", e);
+      return { status: "error" as const, message: "Erro ao buscar produto." };
+    }
+  });
+
+export const updateProduct = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+      title: z.string().min(1).max(300).optional(),
+      description: z.string().optional().nullable(),
+      status: z.enum(["draft", "published", "archived"]).optional(),
+      brand: z.string().optional().nullable(),
+      price_cents: z.number().int().min(0).optional(),
+      compare_at_cents: z.number().int().min(0).optional().nullable(),
+      cost_cents: z.number().int().min(0).optional().nullable(),
+      attributes: z.record(z.any()).optional(),
+      weight_grams: z.number().int().min(0).optional().nullable(),
+      type_id: z.string().uuid().optional().nullable(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+      const { id, ...updates } = input;
+
+      const { data, error } = await db
+        .from("products")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] updateProduct error:", e);
+      return {
+        status: "error" as const,
+        message: e instanceof Error ? e.message : "Erro ao atualizar produto.",
+      };
+    }
+  });
+
+export const upsertProductVariant = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid().optional(), // if missing, create new
+      product_id: z.string().uuid(),
+      sku: z.string().min(1),
+      barcode: z.string().optional().nullable(),
+      status: z.enum(["active", "inactive", "archived"]).default("active"),
+      price_override_cents: z.number().int().min(0).optional().nullable(),
+      attributes: z.record(z.any()).default({}), // e.g., { "size": "39", "color": "Preto" }
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+      const { id, product_id, sku, barcode, status, price_override_cents, attributes } = input;
+
+      const payload = {
+        product_id,
+        sku,
+        barcode,
+        status,
+        price_override_cents,
+        attributes,
+      };
+
+      let query = db.from("product_variants");
+      let result;
+
+      if (id) {
+        result = await query.update(payload).eq("id", id).select().single();
+      } else {
+        result = await query.insert(payload).select().single();
+      }
+
+      if (result.error) throw result.error;
+
+      return { status: "success" as const, data: result.data };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] upsertProductVariant error:", e);
+      return {
+        status: "error" as const,
+        message: e instanceof Error ? e.message : "Erro ao salvar variante.",
       };
     }
   });
