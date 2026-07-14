@@ -44,3 +44,6 @@ export function PhaseGate({
     </div>
   );
 }
+
+/** Canonical alias (see COMPONENT_CATALOG.md). */
+export const PlannedFeature = PhaseGate;
