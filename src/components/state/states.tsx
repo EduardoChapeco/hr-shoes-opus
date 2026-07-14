@@ -78,7 +78,9 @@ export function ErrorState({
   title = "Algo deu errado",
   description = "Não foi possível carregar este conteúdo. Tente novamente.",
   ...props
-}: Omit<StateShellProps, "icon" | "tone" | "action"> & {
+}: Omit<StateShellProps, "icon" | "tone" | "action" | "title" | "description"> & {
+  title?: string;
+  description?: ReactNode;
   onRetry?: () => void;
 }) {
   return (
@@ -104,7 +106,10 @@ export function PermissionDenied({
   title = "Acesso restrito",
   description = "Você não tem permissão para ver esta área. Fale com um administrador da loja.",
   ...props
-}: Omit<StateShellProps, "icon" | "tone">) {
+}: Omit<StateShellProps, "icon" | "tone" | "title" | "description"> & {
+  title?: string;
+  description?: ReactNode;
+}) {
   return (
     <StateShell
       icon={Lock}
@@ -120,7 +125,10 @@ export function UnconfiguredState({
   title = "Configuração ausente",
   description = "Esta integração ainda não foi conectada. Adicione as credenciais para ativá-la.",
   ...props
-}: Omit<StateShellProps, "icon" | "tone">) {
+}: Omit<StateShellProps, "icon" | "tone" | "title" | "description"> & {
+  title?: string;
+  description?: ReactNode;
+}) {
   return (
     <StateShell
       icon={PlugZap}
