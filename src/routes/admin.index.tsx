@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Painel — Hr Shoes" }] }),
-  component: Dashboard;
+  component: Dashboard,
 });
 
 const METRICS = [
