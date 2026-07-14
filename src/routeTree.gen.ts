@@ -50,6 +50,7 @@ import { Route as StoreFaqRouteImport } from './routes/_store.faq'
 import { Route as StoreEntrarRouteImport } from './routes/_store.entrar'
 import { Route as StoreContatoRouteImport } from './routes/_store.contato'
 import { Route as StoreContaRouteImport } from './routes/_store.conta'
+import { Route as StoreCheckoutRouteImport } from './routes/_store.checkout'
 import { Route as StoreCatalogoRouteImport } from './routes/_store.catalogo'
 import { Route as StoreCarrinhoRouteImport } from './routes/_store.carrinho'
 import { Route as StoreCadastroRouteImport } from './routes/_store.cadastro'
@@ -97,11 +98,6 @@ import { Route as StoreContaEnderecosRouteImport } from './routes/_store.conta.e
 import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.creditos'
 import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.avaliacoes'
 import { Route as StoreColecaoSlugRouteImport } from './routes/_store.colecao.$slug'
-import { Route as StoreCheckoutRevisaoRouteImport } from './routes/_store.checkout.revisao'
-import { Route as StoreCheckoutPagamentoRouteImport } from './routes/_store.checkout.pagamento'
-import { Route as StoreCheckoutIdentificacaoRouteImport } from './routes/_store.checkout.identificacao'
-import { Route as StoreCheckoutEntregaRouteImport } from './routes/_store.checkout.entrega'
-import { Route as StoreCheckoutCotacaoRouteImport } from './routes/_store.checkout.cotacao'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store.categoria.$slug'
 import { Route as AdminCmsPaginasNovoRouteImport } from './routes/admin.cms.paginas.novo'
 import { Route as AdminCatalogoProdutosNovoRouteImport } from './routes/admin.catalogo.produtos.novo'
@@ -313,6 +309,11 @@ const StoreContatoRoute = StoreContatoRouteImport.update({
 const StoreContaRoute = StoreContaRouteImport.update({
   id: '/conta',
   path: '/conta',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreCheckoutRoute = StoreCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreCatalogoRoute = StoreCatalogoRouteImport.update({
@@ -553,32 +554,6 @@ const StoreColecaoSlugRoute = StoreColecaoSlugRouteImport.update({
   path: '/colecao/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
-const StoreCheckoutRevisaoRoute = StoreCheckoutRevisaoRouteImport.update({
-  id: '/checkout/revisao',
-  path: '/checkout/revisao',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreCheckoutPagamentoRoute = StoreCheckoutPagamentoRouteImport.update({
-  id: '/checkout/pagamento',
-  path: '/checkout/pagamento',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreCheckoutIdentificacaoRoute =
-  StoreCheckoutIdentificacaoRouteImport.update({
-    id: '/checkout/identificacao',
-    path: '/checkout/identificacao',
-    getParentRoute: () => StoreRoute,
-  } as any)
-const StoreCheckoutEntregaRoute = StoreCheckoutEntregaRouteImport.update({
-  id: '/checkout/entrega',
-  path: '/checkout/entrega',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreCheckoutCotacaoRoute = StoreCheckoutCotacaoRouteImport.update({
-  id: '/checkout/cotacao',
-  path: '/checkout/cotacao',
-  getParentRoute: () => StoreRoute,
-} as any)
 const StoreCategoriaSlugRoute = StoreCategoriaSlugRouteImport.update({
   id: '/categoria/$slug',
   path: '/categoria/$slug',
@@ -630,6 +605,7 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof StoreCadastroRoute
   '/carrinho': typeof StoreCarrinhoRoute
   '/catalogo': typeof StoreCatalogoRoute
+  '/checkout': typeof StoreCheckoutRoute
   '/conta': typeof StoreContaRouteWithChildren
   '/contato': typeof StoreContatoRoute
   '/entrar': typeof StoreEntrarRoute
@@ -668,11 +644,6 @@ export interface FileRoutesByFullPath {
   '/admin/trocas': typeof AdminTrocasRoute
   '/admin/': typeof AdminIndexRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
-  '/checkout/cotacao': typeof StoreCheckoutCotacaoRoute
-  '/checkout/entrega': typeof StoreCheckoutEntregaRoute
-  '/checkout/identificacao': typeof StoreCheckoutIdentificacaoRoute
-  '/checkout/pagamento': typeof StoreCheckoutPagamentoRoute
-  '/checkout/revisao': typeof StoreCheckoutRevisaoRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
   '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
   '/conta/creditos': typeof StoreContaCreditosRoute
@@ -730,6 +701,7 @@ export interface FileRoutesByTo {
   '/cadastro': typeof StoreCadastroRoute
   '/carrinho': typeof StoreCarrinhoRoute
   '/catalogo': typeof StoreCatalogoRoute
+  '/checkout': typeof StoreCheckoutRoute
   '/contato': typeof StoreContatoRoute
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
@@ -768,11 +740,6 @@ export interface FileRoutesByTo {
   '/': typeof StoreIndexRoute
   '/admin': typeof AdminIndexRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
-  '/checkout/cotacao': typeof StoreCheckoutCotacaoRoute
-  '/checkout/entrega': typeof StoreCheckoutEntregaRoute
-  '/checkout/identificacao': typeof StoreCheckoutIdentificacaoRoute
-  '/checkout/pagamento': typeof StoreCheckoutPagamentoRoute
-  '/checkout/revisao': typeof StoreCheckoutRevisaoRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
   '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
   '/conta/creditos': typeof StoreContaCreditosRoute
@@ -833,6 +800,7 @@ export interface FileRoutesById {
   '/_store/cadastro': typeof StoreCadastroRoute
   '/_store/carrinho': typeof StoreCarrinhoRoute
   '/_store/catalogo': typeof StoreCatalogoRoute
+  '/_store/checkout': typeof StoreCheckoutRoute
   '/_store/conta': typeof StoreContaRouteWithChildren
   '/_store/contato': typeof StoreContatoRoute
   '/_store/entrar': typeof StoreEntrarRoute
@@ -872,11 +840,6 @@ export interface FileRoutesById {
   '/_store/': typeof StoreIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
-  '/_store/checkout/cotacao': typeof StoreCheckoutCotacaoRoute
-  '/_store/checkout/entrega': typeof StoreCheckoutEntregaRoute
-  '/_store/checkout/identificacao': typeof StoreCheckoutIdentificacaoRoute
-  '/_store/checkout/pagamento': typeof StoreCheckoutPagamentoRoute
-  '/_store/checkout/revisao': typeof StoreCheckoutRevisaoRoute
   '/_store/colecao/$slug': typeof StoreColecaoSlugRoute
   '/_store/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
   '/_store/conta/creditos': typeof StoreContaCreditosRoute
@@ -938,6 +901,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/carrinho'
     | '/catalogo'
+    | '/checkout'
     | '/conta'
     | '/contato'
     | '/entrar'
@@ -976,11 +940,6 @@ export interface FileRouteTypes {
     | '/admin/trocas'
     | '/admin/'
     | '/categoria/$slug'
-    | '/checkout/cotacao'
-    | '/checkout/entrega'
-    | '/checkout/identificacao'
-    | '/checkout/pagamento'
-    | '/checkout/revisao'
     | '/colecao/$slug'
     | '/conta/avaliacoes'
     | '/conta/creditos'
@@ -1038,6 +997,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/carrinho'
     | '/catalogo'
+    | '/checkout'
     | '/contato'
     | '/entrar'
     | '/faq'
@@ -1076,11 +1036,6 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/categoria/$slug'
-    | '/checkout/cotacao'
-    | '/checkout/entrega'
-    | '/checkout/identificacao'
-    | '/checkout/pagamento'
-    | '/checkout/revisao'
     | '/colecao/$slug'
     | '/conta/avaliacoes'
     | '/conta/creditos'
@@ -1140,6 +1095,7 @@ export interface FileRouteTypes {
     | '/_store/cadastro'
     | '/_store/carrinho'
     | '/_store/catalogo'
+    | '/_store/checkout'
     | '/_store/conta'
     | '/_store/contato'
     | '/_store/entrar'
@@ -1179,11 +1135,6 @@ export interface FileRouteTypes {
     | '/_store/'
     | '/admin/'
     | '/_store/categoria/$slug'
-    | '/_store/checkout/cotacao'
-    | '/_store/checkout/entrega'
-    | '/_store/checkout/identificacao'
-    | '/_store/checkout/pagamento'
-    | '/_store/checkout/revisao'
     | '/_store/colecao/$slug'
     | '/_store/conta/avaliacoes'
     | '/_store/conta/creditos'
@@ -1531,6 +1482,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreContaRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/checkout': {
+      id: '/_store/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof StoreCheckoutRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/catalogo': {
       id: '/_store/catalogo'
       path: '/catalogo'
@@ -1860,41 +1818,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreColecaoSlugRouteImport
       parentRoute: typeof StoreRoute
     }
-    '/_store/checkout/revisao': {
-      id: '/_store/checkout/revisao'
-      path: '/checkout/revisao'
-      fullPath: '/checkout/revisao'
-      preLoaderRoute: typeof StoreCheckoutRevisaoRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/checkout/pagamento': {
-      id: '/_store/checkout/pagamento'
-      path: '/checkout/pagamento'
-      fullPath: '/checkout/pagamento'
-      preLoaderRoute: typeof StoreCheckoutPagamentoRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/checkout/identificacao': {
-      id: '/_store/checkout/identificacao'
-      path: '/checkout/identificacao'
-      fullPath: '/checkout/identificacao'
-      preLoaderRoute: typeof StoreCheckoutIdentificacaoRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/checkout/entrega': {
-      id: '/_store/checkout/entrega'
-      path: '/checkout/entrega'
-      fullPath: '/checkout/entrega'
-      preLoaderRoute: typeof StoreCheckoutEntregaRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/checkout/cotacao': {
-      id: '/_store/checkout/cotacao'
-      path: '/checkout/cotacao'
-      fullPath: '/checkout/cotacao'
-      preLoaderRoute: typeof StoreCheckoutCotacaoRouteImport
-      parentRoute: typeof StoreRoute
-    }
     '/_store/categoria/$slug': {
       id: '/_store/categoria/$slug'
       path: '/categoria/$slug'
@@ -2004,6 +1927,7 @@ interface StoreRouteChildren {
   StoreCadastroRoute: typeof StoreCadastroRoute
   StoreCarrinhoRoute: typeof StoreCarrinhoRoute
   StoreCatalogoRoute: typeof StoreCatalogoRoute
+  StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreContaRoute: typeof StoreContaRouteWithChildren
   StoreContatoRoute: typeof StoreContatoRoute
   StoreEntrarRoute: typeof StoreEntrarRoute
@@ -2019,11 +1943,6 @@ interface StoreRouteChildren {
   StoreTrocasEDevolucoesRoute: typeof StoreTrocasEDevolucoesRoute
   StoreIndexRoute: typeof StoreIndexRoute
   StoreCategoriaSlugRoute: typeof StoreCategoriaSlugRoute
-  StoreCheckoutCotacaoRoute: typeof StoreCheckoutCotacaoRoute
-  StoreCheckoutEntregaRoute: typeof StoreCheckoutEntregaRoute
-  StoreCheckoutIdentificacaoRoute: typeof StoreCheckoutIdentificacaoRoute
-  StoreCheckoutPagamentoRoute: typeof StoreCheckoutPagamentoRoute
-  StoreCheckoutRevisaoRoute: typeof StoreCheckoutRevisaoRoute
   StoreColecaoSlugRoute: typeof StoreColecaoSlugRoute
   StoreDestaquesSlugRoute: typeof StoreDestaquesSlugRoute
   StoreGiftCardClaimTokenRoute: typeof StoreGiftCardClaimTokenRoute
@@ -2038,6 +1957,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreCadastroRoute: StoreCadastroRoute,
   StoreCarrinhoRoute: StoreCarrinhoRoute,
   StoreCatalogoRoute: StoreCatalogoRoute,
+  StoreCheckoutRoute: StoreCheckoutRoute,
   StoreContaRoute: StoreContaRouteWithChildren,
   StoreContatoRoute: StoreContatoRoute,
   StoreEntrarRoute: StoreEntrarRoute,
@@ -2053,11 +1973,6 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreTrocasEDevolucoesRoute: StoreTrocasEDevolucoesRoute,
   StoreIndexRoute: StoreIndexRoute,
   StoreCategoriaSlugRoute: StoreCategoriaSlugRoute,
-  StoreCheckoutCotacaoRoute: StoreCheckoutCotacaoRoute,
-  StoreCheckoutEntregaRoute: StoreCheckoutEntregaRoute,
-  StoreCheckoutIdentificacaoRoute: StoreCheckoutIdentificacaoRoute,
-  StoreCheckoutPagamentoRoute: StoreCheckoutPagamentoRoute,
-  StoreCheckoutRevisaoRoute: StoreCheckoutRevisaoRoute,
   StoreColecaoSlugRoute: StoreColecaoSlugRoute,
   StoreDestaquesSlugRoute: StoreDestaquesSlugRoute,
   StoreGiftCardClaimTokenRoute: StoreGiftCardClaimTokenRoute,

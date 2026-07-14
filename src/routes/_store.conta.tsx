@@ -1,8 +1,18 @@
-import { createFileRoute, Outlet, Link } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, redirect } from "@tanstack/react-router";
 
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { getUserSession } from "@/services/auth.functions";
 
 export const Route = createFileRoute("/_store/conta")({
+  beforeLoad: async () => {
+    const session = await getUserSession();
+    if (!session) {
+      throw redirect({
+        to: "/entrar",
+        search: { returnUrl: "/conta" },
+      });
+    }
+  },
   component: AccountLayout,
 });
 

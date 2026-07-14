@@ -33,7 +33,7 @@ Ambos os públicos são prioritariamente mobile. Desktop é suportado, mas o des
 1. **Mobile-first**: toda tela é desenhada primeiro para telas pequenas; o layout desktop é uma expansão, não o ponto de partida.
 2. **Arquitetura de produto real**: sem gambiarras. Tipos estritos, camadas bem definidas, nomes de domínio consistentes entre banco, serviços e UI.
 3. **Multi-tenant-ready desde o início**: todas as entidades relevantes carregam `organization_id` e `store_id`, mesmo operando hoje com uma única organização e uma única loja. Isso evita migração de dados dolorosa no futuro.
-4. **Honestidade sobre o que não existe ainda**: nenhuma funcionalidade não implementada é simulada como se funcionasse. Recursos futuros aparecem **apenas no admin**, claramente identificados como "Em breve", nunca na vitrine pública nem como dado fictício apresentado a clientes.
+4. **Sem recursos fantasmas**: funcionalidades não implementadas não devem aparecer na interface. Se um botão, menu ou página existe, ele deve ser real e funcional. Proibido usar "Em breve".
 5. **Servidor é dono de dinheiro, estoque e pedidos**: cálculos financeiros, de estoque e de pedidos são sempre feitos no servidor (funções de servidor/BFF). O cliente (browser) nunca calcula preço final, frete, desconto ou disponibilidade — apenas exibe o que o servidor retorna.
 6. **Sem acesso direto ao Supabase a partir de componentes**: todo componente React consome dados por meio de serviços/funções de servidor. Nenhuma chamada `supabase.from(...)` dentro de componentes de UI.
 
@@ -50,9 +50,9 @@ A Fase 0 é fundação, não funcionalidade de negócio. Entrega:
 - Biblioteca de componentes reutilizáveis com todos os estados obrigatórios (carregando, vazio, erro, sem permissão, desabilitado, não configurado).
 - Nenhum dado fictício de negócio (produtos, pedidos, clientes) — apenas estrutura e estados honestos.
 
-## 5. Fora de escopo na Fase 0 (adiado)
+## 5. Fases Sequenciais
 
-Estes itens são propositalmente adiados para fases posteriores (ver `ROADMAP.md`):
+Estes itens são desenvolvidos nas fases posteriores (ver `ROADMAP.md`):
 
 - Banco de dados de domínio completo, autenticação real de usuários finais, RBAC e políticas de RLS de catálogo (Fase 1).
 - Carrinho, checkout, frete, pedido, reserva de estoque e pagamentos (Fase 2).
@@ -60,7 +60,7 @@ Estes itens são propositalmente adiados para fases posteriores (ver `ROADMAP.md
 - CRM, chat, trocas, caixa, comissão, cartões-presente, carnê (Fase 4).
 - Integrações com Meta/Google, logística, recuperação de carrinho, Match Time, criador de posts (Fase 5).
 
-Nenhum desses itens deve ganhar UI funcional na Fase 0. Quando mencionados na interface, aparecem apenas como "Em breve" no admin.
+Nenhum desses itens deve ganhar UI até estar 100% implementado no backend.
 
 ## 6. Decisões-chave e tradeoffs
 
@@ -68,7 +68,7 @@ Nenhum desses itens deve ganhar UI funcional na Fase 0. Quando mencionados na in
 - **Multi-tenant-ready desde o dia um**: custo inicial de modelagem um pouco maior, mas evita migração de esquema arriscada quando a Hr Shoes decidir operar mais de uma loja/organização.
 - **Dinheiro sempre em centavos inteiros (BRL)**: elimina erros de ponto flutuante; toda formatação para exibição acontece na borda de apresentação, nunca no armazenamento ou no cálculo.
 - **Datas em ISO UTC no armazenamento, exibidas em America/Sao_Paulo**: evita ambiguidade de fuso horário; a conversão de exibição é responsabilidade da camada de apresentação.
-- **"Em breve" só no admin**: prioriza a confiança do cliente final (a vitrine pública nunca promete o que não existe) sobre a tentação de "vender" recursos futuros na loja.
+- **Proibição de 'Em breve'**: prioriza a entrega contínua. Módulos só entram em produção quando estiverem utilizáveis de ponta a ponta.
 - **Sem cálculo financeiro/estoque no cliente**: sacrifica alguma responsividade percebida (pode exigir round-trip ao servidor) em troca de integridade de dados e segurança.
 
 ## 7. Glossário
@@ -79,7 +79,6 @@ Nenhum desses itens deve ganhar UI funcional na Fase 0. Quando mencionados na in
 - **Cliente**: usuária final que compra na vitrine pública.
 - **BFF (Backend for Frontend)**: camada de funções de servidor que medeia todo acesso a dados, aplicando regras de negócio e segurança antes de expor dados à UI.
 - **RLS (Row Level Security)**: mecanismo do Postgres/Supabase que restringe linhas visíveis/editáveis por política, por linha, no próprio banco.
-- **Em breve**: rótulo padrão usado no admin para indicar uma funcionalidade planejada e ainda não implementada. Nunca aparece na vitrine pública como se fosse um produto ou dado real.
 - **Estado vazio honesto**: estado de UI que comunica claramente a ausência de dados reais, sem preencher com dados fictícios ou "de mentira".
 - **Fase**: bloco de escopo do roadmap (Fase 0 a Fase 5), cada uma com critérios de aceite próprios (ver `ROADMAP.md`).
 - **Registro de rotas (route registry)**: fonte única de verdade tipada sobre todas as rotas existentes, sua fase, permissão exigida e status.

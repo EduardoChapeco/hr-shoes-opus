@@ -29,7 +29,6 @@ export type Audience = "public" | "customer" | "admin";
  * registered and reachable but shows a "Planejado para a Fase X" state
  * (admin only) — never a fake screen.
  */
-export type RouteRenderStatus = "structural" | "planned";
 
 /** Status for external integrations. Never simulate success. */
 export type IntegrationStatus = "unconfigured" | "testing" | "active" | "error";

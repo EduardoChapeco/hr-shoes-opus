@@ -52,10 +52,7 @@ programática de navegação e deve espelhar `docs/ROUTES.md`.
    `src/lib/money.ts`.
 4. **Datas** ISO UTC no armazenamento; exibição em `America/Sao_Paulo` via
    `src/lib/datetime.ts`.
-5. **Sem dados fictícios.** Nada de mock APIs, produtos inventados, imagens
-   externas aleatórias, fallbacks falsos ou botões sem destino. Funcionalidade
-   não construída aparece como "Em breve / Planejado para a Fase X" **somente
-   no painel** — nunca simulada como concluída na vitrine.
+5. **Sem dados fictícios ou marcadores "Em breve".** Nada de mock APIs, produtos inventados, imagens externas aleatórias, fallbacks falsos ou botões sem destino. É estritamente proibido exibir "Em breve", "Fase X" ou "Planejado" em produção. Funcionalidades incompletas devem ser escondidas da interface e ocultadas da navegação.
 6. **Integrações** têm status `unconfigured | testing | active | error`. Sem
    credencial => "configuração ausente"; nunca simular sucesso.
 7. **Tokens de design** só em `src/styles.css`/`DESIGN.md`. Proibido hex,
@@ -69,8 +66,7 @@ programática de navegação e deve espelhar `docs/ROUTES.md`.
 
 - `TypeScript strict`; sem `any` implícito; DTOs distintos das entidades.
 - Validação compartilhada por schema (`zod`).
-- Rotas futuras existem no registry tipado e nos docs, mas **não renderizam
-  telas falsas**; no painel abrem `PhaseGate` ("Planejado para a Fase X").
+- Rotas e menus refletem estritamente o estado funcional do sistema. Funcionalidades planejadas pertencem apenas à documentação e nunca devem vazar para o registro de rotas, UI ou componentes de bloqueio como `PhaseGate`.
 - Componentes de dado/ação implementam: loading, empty, error, permission,
   disabled, unconfigured (ver `DESIGN.md` §5).
 - Acessibilidade WCAG 2.2 AA (ver `DESIGN.md` §6). Alvos >= 44px.
