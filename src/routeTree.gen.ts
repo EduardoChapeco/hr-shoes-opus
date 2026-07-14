@@ -13,6 +13,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as StoreRouteImport } from './routes/_store'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as StoreIndexRouteImport } from './routes/_store.index'
+import { Route as AdminOnboardingRouteImport } from './routes/admin.onboarding'
 import { Route as StoreTrocasEDevolucoesRouteImport } from './routes/_store.trocas-e-devolucoes'
 import { Route as StoreTermosRouteImport } from './routes/_store.termos'
 import { Route as StoreStoriesRouteImport } from './routes/_store.stories'
@@ -31,6 +32,7 @@ import { Route as StoreCarrinhoRouteImport } from './routes/_store.carrinho'
 import { Route as StoreCadastroRouteImport } from './routes/_store.cadastro'
 import { Route as StoreBuscarRouteImport } from './routes/_store.buscar'
 import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index'
+import { Route as AdminConfiguracoesLojaRouteImport } from './routes/admin.configuracoes.loja'
 import { Route as StoreProdutoSlugRouteImport } from './routes/_store.produto.$slug'
 import { Route as StorePoliticasSlugRouteImport } from './routes/_store.politicas.$slug'
 import { Route as StoreGiftCardClaimTokenRouteImport } from './routes/_store.gift-card.$claimToken'
@@ -74,6 +76,11 @@ const StoreIndexRoute = StoreIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => StoreRoute,
+} as any)
+const AdminOnboardingRoute = AdminOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AdminRoute,
 } as any)
 const StoreTrocasEDevolucoesRoute = StoreTrocasEDevolucoesRouteImport.update({
   id: '/trocas-e-devolucoes',
@@ -164,6 +171,11 @@ const StoreContaIndexRoute = StoreContaIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => StoreContaRoute,
+} as any)
+const AdminConfiguracoesLojaRoute = AdminConfiguracoesLojaRouteImport.update({
+  id: '/configuracoes/loja',
+  path: '/configuracoes/loja',
+  getParentRoute: () => AdminRoute,
 } as any)
 const StoreProdutoSlugRoute = StoreProdutoSlugRouteImport.update({
   id: '/produto/$slug',
@@ -308,6 +320,7 @@ export interface FileRoutesByFullPath {
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
+  '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/': typeof AdminIndexRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/checkout/cotacao': typeof StoreCheckoutCotacaoRoute
@@ -330,6 +343,7 @@ export interface FileRoutesByFullPath {
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
+  '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
   '/conta/': typeof StoreContaIndexRoute
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
@@ -352,6 +366,7 @@ export interface FileRoutesByTo {
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
+  '/admin/onboarding': typeof AdminOnboardingRoute
   '/': typeof StoreIndexRoute
   '/admin': typeof AdminIndexRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
@@ -375,6 +390,7 @@ export interface FileRoutesByTo {
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
+  '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
   '/conta': typeof StoreContaIndexRoute
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
@@ -401,6 +417,7 @@ export interface FileRoutesById {
   '/_store/stories': typeof StoreStoriesRoute
   '/_store/termos': typeof StoreTermosRoute
   '/_store/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
+  '/admin/onboarding': typeof AdminOnboardingRoute
   '/_store/': typeof StoreIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
@@ -424,6 +441,7 @@ export interface FileRoutesById {
   '/_store/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
   '/_store/politicas/$slug': typeof StorePoliticasSlugRoute
   '/_store/produto/$slug': typeof StoreProdutoSlugRoute
+  '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
   '/_store/conta/': typeof StoreContaIndexRoute
   '/_store/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/_store/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
@@ -451,6 +469,7 @@ export interface FileRouteTypes {
     | '/stories'
     | '/termos'
     | '/trocas-e-devolucoes'
+    | '/admin/onboarding'
     | '/admin/'
     | '/categoria/$slug'
     | '/checkout/cotacao'
@@ -473,6 +492,7 @@ export interface FileRouteTypes {
     | '/gift-card/$claimToken'
     | '/politicas/$slug'
     | '/produto/$slug'
+    | '/admin/configuracoes/loja'
     | '/conta/'
     | '/conta/conversas/$id'
     | '/conta/pedidos/$id'
@@ -495,6 +515,7 @@ export interface FileRouteTypes {
     | '/stories'
     | '/termos'
     | '/trocas-e-devolucoes'
+    | '/admin/onboarding'
     | '/'
     | '/admin'
     | '/categoria/$slug'
@@ -518,6 +539,7 @@ export interface FileRouteTypes {
     | '/gift-card/$claimToken'
     | '/politicas/$slug'
     | '/produto/$slug'
+    | '/admin/configuracoes/loja'
     | '/conta'
     | '/conta/conversas/$id'
     | '/conta/pedidos/$id'
@@ -543,6 +565,7 @@ export interface FileRouteTypes {
     | '/_store/stories'
     | '/_store/termos'
     | '/_store/trocas-e-devolucoes'
+    | '/admin/onboarding'
     | '/_store/'
     | '/admin/'
     | '/_store/categoria/$slug'
@@ -566,6 +589,7 @@ export interface FileRouteTypes {
     | '/_store/gift-card/$claimToken'
     | '/_store/politicas/$slug'
     | '/_store/produto/$slug'
+    | '/admin/configuracoes/loja'
     | '/_store/conta/'
     | '/_store/conta/conversas/$id'
     | '/_store/conta/pedidos/$id'
@@ -606,6 +630,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof StoreIndexRouteImport
       parentRoute: typeof StoreRoute
+    }
+    '/admin/onboarding': {
+      id: '/admin/onboarding'
+      path: '/onboarding'
+      fullPath: '/admin/onboarding'
+      preLoaderRoute: typeof AdminOnboardingRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/_store/trocas-e-devolucoes': {
       id: '/_store/trocas-e-devolucoes'
@@ -732,6 +763,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/conta/'
       preLoaderRoute: typeof StoreContaIndexRouteImport
       parentRoute: typeof StoreContaRoute
+    }
+    '/admin/configuracoes/loja': {
+      id: '/admin/configuracoes/loja'
+      path: '/configuracoes/loja'
+      fullPath: '/admin/configuracoes/loja'
+      preLoaderRoute: typeof AdminConfiguracoesLojaRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/_store/produto/$slug': {
       id: '/_store/produto/$slug'
@@ -1019,11 +1057,15 @@ const StoreRouteChildren: StoreRouteChildren = {
 const StoreRouteWithChildren = StoreRoute._addFileChildren(StoreRouteChildren)
 
 interface AdminRouteChildren {
+  AdminOnboardingRoute: typeof AdminOnboardingRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminConfiguracoesLojaRoute: typeof AdminConfiguracoesLojaRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminOnboardingRoute: AdminOnboardingRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminConfiguracoesLojaRoute: AdminConfiguracoesLojaRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
