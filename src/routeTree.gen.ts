@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as StoreRouteImport } from './routes/_store'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
@@ -108,6 +109,11 @@ import { Route as StoreContaPedidosIdRouteImport } from './routes/_store.conta.p
 import { Route as StoreContaConversasIdRouteImport } from './routes/_store.conta.conversas.$id'
 import { Route as AdminCmsPaginasIdEditorRouteImport } from './routes/admin.cms.paginas.$id.editor'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -607,6 +613,7 @@ const AdminCmsPaginasIdEditorRoute = AdminCmsPaginasIdEditorRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof StoreIndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/buscar': typeof StoreBuscarRoute
   '/cadastro': typeof StoreCadastroRoute
   '/carrinho': typeof StoreCarrinhoRoute
@@ -704,6 +711,7 @@ export interface FileRoutesByFullPath {
   '/admin/cms/paginas/$id/editor': typeof AdminCmsPaginasIdEditorRoute
 }
 export interface FileRoutesByTo {
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/buscar': typeof StoreBuscarRoute
   '/cadastro': typeof StoreCadastroRoute
   '/carrinho': typeof StoreCarrinhoRoute
@@ -804,6 +812,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_store': typeof StoreRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_store/buscar': typeof StoreBuscarRoute
   '/_store/cadastro': typeof StoreCadastroRoute
   '/_store/carrinho': typeof StoreCarrinhoRoute
@@ -906,6 +915,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/sitemap.xml'
     | '/buscar'
     | '/cadastro'
     | '/carrinho'
@@ -1003,6 +1013,7 @@ export interface FileRouteTypes {
     | '/admin/cms/paginas/$id/editor'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/sitemap.xml'
     | '/buscar'
     | '/cadastro'
     | '/carrinho'
@@ -1102,6 +1113,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_store'
     | '/admin'
+    | '/sitemap.xml'
     | '/_store/buscar'
     | '/_store/cadastro'
     | '/_store/carrinho'
@@ -1203,10 +1215,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   StoreRoute: typeof StoreRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -2198,6 +2218,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   StoreRoute: StoreRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
