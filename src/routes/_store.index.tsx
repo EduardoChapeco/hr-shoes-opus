@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Truck, ShieldCheck, RefreshCcw, Sparkles } from "lucide-react";
 
-import heroImg from "@/assets/hero-editorial.jpg";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/state/states";
 
