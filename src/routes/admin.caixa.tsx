@@ -230,7 +230,7 @@ function CashRegisterPage() {
                 {register.opened_by_profile.full_name}
               </CardDescription>
             </div>
-            <Badge variant="default" className="bg-green-600">
+            <Badge variant="success">
               Ativo
             </Badge>
           </CardHeader>

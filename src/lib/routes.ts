@@ -22,6 +22,19 @@ export interface RouteEntry {
   renderStatus: RouteRenderStatus;
   /** Whether the path contains dynamic params. */
   dynamic?: boolean;
+  /**
+   * Sidebar navigation group label (admin only).
+   * When set, the route appears in the admin sidebar under this group.
+   * Omit for routes that should not appear in the sidebar.
+   */
+  navGroup?: string;
+  /**
+   * Lucide icon name string (resolved to LucideIcon in the shell).
+   * Keep as string here to avoid coupling this module to React.
+   */
+  navIcon?: string;
+  /** If true, badge "Em breve" next to the nav label. */
+  navPlanned?: boolean;
 }
 
 /** Convert docs-style ":param" to TanStack "$param". */
@@ -445,6 +458,8 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     roles: STAFF_ALL,
     phase: 0,
     renderStatus: "structural",
+    navGroup: "Geral",
+    navIcon: "LayoutDashboard",
   },
   {
     path: "/admin/onboarding",
@@ -454,6 +469,8 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     roles: STAFF,
     phase: 0,
     renderStatus: "structural",
+    navGroup: "Geral",
+    navIcon: "Store",
   },
   {
     path: "/admin/catalogo/produtos",
@@ -463,6 +480,9 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     roles: ["owner", "admin", "manager", "stock", "content"],
     phase: 1,
     renderStatus: "planned",
+    navGroup: "Catálogo",
+    navIcon: "Package",
+    navPlanned: true,
   },
   {
     path: "/admin/catalogo/produtos/novo",
@@ -925,3 +945,85 @@ export const ALL_ROUTES: RouteEntry[] = [...PUBLIC_ROUTES, ...CUSTOMER_ROUTES, .
 export function getRoute(path: string): RouteEntry | undefined {
   return ALL_ROUTES.find((r) => r.path === path);
 }
+
+// ---------------------------------------------------------------------------
+// Admin sidebar navigation (canonical — AdminShell must consume this)
+// ---------------------------------------------------------------------------
+
+/**
+ * A nav group entry for the admin sidebar.
+ * Icons are referenced by name string (resolved to LucideIcon in the shell).
+ */
+export interface AdminNavItem {
+  path: string;
+  label: string;
+  /** Lucide icon name. Resolved to the actual icon in admin-shell.tsx. */
+  icon: string;
+  planned?: boolean;
+}
+
+export interface AdminNavGroup {
+  title: string;
+  items: AdminNavItem[];
+}
+
+/**
+ * Canonical admin sidebar navigation groups.
+ * Update THIS list — never the NAV array inside admin-shell.tsx.
+ * Keep in sync with docs/ROUTES.md.
+ */
+export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
+  {
+    title: "Geral",
+    items: [
+      { path: "/admin", label: "Visão geral", icon: "LayoutDashboard" },
+      { path: "/admin/onboarding", label: "Onboarding", icon: "Store" },
+    ],
+  },
+  {
+    title: "Catálogo",
+    items: [
+      { path: "/admin/catalogo/produtos", label: "Produtos", icon: "Package", planned: true },
+      { path: "/admin/estoque", label: "Estoque", icon: "Boxes", planned: true },
+      { path: "/admin/midias", label: "Mídias", icon: "Images", planned: true },
+    ],
+  },
+  {
+    title: "Vendas",
+    items: [
+      { path: "/admin/pedidos", label: "Pedidos", icon: "ShoppingCart", planned: true },
+      { path: "/admin/fretes", label: "Fretes", icon: "Truck", planned: true },
+      { path: "/admin/pagamentos", label: "Pagamentos", icon: "CreditCard", planned: true },
+    ],
+  },
+  {
+    title: "Relacionamento",
+    items: [
+      { path: "/admin/clientes", label: "Clientes", icon: "Users", planned: true },
+      { path: "/admin/conversas", label: "Conversas", icon: "MessagesSquare", planned: true },
+    ],
+  },
+  {
+    title: "Conteúdo",
+    items: [
+      { path: "/admin/cms/paginas", label: "Páginas", icon: "FileText", planned: true },
+      { path: "/admin/marketing/cupons", label: "Marketing", icon: "Megaphone", planned: true },
+    ],
+  },
+  {
+    title: "Operação",
+    items: [
+      { path: "/admin/caixa", label: "Caixa", icon: "Wallet", planned: true },
+      { path: "/admin/relatorios", label: "Relatórios", icon: "BarChart3", planned: true },
+      { path: "/admin/configuracoes/loja", label: "Configurações", icon: "Settings" },
+    ],
+  },
+];
+
+/** Bottom nav items for the admin mobile bar (also canonical). */
+export const ADMIN_BOTTOM_NAV: AdminNavItem[] = [
+  { path: "/admin", label: "Início", icon: "LayoutDashboard" },
+  { path: "/admin/catalogo/produtos", label: "Produtos", icon: "Package" },
+  { path: "/admin/pedidos", label: "Pedidos", icon: "ShoppingCart" },
+  { path: "/admin/configuracoes/loja", label: "Ajustes", icon: "Settings" },
+];

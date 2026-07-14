@@ -19,6 +19,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { PageHeader } from "@/components/commerce/page-header";
 import { calculateShipping } from "@/services/checkout.functions";
 import { toast } from "sonner";
+import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/_store/checkout/entrega")({
   head: () => ({
@@ -220,10 +221,7 @@ function DeliveryPage() {
                                   {opt.name} ({opt.days} dias)
                                 </span>
                                 <span className="font-medium">
-                                  {(opt.priceCents / 100).toLocaleString("pt-BR", {
-                                    style: "currency",
-                                    currency: "BRL",
-                                  })}
+                                  {formatMoney(opt.priceCents)}
                                 </span>
                               </FormLabel>
                             </FormItem>

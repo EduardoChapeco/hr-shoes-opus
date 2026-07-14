@@ -9,7 +9,8 @@ import {
   CreditCard,
   Users,
   MessagesSquare,
-  Palette,
+  FileText,
+  Images,
   Megaphone,
   Wallet,
   BarChart3,
@@ -27,106 +28,73 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ADMIN_SIDEBAR_NAV, ADMIN_BOTTOM_NAV } from "@/lib/routes";
 
-interface NavItem {
-  to: string;
-  label: string;
-  icon: LucideIcon;
-  planned?: boolean;
+// ---------------------------------------------------------------------------
+// Icon registry — resolves icon name strings from routes.ts to LucideIcon
+// components. Add new icons here when adding new nav entries to routes.ts.
+// ---------------------------------------------------------------------------
+const ICON_MAP: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  Package,
+  Boxes,
+  ShoppingCart,
+  Truck,
+  CreditCard,
+  Users,
+  MessagesSquare,
+  FileText,
+  Images,
+  Megaphone,
+  Wallet,
+  BarChart3,
+  Settings,
+  Store,
+};
+
+function resolveIcon(name: string): LucideIcon {
+  return ICON_MAP[name] ?? Settings;
 }
-interface NavGroup {
-  title: string;
-  items: NavItem[];
-}
 
-const NAV: NavGroup[] = [
-  {
-    title: "Geral",
-    items: [
-      { to: "/admin", label: "Visão geral", icon: LayoutDashboard },
-      { to: "/admin/onboarding", label: "Onboarding", icon: Store },
-    ],
-  },
-  {
-    title: "Catálogo",
-    items: [
-      { to: "/admin/catalogo/produtos", label: "Produtos", icon: Package, planned: true },
-      { to: "/admin/estoque", label: "Estoque", icon: Boxes, planned: true },
-      { to: "/admin/midias", label: "Mídias", icon: Palette, planned: true },
-    ],
-  },
-  {
-    title: "Vendas",
-    items: [
-      { to: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart, planned: true },
-      { to: "/admin/fretes", label: "Fretes", icon: Truck, planned: true },
-      { to: "/admin/pagamentos", label: "Pagamentos", icon: CreditCard, planned: true },
-    ],
-  },
-  {
-    title: "Relacionamento",
-    items: [
-      { to: "/admin/clientes", label: "Clientes", icon: Users, planned: true },
-      { to: "/admin/conversas", label: "Conversas", icon: MessagesSquare, planned: true },
-    ],
-  },
-  {
-    title: "Conteúdo",
-    items: [
-      { to: "/admin/cms/paginas", label: "Páginas", icon: Palette, planned: true },
-      { to: "/admin/marketing/cupons", label: "Marketing", icon: Megaphone, planned: true },
-    ],
-  },
-  {
-    title: "Operação",
-    items: [
-      { to: "/admin/caixa", label: "Caixa", icon: Wallet, planned: true },
-      { to: "/admin/relatorios", label: "Relatórios", icon: BarChart3, planned: true },
-      { to: "/admin/configuracoes/loja", label: "Configurações", icon: Settings },
-    ],
-  },
-];
-
-const BOTTOM_NAV: NavItem[] = [
-  { to: "/admin", label: "Início", icon: LayoutDashboard },
-  { to: "/admin/catalogo/produtos", label: "Produtos", icon: Package },
-  { to: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
-  { to: "/admin/configuracoes/loja", label: "Ajustes", icon: Settings },
-];
-
+// ---------------------------------------------------------------------------
+// NavLinks — driven entirely by ADMIN_SIDEBAR_NAV from routes.ts
+// ---------------------------------------------------------------------------
 function NavLinks({ collapsed = false }: { collapsed?: boolean }) {
   return (
     <nav className="space-y-6">
-      {NAV.map((group) => (
+      {ADMIN_SIDEBAR_NAV.map((group) => (
         <div key={group.title}>
           {!collapsed ? (
             <p className="eyebrow px-3 pb-2 text-muted-foreground">{group.title}</p>
           ) : null}
           <ul className="space-y-1">
-            {group.items.map((item) => (
-              <li key={item.to}>
-                <Link
-                  to={item.to}
-                  activeOptions={{ exact: item.to === "/admin" }}
-                  className={cn(
-                    "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
-                    collapsed && "justify-center",
-                  )}
-                  activeProps={{
-                    className: "bg-sidebar-accent text-sidebar-foreground",
-                  }}
-                  title={collapsed ? item.label : undefined}
-                >
-                  <item.icon className="size-5 shrink-0" aria-hidden />
-                  {!collapsed ? <span className="flex-1 truncate">{item.label}</span> : null}
-                  {!collapsed && item.planned ? (
-                    <Badge variant="secondary" className="shrink-0 text-[0.6rem]">
-                      Em breve
-                    </Badge>
-                  ) : null}
-                </Link>
-              </li>
-            ))}
+            {group.items.map((item) => {
+              const Icon = resolveIcon(item.icon);
+              return (
+                <li key={item.path}>
+                  <Link
+                    to={item.path}
+                    activeOptions={{ exact: item.path === "/admin" }}
+                    className={cn(
+                      "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                      collapsed && "justify-center",
+                    )}
+                    activeProps={{
+                      className: "bg-sidebar-accent text-sidebar-foreground",
+                    }}
+                    title={collapsed ? item.label : undefined}
+                  >
+                    <Icon className="size-5 shrink-0" aria-hidden />
+                    {!collapsed ? <span className="flex-1 truncate">{item.label}</span> : null}
+                    {!collapsed && item.planned ? (
+                      <Badge variant="secondary" className="shrink-0 text-badge">
+                        Em breve
+                      </Badge>
+                    ) : null}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </div>
       ))}
@@ -134,6 +102,9 @@ function NavLinks({ collapsed = false }: { collapsed?: boolean }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// AdminShell — main layout wrapper for all /admin/* routes
+// ---------------------------------------------------------------------------
 export function AdminShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -208,25 +179,28 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Mobile bottom nav */}
+      {/* Mobile bottom nav — driven by ADMIN_BOTTOM_NAV from routes.ts */}
       <nav
         aria-label="Navegação do painel"
         className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur pb-safe md:hidden"
       >
         <ul className="flex items-stretch justify-around">
-          {BOTTOM_NAV.map(({ to, label, icon: Icon }) => (
-            <li key={to} className="flex-1">
-              <Link
-                to={to}
-                activeOptions={{ exact: to === "/admin" }}
-                className="flex min-h-[56px] flex-col items-center justify-center gap-1 px-2 py-2 text-[0.68rem] font-medium text-muted-foreground"
-                activeProps={{ className: "text-primary" }}
-              >
-                <Icon className="size-5" aria-hidden />
-                {label}
-              </Link>
-            </li>
-          ))}
+          {ADMIN_BOTTOM_NAV.map(({ path, label, icon }) => {
+            const Icon = resolveIcon(icon);
+            return (
+              <li key={path} className="flex-1">
+                <Link
+                  to={path}
+                  activeOptions={{ exact: path === "/admin" }}
+                  className="flex min-h-[56px] flex-col items-center justify-center gap-1 px-2 py-2 text-nav font-medium text-muted-foreground"
+                  activeProps={{ className: "text-primary" }}
+                >
+                  <Icon className="size-5" aria-hidden />
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </div>

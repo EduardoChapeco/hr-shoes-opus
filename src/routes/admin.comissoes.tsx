@@ -72,7 +72,7 @@ function CommissionsPage() {
                   </TableCell>
                   <TableCell>
                     {c.status === "paid" ? (
-                      <Badge className="bg-green-600">Paga</Badge>
+                      <Badge variant="success">Paga</Badge>
                     ) : c.status === "cancelled" ? (
                       <Badge variant="destructive">Cancelada</Badge>
                     ) : (

@@ -45,23 +45,11 @@ function ExchangesPage() {
       case "requested":
         return <Badge variant="secondary">Solicitada</Badge>;
       case "approved":
-        return (
-          <Badge variant="default" className="bg-blue-600">
-            Aprovada
-          </Badge>
-        );
+        return <Badge variant="info">Aprovada</Badge>;
       case "received":
-        return (
-          <Badge variant="default" className="bg-purple-600">
-            Recebida
-          </Badge>
-        );
+        return <Badge variant="warning">Recebida</Badge>;
       case "refunded":
-        return (
-          <Badge variant="default" className="bg-green-600">
-            Reembolsada
-          </Badge>
-        );
+        return <Badge variant="success">Reembolsada</Badge>;
       case "rejected":
         return <Badge variant="destructive">Rejeitada</Badge>;
       default:

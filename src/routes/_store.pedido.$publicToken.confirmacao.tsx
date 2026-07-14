@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/commerce/page-header";
 import { ErrorState } from "@/components/state/states";
 import { getOrderByToken } from "@/services/checkout.functions";
+import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/_store/pedido/$publicToken/confirmacao")({
   head: () => ({
@@ -27,9 +28,6 @@ function ConfirmationPage() {
       </div>
     );
   }
-
-  const formatMoney = (cents: number) =>
-    (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   const totalCents =
     order.items_snapshot.reduce(

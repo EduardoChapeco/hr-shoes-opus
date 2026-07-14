@@ -23,7 +23,7 @@ export function BottomNav() {
             <Link
               to={to}
               activeOptions={{ exact }}
-              className="flex min-h-[56px] flex-col items-center justify-center gap-1 px-2 py-2 text-[0.68rem] font-medium text-muted-foreground"
+              className="flex min-h-[56px] flex-col items-center justify-center gap-1 px-2 py-2 text-nav font-medium text-muted-foreground"
               activeProps={{ className: "text-primary" }}
             >
               <Icon className="size-5" aria-hidden />

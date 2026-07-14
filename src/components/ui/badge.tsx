@@ -14,6 +14,12 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
         outline: "text-foreground",
+        /** Informational status (e.g. "Approved", "Processing") — maps to --info token */
+        info: "border-transparent bg-info/15 text-info",
+        /** Success status (e.g. "Refunded", "Delivered") — maps to --success token */
+        success: "border-transparent bg-success/15 text-success",
+        /** Warning status (e.g. "Pending review") — maps to --warning token */
+        warning: "border-transparent bg-warning/15 text-warning-foreground",
       },
     },
     defaultVariants: {

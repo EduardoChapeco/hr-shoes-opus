@@ -282,3 +282,26 @@
   font-weight: 600;
   font-size: 0.72rem;
 }
+
+/*
+ * Semantic text-size utilities for small UI elements.
+ * Use these instead of arbitrary text-[…] values.
+ *
+ * text-badge  — pill/badge labels, "Em breve" chips      (0.6rem / 9.6px)
+ * text-meta   — dense metadata, slugs, auxiliary labels  (0.72rem / 11.5px)
+ * text-nav    — bottom nav item labels on mobile         (0.68rem / 10.9px)
+ */
+@utility text-badge {
+  font-size: 0.6rem;
+  line-height: 1rem;
+}
+
+@utility text-meta {
+  font-size: 0.72rem;
+  line-height: 1rem;
+}
+
+@utility text-nav {
+  font-size: 0.68rem;
+  line-height: 1rem;
+}

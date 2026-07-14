@@ -43,7 +43,7 @@ function Dashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-sm font-medium text-foreground">{m.label}</p>
-              <Badge variant="secondary" className="mt-2 text-[0.6rem]">
+              <Badge variant="secondary" className="mt-2 text-badge">
                 {m.phase}
               </Badge>
             </CardContent>

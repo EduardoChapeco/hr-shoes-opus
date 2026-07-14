@@ -100,7 +100,7 @@ function CustomerInstallmentsPage() {
                         <TableCell>{formatMoney(inst.amountCents)}</TableCell>
                         <TableCell>
                           {inst.status === "paid" ? (
-                            <Badge className="bg-green-600">Paga</Badge>
+                            <Badge variant="success">Paga</Badge>
                           ) : isLate ? (
                             <Badge variant="destructive">Atrasada</Badge>
                           ) : (

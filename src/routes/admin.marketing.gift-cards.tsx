@@ -176,7 +176,7 @@ function GiftCardsPage() {
                   </TableCell>
                   <TableCell>
                     {c.status === "active" ? (
-                      <Badge className="bg-green-600">Ativo</Badge>
+                      <Badge variant="success">Ativo</Badge>
                     ) : c.status === "exhausted" ? (
                       <Badge variant="secondary">Exaurido</Badge>
                     ) : (

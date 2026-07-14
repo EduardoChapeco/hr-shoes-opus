@@ -28,9 +28,9 @@ function ShiftsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "open":
-        return <Badge className="bg-green-600">Aberto</Badge>;
+        return <Badge variant="success">Aberto</Badge>;
       case "closed":
-        return <Badge className="bg-slate-600">Fechado</Badge>;
+        return <Badge variant="secondary">Fechado</Badge>;
       case "discrepancy":
         return <Badge variant="destructive">Diferença</Badge>;
       default:

@@ -66,7 +66,7 @@ function CustomersPage() {
                   <div className="flex flex-wrap gap-1">
                     {c.tags.length > 0 ? (
                       c.tags.slice(0, 2).map((tag: string) => (
-                        <Badge key={tag} variant="secondary" className="text-[10px]">
+                        <Badge key={tag} variant="secondary" className="text-badge">
                           {tag}
                         </Badge>
                       ))
@@ -74,7 +74,7 @@ function CustomersPage() {
                       <span className="text-xs text-muted-foreground">-</span>
                     )}
                     {c.tags.length > 2 && (
-                      <Badge variant="outline" className="text-[10px]">
+                      <Badge variant="outline" className="text-badge">
                         +{c.tags.length - 2}
                       </Badge>
                     )}

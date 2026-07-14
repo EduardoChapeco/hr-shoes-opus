@@ -49,7 +49,7 @@ function Onboarding() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold text-foreground">{s.title}</h3>
-                  <Badge variant="secondary" className="text-[0.6rem]">
+                  <Badge variant="secondary" className="text-badge">
                     {s.phase}
                   </Badge>
                 </div>

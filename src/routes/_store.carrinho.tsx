@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { EmptyState, ErrorState } from "@/components/state/states";
 import { getCart, removeFromCart, updateCartItemQty } from "@/services/cart.functions";
 import type { CartDTO } from "@/types/orders";
+import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/_store/carrinho")({
   head: () => ({
@@ -65,9 +66,6 @@ function CartPage() {
       setLoadingItemId(null);
     }
   };
-
-  const formatMoney = (cents: number) =>
-    (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">

@@ -14,6 +14,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
 import { listAdminProducts } from "@/services/admin-catalog.functions";
+import { formatMoney } from "@/lib/money";
+import type { AdminProductRow } from "@/types/catalog";
 
 export const Route = createFileRoute("/admin/catalogo/produtos")({
   head: () => ({ meta: [{ title: "Produtos — Hr Shoes" }] }),
@@ -66,15 +68,7 @@ function AdminProductsPage() {
             </TableHeader>
             <TableBody>
               {products.map(
-                (product: {
-                  id: string;
-                  title: string;
-                  slug: string;
-                  status: string;
-                  price_cents: number;
-                  product_types: { name: string }[] | null;
-                  product_media: { url: string }[];
-                }) => {
+                (product: AdminProductRow) => {
                   const cover = product.product_media?.[0]?.url;
                   return (
                     <TableRow key={product.id}>
@@ -105,12 +99,7 @@ function AdminProductsPage() {
                           ? product.product_types[0].name
                           : "Genérico"}
                       </TableCell>
-                      <TableCell>
-                        {(product.price_cents / 100).toLocaleString("pt-BR", {
-                          style: "currency",
-                          currency: "BRL",
-                        })}
-                      </TableCell>
+                      <TableCell>{formatMoney(product.price_cents)}</TableCell>
                     </TableRow>
                   );
                 },

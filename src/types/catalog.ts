@@ -172,3 +172,23 @@ export type ProductListResult = CatalogResult<ProductCardDTO[]>;
 export type CategoryListResult = CatalogResult<CategoryDTO[]>;
 export type ProductDetailResult = CatalogResult<ProductDetailDTO> | { status: "not_found" };
 export type StoreConfigResult = CatalogResult<StoreConfigDTO>;
+
+// ---------------------------------------------------------------------------
+// Admin-side raw shapes (Supabase join shapes, not storefront DTOs)
+// ---------------------------------------------------------------------------
+
+/**
+ * Raw shape returned by listAdminProducts server function.
+ * Contains Supabase join fields and is only used in the admin panel table.
+ * Commercial formatting must use formatMoney() from lib/money.
+ */
+export interface AdminProductRow {
+  id: string;
+  title: string;
+  slug: string;
+  status: "draft" | "published" | "archived";
+  /** Integer cents. Format via formatMoney() — never divide inline. */
+  price_cents: number;
+  product_types: { name: string }[] | null;
+  product_media: { url: string; alt?: string | null }[];
+}
