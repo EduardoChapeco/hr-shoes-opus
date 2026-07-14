@@ -11,7 +11,10 @@ function Page() {
     <section>
       <h2 className="text-editorial text-2xl text-foreground">Créditos</h2>
       <div className="mt-6">
-        <EmptyState title="Sem créditos" description="Seu saldo de créditos aparecerá aqui quando disponível." />
+        <EmptyState
+          title="Sem créditos"
+          description="Seu saldo de créditos aparecerá aqui quando disponível."
+        />
       </div>
     </section>
   );

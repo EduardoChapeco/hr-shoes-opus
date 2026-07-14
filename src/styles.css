@@ -82,9 +82,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   /* Typography */
-  --font-sans:
-    "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-serif: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
   --font-display: "Fraunces", ui-serif, Georgia, serif;
 
@@ -233,7 +231,10 @@
     text-rendering: optimizeLegibility;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     letter-spacing: -0.01em;
   }

@@ -7,10 +7,7 @@ import { cn } from "@/lib/utils";
  * Brand logo — the real Hr Shoes mark (an image, per DESIGN.md).
  * Do not recreate the wordmark as text.
  */
-export function Logo({
-  className,
-  ...props
-}: Omit<ComponentProps<"img">, "src" | "alt">) {
+export function Logo({ className, ...props }: Omit<ComponentProps<"img">, "src" | "alt">) {
   return (
     <img
       src={logoAsset.url}

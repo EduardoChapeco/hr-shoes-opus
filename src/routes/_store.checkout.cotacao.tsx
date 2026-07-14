@@ -13,7 +13,10 @@ function Page() {
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       <PageHeader eyebrow="Checkout" title="Cotação de frete" description="Etapa 3 de 5." />
       <div className="mt-8">
-        <EmptyState title="Nenhum item para finalizar" description="Adicione produtos ao carrinho para iniciar o checkout." />
+        <EmptyState
+          title="Nenhum item para finalizar"
+          description="Adicione produtos ao carrinho para iniciar o checkout."
+        />
       </div>
     </div>
   );

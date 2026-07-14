@@ -11,7 +11,10 @@ function Page() {
     <section>
       <h2 className="text-editorial text-2xl text-foreground">Pedidos</h2>
       <div className="mt-6">
-        <EmptyState title="Nenhum pedido ainda" description="Seus pedidos aparecerão aqui após a primeira compra." />
+        <EmptyState
+          title="Nenhum pedido ainda"
+          description="Seus pedidos aparecerão aqui após a primeira compra."
+        />
       </div>
     </section>
   );

@@ -19,7 +19,7 @@ principles:
   - "Hierarquia por tipografia e espaço, não por caixas aninhadas."
   - "A logo é imagem (marca real). Não recriar a palavra como texto."
   - "Evitar aparência genérica de template, gradientes decorativos, glassmorphism,
-     cards aninhados e animações gratuitas."
+    cards aninhados e animações gratuitas."
 anti_patterns:
   - purple/indigo default gradients
   - fake data, placeholders de produto, imagens externas aleatórias
@@ -33,20 +33,40 @@ Mapeados a utilitários Tailwind via `@theme inline`.
 
 ```yaml
 color_tokens:
-  background:            { value: "#F3F1EC (oklch 0.965 0.006 85)", role: "canvas quente off-white", why: "base calma, editorial, valoriza a foto e o rosa" }
-  foreground:            { value: "#292729 (oklch 0.27 0.006 20)",  role: "grafite / ink", why: "texto de alto contraste sem preto puro duro" }
-  primary / brand:       { value: "#FF4FB8 (oklch 0.685 0.222 349)", role: "acento de marca, CTA principal", why: "rosa vivo da logo; usar com parcimônia" }
-  primary-foreground:    { value: "near-white", role: "texto sobre rosa" }
-  brand-soft / accent:   { value: "rosa 8% (oklch 0.93 0.05 349)", role: "realce suave, tags, hovers", why: "presença da marca sem saturar" }
-  secondary:             { value: "warm gray 0.93", role: "superfícies neutras, chips" }
+  background:
+    {
+      value: "#F3F1EC (oklch 0.965 0.006 85)",
+      role: "canvas quente off-white",
+      why: "base calma, editorial, valoriza a foto e o rosa",
+    }
+  foreground:
+    {
+      value: "#292729 (oklch 0.27 0.006 20)",
+      role: "grafite / ink",
+      why: "texto de alto contraste sem preto puro duro",
+    }
+  primary / brand:
+    {
+      value: "#FF4FB8 (oklch 0.685 0.222 349)",
+      role: "acento de marca, CTA principal",
+      why: "rosa vivo da logo; usar com parcimônia",
+    }
+  primary-foreground: { value: "near-white", role: "texto sobre rosa" }
+  brand-soft / accent:
+    {
+      value: "rosa 8% (oklch 0.93 0.05 349)",
+      role: "realce suave, tags, hovers",
+      why: "presença da marca sem saturar",
+    }
+  secondary: { value: "warm gray 0.93", role: "superfícies neutras, chips" }
   muted / muted-foreground: { value: "gray", role: "texto secundário, metadados" }
-  card:                  { value: "quase branco 0.995", role: "elevação sutil sobre o canvas" }
-  border / input:        { value: "warm gray 0.9", role: "divisórias discretas" }
-  ring:                  { value: "= brand", role: "foco visível de teclado" }
-  destructive:           { value: "vermelho", role: "erro/exclusão" }
-  success:               { value: "verde", role: "confirmações, status pago/aprovado" }
-  warning:               { value: "âmbar", role: "atenção, estoque baixo, pendências" }
-  info:                  { value: "azul", role: "informativo, cotação, em análise" }
+  card: { value: "quase branco 0.995", role: "elevação sutil sobre o canvas" }
+  border / input: { value: "warm gray 0.9", role: "divisórias discretas" }
+  ring: { value: "= brand", role: "foco visível de teclado" }
+  destructive: { value: "vermelho", role: "erro/exclusão" }
+  success: { value: "verde", role: "confirmações, status pago/aprovado" }
+  warning: { value: "âmbar", role: "atenção, estoque baixo, pendências" }
+  info: { value: "azul", role: "informativo, cotação, em análise" }
 rationale: >
   Uma única cor de marca (rosa) reservada a ação e destaque garante que a
   interface pareça premium e não infantil. O canvas quente diferencia de
@@ -61,17 +81,29 @@ contrast:
 
 ```yaml
 fonts:
-  ui_sans: { family: "Manrope", weights: [400,500,600,700,800], use: "toda a UI, corpo, labels, dados" }
-  editorial_serif: { family: "Fraunces", weights: [400,500,600], italic: true, use: "títulos, campanhas, eyebrow editorial" }
+  ui_sans:
+    {
+      family: "Manrope",
+      weights: [400, 500, 600, 700, 800],
+      use: "toda a UI, corpo, labels, dados",
+    }
+  editorial_serif:
+    {
+      family: "Fraunces",
+      weights: [400, 500, 600],
+      italic: true,
+      use: "títulos, campanhas, eyebrow editorial",
+    }
 loading: "Carregadas via <link> no __root.tsx head (nunca @import remoto no CSS)."
 scale:
-  display:  { size: "clamp(2rem, 6vw, 4rem)", family: serif, weight: 500, tracking: "-0.02em", line: 1.05 }
-  h1:       { size: "clamp(1.75rem, 4vw, 2.75rem)", family: serif }
-  h2:       { size: "clamp(1.4rem, 3vw, 2rem)", family: serif }
-  h3:       { size: "1.25rem", family: serif }
-  body:     { size: "1rem", family: sans, line: 1.6 }
-  small:    { size: "0.875rem", family: sans }
-  eyebrow:  { transform: uppercase, tracking: "0.16em", weight: 600, size: "0.72rem", family: sans }
+  display:
+    { size: "clamp(2rem, 6vw, 4rem)", family: serif, weight: 500, tracking: "-0.02em", line: 1.05 }
+  h1: { size: "clamp(1.75rem, 4vw, 2.75rem)", family: serif }
+  h2: { size: "clamp(1.4rem, 3vw, 2rem)", family: serif }
+  h3: { size: "1.25rem", family: serif }
+  body: { size: "1rem", family: sans, line: 1.6 }
+  small: { size: "0.875rem", family: sans }
+  eyebrow: { transform: uppercase, tracking: "0.16em", weight: 600, size: "0.72rem", family: sans }
 rationale: >
   Manrope é uma sans altamente legível e distinta (não Inter/Poppins genéricos).
   Fraunces traz o tom editorial de moda apenas em títulos/campanhas, mantendo a
@@ -81,7 +113,8 @@ rationale: >
 ## 4. Espaço, raio, elevação
 
 ```yaml
-radius: { base: "0.75rem", scale: "sm..4xl derivado", why: "cantos macios, contemporâneos, sem exageros" }
+radius:
+  { base: "0.75rem", scale: "sm..4xl derivado", why: "cantos macios, contemporâneos, sem exageros" }
 spacing: { unit: "4px base (Tailwind)", rhythm: "seções generosas; respiro > densidade na vitrine" }
 elevation:
   philosophy: "sombras suaves e curtas; luz difusa; nunca sombra dura de template"
@@ -95,13 +128,13 @@ grid:
 
 ```yaml
 required_states:
-  loading:      "skeleton sem layout shift; nunca spinner solto em bloco grande"
-  empty:        "estado vazio honesto (sem produtos falsos); texto + ação quando fizer sentido"
-  error:        "mensagem clara + ação de retry; nunca tela branca"
-  permission:   "bloqueio de acesso claro (sem vazar dados)"
-  disabled:     "affordance visível e acessível"
+  loading: "skeleton sem layout shift; nunca spinner solto em bloco grande"
+  empty: "estado vazio honesto (sem produtos falsos); texto + ação quando fizer sentido"
+  error: "mensagem clara + ação de retry; nunca tela branca"
+  permission: "bloqueio de acesso claro (sem vazar dados)"
+  disabled: "affordance visível e acessível"
   unconfigured: "integração sem credencial -> 'configuração ausente', nunca sucesso simulado"
-  coming_soon:  "somente no painel: 'Planejado para a Fase X'; nunca na vitrine pública"
+  coming_soon: "somente no painel: 'Planejado para a Fase X'; nunca na vitrine pública"
 success: "confirmações discretas via toast/inline"
 ```
 
@@ -143,10 +176,10 @@ Resumo de camadas:
 
 ```yaml
 component_layers:
-  ui:       "primitivos shadcn adaptados por variantes (src/components/ui)"
+  ui: "primitivos shadcn adaptados por variantes (src/components/ui)"
   commerce: "vitrine: ProductCard, PriceDisplay, SectionRenderer, ... (src/components/commerce)"
-  admin:    "painel: AdminShell, DataTable, PhaseGate, ... (src/components/admin)"
-  state:    "EmptyState, ErrorState, LoadingState, PermissionGate, UnconfiguredState, ComingSoon"
+  admin: "painel: AdminShell, DataTable, PhaseGate, ... (src/components/admin)"
+  state: "EmptyState, ErrorState, LoadingState, PermissionGate, UnconfiguredState, ComingSoon"
 rules:
   - "Nenhum componente faz cálculo comercial (preço/desconto/frete/estoque) no cliente."
   - "PriceDisplay apenas formata cents+BRL vindos do servidor."

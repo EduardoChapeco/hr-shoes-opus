@@ -18,10 +18,7 @@ const FORMATTERS: Record<CurrencyCode, Intl.NumberFormat> = {
 };
 
 /** Format integer cents as a localized currency string (e.g. "R$ 199,90"). */
-export function formatMoney(
-  amountCents: number,
-  currency: CurrencyCode = "BRL",
-): string {
+export function formatMoney(amountCents: number, currency: CurrencyCode = "BRL"): string {
   if (!Number.isInteger(amountCents)) {
     // Defensive: we never expect non-integers; surface the bug instead of hiding it.
     console.warn("formatMoney received non-integer cents:", amountCents);

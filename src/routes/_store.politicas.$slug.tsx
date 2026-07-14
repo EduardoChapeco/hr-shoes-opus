@@ -13,7 +13,10 @@ function Page() {
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       <PageHeader eyebrow="Vitrine" title="Política" description={`Identificador: ${slug}`} />
       <div className="mt-8">
-        <EmptyState title="Documento em preparação" description="A loja publicará este documento em breve." />
+        <EmptyState
+          title="Documento em preparação"
+          description="A loja publicará este documento em breve."
+        />
       </div>
     </div>
   );

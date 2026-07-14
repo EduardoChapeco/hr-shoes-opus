@@ -13,7 +13,10 @@ function Page() {
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       <PageHeader eyebrow="Conteúdo" title="Stories" description="Conteúdos em stories da loja." />
       <div className="mt-8">
-        <EmptyState title="Nenhum story no momento" description="Os stories publicados pela loja aparecerão aqui." />
+        <EmptyState
+          title="Nenhum story no momento"
+          description="Os stories publicados pela loja aparecerão aqui."
+        />
       </div>
     </div>
   );

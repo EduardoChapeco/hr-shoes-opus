@@ -13,7 +13,10 @@ function Page() {
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       <PageHeader eyebrow="A loja" title="Perfil da loja" description="Conheça a Hr Shoes." />
       <div className="mt-8">
-        <EmptyState title="Perfil em preparação" description="A loja poderá publicar aqui sua bio, endereço, horários e políticas." />
+        <EmptyState
+          title="Perfil em preparação"
+          description="A loja poderá publicar aqui sua bio, endereço, horários e políticas."
+        />
       </div>
     </div>
   );

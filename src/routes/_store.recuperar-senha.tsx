@@ -13,7 +13,10 @@ function Page() {
     <div className="mx-auto flex max-w-md flex-col px-4 py-12 md:py-16">
       <PageHeader title="Recuperar senha" description="Redefina o acesso à sua conta." />
       <div className="mt-8">
-        <EmptyState title="Login em breve" description="A autenticação de clientes será ativada na próxima fase (banco de dados e Auth)." />
+        <EmptyState
+          title="Login em breve"
+          description="A autenticação de clientes será ativada na próxima fase (banco de dados e Auth)."
+        />
       </div>
     </div>
   );

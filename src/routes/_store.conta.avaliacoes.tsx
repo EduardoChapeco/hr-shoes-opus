@@ -11,7 +11,10 @@ function Page() {
     <section>
       <h2 className="text-editorial text-2xl text-foreground">Avaliações</h2>
       <div className="mt-6">
-        <EmptyState title="Nenhuma avaliação" description="Suas avaliações de produtos aparecerão aqui." />
+        <EmptyState
+          title="Nenhuma avaliação"
+          description="Suas avaliações de produtos aparecerão aqui."
+        />
       </div>
     </section>
   );

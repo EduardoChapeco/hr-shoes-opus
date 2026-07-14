@@ -24,7 +24,10 @@ export function LoadingState({
         className,
       )}
     >
-      <Loader2 className="size-6 animate-spin text-muted-foreground motion-reduce:animate-none" aria-hidden />
+      <Loader2
+        className="size-6 animate-spin text-muted-foreground motion-reduce:animate-none"
+        aria-hidden
+      />
       <span className="text-sm text-muted-foreground">{label}</span>
     </div>
   );
@@ -50,13 +53,7 @@ export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
   );
 }
 
-export function LinesSkeleton({
-  lines = 3,
-  className,
-}: {
-  lines?: number;
-  className?: string;
-}) {
+export function LinesSkeleton({ lines = 3, className }: { lines?: number; className?: string }) {
   return (
     <div className={cn("space-y-3", className)}>
       {Array.from({ length: lines }).map((_, i) => (

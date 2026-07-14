@@ -57,8 +57,8 @@ function Dashboard() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p>
-            O sistema está na Fase 0 (fundação). Métricas, catálogo e pedidos
-            reais serão ativados nas próximas fases — nenhum dado é simulado.
+            O sistema está na Fase 0 (fundação). Métricas, catálogo e pedidos reais serão ativados
+            nas próximas fases — nenhum dado é simulado.
           </p>
           <Button variant="outline" asChild>
             <Link to="/admin/configuracoes/loja">Dados da loja</Link>

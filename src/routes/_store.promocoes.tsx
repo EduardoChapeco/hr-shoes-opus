@@ -13,7 +13,10 @@ function Page() {
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       <PageHeader eyebrow="Ofertas" title="Promoções" description="Ofertas ativas da loja." />
       <div className="mt-8">
-        <EmptyState title="Nenhuma promoção ativa" description="As promoções configuradas pela loja aparecerão aqui." />
+        <EmptyState
+          title="Nenhuma promoção ativa"
+          description="As promoções configuradas pela loja aparecerão aqui."
+        />
       </div>
     </div>
   );

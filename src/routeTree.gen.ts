@@ -83,6 +83,7 @@ import { Route as AdminCaixaTurnosRouteImport } from './routes/admin.caixa.turno
 import { Route as AdminCaixaLancamentosRouteImport } from './routes/admin.caixa.lancamentos'
 import { Route as StoreProdutoSlugRouteImport } from './routes/_store.produto.$slug'
 import { Route as StorePoliticasSlugRouteImport } from './routes/_store.politicas.$slug'
+import { Route as StorePaginasSlugRouteImport } from './routes/_store.paginas.$slug'
 import { Route as StoreGiftCardClaimTokenRouteImport } from './routes/_store.gift-card.$claimToken'
 import { Route as StoreDestaquesSlugRouteImport } from './routes/_store.destaques.$slug'
 import { Route as StoreContaTrocasRouteImport } from './routes/_store.conta.trocas'
@@ -102,6 +103,7 @@ import { Route as StoreCheckoutIdentificacaoRouteImport } from './routes/_store.
 import { Route as StoreCheckoutEntregaRouteImport } from './routes/_store.checkout.entrega'
 import { Route as StoreCheckoutCotacaoRouteImport } from './routes/_store.checkout.cotacao'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store.categoria.$slug'
+import { Route as AdminCmsPaginasNovoRouteImport } from './routes/admin.cms.paginas.novo'
 import { Route as AdminCatalogoProdutosNovoRouteImport } from './routes/admin.catalogo.produtos.novo'
 import { Route as AdminCatalogoProdutosIdRouteImport } from './routes/admin.catalogo.produtos.$id'
 import { Route as StorePedidoPublicTokenConfirmacaoRouteImport } from './routes/_store.pedido.$publicToken.confirmacao'
@@ -481,6 +483,11 @@ const StorePoliticasSlugRoute = StorePoliticasSlugRouteImport.update({
   path: '/politicas/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
+const StorePaginasSlugRoute = StorePaginasSlugRouteImport.update({
+  id: '/paginas/$slug',
+  path: '/paginas/$slug',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreGiftCardClaimTokenRoute = StoreGiftCardClaimTokenRouteImport.update({
   id: '/gift-card/$claimToken',
   path: '/gift-card/$claimToken',
@@ -576,6 +583,11 @@ const StoreCategoriaSlugRoute = StoreCategoriaSlugRouteImport.update({
   id: '/categoria/$slug',
   path: '/categoria/$slug',
   getParentRoute: () => StoreRoute,
+} as any)
+const AdminCmsPaginasNovoRoute = AdminCmsPaginasNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => AdminCmsPaginasRoute,
 } as any)
 const AdminCatalogoProdutosNovoRoute =
   AdminCatalogoProdutosNovoRouteImport.update({
@@ -674,6 +686,7 @@ export interface FileRoutesByFullPath {
   '/conta/trocas': typeof StoreContaTrocasRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
+  '/paginas/$slug': typeof StorePaginasSlugRoute
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
   '/admin/caixa/lancamentos': typeof AdminCaixaLancamentosRoute
@@ -708,6 +721,7 @@ export interface FileRoutesByFullPath {
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
+  '/admin/cms/paginas/novo': typeof AdminCmsPaginasNovoRoute
   '/admin/cms/paginas/$id/editor': typeof AdminCmsPaginasIdEditorRoute
 }
 export interface FileRoutesByTo {
@@ -772,6 +786,7 @@ export interface FileRoutesByTo {
   '/conta/trocas': typeof StoreContaTrocasRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
+  '/paginas/$slug': typeof StorePaginasSlugRoute
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
   '/admin/caixa/lancamentos': typeof AdminCaixaLancamentosRoute
@@ -806,6 +821,7 @@ export interface FileRoutesByTo {
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
+  '/admin/cms/paginas/novo': typeof AdminCmsPaginasNovoRoute
   '/admin/cms/paginas/$id/editor': typeof AdminCmsPaginasIdEditorRoute
 }
 export interface FileRoutesById {
@@ -874,6 +890,7 @@ export interface FileRoutesById {
   '/_store/conta/trocas': typeof StoreContaTrocasRoute
   '/_store/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/_store/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
+  '/_store/paginas/$slug': typeof StorePaginasSlugRoute
   '/_store/politicas/$slug': typeof StorePoliticasSlugRoute
   '/_store/produto/$slug': typeof StoreProdutoSlugRoute
   '/admin/caixa/lancamentos': typeof AdminCaixaLancamentosRoute
@@ -908,6 +925,7 @@ export interface FileRoutesById {
   '/_store/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
+  '/admin/cms/paginas/novo': typeof AdminCmsPaginasNovoRoute
   '/admin/cms/paginas/$id/editor': typeof AdminCmsPaginasIdEditorRoute
 }
 export interface FileRouteTypes {
@@ -976,6 +994,7 @@ export interface FileRouteTypes {
     | '/conta/trocas'
     | '/destaques/$slug'
     | '/gift-card/$claimToken'
+    | '/paginas/$slug'
     | '/politicas/$slug'
     | '/produto/$slug'
     | '/admin/caixa/lancamentos'
@@ -1010,6 +1029,7 @@ export interface FileRouteTypes {
     | '/pedido/$publicToken/confirmacao'
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
+    | '/admin/cms/paginas/novo'
     | '/admin/cms/paginas/$id/editor'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1074,6 +1094,7 @@ export interface FileRouteTypes {
     | '/conta/trocas'
     | '/destaques/$slug'
     | '/gift-card/$claimToken'
+    | '/paginas/$slug'
     | '/politicas/$slug'
     | '/produto/$slug'
     | '/admin/caixa/lancamentos'
@@ -1108,6 +1129,7 @@ export interface FileRouteTypes {
     | '/pedido/$publicToken/confirmacao'
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
+    | '/admin/cms/paginas/novo'
     | '/admin/cms/paginas/$id/editor'
   id:
     | '__root__'
@@ -1175,6 +1197,7 @@ export interface FileRouteTypes {
     | '/_store/conta/trocas'
     | '/_store/destaques/$slug'
     | '/_store/gift-card/$claimToken'
+    | '/_store/paginas/$slug'
     | '/_store/politicas/$slug'
     | '/_store/produto/$slug'
     | '/admin/caixa/lancamentos'
@@ -1209,6 +1232,7 @@ export interface FileRouteTypes {
     | '/_store/pedido/$publicToken/confirmacao'
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
+    | '/admin/cms/paginas/novo'
     | '/admin/cms/paginas/$id/editor'
   fileRoutesById: FileRoutesById
 }
@@ -1738,6 +1762,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StorePoliticasSlugRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/paginas/$slug': {
+      id: '/_store/paginas/$slug'
+      path: '/paginas/$slug'
+      fullPath: '/paginas/$slug'
+      preLoaderRoute: typeof StorePaginasSlugRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/gift-card/$claimToken': {
       id: '/_store/gift-card/$claimToken'
       path: '/gift-card/$claimToken'
@@ -1871,6 +1902,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreCategoriaSlugRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/admin/cms/paginas/novo': {
+      id: '/admin/cms/paginas/novo'
+      path: '/novo'
+      fullPath: '/admin/cms/paginas/novo'
+      preLoaderRoute: typeof AdminCmsPaginasNovoRouteImport
+      parentRoute: typeof AdminCmsPaginasRoute
+    }
     '/admin/catalogo/produtos/novo': {
       id: '/admin/catalogo/produtos/novo'
       path: '/novo'
@@ -1989,6 +2027,7 @@ interface StoreRouteChildren {
   StoreColecaoSlugRoute: typeof StoreColecaoSlugRoute
   StoreDestaquesSlugRoute: typeof StoreDestaquesSlugRoute
   StoreGiftCardClaimTokenRoute: typeof StoreGiftCardClaimTokenRoute
+  StorePaginasSlugRoute: typeof StorePaginasSlugRoute
   StorePoliticasSlugRoute: typeof StorePoliticasSlugRoute
   StoreProdutoSlugRoute: typeof StoreProdutoSlugRoute
   StorePedidoPublicTokenConfirmacaoRoute: typeof StorePedidoPublicTokenConfirmacaoRoute
@@ -2022,6 +2061,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreColecaoSlugRoute: StoreColecaoSlugRoute,
   StoreDestaquesSlugRoute: StoreDestaquesSlugRoute,
   StoreGiftCardClaimTokenRoute: StoreGiftCardClaimTokenRoute,
+  StorePaginasSlugRoute: StorePaginasSlugRoute,
   StorePoliticasSlugRoute: StorePoliticasSlugRoute,
   StoreProdutoSlugRoute: StoreProdutoSlugRoute,
   StorePedidoPublicTokenConfirmacaoRoute:
@@ -2112,10 +2152,12 @@ const AdminCatalogoProdutosRouteWithChildren =
   )
 
 interface AdminCmsPaginasRouteChildren {
+  AdminCmsPaginasNovoRoute: typeof AdminCmsPaginasNovoRoute
   AdminCmsPaginasIdEditorRoute: typeof AdminCmsPaginasIdEditorRoute
 }
 
 const AdminCmsPaginasRouteChildren: AdminCmsPaginasRouteChildren = {
+  AdminCmsPaginasNovoRoute: AdminCmsPaginasNovoRoute,
   AdminCmsPaginasIdEditorRoute: AdminCmsPaginasIdEditorRoute,
 }
 
@@ -2223,3 +2265,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

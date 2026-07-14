@@ -25,13 +25,7 @@ import { cn } from "@/lib/utils";
 import { Logo } from "@/components/commerce/logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface NavItem {
@@ -106,9 +100,7 @@ function NavLinks({ collapsed = false }: { collapsed?: boolean }) {
       {NAV.map((group) => (
         <div key={group.title}>
           {!collapsed ? (
-            <p className="eyebrow px-3 pb-2 text-muted-foreground">
-              {group.title}
-            </p>
+            <p className="eyebrow px-3 pb-2 text-muted-foreground">{group.title}</p>
           ) : null}
           <ul className="space-y-1">
             {group.items.map((item) => (
@@ -126,9 +118,7 @@ function NavLinks({ collapsed = false }: { collapsed?: boolean }) {
                   title={collapsed ? item.label : undefined}
                 >
                   <item.icon className="size-5 shrink-0" aria-hidden />
-                  {!collapsed ? (
-                    <span className="flex-1 truncate">{item.label}</span>
-                  ) : null}
+                  {!collapsed ? <span className="flex-1 truncate">{item.label}</span> : null}
                   {!collapsed && item.planned ? (
                     <Badge variant="secondary" className="shrink-0 text-[0.6rem]">
                       Em breve

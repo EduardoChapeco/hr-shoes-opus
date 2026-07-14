@@ -13,9 +13,19 @@ export const Route = createFileRoute("/admin/onboarding")({
 const STEPS = [
   { title: "Dados da loja", desc: "Nome, contato e endereço.", phase: "Fase 0", done: false },
   { title: "Identidade visual", desc: "Logo, cores e tipografia.", phase: "Fase 0", done: true },
-  { title: "Catálogo e tipos", desc: "Cadastre produtos e variações.", phase: "Fase 1", done: false },
+  {
+    title: "Catálogo e tipos",
+    desc: "Cadastre produtos e variações.",
+    phase: "Fase 1",
+    done: false,
+  },
   { title: "Estoque", desc: "Controle por variação e local.", phase: "Fase 1", done: false },
-  { title: "Frete e pagamentos", desc: "Retirada, tabelas e cotação.", phase: "Fase 2", done: false },
+  {
+    title: "Frete e pagamentos",
+    desc: "Retirada, tabelas e cotação.",
+    phase: "Fase 2",
+    done: false,
+  },
   { title: "Publicação", desc: "Vitrine, páginas e SEO.", phase: "Fase 3", done: false },
 ];
 
@@ -39,7 +49,9 @@ function Onboarding() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold text-foreground">{s.title}</h3>
-                  <Badge variant="secondary" className="text-[0.6rem]">{s.phase}</Badge>
+                  <Badge variant="secondary" className="text-[0.6rem]">
+                    {s.phase}
+                  </Badge>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">{s.desc}</p>
               </div>

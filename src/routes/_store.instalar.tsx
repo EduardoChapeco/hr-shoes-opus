@@ -11,9 +11,16 @@ export const Route = createFileRoute("/_store/instalar")({
 function Page() {
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
-      <PageHeader eyebrow="PWA" title="Instalar o app" description="Instale a loja no seu celular." />
+      <PageHeader
+        eyebrow="PWA"
+        title="Instalar o app"
+        description="Instale a loja no seu celular."
+      />
       <div className="mt-8">
-        <EmptyState title="Instalação em breve" description="O aplicativo instalável (PWA) será disponibilizado em uma próxima fase." />
+        <EmptyState
+          title="Instalação em breve"
+          description="O aplicativo instalável (PWA) será disponibilizado em uma próxima fase."
+        />
       </div>
     </div>
   );

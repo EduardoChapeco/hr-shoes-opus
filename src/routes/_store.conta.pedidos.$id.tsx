@@ -13,7 +13,10 @@ function Page() {
       <h2 className="text-editorial text-2xl text-foreground">Pedido</h2>
       <p className="mt-1 text-sm text-muted-foreground">Identificador: {id}</p>
       <div className="mt-6">
-        <EmptyState title="Pedido não encontrado" description="O detalhe de pedidos será ativado com o checkout." />
+        <EmptyState
+          title="Pedido não encontrado"
+          description="O detalhe de pedidos será ativado com o checkout."
+        />
       </div>
     </section>
   );

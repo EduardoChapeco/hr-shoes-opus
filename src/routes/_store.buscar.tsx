@@ -13,7 +13,10 @@ function Page() {
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       <PageHeader eyebrow="Vitrine" title="Buscar" description="Encontre produtos na loja." />
       <div className="mt-8">
-        <EmptyState title="A busca estará disponível em breve" description="O catálogo de produtos será ativado na próxima fase da loja." />
+        <EmptyState
+          title="A busca estará disponível em breve"
+          description="O catálogo de produtos será ativado na próxima fase da loja."
+        />
       </div>
     </div>
   );

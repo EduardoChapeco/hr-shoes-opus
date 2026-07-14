@@ -1,19 +1,84 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChevronRight } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { EmptyState, ErrorState, UnconfiguredState } from "@/components/state/states";
+import { ProductCard } from "@/components/commerce/product-card";
 import { PageHeader } from "@/components/commerce/page-header";
-import { EmptyState } from "@/components/state/states";
+import { listPublishedProducts, listPublishedCategories } from "@/services/catalog.functions";
+import type { CategoryDTO, ProductCardDTO } from "@/types/catalog";
 
 export const Route = createFileRoute("/_store/categoria/$slug")({
-  component: Page,
+  loader: async ({ params }) => {
+    const [productsResult, categoriesResult] = await Promise.all([
+      listPublishedProducts(),
+      listPublishedCategories(),
+    ]);
+    return { productsResult, categoriesResult, slug: params.slug };
+  },
+  head: ({ params }) => ({
+    meta: [
+      { title: `Categoria — Hr Shoes` },
+      { name: "description", content: `Produtos da categoria ${params.slug} na Hr Shoes.` },
+    ],
+  }),
+  component: CategoryPage,
 });
 
-function Page() {
-  const { slug } = Route.useParams();
+function CategoryPage() {
+  const { productsResult, categoriesResult, slug } = Route.useLoaderData();
+
+  const category: CategoryDTO | undefined =
+    categoriesResult.status === "ok"
+      ? categoriesResult.data.find((c: CategoryDTO) => c.slug === slug)
+      : undefined;
+
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
-      <PageHeader eyebrow="Vitrine" title="Categoria" description={`Identificador: ${slug}`} />
+      {/* Breadcrumb */}
+      <nav
+        aria-label="Navegação estrutural"
+        className="mb-6 flex items-center gap-2 text-sm text-muted-foreground"
+      >
+        <Link to="/" className="hover:text-foreground">
+          Início
+        </Link>
+        <ChevronRight className="size-3" aria-hidden />
+        <Link to="/catalogo" className="hover:text-foreground">
+          Catálogo
+        </Link>
+        <ChevronRight className="size-3" aria-hidden />
+        <span className="text-foreground">{category?.name ?? slug}</span>
+      </nav>
+
+      <PageHeader
+        eyebrow="Categoria"
+        title={category?.name ?? slug}
+        description={`Produtos da categoria ${category?.name ?? slug}.`}
+      />
+
       <div className="mt-8">
-        <EmptyState title="Categoria ainda sem produtos" description="Os produtos desta categoria aparecerão aqui quando publicados." />
+        {productsResult.status === "unconfigured" ? (
+          <UnconfiguredState title="Catálogo não disponível" description={productsResult.reason} />
+        ) : productsResult.status === "error" ? (
+          <ErrorState description={productsResult.message} />
+        ) : productsResult.status === "empty" ? (
+          <EmptyState
+            title="Nenhum produto nesta categoria"
+            description="Ainda não há produtos publicados nesta categoria."
+            action={
+              <Button asChild>
+                <Link to="/catalogo">Ver todos os produtos</Link>
+              </Button>
+            }
+          />
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {productsResult.data.map((product: ProductCardDTO) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

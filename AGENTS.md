@@ -6,18 +6,18 @@
 
 ## Fontes únicas de verdade
 
-| Assunto | Documento |
-| --- | --- |
-| Tokens de design, tipografia, estados, responsivo | `DESIGN.md` + `src/styles.css` |
-| Plano, escopo, fora de escopo, critérios | `docs/MASTER_PLAN.md` |
-| Fases e aceite | `docs/ROADMAP.md` |
-| Camadas, cache, filas, observabilidade | `docs/ARCHITECTURE.md` |
-| Entidades, invariantes, máquinas de estado | `docs/DOMAIN_MODEL.md` |
-| Rotas, permissão, fase | `docs/ROUTES.md` + `src/lib/routes.ts` |
-| Segurança, RBAC/RLS, LGPD, uploads, webhooks | `docs/SECURITY.md` |
-| Contratos de API/serviços | `docs/API_CONTRACTS.md` |
-| Componentes canônicos e estados | `docs/COMPONENT_CATALOG.md` |
-| Testes | `docs/TEST_STRATEGY.md` |
+| Assunto                                           | Documento                              |
+| ------------------------------------------------- | -------------------------------------- |
+| Tokens de design, tipografia, estados, responsivo | `DESIGN.md` + `src/styles.css`         |
+| Plano, escopo, fora de escopo, critérios          | `docs/MASTER_PLAN.md`                  |
+| Fases e aceite                                    | `docs/ROADMAP.md`                      |
+| Camadas, cache, filas, observabilidade            | `docs/ARCHITECTURE.md`                 |
+| Entidades, invariantes, máquinas de estado        | `docs/DOMAIN_MODEL.md`                 |
+| Rotas, permissão, fase                            | `docs/ROUTES.md` + `src/lib/routes.ts` |
+| Segurança, RBAC/RLS, LGPD, uploads, webhooks      | `docs/SECURITY.md`                     |
+| Contratos de API/serviços                         | `docs/API_CONTRACTS.md`                |
+| Componentes canônicos e estados                   | `docs/COMPONENT_CATALOG.md`            |
+| Testes                                            | `docs/TEST_STRATEGY.md`                |
 
 O registro tipado de rotas em `src/lib/routes.ts` é a fonte de verdade
 programática de navegação e deve espelhar `docs/ROUTES.md`.

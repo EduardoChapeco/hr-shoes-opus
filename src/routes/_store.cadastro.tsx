@@ -1,19 +1,145 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ChevronRight } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/commerce/page-header";
-import { EmptyState } from "@/components/state/states";
+import { signUpWithPassword } from "@/services/auth.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/cadastro")({
-  head: () => ({ meta: [{ title: "Criar conta — Hr Shoes" }] }),
-  component: Page,
+  head: () => ({
+    meta: [{ title: "Cadastro — Hr Shoes" }],
+  }),
+  validateSearch: (search: Record<string, unknown>): { returnUrl?: string } => {
+    return {
+      returnUrl: typeof search.returnUrl === "string" ? search.returnUrl : undefined,
+    };
+  },
+  component: RegisterPage,
 });
 
-function Page() {
+const RegisterSchema = z.object({
+  fullName: z.string().min(2, "Digite seu nome completo"),
+  email: z.string().email("Digite um e-mail válido"),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+});
+
+type RegisterForm = z.infer<typeof RegisterSchema>;
+
+function RegisterPage() {
+  const navigate = useNavigate();
+  const search = Route.useSearch();
+  const returnUrl = search.returnUrl ?? "/conta";
+
+  const form = useForm<RegisterForm>({
+    resolver: zodResolver(RegisterSchema),
+    defaultValues: { fullName: "", email: "", password: "" },
+  });
+
+  const onSubmit = async (data: RegisterForm) => {
+    try {
+      const result = await signUpWithPassword({ data });
+
+      if (result.status === "error") {
+        toast.error(result.message);
+        return;
+      }
+
+      toast.success("Conta criada com sucesso!");
+      navigate({ to: returnUrl });
+    } catch (e) {
+      toast.error("Ocorreu um erro ao tentar criar a conta.");
+    }
+  };
+
   return (
-    <div className="mx-auto flex max-w-md flex-col px-4 py-12 md:py-16">
-      <PageHeader title="Criar conta" description="Cadastre-se na Hr Shoes." />
-      <div className="mt-8">
-        <EmptyState title="Login em breve" description="A autenticação de clientes será ativada na próxima fase (banco de dados e Auth)." />
+    <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
+      {/* Breadcrumb */}
+      <nav
+        aria-label="Navegação estrutural"
+        className="mb-6 flex items-center gap-2 text-sm text-muted-foreground"
+      >
+        <Link to="/" className="hover:text-foreground">
+          Início
+        </Link>
+        <ChevronRight className="size-3" aria-hidden />
+        <span className="text-foreground">Cadastro</span>
+      </nav>
+
+      <div className="mx-auto max-w-md">
+        <PageHeader title="Criar conta" description="Preencha os dados abaixo para se cadastrar." />
+
+        <div className="mt-8">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome Completo</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Maria da Silva" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>E-mail</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="seu@email.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Senha</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? "Criando conta..." : "Criar conta"}
+              </Button>
+            </form>
+          </Form>
+
+          <div className="mt-6 text-center text-sm text-muted-foreground">
+            Já tem uma conta?{" "}
+            <Link
+              to="/entrar"
+              search={{ returnUrl }}
+              className="font-medium text-primary hover:underline"
+            >
+              Faça login
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

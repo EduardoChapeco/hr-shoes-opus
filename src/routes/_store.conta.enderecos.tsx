@@ -11,7 +11,10 @@ function Page() {
     <section>
       <h2 className="text-editorial text-2xl text-foreground">Endereços</h2>
       <div className="mt-6">
-        <EmptyState title="Nenhum endereço salvo" description="Você poderá cadastrar endereços de entrega em breve." />
+        <EmptyState
+          title="Nenhum endereço salvo"
+          description="Você poderá cadastrar endereços de entrega em breve."
+        />
       </div>
     </section>
   );

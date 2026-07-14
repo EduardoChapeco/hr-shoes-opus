@@ -37,8 +37,7 @@ export function PublicFooter() {
           <div className="space-y-3">
             <Logo />
             <p className="max-w-xs text-sm text-muted-foreground">
-              Moda feminina contemporânea com conforto e estilo. Curadoria da Hr
-              Shoes.
+              Moda feminina contemporânea com conforto e estilo. Curadoria da Hr Shoes.
             </p>
           </div>
           {COLUMNS.map((col) => (

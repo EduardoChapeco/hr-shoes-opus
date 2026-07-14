@@ -17,9 +17,7 @@ import { LoadingState } from "@/components/state/loading";
  */
 describe("critical UI states", () => {
   it("EmptyState renders its title", () => {
-    const html = renderToStaticMarkup(
-      createElement(EmptyState, { title: "Sem produtos" }),
-    );
+    const html = renderToStaticMarkup(createElement(EmptyState, { title: "Sem produtos" }));
     expect(html).toContain("Sem produtos");
   });
 
@@ -45,16 +43,8 @@ describe("critical UI states", () => {
   });
 
   it("StatusBadge maps each status to a label", () => {
-    for (const status of [
-      "unconfigured",
-      "testing",
-      "active",
-      "error",
-      "planned",
-    ] as const) {
-      const html = renderToStaticMarkup(
-        createElement(StatusBadge, { status }),
-      );
+    for (const status of ["unconfigured", "testing", "active", "error", "planned"] as const) {
+      const html = renderToStaticMarkup(createElement(StatusBadge, { status }));
       expect(html.length).toBeGreaterThan(0);
     }
   });

@@ -2,14 +2,13 @@ import { Link } from "@tanstack/react-router";
 import { Home, Search, ShoppingBag, User, LayoutGrid } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-const ITEMS: { to: string; label: string; icon: LucideIcon; exact?: boolean }[] =
-  [
-    { to: "/", label: "Início", icon: Home, exact: true },
-    { to: "/catalogo", label: "Catálogo", icon: LayoutGrid },
-    { to: "/buscar", label: "Buscar", icon: Search },
-    { to: "/carrinho", label: "Carrinho", icon: ShoppingBag },
-    { to: "/conta", label: "Conta", icon: User },
-  ];
+const ITEMS: { to: string; label: string; icon: LucideIcon; exact?: boolean }[] = [
+  { to: "/", label: "Início", icon: Home, exact: true },
+  { to: "/catalogo", label: "Catálogo", icon: LayoutGrid },
+  { to: "/buscar", label: "Buscar", icon: Search },
+  { to: "/carrinho", label: "Carrinho", icon: ShoppingBag },
+  { to: "/conta", label: "Conta", icon: User },
+];
 
 /** Sticky bottom navigation — mobile only (DESIGN.md §7). */
 export function BottomNav() {

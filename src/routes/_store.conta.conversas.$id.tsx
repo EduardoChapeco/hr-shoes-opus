@@ -13,7 +13,10 @@ function Page() {
       <h2 className="text-editorial text-2xl text-foreground">Conversa</h2>
       <p className="mt-1 text-sm text-muted-foreground">Identificador: {id}</p>
       <div className="mt-6">
-        <EmptyState title="Conversa indisponível" description="O chat com a loja será ativado em uma próxima fase." />
+        <EmptyState
+          title="Conversa indisponível"
+          description="O chat com a loja será ativado em uma próxima fase."
+        />
       </div>
     </section>
   );

@@ -3,13 +3,7 @@ import { Search, ShoppingBag, User, Menu } from "lucide-react";
 
 import { Logo } from "@/components/commerce/logo";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const PRIMARY_NAV = [
   { to: "/catalogo", label: "Catálogo" },
@@ -26,12 +20,7 @@ export function PublicHeader() {
         {/* Mobile menu */}
         <Sheet>
           <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              aria-label="Abrir menu"
-            >
+            <Button variant="ghost" size="icon" className="md:hidden" aria-label="Abrir menu">
               <Menu className="size-5" aria-hidden />
             </Button>
           </SheetTrigger>

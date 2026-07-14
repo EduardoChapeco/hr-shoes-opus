@@ -19,8 +19,7 @@ export function PriceDisplay({
   className?: string;
   size?: "sm" | "md" | "lg";
 }) {
-  const hasCompare =
-    typeof compareAtCents === "number" && compareAtCents > amountCents;
+  const hasCompare = typeof compareAtCents === "number" && compareAtCents > amountCents;
 
   const sizes = {
     sm: "text-sm",

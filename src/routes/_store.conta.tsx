@@ -24,9 +24,7 @@ function AccountLayout() {
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       <p className="eyebrow text-primary">Minha conta</p>
-      <h1 className="text-editorial mt-2 text-3xl text-foreground sm:text-4xl">
-        Olá!
-      </h1>
+      <h1 className="text-editorial mt-2 text-3xl text-foreground sm:text-4xl">Olá!</h1>
 
       <div className="mt-8 grid gap-8 md:grid-cols-[220px_minmax(0,1fr)]">
         {/* Desktop sidebar / mobile horizontal scroll */}

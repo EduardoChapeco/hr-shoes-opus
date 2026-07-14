@@ -32,8 +32,4 @@ export type Audience = "public" | "customer" | "admin";
 export type RouteRenderStatus = "structural" | "planned";
 
 /** Status for external integrations. Never simulate success. */
-export type IntegrationStatus =
-  | "unconfigured"
-  | "testing"
-  | "active"
-  | "error";
+export type IntegrationStatus = "unconfigured" | "testing" | "active" | "error";

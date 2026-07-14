@@ -12,10 +12,7 @@ export const Route = createFileRoute("/sitemap.xml")({
       GET: async () => {
         // Only static, indexable public routes (no params, no checkout).
         const paths = PUBLIC_ROUTES.filter(
-          (r) =>
-            !r.dynamic &&
-            !r.path.startsWith("/checkout") &&
-            r.path !== "/carrinho",
+          (r) => !r.dynamic && !r.path.startsWith("/checkout") && r.path !== "/carrinho",
         ).map((r) => r.path);
 
         const urls = paths

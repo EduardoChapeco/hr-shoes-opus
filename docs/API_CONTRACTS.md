@@ -27,7 +27,7 @@ type ApiError = {
   ok: false;
   error: {
     code: ErrorCode;
-    message: string;       // mensagem segura para exibição, sem detalhes internos
+    message: string; // mensagem segura para exibição, sem detalhes internos
     details?: Record<string, unknown>; // apenas dados não sensíveis (ex.: campo inválido)
   };
   correlation_id: string;
@@ -38,21 +38,21 @@ type ApiError = {
 
 ```ts
 type ErrorCode =
-  | "validation_error"           // payload não conforme ao schema zod
-  | "unauthorized"                // sessão ausente/inválida
-  | "forbidden"                   // sessão válida sem permissão para o recurso/ação
-  | "not_found"                   // recurso inexistente ou fora do tenant do chamador
-  | "conflict"                    // ex.: transição de estado não autorizada, versão desatualizada
-  | "idempotency_key_missing"     // operação mutável sensível sem idempotency_key
-  | "idempotency_key_conflict"    // mesma chave, payload divergente
-  | "rate_limited"                // limite de requisições excedido
-  | "unconfigured_integration"    // integration_connections.status = unconfigured
-  | "integration_error"           // provedor externo retornou erro (status = error)
-  | "insufficient_stock"          // reserva/baixa de estoque não pôde ser satisfeita
-  | "insufficient_balance"        // crédito/gift card sem saldo suficiente
-  | "expired_quote"               // cotação de frete/preço expirada
-  | "payment_declined"            // pagamento recusado pelo provedor
-  | "internal_error";             // falha inesperada, sem detalhes internos expostos
+  | "validation_error" // payload não conforme ao schema zod
+  | "unauthorized" // sessão ausente/inválida
+  | "forbidden" // sessão válida sem permissão para o recurso/ação
+  | "not_found" // recurso inexistente ou fora do tenant do chamador
+  | "conflict" // ex.: transição de estado não autorizada, versão desatualizada
+  | "idempotency_key_missing" // operação mutável sensível sem idempotency_key
+  | "idempotency_key_conflict" // mesma chave, payload divergente
+  | "rate_limited" // limite de requisições excedido
+  | "unconfigured_integration" // integration_connections.status = unconfigured
+  | "integration_error" // provedor externo retornou erro (status = error)
+  | "insufficient_stock" // reserva/baixa de estoque não pôde ser satisfeita
+  | "insufficient_balance" // crédito/gift card sem saldo suficiente
+  | "expired_quote" // cotação de frete/preço expirada
+  | "payment_declined" // pagamento recusado pelo provedor
+  | "internal_error"; // falha inesperada, sem detalhes internos expostos
 ```
 
 Toda função de servidor mapeia exceções internas para um destes códigos antes de responder; nenhum stack trace ou mensagem de driver/banco é repassado ao cliente.
@@ -70,7 +70,7 @@ type ListProductsRequest = {
   collection_slug?: string;
   filters?: Record<string, string | string[]>; // por FieldDefinition filterable
   sort?: "relevance" | "price_asc" | "price_desc" | "newest";
-  page?: number;      // default 1
+  page?: number; // default 1
   page_size?: number; // default 24, máx 60
 };
 
@@ -277,7 +277,14 @@ Se nenhum provider de frete automático estiver `active` em `integration_connect
 type CreatePaymentIntentRequest = {
   idempotency_key: string;
   order_id: string;
-  provider: "mercado_pago" | "asaas" | "stripe" | "manual_proof" | "carne" | "gift_card" | "customer_credit";
+  provider:
+    | "mercado_pago"
+    | "asaas"
+    | "stripe"
+    | "manual_proof"
+    | "carne"
+    | "gift_card"
+    | "customer_credit";
   return_url?: string;
 };
 
@@ -285,8 +292,8 @@ type PaymentIntentDTO = {
   payment_id: string;
   status: "pending" | "authorized" | "paid" | "failed";
   provider: string;
-  checkout_url?: string;   // quando aplicável (redirecionamento a provedor)
-  pix_qr_code?: string;    // quando aplicável, nunca dados sensíveis de cartão
+  checkout_url?: string; // quando aplicável (redirecionamento a provedor)
+  pix_qr_code?: string; // quando aplicável, nunca dados sensíveis de cartão
 };
 ```
 
@@ -331,9 +338,9 @@ type RequestUploadUrlRequest = {
 };
 
 type UploadUrlDTO = {
-  media_asset_id: string;    // criado em estado "uploading", privado
+  media_asset_id: string; // criado em estado "uploading", privado
   signed_upload_url: string;
-  expires_at: string;        // ISO UTC
+  expires_at: string; // ISO UTC
 };
 ```
 
@@ -345,7 +352,7 @@ type UploadUrlDTO = {
 type MediaAssetDTO = {
   media_asset_id: string;
   status: "uploading" | "processing" | "ready" | "rejected";
-  original_url?: string;   // signed URL, apenas para papéis autorizados
+  original_url?: string; // signed URL, apenas para papéis autorizados
   derivatives?: { format: "webp" | "avif"; width: number; url: string }[];
   focal_point?: { x: number; y: number };
 };

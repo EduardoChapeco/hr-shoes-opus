@@ -13,25 +13,32 @@ Este documento define como o Hr Shoes Commerce é testado em cada camada e em ca
 ## 2. Camadas de teste
 
 ### 2.1 Testes unitários
+
 Cobrem funções puras e lógica isolada: formatação de moeda (centavos → BRL), conversão de datas (UTC → America/Sao_Paulo), utilitários do registro de rotas, funções de validação de formulário, helpers de domínio.
 
 ### 2.2 Testes de integração
+
 Cobrem a composição entre componentes de UI e a camada de serviços/BFF (com serviços mockados ou com um ambiente de teste do Lovable Cloud), validando fluxos como: navegação entre shells, carregamento de dados em uma tela, submissão de formulário completo.
 
 ### 2.3 Testes de contrato
+
 Cobrem as funções de servidor/BFF e suas interfaces de entrada/saída conforme documentado em `API_CONTRACTS.md`. Garantem que uma mudança em uma função de servidor não quebre silenciosamente o formato esperado pela UI, e que erros sejam retornados em formato previsível.
 
 ### 2.4 Testes end-to-end (E2E)
+
 Cobrem jornadas completas do usuário real, do navegador à persistência: por exemplo, do login da lojista até a publicação de um produto (Fase 1), ou do carrinho ao pedido pago (Fase 2). Rodam contra um ambiente próximo do real, minimizando mocks.
 
 ### 2.5 Testes de RLS (positivos e negativos)
+
 A partir da Fase 1, toda tabela protegida por RLS tem testes específicos:
+
 - **Positivo**: um usuário autenticado com o papel/tenant correto consegue ler/escrever exatamente o que deveria.
 - **Negativo**: um usuário de outro tenant, sem autenticação, ou sem o papel exigido, é bloqueado — e o bloqueio é verificado tanto para leitura quanto para escrita.
 
 Esses testes rodam preferencialmente contra o banco real (ou uma réplica de teste), não apenas contra mocks, pois RLS é uma garantia de banco de dados.
 
 ### 2.6 Testes de acessibilidade (WCAG 2.2 AA)
+
 - Verificação automatizada (ex.: axe-core integrado aos testes de componente/E2E) para contraste de cor, rótulos de formulário, ordem de foco, uso de landmarks e atributos ARIA.
 - Verificação manual pontual em fluxos críticos (checkout, navegação por teclado no admin) antes de cada fase ser considerada concluída.
 - Componentes do catálogo (`COMPONENT_CATALOG.md`) devem declarar e testar seu comportamento de foco e leitura por leitor de tela nos estados de carregando, vazio e erro.
@@ -41,6 +48,7 @@ Esses testes rodam preferencialmente contra o banco real (ou uma réplica de tes
 A Fase 0 não tem lógica de negócio para testar, mas tem fundações estruturais que já podem e devem ser verificadas automaticamente:
 
 ### 3.1 Integridade do registro de rotas
+
 - Toda rota registrada em `ROUTES.md`/implementação resolve para um componente de página existente (nenhuma rota "fantasma").
 - Não existem caminhos (`path`) duplicados no registro.
 - Todo registro de rota possui metadados válidos: fase (`0` a `5`), permissão exigida (ou `public`), e status (`disponivel` ou `em_breve`).
@@ -48,7 +56,9 @@ A Fase 0 não tem lógica de negócio para testar, mas tem fundações estrutura
 - Não há duas rotas com o mesmo nome lógico apontando para componentes diferentes.
 
 ### 3.2 Componentes críticos
+
 Para os componentes definidos como críticos em `COMPONENT_CATALOG.md` (ex.: cartão de produto, lista/tabela administrativa, estado vazio genérico, navegação admin, shell público), os testes mínimos da Fase 0 verificam:
+
 - O componente renderiza corretamente no estado padrão.
 - O componente renderiza corretamente no estado de carregamento (loading), sem quebrar layout.
 - O componente renderiza corretamente no estado vazio, exibindo uma mensagem honesta e nunca dado fictício.
@@ -56,6 +66,7 @@ Para os componentes definidos como críticos em `COMPONENT_CATALOG.md` (ex.: car
 - Quando aplicável, o componente renderiza corretamente no estado "sem permissão" e no estado "desabilitado"/"não configurado".
 
 ### 3.3 Navegação e shells
+
 - Testes garantem que os três shells (público, cliente, admin) renderizam sem erro e contêm a navegação esperada.
 - Testes garantem que a navegação do admin alterna corretamente entre sidebar (desktop) e bottom-nav (mobile) conforme breakpoint.
 
@@ -84,6 +95,7 @@ Todos os testes automatizados devem poder rodar em CI sem intervenção manual, 
 ## 6. Critério de qualidade mínimo para considerar uma fase testada
 
 Uma fase não é considerada testada apenas por ter testes escritos: os testes precisam:
+
 1. Rodar de forma determinística (sem flakiness tolerada silenciosamente).
 2. Cobrir explicitamente os critérios de aceite listados para a fase em `ROADMAP.md`.
 3. Incluir pelo menos um caso negativo para cada regra de segurança/permissão relevante à fase.

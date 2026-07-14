@@ -63,7 +63,7 @@ Collection >──< ProductCollection >──< Product
 ## 3. Inventário
 
 ```text
-ProductVariant (1) ──< InventoryLevel (N, por Location) 
+ProductVariant (1) ──< InventoryLevel (N, por Location)
 InventoryLevel: available = on_hand - reserved (derivado)
 ProductVariant + Location ──< InventoryMovement (append-only)
 ```

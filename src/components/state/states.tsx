@@ -1,12 +1,6 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import {
-  Inbox,
-  AlertTriangle,
-  Lock,
-  PlugZap,
-  RefreshCw,
-} from "lucide-react";
+import { Inbox, AlertTriangle, Lock, PlugZap, RefreshCw } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -50,19 +44,12 @@ function StateShell({
       )}
       role="status"
     >
-      <span
-        className={cn(
-          "mb-4 grid size-12 place-items-center rounded-full",
-          toneClasses[tone],
-        )}
-      >
+      <span className={cn("mb-4 grid size-12 place-items-center rounded-full", toneClasses[tone])}>
         <Icon className="size-6" aria-hidden />
       </span>
       <h3 className="text-lg font-semibold text-foreground">{title}</h3>
       {description ? (
-        <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
-          {description}
-        </p>
+        <p className="mt-1.5 max-w-md text-sm text-muted-foreground">{description}</p>
       ) : null}
       {action ? <div className="mt-5">{action}</div> : null}
     </div>
@@ -111,13 +98,7 @@ export function PermissionDenied({
   description?: ReactNode;
 }) {
   return (
-    <StateShell
-      icon={Lock}
-      tone="warning"
-      title={title}
-      description={description}
-      {...props}
-    />
+    <StateShell icon={Lock} tone="warning" title={title} description={description} {...props} />
   );
 }
 
@@ -130,13 +111,7 @@ export function UnconfiguredState({
   description?: ReactNode;
 }) {
   return (
-    <StateShell
-      icon={PlugZap}
-      tone="info"
-      title={title}
-      description={description}
-      {...props}
-    />
+    <StateShell icon={PlugZap} tone="info" title={title} description={description} {...props} />
   );
 }
 
@@ -147,17 +122,9 @@ export const PermissionState = PermissionDenied;
  * StatusBadge — canonical status pill for integrations/entities.
  * Maps a semantic status to a token-based tone; never hardcodes color.
  */
-export type EntityStatus =
-  | "unconfigured"
-  | "testing"
-  | "active"
-  | "error"
-  | "planned";
+export type EntityStatus = "unconfigured" | "testing" | "active" | "error" | "planned";
 
-const STATUS_MAP: Record<
-  EntityStatus,
-  { label: string; className: string }
-> = {
+const STATUS_MAP: Record<EntityStatus, { label: string; className: string }> = {
   unconfigured: { label: "Não configurado", className: "bg-muted text-muted-foreground" },
   testing: { label: "Em teste", className: "bg-warning/15 text-warning-foreground" },
   active: { label: "Ativo", className: "bg-success/15 text-success" },
@@ -212,9 +179,7 @@ export function SectionFrame({
           <div>
             {eyebrow ? <p className="eyebrow text-primary">{eyebrow}</p> : null}
             {title ? (
-              <h2 className="text-editorial text-2xl text-foreground sm:text-3xl">
-                {title}
-              </h2>
+              <h2 className="text-editorial text-2xl text-foreground sm:text-3xl">{title}</h2>
             ) : null}
           </div>
           {action ? <div>{action}</div> : null}
