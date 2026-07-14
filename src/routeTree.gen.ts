@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as StoreRouteImport } from './routes/_store'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as StoreIndexRouteImport } from './routes/_store.index'
 import { Route as StoreTrocasEDevolucoesRouteImport } from './routes/_store.trocas-e-devolucoes'
 import { Route as StoreTermosRouteImport } from './routes/_store.termos'
@@ -63,6 +64,11 @@ const AdminRoute = AdminRouteImport.update({
 const StoreRoute = StoreRouteImport.update({
   id: '/_store',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const StoreIndexRoute = StoreIndexRouteImport.update({
   id: '/',
@@ -284,7 +290,7 @@ const StoreContaConversasIdRoute = StoreContaConversasIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof StoreIndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/buscar': typeof StoreBuscarRoute
   '/cadastro': typeof StoreCadastroRoute
   '/carrinho': typeof StoreCarrinhoRoute
@@ -302,6 +308,7 @@ export interface FileRoutesByFullPath {
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
+  '/admin/': typeof AdminIndexRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/checkout/cotacao': typeof StoreCheckoutCotacaoRoute
   '/checkout/entrega': typeof StoreCheckoutEntregaRoute
@@ -329,7 +336,6 @@ export interface FileRoutesByFullPath {
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
 }
 export interface FileRoutesByTo {
-  '/admin': typeof AdminRoute
   '/buscar': typeof StoreBuscarRoute
   '/cadastro': typeof StoreCadastroRoute
   '/carrinho': typeof StoreCarrinhoRoute
@@ -347,6 +353,7 @@ export interface FileRoutesByTo {
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/': typeof StoreIndexRoute
+  '/admin': typeof AdminIndexRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/checkout/cotacao': typeof StoreCheckoutCotacaoRoute
   '/checkout/entrega': typeof StoreCheckoutEntregaRoute
@@ -376,7 +383,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_store': typeof StoreRouteWithChildren
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/_store/buscar': typeof StoreBuscarRoute
   '/_store/cadastro': typeof StoreCadastroRoute
   '/_store/carrinho': typeof StoreCarrinhoRoute
@@ -395,6 +402,7 @@ export interface FileRoutesById {
   '/_store/termos': typeof StoreTermosRoute
   '/_store/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
   '/_store/': typeof StoreIndexRoute
+  '/admin/': typeof AdminIndexRoute
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/_store/checkout/cotacao': typeof StoreCheckoutCotacaoRoute
   '/_store/checkout/entrega': typeof StoreCheckoutEntregaRoute
@@ -443,6 +451,7 @@ export interface FileRouteTypes {
     | '/stories'
     | '/termos'
     | '/trocas-e-devolucoes'
+    | '/admin/'
     | '/categoria/$slug'
     | '/checkout/cotacao'
     | '/checkout/entrega'
@@ -470,7 +479,6 @@ export interface FileRouteTypes {
     | '/pedido/$publicToken/confirmacao'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/admin'
     | '/buscar'
     | '/cadastro'
     | '/carrinho'
@@ -488,6 +496,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/trocas-e-devolucoes'
     | '/'
+    | '/admin'
     | '/categoria/$slug'
     | '/checkout/cotacao'
     | '/checkout/entrega'
@@ -535,6 +544,7 @@ export interface FileRouteTypes {
     | '/_store/termos'
     | '/_store/trocas-e-devolucoes'
     | '/_store/'
+    | '/admin/'
     | '/_store/categoria/$slug'
     | '/_store/checkout/cotacao'
     | '/_store/checkout/entrega'
@@ -564,7 +574,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   StoreRoute: typeof StoreRouteWithChildren
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -582,6 +592,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof StoreRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/_store/': {
       id: '/_store/'
@@ -1001,9 +1018,19 @@ const StoreRouteChildren: StoreRouteChildren = {
 
 const StoreRouteWithChildren = StoreRoute._addFileChildren(StoreRouteChildren)
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   StoreRoute: StoreRouteWithChildren,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
