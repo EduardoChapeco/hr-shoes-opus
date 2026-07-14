@@ -29,10 +29,21 @@ import { Route as StoreCatalogoRouteImport } from './routes/_store.catalogo'
 import { Route as StoreCarrinhoRouteImport } from './routes/_store.carrinho'
 import { Route as StoreCadastroRouteImport } from './routes/_store.cadastro'
 import { Route as StoreBuscarRouteImport } from './routes/_store.buscar'
+import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index'
 import { Route as StoreProdutoSlugRouteImport } from './routes/_store.produto.$slug'
 import { Route as StorePoliticasSlugRouteImport } from './routes/_store.politicas.$slug'
 import { Route as StoreGiftCardClaimTokenRouteImport } from './routes/_store.gift-card.$claimToken'
 import { Route as StoreDestaquesSlugRouteImport } from './routes/_store.destaques.$slug'
+import { Route as StoreContaTrocasRouteImport } from './routes/_store.conta.trocas'
+import { Route as StoreContaSuporteRouteImport } from './routes/_store.conta.suporte'
+import { Route as StoreContaPrivacidadeRouteImport } from './routes/_store.conta.privacidade'
+import { Route as StoreContaPerfilRouteImport } from './routes/_store.conta.perfil'
+import { Route as StoreContaPedidosRouteImport } from './routes/_store.conta.pedidos'
+import { Route as StoreContaPagamentosRouteImport } from './routes/_store.conta.pagamentos'
+import { Route as StoreContaGiftCardsRouteImport } from './routes/_store.conta.gift-cards'
+import { Route as StoreContaEnderecosRouteImport } from './routes/_store.conta.enderecos'
+import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.creditos'
+import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.avaliacoes'
 import { Route as StoreColecaoSlugRouteImport } from './routes/_store.colecao.$slug'
 import { Route as StoreCheckoutRevisaoRouteImport } from './routes/_store.checkout.revisao'
 import { Route as StoreCheckoutPagamentoRouteImport } from './routes/_store.checkout.pagamento'
@@ -41,6 +52,8 @@ import { Route as StoreCheckoutEntregaRouteImport } from './routes/_store.checko
 import { Route as StoreCheckoutCotacaoRouteImport } from './routes/_store.checkout.cotacao'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store.categoria.$slug'
 import { Route as StorePedidoPublicTokenConfirmacaoRouteImport } from './routes/_store.pedido.$publicToken.confirmacao'
+import { Route as StoreContaPedidosIdRouteImport } from './routes/_store.conta.pedidos.$id'
+import { Route as StoreContaConversasIdRouteImport } from './routes/_store.conta.conversas.$id'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -141,6 +154,11 @@ const StoreBuscarRoute = StoreBuscarRouteImport.update({
   path: '/buscar',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreContaIndexRoute = StoreContaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StoreContaRoute,
+} as any)
 const StoreProdutoSlugRoute = StoreProdutoSlugRouteImport.update({
   id: '/produto/$slug',
   path: '/produto/$slug',
@@ -160,6 +178,56 @@ const StoreDestaquesSlugRoute = StoreDestaquesSlugRouteImport.update({
   id: '/destaques/$slug',
   path: '/destaques/$slug',
   getParentRoute: () => StoreRoute,
+} as any)
+const StoreContaTrocasRoute = StoreContaTrocasRouteImport.update({
+  id: '/trocas',
+  path: '/trocas',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaSuporteRoute = StoreContaSuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaPrivacidadeRoute = StoreContaPrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaPerfilRoute = StoreContaPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaPedidosRoute = StoreContaPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaPagamentosRoute = StoreContaPagamentosRouteImport.update({
+  id: '/pagamentos',
+  path: '/pagamentos',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaGiftCardsRoute = StoreContaGiftCardsRouteImport.update({
+  id: '/gift-cards',
+  path: '/gift-cards',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaEnderecosRoute = StoreContaEnderecosRouteImport.update({
+  id: '/enderecos',
+  path: '/enderecos',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaCreditosRoute = StoreContaCreditosRouteImport.update({
+  id: '/creditos',
+  path: '/creditos',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaAvaliacoesRoute = StoreContaAvaliacoesRouteImport.update({
+  id: '/avaliacoes',
+  path: '/avaliacoes',
+  getParentRoute: () => StoreContaRoute,
 } as any)
 const StoreColecaoSlugRoute = StoreColecaoSlugRouteImport.update({
   id: '/colecao/$slug',
@@ -203,6 +271,16 @@ const StorePedidoPublicTokenConfirmacaoRoute =
     path: '/pedido/$publicToken/confirmacao',
     getParentRoute: () => StoreRoute,
   } as any)
+const StoreContaPedidosIdRoute = StoreContaPedidosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => StoreContaPedidosRoute,
+} as any)
+const StoreContaConversasIdRoute = StoreContaConversasIdRouteImport.update({
+  id: '/conversas/$id',
+  path: '/conversas/$id',
+  getParentRoute: () => StoreContaRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof StoreIndexRoute
@@ -211,7 +289,7 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof StoreCadastroRoute
   '/carrinho': typeof StoreCarrinhoRoute
   '/catalogo': typeof StoreCatalogoRoute
-  '/conta': typeof StoreContaRoute
+  '/conta': typeof StoreContaRouteWithChildren
   '/contato': typeof StoreContatoRoute
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
@@ -231,10 +309,23 @@ export interface FileRoutesByFullPath {
   '/checkout/pagamento': typeof StoreCheckoutPagamentoRoute
   '/checkout/revisao': typeof StoreCheckoutRevisaoRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
+  '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
+  '/conta/creditos': typeof StoreContaCreditosRoute
+  '/conta/enderecos': typeof StoreContaEnderecosRoute
+  '/conta/gift-cards': typeof StoreContaGiftCardsRoute
+  '/conta/pagamentos': typeof StoreContaPagamentosRoute
+  '/conta/pedidos': typeof StoreContaPedidosRouteWithChildren
+  '/conta/perfil': typeof StoreContaPerfilRoute
+  '/conta/privacidade': typeof StoreContaPrivacidadeRoute
+  '/conta/suporte': typeof StoreContaSuporteRoute
+  '/conta/trocas': typeof StoreContaTrocasRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
+  '/conta/': typeof StoreContaIndexRoute
+  '/conta/conversas/$id': typeof StoreContaConversasIdRoute
+  '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
 }
 export interface FileRoutesByTo {
@@ -243,7 +334,6 @@ export interface FileRoutesByTo {
   '/cadastro': typeof StoreCadastroRoute
   '/carrinho': typeof StoreCarrinhoRoute
   '/catalogo': typeof StoreCatalogoRoute
-  '/conta': typeof StoreContaRoute
   '/contato': typeof StoreContatoRoute
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
@@ -264,10 +354,23 @@ export interface FileRoutesByTo {
   '/checkout/pagamento': typeof StoreCheckoutPagamentoRoute
   '/checkout/revisao': typeof StoreCheckoutRevisaoRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
+  '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
+  '/conta/creditos': typeof StoreContaCreditosRoute
+  '/conta/enderecos': typeof StoreContaEnderecosRoute
+  '/conta/gift-cards': typeof StoreContaGiftCardsRoute
+  '/conta/pagamentos': typeof StoreContaPagamentosRoute
+  '/conta/pedidos': typeof StoreContaPedidosRouteWithChildren
+  '/conta/perfil': typeof StoreContaPerfilRoute
+  '/conta/privacidade': typeof StoreContaPrivacidadeRoute
+  '/conta/suporte': typeof StoreContaSuporteRoute
+  '/conta/trocas': typeof StoreContaTrocasRoute
   '/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
+  '/conta': typeof StoreContaIndexRoute
+  '/conta/conversas/$id': typeof StoreContaConversasIdRoute
+  '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
 }
 export interface FileRoutesById {
@@ -278,7 +381,7 @@ export interface FileRoutesById {
   '/_store/cadastro': typeof StoreCadastroRoute
   '/_store/carrinho': typeof StoreCarrinhoRoute
   '/_store/catalogo': typeof StoreCatalogoRoute
-  '/_store/conta': typeof StoreContaRoute
+  '/_store/conta': typeof StoreContaRouteWithChildren
   '/_store/contato': typeof StoreContatoRoute
   '/_store/entrar': typeof StoreEntrarRoute
   '/_store/faq': typeof StoreFaqRoute
@@ -299,10 +402,23 @@ export interface FileRoutesById {
   '/_store/checkout/pagamento': typeof StoreCheckoutPagamentoRoute
   '/_store/checkout/revisao': typeof StoreCheckoutRevisaoRoute
   '/_store/colecao/$slug': typeof StoreColecaoSlugRoute
+  '/_store/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
+  '/_store/conta/creditos': typeof StoreContaCreditosRoute
+  '/_store/conta/enderecos': typeof StoreContaEnderecosRoute
+  '/_store/conta/gift-cards': typeof StoreContaGiftCardsRoute
+  '/_store/conta/pagamentos': typeof StoreContaPagamentosRoute
+  '/_store/conta/pedidos': typeof StoreContaPedidosRouteWithChildren
+  '/_store/conta/perfil': typeof StoreContaPerfilRoute
+  '/_store/conta/privacidade': typeof StoreContaPrivacidadeRoute
+  '/_store/conta/suporte': typeof StoreContaSuporteRoute
+  '/_store/conta/trocas': typeof StoreContaTrocasRoute
   '/_store/destaques/$slug': typeof StoreDestaquesSlugRoute
   '/_store/gift-card/$claimToken': typeof StoreGiftCardClaimTokenRoute
   '/_store/politicas/$slug': typeof StorePoliticasSlugRoute
   '/_store/produto/$slug': typeof StoreProdutoSlugRoute
+  '/_store/conta/': typeof StoreContaIndexRoute
+  '/_store/conta/conversas/$id': typeof StoreContaConversasIdRoute
+  '/_store/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
   '/_store/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
 }
 export interface FileRouteTypes {
@@ -334,10 +450,23 @@ export interface FileRouteTypes {
     | '/checkout/pagamento'
     | '/checkout/revisao'
     | '/colecao/$slug'
+    | '/conta/avaliacoes'
+    | '/conta/creditos'
+    | '/conta/enderecos'
+    | '/conta/gift-cards'
+    | '/conta/pagamentos'
+    | '/conta/pedidos'
+    | '/conta/perfil'
+    | '/conta/privacidade'
+    | '/conta/suporte'
+    | '/conta/trocas'
     | '/destaques/$slug'
     | '/gift-card/$claimToken'
     | '/politicas/$slug'
     | '/produto/$slug'
+    | '/conta/'
+    | '/conta/conversas/$id'
+    | '/conta/pedidos/$id'
     | '/pedido/$publicToken/confirmacao'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -346,7 +475,6 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/carrinho'
     | '/catalogo'
-    | '/conta'
     | '/contato'
     | '/entrar'
     | '/faq'
@@ -367,10 +495,23 @@ export interface FileRouteTypes {
     | '/checkout/pagamento'
     | '/checkout/revisao'
     | '/colecao/$slug'
+    | '/conta/avaliacoes'
+    | '/conta/creditos'
+    | '/conta/enderecos'
+    | '/conta/gift-cards'
+    | '/conta/pagamentos'
+    | '/conta/pedidos'
+    | '/conta/perfil'
+    | '/conta/privacidade'
+    | '/conta/suporte'
+    | '/conta/trocas'
     | '/destaques/$slug'
     | '/gift-card/$claimToken'
     | '/politicas/$slug'
     | '/produto/$slug'
+    | '/conta'
+    | '/conta/conversas/$id'
+    | '/conta/pedidos/$id'
     | '/pedido/$publicToken/confirmacao'
   id:
     | '__root__'
@@ -401,10 +542,23 @@ export interface FileRouteTypes {
     | '/_store/checkout/pagamento'
     | '/_store/checkout/revisao'
     | '/_store/colecao/$slug'
+    | '/_store/conta/avaliacoes'
+    | '/_store/conta/creditos'
+    | '/_store/conta/enderecos'
+    | '/_store/conta/gift-cards'
+    | '/_store/conta/pagamentos'
+    | '/_store/conta/pedidos'
+    | '/_store/conta/perfil'
+    | '/_store/conta/privacidade'
+    | '/_store/conta/suporte'
+    | '/_store/conta/trocas'
     | '/_store/destaques/$slug'
     | '/_store/gift-card/$claimToken'
     | '/_store/politicas/$slug'
     | '/_store/produto/$slug'
+    | '/_store/conta/'
+    | '/_store/conta/conversas/$id'
+    | '/_store/conta/pedidos/$id'
     | '/_store/pedido/$publicToken/confirmacao'
   fileRoutesById: FileRoutesById
 }
@@ -555,6 +709,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreBuscarRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/conta/': {
+      id: '/_store/conta/'
+      path: '/'
+      fullPath: '/conta/'
+      preLoaderRoute: typeof StoreContaIndexRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
     '/_store/produto/$slug': {
       id: '/_store/produto/$slug'
       path: '/produto/$slug'
@@ -582,6 +743,76 @@ declare module '@tanstack/react-router' {
       fullPath: '/destaques/$slug'
       preLoaderRoute: typeof StoreDestaquesSlugRouteImport
       parentRoute: typeof StoreRoute
+    }
+    '/_store/conta/trocas': {
+      id: '/_store/conta/trocas'
+      path: '/trocas'
+      fullPath: '/conta/trocas'
+      preLoaderRoute: typeof StoreContaTrocasRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/suporte': {
+      id: '/_store/conta/suporte'
+      path: '/suporte'
+      fullPath: '/conta/suporte'
+      preLoaderRoute: typeof StoreContaSuporteRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/privacidade': {
+      id: '/_store/conta/privacidade'
+      path: '/privacidade'
+      fullPath: '/conta/privacidade'
+      preLoaderRoute: typeof StoreContaPrivacidadeRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/perfil': {
+      id: '/_store/conta/perfil'
+      path: '/perfil'
+      fullPath: '/conta/perfil'
+      preLoaderRoute: typeof StoreContaPerfilRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/pedidos': {
+      id: '/_store/conta/pedidos'
+      path: '/pedidos'
+      fullPath: '/conta/pedidos'
+      preLoaderRoute: typeof StoreContaPedidosRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/pagamentos': {
+      id: '/_store/conta/pagamentos'
+      path: '/pagamentos'
+      fullPath: '/conta/pagamentos'
+      preLoaderRoute: typeof StoreContaPagamentosRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/gift-cards': {
+      id: '/_store/conta/gift-cards'
+      path: '/gift-cards'
+      fullPath: '/conta/gift-cards'
+      preLoaderRoute: typeof StoreContaGiftCardsRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/enderecos': {
+      id: '/_store/conta/enderecos'
+      path: '/enderecos'
+      fullPath: '/conta/enderecos'
+      preLoaderRoute: typeof StoreContaEnderecosRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/creditos': {
+      id: '/_store/conta/creditos'
+      path: '/creditos'
+      fullPath: '/conta/creditos'
+      preLoaderRoute: typeof StoreContaCreditosRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
+    '/_store/conta/avaliacoes': {
+      id: '/_store/conta/avaliacoes'
+      path: '/avaliacoes'
+      fullPath: '/conta/avaliacoes'
+      preLoaderRoute: typeof StoreContaAvaliacoesRouteImport
+      parentRoute: typeof StoreContaRoute
     }
     '/_store/colecao/$slug': {
       id: '/_store/colecao/$slug'
@@ -639,15 +870,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StorePedidoPublicTokenConfirmacaoRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/conta/pedidos/$id': {
+      id: '/_store/conta/pedidos/$id'
+      path: '/$id'
+      fullPath: '/conta/pedidos/$id'
+      preLoaderRoute: typeof StoreContaPedidosIdRouteImport
+      parentRoute: typeof StoreContaPedidosRoute
+    }
+    '/_store/conta/conversas/$id': {
+      id: '/_store/conta/conversas/$id'
+      path: '/conversas/$id'
+      fullPath: '/conta/conversas/$id'
+      preLoaderRoute: typeof StoreContaConversasIdRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
   }
 }
+
+interface StoreContaPedidosRouteChildren {
+  StoreContaPedidosIdRoute: typeof StoreContaPedidosIdRoute
+}
+
+const StoreContaPedidosRouteChildren: StoreContaPedidosRouteChildren = {
+  StoreContaPedidosIdRoute: StoreContaPedidosIdRoute,
+}
+
+const StoreContaPedidosRouteWithChildren =
+  StoreContaPedidosRoute._addFileChildren(StoreContaPedidosRouteChildren)
+
+interface StoreContaRouteChildren {
+  StoreContaAvaliacoesRoute: typeof StoreContaAvaliacoesRoute
+  StoreContaCreditosRoute: typeof StoreContaCreditosRoute
+  StoreContaEnderecosRoute: typeof StoreContaEnderecosRoute
+  StoreContaGiftCardsRoute: typeof StoreContaGiftCardsRoute
+  StoreContaPagamentosRoute: typeof StoreContaPagamentosRoute
+  StoreContaPedidosRoute: typeof StoreContaPedidosRouteWithChildren
+  StoreContaPerfilRoute: typeof StoreContaPerfilRoute
+  StoreContaPrivacidadeRoute: typeof StoreContaPrivacidadeRoute
+  StoreContaSuporteRoute: typeof StoreContaSuporteRoute
+  StoreContaTrocasRoute: typeof StoreContaTrocasRoute
+  StoreContaIndexRoute: typeof StoreContaIndexRoute
+  StoreContaConversasIdRoute: typeof StoreContaConversasIdRoute
+}
+
+const StoreContaRouteChildren: StoreContaRouteChildren = {
+  StoreContaAvaliacoesRoute: StoreContaAvaliacoesRoute,
+  StoreContaCreditosRoute: StoreContaCreditosRoute,
+  StoreContaEnderecosRoute: StoreContaEnderecosRoute,
+  StoreContaGiftCardsRoute: StoreContaGiftCardsRoute,
+  StoreContaPagamentosRoute: StoreContaPagamentosRoute,
+  StoreContaPedidosRoute: StoreContaPedidosRouteWithChildren,
+  StoreContaPerfilRoute: StoreContaPerfilRoute,
+  StoreContaPrivacidadeRoute: StoreContaPrivacidadeRoute,
+  StoreContaSuporteRoute: StoreContaSuporteRoute,
+  StoreContaTrocasRoute: StoreContaTrocasRoute,
+  StoreContaIndexRoute: StoreContaIndexRoute,
+  StoreContaConversasIdRoute: StoreContaConversasIdRoute,
+}
+
+const StoreContaRouteWithChildren = StoreContaRoute._addFileChildren(
+  StoreContaRouteChildren,
+)
 
 interface StoreRouteChildren {
   StoreBuscarRoute: typeof StoreBuscarRoute
   StoreCadastroRoute: typeof StoreCadastroRoute
   StoreCarrinhoRoute: typeof StoreCarrinhoRoute
   StoreCatalogoRoute: typeof StoreCatalogoRoute
-  StoreContaRoute: typeof StoreContaRoute
+  StoreContaRoute: typeof StoreContaRouteWithChildren
   StoreContatoRoute: typeof StoreContatoRoute
   StoreEntrarRoute: typeof StoreEntrarRoute
   StoreFaqRoute: typeof StoreFaqRoute
@@ -680,7 +970,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreCadastroRoute: StoreCadastroRoute,
   StoreCarrinhoRoute: StoreCarrinhoRoute,
   StoreCatalogoRoute: StoreCatalogoRoute,
-  StoreContaRoute: StoreContaRoute,
+  StoreContaRoute: StoreContaRouteWithChildren,
   StoreContatoRoute: StoreContatoRoute,
   StoreEntrarRoute: StoreEntrarRoute,
   StoreFaqRoute: StoreFaqRoute,
