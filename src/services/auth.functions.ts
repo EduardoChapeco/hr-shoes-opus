@@ -14,6 +14,7 @@ import { getServerClient } from "@/lib/supabase";
 import { clearGuestSession } from "@/lib/session";
 import { mergeGuestCart } from "./cart.functions";
 import { Provider } from "@supabase/supabase-js";
+import { getEnvVar } from "@/lib/env";
 
 // ---------------------------------------------------------------------------
 // Schemas
@@ -28,6 +29,7 @@ const RegisterSchema = z.object({
   email: z.string().email("E-mail inválido"),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
   fullName: z.string().min(2, "Nome é obrigatório"),
+  redirectTo: z.string().optional(), // destination after email confirmation
 });
 
 const ResetPasswordSchema = z.object({
@@ -93,10 +95,8 @@ export const signInWithPassword = createServerFn({ method: "POST" })
 
       return { status: "success" as const, data: data.user };
     } catch (e: unknown) {
-      if (e instanceof Error) {
-        throw new Error("Erro ao realizar login: " + e.message);
-      }
-      throw new Error("Erro ao realizar login");
+      const message = e instanceof Error ? e.message : "Erro desconhecido";
+      return { status: "error" as const, message: `Erro ao realizar login: ${message}` };
     }
   });
 
@@ -123,60 +123,66 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
 
       return { status: "success" as const, url: data.url };
     } catch (e: unknown) {
-      if (e instanceof Error) {
-        throw new Error("Erro ao inicializar OAuth: " + e.message);
-      }
-      throw new Error("Erro ao inicializar OAuth");
+      const message = e instanceof Error ? e.message : "Erro desconhecido";
+      return { status: "error" as const, message: `Erro ao inicializar OAuth: ${message}` };
     }
   });
 
 export const signUpWithPassword = createServerFn({ method: "POST" })
   .validator(RegisterSchema)
-  .handler(async ({ data: { email, password, fullName } }) => {
+  .handler(async ({ data: { email, password, fullName, redirectTo } }) => {
     try {
       const supabase = getSSRClient();
+
+      // Build the confirmation URL. Supabase will append token_hash and type.
+      // The app's /api/auth/confirm handler will process these and create the session.
+      const siteUrl = getEnvVar("VITE_SITE_URL") || "https://hrshoes.pages.dev";
+      const confirmUrl = `${siteUrl}/api/auth/confirm${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`;
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            full_name: fullName,
-          },
+          data: { full_name: fullName },
+          emailRedirectTo: confirmUrl,
         },
       });
 
       if (error) {
+        console.error("[auth] signUp API error:", error);
         if (error.status === 429) {
           return {
             status: "error" as const,
             message: "Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.",
           };
         }
+        if (error.message?.toLowerCase().includes("already registered") || error.message?.toLowerCase().includes("user already")) {
+          return { status: "error" as const, message: "Este e-mail já possui uma conta. Faça login ou recupere sua senha." };
+        }
         return { status: "error" as const, message: error.message };
       }
 
-      if (data.user) {
-        // We do NOT manually create the profile here anymore.
-        // The DB trigger `handle_new_user` handles profile creation securely.
-
+      // Only merge guest cart if signup returned an active session (email confirmation disabled).
+      // When email confirmation is required, session is null here — the cart merge will happen
+      // at /api/auth/confirm after the user clicks the link.
+      if (data.user && data.session) {
         try {
           await mergeGuestCart({
             data: {
               customerId: data.user.id,
-              accessToken: data.session?.access_token,
+              accessToken: data.session.access_token,
             },
           });
         } catch (err) {
-          console.error("Falha ao mesclar carrinho durante cadastro (ignorado):", err);
+          // Cart merge failure must never block signup success
+          console.error("[auth] mergeGuestCart failed during signup (non-fatal):", err);
         }
       }
 
       return { status: "success" as const, data: data.user, sessionActive: !!data.session };
     } catch (e: unknown) {
-      if (e instanceof Error) {
-        throw new Error("Erro ao realizar cadastro: " + e.message);
-      }
-      throw new Error("Erro ao realizar cadastro");
+      const message = e instanceof Error ? e.message : "Erro desconhecido";
+      return { status: "error" as const, message: `Erro ao realizar cadastro: ${message}` };
     }
   });
 
@@ -217,7 +223,11 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Não autorizado");
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+
+  if (error) {
+    console.warn(`[auth] getProfile could not load profile for ${user.id}:`, error.message);
+  }
 
   return {
     id: user.id,

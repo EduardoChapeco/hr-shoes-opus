@@ -62,7 +62,14 @@ function RegisterPage() {
 
   const onSubmit = async (data: RegisterForm) => {
     try {
-      const result = await signUpWithPassword({ data });
+      const result = await signUpWithPassword({
+        data: {
+          email: data.email,
+          password: data.password,
+          fullName: data.fullName,
+          redirectTo: returnUrl,
+        },
+      });
 
       if (result.status === "error") {
         toast.error(result.message);
@@ -70,18 +77,22 @@ function RegisterPage() {
       }
 
       if (!result.sessionActive) {
-        toast.success("Conta criada! Por favor, verifique seu e-mail para confirmar o cadastro.");
-        // Do NOT navigate to /conta because the user is not logged in yet.
+        toast.success(
+          "Conta criada! Verifique seu e-mail e clique no link de confirmação para ativar seu acesso.",
+          { duration: 8000 }
+        );
+        // User must confirm email before logging in. Redirect to /entrar.
         navigate({ to: "/entrar", search: { returnUrl } });
         return;
       }
 
       toast.success("Conta criada com sucesso!");
-      // CRITICAL: We must invalidate the router to clear any cached unauthenticated data
       await router.invalidate();
       navigate({ to: returnUrl });
-    } catch (e) {
-      toast.error("Ocorreu um erro ao tentar criar a conta.");
+    } catch (e: any) {
+      const correlationId = Math.random().toString(36).substring(2, 10).toUpperCase();
+      console.error(`[cadastro] Error ID: ${correlationId}`, e);
+      toast.error(`Erro no cadastro. Código: ${e?.code || 'ERR_SIGNUP'} | ID: ${correlationId}`);
     }
   };
 
