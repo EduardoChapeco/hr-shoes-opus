@@ -216,7 +216,7 @@ export const getThemeSettings = createServerFn({ method: "GET" }).handler(async 
     const { data: storeData } = await db.from("stores").select("id").limit(1).single();
     if (!storeData) throw new Error("No store found");
 
-    let { data, error } = await db
+    const { data, error } = await db
       .from("theme_settings")
       .select("*")
       .eq("store_id", storeData.id)
@@ -233,7 +233,7 @@ export const getThemeSettings = createServerFn({ method: "GET" }).handler(async 
         .single();
 
       if (insertError) throw insertError;
-      data = newData;
+      return { status: "ok" as const, data: newData };
     }
 
     return { status: "ok" as const, data };
@@ -409,7 +409,7 @@ export const getLinkInBio = createServerFn({ method: "GET" }).handler(async () =
     const { data: storeData } = await db.from("stores").select("id").limit(1).single();
     if (!storeData) throw new Error("No store found");
 
-    let { data, error } = await db
+    const { data, error } = await db
       .from("link_in_bio")
       .select("*")
       .eq("store_id", storeData.id)
@@ -426,7 +426,7 @@ export const getLinkInBio = createServerFn({ method: "GET" }).handler(async () =
         .single();
 
       if (insertError) throw insertError;
-      data = newData;
+      return { status: "ok" as const, data: newData };
     }
 
     return { status: "ok" as const, data };
