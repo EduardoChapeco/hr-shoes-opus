@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { readCookieFromRequest } from "@/lib/http-cookies";
 import { normalizeInternalReturnPath } from "@/lib/return-path";
 import { getSSRClient } from "@/lib/supabase-ssr";
-import { mergeGuestCartLogic } from "@/services/cart.functions";
+import { mergeGuestCartLogic } from "@/services/cart-helpers";
 
 export const Route = createFileRoute("/api/auth/callback")({
   server: {

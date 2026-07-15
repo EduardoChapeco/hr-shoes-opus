@@ -9,33 +9,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
-import { getOrCreateGuestSession, getGuestSession, getSellerRefCookie } from "@/lib/session";
+import { getGuestSession, getSellerRefCookie } from "@/lib/session";
+import { getCurrentIdentity, mergeGuestCartLogic } from "./cart-helpers";
 import type { CartDTO } from "@/types/orders";
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Retrieves the current user's ID or the guest session token.
- */
-export async function getCurrentIdentity() {
-  const ssrClient = getSSRClient();
-  // Fetch or create guest session synchronously BEFORE any await.
-  // This prevents the vinxi/http unctx context loss on Cloudflare Pages.
-  const token = getOrCreateGuestSession();
-
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-
-  if (user) {
-    return { customer_id: user.id, session_token: null };
-  }
-
-  return { customer_id: null, session_token: token };
-}
+// Helpers (getCurrentIdentity, mergeGuestCartLogic) live in ./cart-helpers
+// because tss-serverfn-split strips sibling declarations from this file.
 
 /**
  * Ensures a cart exists for the current identity.
@@ -305,103 +284,7 @@ export const removeFromCart = createServerFn({ method: "POST" })
     return { status: "success" };
   });
 
-export async function mergeGuestCartLogic(
-  customerId: string,
-  accessToken?: string,
-  explicitGuestToken?: string | null,
-) {
-  let supabase;
-  if (accessToken) {
-    const url = process.env.VITE_SUPABASE_URL;
-    const key = process.env.VITE_SUPABASE_ANON_KEY;
-    if (!url || !key) throw new Error("Missing env vars for Supabase");
-
-    const { createClient } = await import("@supabase/supabase-js");
-    supabase = createClient(url, key, {
-      global: { headers: { Authorization: `Bearer ${accessToken}` } },
-    });
-  } else {
-    supabase = getSSRClient();
-  }
-
-  // Use explicitly passed token, or try to get current identity (only works if no unctx context loss has occurred)
-  let session_token = explicitGuestToken;
-  if (session_token === undefined) {
-    const identity = await getCurrentIdentity();
-    session_token = identity.session_token;
-  }
-
-  if (!session_token) return { status: "success" };
-
-  // Find if guest cart exists
-  const { data: guestCart } = await supabase
-    .from("carts")
-    .select("id")
-    .eq("session_token", session_token)
-    .eq("status", "active")
-    .maybeSingle();
-
-  if (!guestCart) return { status: "success" };
-
-  // Find if customer already has a cart
-  const { data: userCart } = await supabase
-    .from("carts")
-    .select("id")
-    .eq("customer_id", customerId)
-    .eq("status", "active")
-    .maybeSingle();
-
-  if (!userCart) {
-    // Just reassign the guest cart to the user
-    await supabase
-      .from("carts")
-      .update({ customer_id: customerId, session_token: null })
-      .eq("id", guestCart.id);
-  } else {
-    // Move items from guest cart to user cart
-    const { data: guestItems } = await supabase
-      .from("cart_items")
-      .select("id, variant_id, qty")
-      .eq("cart_id", guestCart.id);
-
-    if (guestItems && guestItems.length > 0) {
-      for (const item of guestItems) {
-        // Check if variant already exists in user cart
-        const { data: existingUserItem } = await supabase
-          .from("cart_items")
-          .select("id, qty")
-          .eq("cart_id", userCart.id)
-          .eq("variant_id", item.variant_id)
-          .maybeSingle();
-
-        if (existingUserItem) {
-          // Add quantities
-          await supabase
-            .from("cart_items")
-            .update({ qty: existingUserItem.qty + item.qty })
-            .eq("id", existingUserItem.id);
-          // Delete the old one from guest cart
-          await supabase.from("cart_items").delete().eq("id", item.id);
-        } else {
-          // Reassign the item to user cart
-          await supabase.from("cart_items").update({ cart_id: userCart.id }).eq("id", item.id);
-        }
-
-        // Reassign stock reservations to user cart
-        await supabase
-          .from("stock_reservations")
-          .update({ cart_id: userCart.id })
-          .eq("cart_id", guestCart.id)
-          .eq("variant_id", item.variant_id);
-      }
-    }
-
-    // Delete the empty guest cart
-    await supabase.from("carts").delete().eq("id", guestCart.id);
-  }
-
-  return { status: "success" };
-}
+// mergeGuestCartLogic lives in ./cart-helpers (see import above).
 
 export const mergeGuestCart = createServerFn({ method: "POST" })
   .validator(
