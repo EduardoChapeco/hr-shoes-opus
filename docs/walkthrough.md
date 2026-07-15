@@ -35,16 +35,16 @@ Este documento resume as investigações, refatorações e os procedimentos de d
 
 ---
 
-## 5. Deploy de Produção (Cloudflare)
+## 5. Deploy de Produção (Cloudflare Pages)
 
-- **Vite/Nitro Build**: Gerada a build otimizada do lado do servidor e ativos estáticos em `.output`.
-- **Deploy Wrangler**: Efetuado o deploy completo na infraestrutura da Cloudflare no endereço público:
-  👉 **https://eduardochapeco-hr-shoes-opus.eusoueduoficial.workers.dev**
+- **Vite/Nitro Build**: Compilado com a variável de ambiente `NITRO_PRESET=cloudflare-pages`, gerando os ativos e o arquivo `_worker.js` dentro de `dist/`.
+- **Pages Project**: Criado o projeto Pages `eduardochapeco-hr-shoes-opus` na Cloudflare.
+- **Deploy Wrangler**: Efetuado o deploy completo na infraestrutura da Cloudflare Pages:
+  👉 **https://eduardochapeco-hr-shoes-opus.pages.dev**
 
 ---
 
 ## 6. Sincronização Git
 
 - **.gitignore**: Adicionado o arquivo `.env` para garantir que credenciais locais de banco de dados e APIs nunca sejam commitadas.
-- **Commit & Push**: Alterações integradas à branch `main` e enviadas para o repositório remoto:
-  👉 **Commit hash**: `fc06f5d`
+- **Commit & Push**: Alterações integradas à branch `main` e enviadas para o repositório remoto.
