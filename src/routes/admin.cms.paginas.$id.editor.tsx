@@ -16,16 +16,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getAdminPageDetails, savePageSections } from "@/services/cms.functions";
+import { listCollections } from "@/services/admin-catalog.functions";
 import { EmptyState } from "@/components/state/states";
 import { cmsRegistry, cmsBlocksList, type CmsFieldDef } from "@/lib/cms-registry";
 
 export const Route = createFileRoute("/admin/cms/paginas/$id/editor")({
   head: () => ({ meta: [{ title: "Editor de Página — Hr Shoes" }] }),
   loader: async ({ params }) => {
-    const res = await getAdminPageDetails({ data: { id: params.id } });
+    const [res, colRes] = await Promise.all([
+      getAdminPageDetails({ data: { id: params.id } }),
+      listCollections()
+    ]);
     if (res.status === "error") throw new Error(res.message);
     if (res.status === "unconfigured") throw new Error("Supabase não configurado");
-    return res.data;
+    return {
+      page: res.data,
+      collections: colRes.status === "ok" ? colRes.data : [],
+    };
   },
   component: PageEditor,
 });
@@ -38,7 +45,7 @@ interface SectionData {
 }
 
 function PageEditor() {
-  const page = Route.useLoaderData();
+  const { page, collections } = Route.useLoaderData();
   const navigate = useNavigate();
   const [sections, setSections] = useState<SectionData[]>(
     page.sections.map(
@@ -148,6 +155,29 @@ function PageEditor() {
             onChange={(e) => updateSectionContent(index, field.name, e.target.value)}
             placeholder="https://..."
           />
+        </div>
+      );
+    }
+
+    if (field.type === "collection_select") {
+      return (
+        <div key={field.name} className="space-y-2">
+          <Label>{field.label}</Label>
+          <Select
+            value={value}
+            onValueChange={(v) => updateSectionContent(index, field.name, v)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione a coleção..." />
+            </SelectTrigger>
+            <SelectContent>
+              {collections.map((col: any) => (
+                <SelectItem key={col.id} value={col.slug}>
+                  {col.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       );
     }

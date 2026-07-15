@@ -44,20 +44,27 @@ import {
   deleteProductMedia,
   uploadProductMedia,
   addProductMediaLink,
+  listCategories,
 } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/$id")({
   head: () => ({ meta: [{ title: "Editar Produto — Hr Shoes" }] }),
   loader: async ({ params }) => {
-    const res = await getProductById({ data: { id: params.id } });
+    const [res, catsRes] = await Promise.all([
+      getProductById({ data: { id: params.id } }),
+      listCategories(),
+    ]);
     if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return {
+      product: res.data,
+      categories: catsRes.status === "ok" ? catsRes.data : [],
+    };
   },
   component: EditProductPage,
 });
 
 function EditProductPage() {
-  const product = Route.useLoaderData();
+  const { product, categories } = Route.useLoaderData();
   const router = useRouter();
 
   return (
@@ -84,7 +91,7 @@ function EditProductPage() {
         </TabsList>
 
         <TabsContent value="geral" className="mt-6">
-          <GeneralForm product={product} />
+          <GeneralForm product={product} categories={categories} />
         </TabsContent>
 
         <TabsContent value="variantes" className="mt-6">
@@ -99,8 +106,10 @@ function EditProductPage() {
   );
 }
 
-function GeneralForm({ product }: { product: any }) {
+function GeneralForm({ product, categories }: { product: any; categories: any[] }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const initialCategoryId = product.product_categories?.[0]?.category_id || "";
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategoryId);
 
   const {
     register,
@@ -135,6 +144,7 @@ function GeneralForm({ product }: { product: any }) {
           status: values.status,
           price_cents,
           compare_at_cents,
+          category_ids: selectedCategory ? [selectedCategory] : [],
         },
       });
 
@@ -217,6 +227,23 @@ function GeneralForm({ product }: { product: any }) {
                     <SelectItem value="draft">Rascunho</SelectItem>
                     <SelectItem value="published">Publicado</SelectItem>
                     <SelectItem value="archived">Arquivado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Categoria Principal</Label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sem Categoria</SelectItem>
+                    {categories.map((c: any) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

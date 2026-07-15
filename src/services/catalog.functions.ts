@@ -54,6 +54,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       .object({
         limit: z.number().int().min(1).max(50).default(20),
         cursor: z.string().uuid().optional(),
+        categorySlug: z.string().optional(),
       })
       .default({}),
   )
@@ -69,16 +70,24 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         };
       }
 
+      const selectQuery = params.categorySlug
+        ? `id, slug, title, brand, price_cents, compare_at_cents,
+           product_media(url, alt, sort_order),
+           product_categories!inner(categories!inner(slug))`
+        : `id, slug, title, brand, price_cents, compare_at_cents,
+           product_media(url, alt, sort_order)`;
+
       let query = db
         .from("products")
-        .select(
-          `id, slug, title, brand, price_cents, compare_at_cents,
-           product_media(url, alt, sort_order)`,
-        )
+        .select(selectQuery)
         .eq("store_id", storeId)
         .eq("status", "published")
         .order("published_at", { ascending: false })
         .limit(params.limit);
+
+      if (params.categorySlug) {
+        query = query.eq("product_categories.categories.slug", params.categorySlug);
+      }
 
       if (params.cursor) {
         query = query.lt("id", params.cursor);

@@ -1,12 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { formatMoney } from "@/lib/money";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getCart } from "@/services/cart.functions";
 import { processCheckout } from "@/services/checkout.functions";
-import { initiatePayment } from "@/services/payment.functions";
-import { CheckCircle2, Ticket, QrCode } from "lucide-react";
+import { initiatePaymentTransaction } from "@/services/payment.functions";
+import { CheckCircle2, Ticket, MessageCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -28,6 +25,7 @@ export const Route = createFileRoute("/_store/checkout")({
         subtotalCents: 0,
         discountCents: 0,
         shippingCents: 0,
+        shippingMethod: "",
         couponCode: null,
         itemCount: 0,
       }
@@ -41,7 +39,6 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successToken, setSuccessToken] = useState("");
-  const [pixData, setPixData] = useState<{ qrCode: string | null }>({ qrCode: null });
 
   const [formData, setFormData] = useState({
     customerName: "",
@@ -71,31 +68,37 @@ function CheckoutPage() {
         toast.error("Por favor, preencha todos os campos obrigatórios do endereço.");
         return;
       }
+      
+      if (cart.shippingCents === 0) {
+        toast.error("Por favor, calcule e selecione um frete no carrinho antes de continuar.");
+        return;
+      }
     }
 
     setIsSubmitting(true);
     try {
       // 1. Process Order
       const res = await processCheckout({
-        data: { ...formData, cartId: cart.id, paymentMethod: formData.paymentMethod === "manual" ? "pix" : formData.paymentMethod },
+        data: { 
+          ...formData, 
+          cartId: cart.id, 
+          paymentMethod: formData.paymentMethod === "manual" ? "pix" : formData.paymentMethod,
+          shippingMethod: formData.shippingMethod === "delivery" ? (cart.shippingMethod || "delivery") : "pickup"
+        },
       });
       
       if (res.status === "success") {
-        // 2. Initiate Payment (Gateway Transact)
+        // 2. Initiate Payment (Manual)
         try {
-          const payRes = await initiatePayment({
+          await initiatePaymentTransaction({
             data: {
               orderId: res.orderToken,
               method: formData.paymentMethod === "credit_card" ? "credit_card" : "pix",
               amountCents: cart.totalCents
             }
           });
-          
-          if (payRes.status === "success") {
-            setPixData({ qrCode: payRes.pix_qr_code });
-          }
         } catch(payErr: any) {
-           toast.error("Pedido criado, mas falha ao comunicar com Gateway de Pagamento.");
+           toast.error("Pedido criado, mas falha ao abrir transação de pagamento.");
         }
         
         setSuccessToken(res.orderToken);
@@ -119,25 +122,16 @@ function CheckoutPage() {
           pagamento.
         </p>
 
-        {pixData.qrCode && (
-          <div className="bg-muted/30 p-6 rounded-xl border border-border inline-block mb-8">
-            <QrCode className="w-8 h-8 text-primary mx-auto mb-4" />
-            <h3 className="font-semibold text-lg mb-2">Pague via PIX Copia e Cola</h3>
-            <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
-              Copie o código abaixo e cole no aplicativo do seu banco para finalizar a compra.
-            </p>
-            <div className="flex gap-2">
-              <Input readOnly value={pixData.qrCode} className="font-mono text-xs text-center" />
-              <Button onClick={() => {
-                navigator.clipboard.writeText(pixData.qrCode!);
-                toast.success("Código copiado!");
-              }}>Copiar</Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-4">
-              O status do pedido será atualizado automaticamente assim que o pagamento for reconhecido pelo banco.
-            </p>
-          </div>
-        )}
+        <div className="bg-muted/30 p-6 rounded-xl border border-border inline-block mb-8">
+          <MessageCircle className="w-8 h-8 text-primary mx-auto mb-4" />
+          <h3 className="font-semibold text-lg mb-2">Quase lá!</h3>
+          <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
+            Sua vendedora entrará em contato com você pelo WhatsApp em breve com o link de pagamento exclusivo para finalizar sua compra.
+          </p>
+          <p className="text-xs text-muted-foreground mt-4">
+            Assim que você confirmar o pagamento via WhatsApp, seu pedido será separado para envio.
+          </p>
+        </div>
 
         <div>
           <Button onClick={() => navigate({ to: "/conta" })}>Acompanhar Pedido</Button>
@@ -385,13 +379,13 @@ function CheckoutPage() {
               </div>
             )}
             <div className="flex justify-between text-muted-foreground">
-              <span>Frete {formData.shippingMethod === "pickup" ? "(Retirada)" : ""}</span>
-              <span>{formData.shippingMethod === "pickup" ? "Grátis" : "A combinar"}</span>
+              <span>Frete {formData.shippingMethod === "pickup" ? "(Retirada)" : (cart.shippingMethod ? `(${cart.shippingMethod})` : "")}</span>
+              <span>{formData.shippingMethod === "pickup" ? "Grátis" : formatMoney(cart.shippingCents)}</span>
             </div>
           </div>
           <div className="flex justify-between items-end border-t pt-4 mb-8">
             <span className="font-semibold">Total</span>
-            <span className="font-bold text-2xl">{formatMoney(cart.totalCents)}</span>
+            <span className="font-bold text-2xl">{formatMoney(cart.totalCents - (formData.shippingMethod === "pickup" ? cart.shippingCents : 0))}</span>
           </div>
 
           <div className="lg:hidden">

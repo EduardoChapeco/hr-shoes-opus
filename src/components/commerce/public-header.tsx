@@ -5,15 +5,15 @@ import { Logo } from "@/components/commerce/logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-const PRIMARY_NAV = [
-  { to: "/catalogo", label: "Catálogo" },
-  { to: "/promocoes", label: "Promoções" },
-  { to: "/stories", label: "Stories" },
-  { to: "/perfil-da-loja", label: "A loja" },
-  { to: "/contato", label: "Contato" },
-] as const;
+const FALLBACK_NAV = [
+  { url: "/catalogo", label: "Catálogo" },
+  { url: "/promocoes", label: "Promoções" },
+  { url: "/perfil-da-loja", label: "A loja" },
+];
 
-export function PublicHeader() {
+export function PublicHeader({ menuItems = [], storeName }: { menuItems?: any[]; storeName?: string }) {
+  const navItems = menuItems.length > 0 ? menuItems : FALLBACK_NAV;
+
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur pt-safe">
       <div className="mx-auto flex h-16 max-w-screen-xl items-center gap-4 px-4 md:px-6">
@@ -30,10 +30,10 @@ export function PublicHeader() {
               <Logo className="h-7" />
             </SheetHeader>
             <nav className="mt-6 flex flex-col">
-              {PRIMARY_NAV.map((item) => (
+              {navItems.map((item) => (
                 <Link
-                  key={item.to}
-                  to={item.to}
+                  key={item.url}
+                  to={item.url}
                   className="rounded-lg px-3 py-3 text-base font-medium text-foreground hover:bg-accent"
                   activeProps={{ className: "text-primary" }}
                 >
@@ -44,15 +44,16 @@ export function PublicHeader() {
           </SheetContent>
         </Sheet>
 
-        <Link to="/" className="flex items-center" aria-label="Hr Shoes — início">
+        <Link to="/" className="flex items-center gap-2" aria-label={`${storeName || 'Hr Shoes'} — início`}>
           <Logo />
+          {storeName && <span className="font-bold text-lg tracking-tight hidden sm:inline-block">{storeName}</span>}
         </Link>
 
         <nav className="ml-6 hidden items-center gap-1 md:flex">
-          {PRIMARY_NAV.map((item) => (
+          {navItems.map((item) => (
             <Link
-              key={item.to}
-              to={item.to}
+              key={item.url}
+              to={item.url}
               className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
               activeProps={{ className: "text-primary" }}
             >

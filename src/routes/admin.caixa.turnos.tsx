@@ -11,13 +11,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { listRegisterShifts } from "@/services/cash.functions";
+import { listRegisterHistory } from "@/services/cash.functions";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/caixa/turnos")({
   head: () => ({ meta: [{ title: "Turnos de Caixa — Hr Shoes" }] }),
   loader: async () => {
-    return await listRegisterShifts();
+    return await listRegisterHistory();
   },
   component: ShiftsPage,
 });
@@ -58,7 +58,7 @@ function ShiftsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {shifts.map((s) => (
+            {shifts.map((s: any) => (
               <TableRow key={s.id}>
                 <TableCell>
                   {new Date(s.opened_at).toLocaleString("pt-BR", {

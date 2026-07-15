@@ -11,6 +11,7 @@ import { z } from "zod";
 
 import { getSSRClient } from "@/lib/supabase-ssr";
 import { getServerClient } from "@/lib/supabase";
+import { clearGuestSession } from "@/lib/session";
 import { mergeGuestCart } from "./cart.functions";
 import { Provider } from "@supabase/supabase-js";
 
@@ -183,6 +184,7 @@ export const signOut = createServerFn({ method: "POST" }).handler(async () => {
   try {
     const supabase = getSSRClient();
     await supabase.auth.signOut();
+    clearGuestSession();
     return { status: "success" as const };
   } catch {
     return { status: "error" as const };

@@ -123,6 +123,13 @@ export const createProduct = createServerFn({ method: "POST" })
       attributes: z.record(z.any()).default({}), // Dynamic fields based on type
       weight_grams: z.number().int().min(0).optional().nullable(),
       media_urls: z.array(z.string().url()).optional(),
+      category_ids: z.array(z.string().uuid()).optional(),
+      variants: z.array(z.object({
+        sku: z.string().min(1),
+        attributes: z.record(z.any()).default({}),
+        price_cents: z.number().int().min(0).optional(),
+        stock: z.number().int().min(0).default(0)
+      })).optional(),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -145,20 +152,56 @@ export const createProduct = createServerFn({ method: "POST" })
 
       if (error) throw error;
 
-      // Create a default variant
-      const { data: variant, error: variantError } = await db
-        .from("product_variants")
-        .insert({
+      // Create Categories Mapping
+      if (input.category_ids && input.category_ids.length > 0) {
+        const catRecords = input.category_ids.map(cid => ({
           product_id: data.id,
-          sku: `${input.slug}-01`,
-          price_cents: input.price_cents,
-          compare_at_price_cents: input.compare_at_cents,
-          attributes: input.attributes,
-        })
-        .select()
-        .single();
+          category_id: cid
+        }));
+        await db.from("product_categories").insert(catRecords);
+      }
 
-      if (variantError) throw variantError;
+      // Create Variants
+      if (input.variants && input.variants.length > 0) {
+        for (const v of input.variants) {
+          const { data: variantData, error: variantError } = await db
+            .from("product_variants")
+            .insert({
+              product_id: data.id,
+              sku: v.sku,
+              price_override_cents: v.price_cents,
+              attributes: v.attributes,
+              stock_on_hand: v.stock // Allow initial stock bypass for creation
+            })
+            .select()
+            .single();
+
+          if (variantError) throw variantError;
+          
+          if (v.stock > 0) {
+             await db.from("stock_movements").insert({
+               variant_id: variantData.id,
+               store_id: storeData.id,
+               movement_type: "adjustment",
+               qty: v.stock,
+               note: "Estoque Inicial (Criação)"
+             });
+          }
+        }
+      } else {
+        // Create a default variant if none provided
+        const { error: variantError } = await db
+          .from("product_variants")
+          .insert({
+            product_id: data.id,
+            sku: `${input.slug}-01`,
+            price_override_cents: input.price_cents,
+            attributes: input.attributes,
+            stock_on_hand: 0
+          });
+
+        if (variantError) throw variantError;
+      }
 
       // Insert media if provided
       if (media_urls && media_urls.length > 0) {
@@ -315,7 +358,8 @@ export const getProductById = createServerFn({ method: "GET" })
           `
           *,
           product_variants (*),
-          product_media (*)
+          product_media (*),
+          product_categories (category_id)
         `,
         )
         .eq("id", id)
@@ -345,12 +389,13 @@ export const updateProduct = createServerFn({ method: "POST" })
       attributes: z.record(z.any()).optional(),
       weight_grams: z.number().int().min(0).optional().nullable(),
       type_id: z.string().uuid().optional().nullable(),
+      category_ids: z.array(z.string().uuid()).optional(),
     }),
   )
   .handler(async ({ data: input }) => {
     try {
       const db = getServerClient();
-      const { id, ...updates } = input;
+      const { id, category_ids, ...updates } = input;
 
       const { data, error } = await db
         .from("products")
@@ -360,6 +405,17 @@ export const updateProduct = createServerFn({ method: "POST" })
         .single();
 
       if (error) throw error;
+
+      if (category_ids !== undefined) {
+        await db.from("product_categories").delete().eq("product_id", id);
+        if (category_ids.length > 0) {
+          const catRecords = category_ids.map(cid => ({
+            product_id: id,
+            category_id: cid
+          }));
+          await db.from("product_categories").insert(catRecords);
+        }
+      }
 
       return { status: "success" as const, data };
     } catch (e: unknown) {

@@ -8,6 +8,7 @@ import {
   listPublishedProducts,
   listPublishedCategories,
   getStoreConfig,
+  getProductsByCollection,
 } from "@/services/catalog.functions";
 import type { StoreConfigDTO, ProductCardDTO, CategoryDTO } from "@/types/catalog";
 
@@ -33,11 +34,38 @@ export const Route = createFileRoute("/_store/")({
       listPublishedCategories(),
       getPublicPageBySlug({ data: { slug: "home" } }),
     ]);
+    const homePage = homePageRes.status === "ok" ? homePageRes.data : null;
+    const collectionsData: Record<string, ProductCardDTO[]> = {};
+
+    if (homePage && homePage.sections) {
+      const fetchPromises = [];
+      for (const section of homePage.sections) {
+        if (
+          (section.section_type === "featured_products" || section.section_type === "product_grid") &&
+          section.content.collection_slug
+        ) {
+          const slug = String(section.content.collection_slug);
+          if (!collectionsData[slug]) {
+            collectionsData[slug] = []; // initialize to prevent duplicate fetches
+            fetchPromises.push(
+              getProductsByCollection({ data: { slug } }).then((res) => {
+                collectionsData[slug] = res.status === "ok" ? res.data : [];
+              })
+            );
+          }
+        }
+      }
+      if (fetchPromises.length > 0) {
+        await Promise.all(fetchPromises);
+      }
+    }
+
     return {
       storeConfig,
       products,
       categories,
-      homePage: homePageRes.status === "ok" ? homePageRes.data : null,
+      homePage,
+      collectionsData,
     };
   },
   component: Home,
@@ -137,12 +165,19 @@ function DynamicRichText({ content }: { content: Record<string, unknown> }) {
 function DynamicFeaturedProducts({
   content,
   publishedProducts,
+  collectionsData,
 }: {
   content: Record<string, unknown>;
   publishedProducts: ProductCardDTO[];
+  collectionsData?: Record<string, ProductCardDTO[]>;
 }) {
   const title = String(content.title || "Destaques");
-  if (publishedProducts.length === 0) return null;
+  const slug = content.collection_slug ? String(content.collection_slug) : null;
+  const productsToDisplay = slug && collectionsData && collectionsData[slug] 
+    ? collectionsData[slug] 
+    : publishedProducts;
+
+  if (productsToDisplay.length === 0) return null;
 
   return (
     <section className="mx-auto max-w-screen-xl px-4 md:px-6">
@@ -158,7 +193,7 @@ function DynamicFeaturedProducts({
         </Button>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {publishedProducts.slice(0, 8).map((product) => (
+        {productsToDisplay.slice(0, 8).map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
@@ -252,7 +287,7 @@ function UnconfiguredStorefront() {
 }
 
 function Home() {
-  const { storeConfig, products, categories, homePage } = Route.useLoaderData();
+  const { storeConfig, products, categories, homePage, collectionsData } = Route.useLoaderData();
 
   if (storeConfig.status === "unconfigured") return <UnconfiguredStorefront />;
   if (storeConfig.status === "error")
@@ -297,6 +332,7 @@ function Home() {
           <DynamicFeaturedProducts
             content={{ title: "Novidades" }}
             publishedProducts={publishedProducts}
+            collectionsData={collectionsData}
           />
         )}
 
@@ -328,6 +364,7 @@ function Home() {
                 key={section.id}
                 content={section.content}
                 publishedProducts={publishedProducts}
+                collectionsData={collectionsData}
               />
             );
           default:

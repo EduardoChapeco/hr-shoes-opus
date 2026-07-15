@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export type CmsFieldType = "string" | "text" | "image" | "boolean" | "product_list";
+export type CmsFieldType = "string" | "text" | "image" | "boolean" | "product_list" | "collection_select";
 
 export interface CmsFieldDef {
   name: string;
@@ -48,11 +48,11 @@ export const cmsRegistry: Record<string, CmsBlockDef> = {
     label: "Produtos em Destaque",
     fields: [
       { name: "title", label: "Título da Seção", type: "string", required: true },
-      { name: "collection_id", label: "Coleção", type: "string" }, // Could be a select
+      { name: "collection_slug", label: "Coleção", type: "collection_select" },
     ],
     schema: z.object({
       title: z.string().min(1, "Obrigatório"),
-      collection_id: z.string().optional(),
+      collection_slug: z.string().optional(),
     }),
   },
 };

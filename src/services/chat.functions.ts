@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
+import { getSSRClient } from "@/lib/supabase-ssr";
 import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 export const listChatThreads = createServerFn({ method: "GET" }).handler(async () => {
@@ -86,7 +87,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const db = getServerClient();
-      const identity = await getCurrentIdentity();
+      const identity = await getServerIdentity();
 
       if (!identity.store_id || identity.role === "customer") {
         throw new Error("Não autorizado");

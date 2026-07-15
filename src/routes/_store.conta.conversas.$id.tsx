@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { getCustomerChatThread, sendCustomerChatMessage } from "@/services/chat.functions";
+import { getBrowserClient } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorState } from "@/components/state/states";
@@ -36,6 +37,41 @@ function Page() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (!id) return;
+
+    const supabase = getBrowserClient();
+    const channel = supabase
+      .channel("customer-chat-messages")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+          filter: `thread_id=eq.${id}`,
+        },
+        (payload) => {
+          // Map to local structure and add if not present
+          const newMsg = {
+            id: payload.new.id,
+            message: payload.new.message,
+            isStaffReply: payload.new.is_staff_reply,
+            createdAt: payload.new.created_at,
+          };
+          setMessages((prev) => {
+            if (prev.find((m) => m.id === newMsg.id || m.message === newMsg.message && m.createdAt === newMsg.createdAt)) return prev;
+            return [...prev, newMsg];
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();

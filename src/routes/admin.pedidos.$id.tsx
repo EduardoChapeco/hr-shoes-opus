@@ -1,8 +1,14 @@
-import { createFileRoute } from "@tanstack/react-start";
+import { createFileRoute, useRouter } from "@tanstack/react-start";
+import { useState } from "react";
+import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Printer, Banknote, Landmark } from "lucide-react";
 import { getServerClient } from "@/lib/supabase";
+import { approvePayment, rejectPayment } from "@/services/payment.functions";
 
 export const Route = createFileRoute("/admin/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido — Hr Shoes" }] }),
@@ -27,15 +33,51 @@ export const Route = createFileRoute("/admin/pedidos/$id")({
 
 function AdminOrderDetailPage() {
   const order = Route.useLoaderData();
+  const router = useRouter();
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
+
   const date = new Date(order.created_at).toLocaleDateString("pt-BR");
+
+  const handleApprove = async (method: "cash" | "bank_transfer") => {
+    setIsConfirming(true);
+    try {
+      await approvePayment({ data: { orderId: order.id, receivedMethod: method } });
+      toast.success("Pagamento confirmado. O pedido está agora em separação!");
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao aprovar");
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!window.confirm("Tem certeza que deseja cancelar esta venda por falta de pagamento?")) return;
+    setIsRejecting(true);
+    try {
+      await rejectPayment({ data: { orderId: order.id, reason: "Cancelado manualmente pela vendedora" } });
+      toast.success("Pedido cancelado e pagamento rejeitado.");
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao cancelar");
+    } finally {
+      setIsRejecting(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        eyebrow="Vendas"
-        title={`Pedido #${order.public_token}`}
-        description={`Realizado em ${date} por ${(order.customer_snapshot as any)?.name ?? "Desconhecido"}`}
-      />
+      <div className="flex justify-between items-start">
+        <PageHeader
+          eyebrow="Vendas"
+          title={`Pedido #${order.public_token}`}
+          description={`Realizado em ${date} por ${(order.customer_snapshot as any)?.name ?? "Desconhecido"}`}
+        />
+        <Button variant="outline" onClick={() => window.open(`/admin/pedidos/${order.id}/recibo`, '_blank')}>
+          <Printer className="mr-2 h-4 w-4" /> Imprimir Recibo
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
@@ -89,9 +131,40 @@ function AdminOrderDetailPage() {
             </Badge>
 
             {order.status === "payment_pending" && (
-              <p className="text-sm text-muted-foreground text-center bg-muted p-3 rounded-md">
-                Aguardando confirmação automática via Gateway (Pagar.me Webhook). Nenhuma ação manual é necessária.
-              </p>
+              <div className="space-y-3">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="w-full bg-green-600 hover:bg-green-700" disabled={isConfirming || isRejecting}>
+                      {isConfirming ? "Confirmando..." : "Marcar como Pago"}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Como o pagamento foi recebido?</DialogTitle>
+                      <DialogDescription>
+                        Selecione a forma real que o dinheiro entrou. Se foi em dinheiro físico, o valor será somado ao Frente de Caixa atual.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid grid-cols-2 gap-4 py-4">
+                      <Button variant="outline" className="h-24 flex flex-col gap-2" onClick={() => handleApprove("cash")}>
+                        <Banknote className="h-8 w-8 text-green-600" />
+                        <span>Dinheiro (Frente de Caixa)</span>
+                      </Button>
+                      <Button variant="outline" className="h-24 flex flex-col gap-2" onClick={() => handleApprove("bank_transfer")}>
+                        <Landmark className="h-8 w-8 text-blue-600" />
+                        <span>Pix / Transferência / Cartão</span>
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Button variant="outline" className="w-full text-destructive" onClick={handleReject} disabled={isConfirming || isRejecting}>
+                  {isRejecting ? "Cancelando..." : "Cancelar Venda"}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Você enviou o link ou chave PIX para o cliente? Assim que ele pagar, clique em Marcar como Pago para liberar a separação.
+                </p>
+              </div>
             )}
           </div>
         </div>

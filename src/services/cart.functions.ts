@@ -92,6 +92,7 @@ export const getCart = createServerFn({ method: "GET" }).handler(
         coupon_code,
         discount_cents,
         shipping_cents,
+        shipping_method,
         cart_items (
           id,
           variant_id,
@@ -169,6 +170,7 @@ export const getCart = createServerFn({ method: "GET" }).handler(
       subtotalCents: totalCents,
       totalCents: totalCents + cart.shipping_cents - cart.discount_cents,
       shippingCents: cart.shipping_cents,
+      shippingMethod: cart.shipping_method,
       discountCents: cart.discount_cents,
       couponCode: cart.coupon_code,
       itemCount: items.reduce((acc: number, item: { qty: number }) => acc + item.qty, 0),
@@ -566,4 +568,35 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
       .eq("id", cart.id);
 
     return { status: "success", message: "Cupom aplicado com sucesso!" };
+  });
+
+export const updateCartShipping = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      zipcode: z.string().min(8),
+      method: z.string().min(2),
+      cents: z.number().min(0),
+    })
+  )
+  .handler(async ({ data: { zipcode, method, cents } }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    let cartQuery = supabase.from("carts").select("id").eq("status", "active");
+    if (identity.customer_id) cartQuery = cartQuery.eq("customer_id", identity.customer_id);
+    else cartQuery = cartQuery.eq("session_token", identity.session_token);
+
+    const { data: cart } = await cartQuery.maybeSingle();
+    if (!cart) throw new Error("Carrinho não encontrado");
+
+    await supabase
+      .from("carts")
+      .update({
+        shipping_zipcode: zipcode,
+        shipping_method: method,
+        shipping_cents: cents,
+      })
+      .eq("id", cart.id);
+
+    return { status: "success", message: "Frete atualizado com sucesso" };
   });

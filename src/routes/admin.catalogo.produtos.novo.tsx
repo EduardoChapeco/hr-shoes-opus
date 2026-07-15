@@ -20,24 +20,30 @@ import {
   listProductTypes,
   createProduct,
   uploadProductMedia,
+  listCategories
 } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/novo")({
   head: () => ({ meta: [{ title: "Novo produto — Hr Shoes" }] }),
   loader: async () => {
-    const res = await listProductTypes();
-    return res.status === "ok" ? res.data : [];
+    const [typesRes, catsRes] = await Promise.all([listProductTypes(), listCategories()]);
+    return {
+      types: typesRes.status === "ok" ? typesRes.data : [],
+      categories: catsRes.status === "ok" ? catsRes.data : [],
+    };
   },
   component: NewProductPage,
 });
 
 function NewProductPage() {
-  const types = Route.useLoaderData();
+  const { types, categories } = Route.useLoaderData();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedTypeId, setSelectedTypeId] = useState<string | "generic">("generic");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [files, setFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [variants, setVariants] = useState([{ sku: "", size: "", stock: 0 }]);
 
   const selectedType = types.find(
     (t: { id: string; name: string; field_schema: unknown[] }) => t.id === selectedTypeId,
@@ -122,6 +128,13 @@ function NewProductPage() {
       }
 
       const priceCents = parseInt(values.price_cents.replace(/\D/g, ""), 10) || 0;
+      
+      const payloadVariants = variants.filter(v => v.sku).map(v => ({
+         sku: v.sku,
+         attributes: v.size ? { size: v.size } : {},
+         price_cents: priceCents,
+         stock: v.stock
+      }));
 
       const res = await createProduct({
         data: {
@@ -132,6 +145,8 @@ function NewProductPage() {
           type_id: selectedTypeId === "generic" ? null : selectedTypeId,
           attributes: values.attributes,
           media_urls,
+          category_ids: selectedCategory ? [selectedCategory] : [],
+          variants: payloadVariants.length > 0 ? payloadVariants : undefined
         },
       });
 
@@ -247,6 +262,23 @@ function NewProductPage() {
                   </SelectContent>
                 </Select>
               </div>
+              
+              <div className="space-y-2">
+                <Label>Categoria Principal</Label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sem Categoria</SelectItem>
+                    {categories.map((c: any) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -295,6 +327,48 @@ function NewProductPage() {
                 )}
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Grade e Estoque Inicial</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+             {variants.map((variant, idx) => (
+               <div key={idx} className="flex gap-4 items-end mb-4">
+                 <div className="flex-1 space-y-2">
+                   <Label>SKU (Código)</Label>
+                   <Input value={variant.sku} onChange={(e) => {
+                     const newV = [...variants];
+                     newV[idx].sku = e.target.value;
+                     setVariants(newV);
+                   }} placeholder="Ex: TENIS-PRETO-38" />
+                 </div>
+                 <div className="w-32 space-y-2">
+                   <Label>Tamanho/Cor</Label>
+                   <Input value={variant.size} onChange={(e) => {
+                     const newV = [...variants];
+                     newV[idx].size = e.target.value;
+                     setVariants(newV);
+                   }} placeholder="Ex: 38" />
+                 </div>
+                 <div className="w-32 space-y-2">
+                   <Label>Estoque</Label>
+                   <Input type="number" value={variant.stock} onChange={(e) => {
+                     const newV = [...variants];
+                     newV[idx].stock = parseInt(e.target.value, 10) || 0;
+                     setVariants(newV);
+                   }} />
+                 </div>
+                 <Button type="button" variant="ghost" onClick={() => {
+                   setVariants(variants.filter((_, i) => i !== idx));
+                 }}><X className="w-4 h-4 text-destructive" /></Button>
+               </div>
+             ))}
+             <Button type="button" variant="outline" onClick={() => setVariants([...variants, { sku: "", size: "", stock: 0 }])}>
+               + Adicionar Variação
+             </Button>
           </CardContent>
         </Card>
 

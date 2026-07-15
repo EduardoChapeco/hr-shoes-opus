@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,9 +24,10 @@ export const Route = createFileRoute("/_store/entrar")({
   head: () => ({
     meta: [{ title: "Entrar — Hr Shoes" }],
   }),
-  validateSearch: (search: Record<string, unknown>): { returnUrl?: string } => {
+  validateSearch: (search: Record<string, unknown>): { returnUrl?: string; error?: string } => {
     return {
       returnUrl: typeof search.returnUrl === "string" ? search.returnUrl : undefined,
+      error: typeof search.error === "string" ? search.error : undefined,
     };
   },
   component: LoginPage,
@@ -43,6 +45,15 @@ function LoginPage() {
   const router = useRouter();
   const search = Route.useSearch();
   const returnUrl = search.returnUrl ?? "/conta";
+  const errorParam = search.error;
+
+  useEffect(() => {
+    if (errorParam === "auth-callback-failed") {
+      toast.error("Ocorreu um erro ao concluir o login social. Tente novamente.");
+    } else if (errorParam) {
+      toast.error(errorParam);
+    }
+  }, [errorParam]);
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(LoginSchema),

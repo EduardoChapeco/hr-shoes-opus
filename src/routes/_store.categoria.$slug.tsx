@@ -11,7 +11,7 @@ import type { CategoryDTO, ProductCardDTO } from "@/types/catalog";
 export const Route = createFileRoute("/_store/categoria/$slug")({
   loader: async ({ params }) => {
     const [productsResult, categoriesResult] = await Promise.all([
-      listPublishedProducts(),
+      listPublishedProducts({ data: { categorySlug: params.slug } }),
       listPublishedCategories(),
     ]);
     return { productsResult, categoriesResult, slug: params.slug };

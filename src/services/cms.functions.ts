@@ -190,6 +190,21 @@ export const getPublicPageBySlug = createServerFn({ method: "GET" })
     }
   });
 
+export const getPublicStoreSettings = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+    const { data: store, error } = await db
+      .from("stores")
+      .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, description")
+      .limit(1)
+      .single();
+    if (error || !store) return { status: "not_found" as const };
+    return { status: "ok" as const, data: store };
+  } catch {
+    return { status: "error" as const, message: "Erro ao carregar dados da loja." };
+  }
+});
+
 // ---------------------------------------------------------------------------
 // Theme Settings
 // ---------------------------------------------------------------------------

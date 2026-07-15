@@ -5,7 +5,7 @@ import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 export const getCustomerInstallments = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
-  const identity = await getCurrentIdentity();
+  const identity = await getServerIdentity();
 
   if (!identity.id) {
     throw new Error("Não autorizado");

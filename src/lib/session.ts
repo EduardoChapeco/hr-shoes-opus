@@ -31,6 +31,20 @@ export function getGuestSession(): string | null {
   return getCookie(GUEST_SESSION_COOKIE) || null;
 }
 
+/**
+ * Clears the guest session cookie, effectively creating a blank slate
+ * for the next visit or preventing cart cross-contamination after logout.
+ */
+export function clearGuestSession(): void {
+  setCookie(GUEST_SESSION_COOKIE, "", {
+    maxAge: 0,
+    path: "/",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+}
+
 const SELLER_REF_COOKIE = "hr_shoes_seller_ref";
 
 export function setSellerRefCookie(sellerId: string): void {

@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { MessageSquare, Send } from "lucide-react";
 
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { listChatThreads, getChatMessages, sendChatMessage } from "@/services/chat.functions";
+import { getBrowserClient } from "@/lib/supabase";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/admin/conversas")({
@@ -40,6 +41,35 @@ function ChatInboxPage() {
       toast.error("Erro ao carregar mensagens");
     }
   };
+
+  useEffect(() => {
+    if (!selectedThread) return;
+
+    const supabase = getBrowserClient();
+    const channel = supabase
+      .channel("admin-chat-messages")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+          filter: `thread_id=eq.${selectedThread}`,
+        },
+        (payload) => {
+          // Add the new message to state if it's not already there
+          setMessages((prev) => {
+            if (prev.find((m) => m.id === payload.new.id)) return prev;
+            return [...prev, payload.new];
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedThread]);
 
   const handleSendReply = async (e: React.FormEvent) => {
     e.preventDefault();
