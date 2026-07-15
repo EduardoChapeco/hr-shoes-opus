@@ -130,31 +130,102 @@ function PageEditor() {
   };
 
   const renderDynamicField = (index: number, field: CmsFieldDef, section: SectionData) => {
-    const value = String(section.content[field.name] || "");
+    const rawValue = section.content[field.name];
+    const value = rawValue !== undefined ? rawValue : (field.defaultValue ?? "");
 
-    if (field.type === "text") {
+    if (field.type === "array" && field.subFields) {
+      const items = (Array.isArray(value) ? value : []) as any[];
       return (
-        <div key={field.name} className="space-y-2">
-          <Label>{field.label}</Label>
-          <Input
-            value={value}
-            onChange={(e) => updateSectionContent(index, field.name, e.target.value)}
-            placeholder={`Digite ${field.label.toLowerCase()}...`}
-          />
+        <div key={field.name} className="space-y-4 border p-4 rounded-md bg-muted/20">
+          <div className="flex items-center justify-between">
+            <Label className="text-base font-semibold">{field.label}</Label>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const newItems = [...items, {}];
+                updateSectionContent(index, field.name, newItems);
+              }}
+            >
+              <Plus className="size-4 mr-2" /> Adicionar
+            </Button>
+          </div>
+          {items.map((item, itemIdx) => (
+            <div key={itemIdx} className="relative space-y-4 border p-4 rounded bg-background shadow-sm">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 text-destructive hover:bg-destructive/10"
+                onClick={() => {
+                  const newItems = items.filter((_, i) => i !== itemIdx);
+                  updateSectionContent(index, field.name, newItems);
+                }}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+              <div className="grid gap-4 md:grid-cols-2 pr-8">
+                {field.subFields!.map((subField) => {
+                  const subValue = item[subField.name] !== undefined ? item[subField.name] : (subField.defaultValue ?? "");
+                  return (
+                    <div key={subField.name} className="space-y-2">
+                      <Label>{subField.label}</Label>
+                      <Input
+                        type={subField.type === "color" ? "color" : subField.type === "number" ? "number" : "text"}
+                        value={subValue}
+                        onChange={(e) => {
+                          const newItems = [...items];
+                          newItems[itemIdx] = {
+                            ...newItems[itemIdx],
+                            [subField.name]: subField.type === "number" ? Number(e.target.value) : e.target.value,
+                          };
+                          updateSectionContent(index, field.name, newItems);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       );
     }
 
-    if (field.type === "image") {
+    if (field.type === "enum" && field.options) {
       return (
         <div key={field.name} className="space-y-2">
           <Label>{field.label}</Label>
-          <Input
-            type="url"
-            value={value}
-            onChange={(e) => updateSectionContent(index, field.name, e.target.value)}
-            placeholder="https://..."
+          <Select
+            value={String(value)}
+            onValueChange={(v) => updateSectionContent(index, field.name, v)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione..." />
+            </SelectTrigger>
+            <SelectContent>
+              {field.options.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
+
+    if (field.type === "boolean") {
+      const isChecked = Boolean(value === "true" || value === true);
+      return (
+        <div key={field.name} className="flex items-center space-x-2 pt-2">
+          <input
+            type="checkbox"
+            id={`chk-${index}-${field.name}`}
+            checked={isChecked}
+            onChange={(e) => updateSectionContent(index, field.name, e.target.checked)}
+            className="size-4 rounded border-gray-300 accent-primary"
           />
+          <Label htmlFor={`chk-${index}-${field.name}`}>{field.label}</Label>
         </div>
       );
     }
@@ -164,7 +235,7 @@ function PageEditor() {
         <div key={field.name} className="space-y-2">
           <Label>{field.label}</Label>
           <Select
-            value={value}
+            value={String(value)}
             onValueChange={(v) => updateSectionContent(index, field.name, v)}
           >
             <SelectTrigger>
@@ -182,16 +253,24 @@ function PageEditor() {
       );
     }
 
+    const inputType = field.type === "color" ? "color" : field.type === "number" ? "number" : "text";
+
     return (
       <div key={field.name} className="space-y-2">
         <Label>{field.label}</Label>
         <Input
-          value={value}
-          onChange={(e) => updateSectionContent(index, field.name, e.target.value)}
+          type={inputType}
+          value={String(value)}
+          onChange={(e) => {
+            const val = field.type === "number" ? Number(e.target.value) : e.target.value;
+            updateSectionContent(index, field.name, val);
+          }}
+          placeholder={field.type === "image" ? "https://..." : ""}
         />
       </div>
     );
   };
+
 
   return (
     <div className="space-y-8 max-w-4xl pb-24">

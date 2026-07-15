@@ -1,0 +1,26 @@
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\cart.functions.ts","LineNumber":315,"LineContent":"    const url = process.env.VITE_SUPABASE_URL;"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\cart.functions.ts","LineNumber":316,"LineContent":"    const key = process.env.VITE_SUPABASE_ANON_KEY;"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\admin.midias.tsx","LineNumber":95,"LineContent":"        import.meta.env.VITE_SUPABASE_URL,"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\admin.midias.tsx","LineNumber":96,"LineContent":"        import.meta.env.VITE_SUPABASE_ANON_KEY,"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":13,"LineContent":" *   Requires VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY (public, browser-safe)."}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":27,"LineContent":"  VITE_SUPABASE_URL: z.string().url(\"VITE_SUPABASE_URL must be a valid URL\"),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":28,"LineContent":"  VITE_SUPABASE_ANON_KEY: z.string().min(10, \"VITE_SUPABASE_ANON_KEY is required\"),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":58,"LineContent":"    VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":59,"LineContent":"    VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":66,"LineContent":"  _browserClient = createClient(env.data.VITE_SUPABASE_URL, env.data.VITE_SUPABASE_ANON_KEY, {"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":94,"LineContent":"    VITE_SUPABASE_URL: getEnvVar(\"VITE_SUPABASE_URL\"),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":95,"LineContent":"    VITE_SUPABASE_ANON_KEY: getEnvVar(\"VITE_SUPABASE_ANON_KEY\"),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":104,"LineContent":"    env.data.VITE_SUPABASE_URL,"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":131,"LineContent":"    VITE_SUPABASE_URL: getEnvVar(\"VITE_SUPABASE_URL\"),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":132,"LineContent":"    VITE_SUPABASE_ANON_KEY: getEnvVar(\"VITE_SUPABASE_ANON_KEY\"),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":139,"LineContent":"  _anonServerClient = createClient(env.data.VITE_SUPABASE_URL, env.data.VITE_SUPABASE_ANON_KEY, {"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase-ssr.ts","LineNumber":19,"LineContent":"  VITE_SUPABASE_URL: z.string().url(),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase-ssr.ts","LineNumber":20,"LineContent":"  VITE_SUPABASE_ANON_KEY: z.string().min(10),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase-ssr.ts","LineNumber":28,"LineContent":"    VITE_SUPABASE_URL: getEnvVar(\"VITE_SUPABASE_URL\"),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase-ssr.ts","LineNumber":29,"LineContent":"    VITE_SUPABASE_ANON_KEY: getEnvVar(\"VITE_SUPABASE_ANON_KEY\"),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase-ssr.ts","LineNumber":33,"LineContent":"    throw new SupabaseUnconfiguredError(\"Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY\");"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase-ssr.ts","LineNumber":36,"LineContent":"  return createServerClient(env.data.VITE_SUPABASE_URL, env.data.VITE_SUPABASE_ANON_KEY, {"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\env.ts","LineNumber":8,"LineContent":"  if (key === \"VITE_SUPABASE_URL\" \u0026\u0026 typeof import.meta !== \"undefined\" \u0026\u0026 import.meta.env?.VITE_SUPABASE_URL) {"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\env.ts","LineNumber":9,"LineContent":"    return import.meta.env.VITE_SUPABASE_URL;"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\env.ts","LineNumber":11,"LineContent":"  if (key === \"VITE_SUPABASE_ANON_KEY\" \u0026\u0026 typeof import.meta !== \"undefined\" \u0026\u0026 import.meta.env?.VITE_SUPABASE_ANON_KEY) {"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\env.ts","LineNumber":12,"LineContent":"    return import.meta.env.VITE_SUPABASE_ANON_KEY;"}

@@ -13,6 +13,11 @@ import {
 import type { StoreConfigDTO, ProductCardDTO, CategoryDTO } from "@/types/catalog";
 
 import { getPublicPageBySlug } from "@/services/cms.functions";
+import { HeroCarousel } from "@/components/commerce/dynamic-sections/hero-carousel";
+import { AnnouncementBar as CMSAnnouncementBar } from "@/components/commerce/dynamic-sections/announcement-bar";
+import { ProductRail } from "@/components/commerce/dynamic-sections/product-rail";
+import { MosaicBanners } from "@/components/commerce/dynamic-sections/mosaic-banners";
+import { RichText } from "@/components/commerce/dynamic-sections/rich-text";
 
 export const Route = createFileRoute("/_store/")({
   head: () => ({
@@ -89,115 +94,6 @@ function AnnouncementBar({ config }: { config: StoreConfigDTO }) {
         <span>{item.text}</span>
       )}
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// CMS Dynamic Blocks
-// ---------------------------------------------------------------------------
-
-function DynamicHero({ content }: { content: Record<string, unknown> }) {
-  const title = String(content.title || "");
-  const subtitle = String(content.subtitle || "");
-  const bg_url = String(content.image_url || content.bg_url || "");
-  const button_text = String(content.button_text || "");
-  const button_link = String(content.button_link || "");
-
-  return (
-    <section className="relative overflow-hidden bg-secondary">
-      <div className="mx-auto max-w-screen-xl px-4 py-10 md:px-6 md:py-16">
-        <div className="grid items-center gap-8 md:grid-cols-2 md:gap-14">
-          <div>
-            {title && (
-              <h1 className="text-editorial text-4xl text-foreground sm:text-5xl lg:text-6xl">
-                {title}
-              </h1>
-            )}
-            {subtitle && (
-              <p className="mt-4 max-w-md text-base text-muted-foreground">{subtitle}</p>
-            )}
-            <div className="mt-7 flex flex-wrap gap-3">
-              {button_link && button_text ? (
-                <Button size="lg" asChild>
-                  <Link to={button_link as never}>
-                    {button_text}
-                    <ChevronRight className="size-4" aria-hidden />
-                  </Link>
-                </Button>
-              ) : (
-                <Button size="lg" asChild>
-                  <Link to="/catalogo">
-                    Ver catálogo
-                    <ShoppingBag className="size-4" aria-hidden />
-                  </Link>
-                </Button>
-              )}
-            </div>
-          </div>
-          <div className="order-first md:order-last">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border bg-muted">
-              {bg_url ? (
-                <img src={bg_url} alt="" loading="eager" className="size-full object-cover" />
-              ) : (
-                <div className="flex size-full flex-col items-center justify-center gap-3 text-muted-foreground">
-                  <ImageOff className="size-10" aria-hidden />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function DynamicRichText({ content }: { content: Record<string, unknown> }) {
-  const text = String(content.content || content.text || "");
-  return (
-    <section className="mx-auto max-w-screen-xl px-4 md:px-6 py-8">
-      <div className="prose dark:prose-invert max-w-3xl mx-auto text-center">
-        <p className="text-lg text-muted-foreground">{text}</p>
-      </div>
-    </section>
-  );
-}
-
-function DynamicFeaturedProducts({
-  content,
-  publishedProducts,
-  collectionsData,
-}: {
-  content: Record<string, unknown>;
-  publishedProducts: ProductCardDTO[];
-  collectionsData?: Record<string, ProductCardDTO[]>;
-}) {
-  const title = String(content.title || "Destaques");
-  const slug = content.collection_slug ? String(content.collection_slug) : null;
-  const productsToDisplay = slug && collectionsData && collectionsData[slug] 
-    ? collectionsData[slug] 
-    : publishedProducts;
-
-  if (productsToDisplay.length === 0) return null;
-
-  return (
-    <section className="mx-auto max-w-screen-xl px-4 md:px-6">
-      <div className="mb-5 flex items-end justify-between gap-3">
-        <div>
-          <h2 className="text-editorial mt-1 text-2xl text-foreground sm:text-3xl">{title}</h2>
-        </div>
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/catalogo">
-            Ver tudo
-            <ChevronRight className="size-4" aria-hidden />
-          </Link>
-        </Button>
-      </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {productsToDisplay.slice(0, 8).map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
-    </section>
   );
 }
 
@@ -315,13 +211,14 @@ function Home() {
 
         {/* Fallback to config hero if no sections */}
         {config.heroBanners[0] && (
-          <DynamicHero
+          <HeroCarousel
             content={{
-              title: config.heroBanners[0].headline,
-              subtitle: config.heroBanners[0].subheadline,
-              image_url: config.heroBanners[0].imageUrl,
-              button_text: config.heroBanners[0].ctaLabel,
-              button_link: config.heroBanners[0].ctaLink,
+              banners: [{
+                title: config.heroBanners[0].headline,
+                image_url: config.heroBanners[0].imageUrl,
+                button_text: config.heroBanners[0].ctaLabel,
+                link: config.heroBanners[0].ctaLink,
+              }]
             }}
           />
         )}
@@ -329,7 +226,7 @@ function Home() {
         {publishedCategories.length > 0 && <CategoryRail categories={publishedCategories} />}
 
         {publishedProducts.length > 0 && (
-          <DynamicFeaturedProducts
+          <ProductRail
             content={{ title: "Novidades" }}
             publishedProducts={publishedProducts}
             collectionsData={collectionsData}
@@ -353,20 +250,26 @@ function Home() {
       {homePage.sections.map((section: any) => {
         switch (section.section_type) {
           case "hero":
-            return <DynamicHero key={section.id} content={section.content} />;
+          case "hero_carousel":
+            return <HeroCarousel key={section.id} content={section.content} />;
           case "rich_text":
           case "text":
-            return <DynamicRichText key={section.id} content={section.content} />;
+            return <RichText key={section.id} content={section.content} />;
           case "featured_products":
           case "product_grid":
+          case "product_rail":
             return (
-              <DynamicFeaturedProducts
+              <ProductRail
                 key={section.id}
                 content={section.content}
                 publishedProducts={publishedProducts}
                 collectionsData={collectionsData}
               />
             );
+          case "announcement_bar":
+            return <CMSAnnouncementBar key={section.id} content={section.content} />;
+          case "mosaic_banners":
+            return <MosaicBanners key={section.id} content={section.content} />;
           default:
             return null;
         }

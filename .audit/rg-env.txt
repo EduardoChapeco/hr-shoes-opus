@@ -1,0 +1,7 @@
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\cart.functions.ts","LineNumber":315,"LineContent":"    const url = process.env.VITE_SUPABASE_URL;"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\cart.functions.ts","LineNumber":316,"LineContent":"    const key = process.env.VITE_SUPABASE_ANON_KEY;"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":270,"LineContent":"        process.env.NODE_ENV === \"production\" ? \"; Secure\" : \"\""}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\api.webhooks.pagarme.ts","LineNumber":14,"LineContent":"          const pagarmeWebhookKey = process.env.PAGARME_WEBHOOK_KEY;"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\session.ts","LineNumber":23,"LineContent":"      secure: process.env.NODE_ENV === \"production\","}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\session.ts","LineNumber":46,"LineContent":"    secure: process.env.NODE_ENV === \"production\","}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\session.ts","LineNumber":58,"LineContent":"    secure: process.env.NODE_ENV === \"production\","}

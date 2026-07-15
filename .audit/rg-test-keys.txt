@@ -1,0 +1,11 @@
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\types\\domain.ts","LineNumber":29,"LineContent":" * registered and reachable but shows a \"Planejado para a Fase X\" state"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\types\\domain.ts","LineNumber":30,"LineContent":" * (admin only) — never a fake screen."}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\styles.css","LineNumber":290,"LineContent":" * text-badge  — pill/badge labels, \"Em breve\" chips      (0.6rem / 9.6px)"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\catalog.functions.ts","LineNumber":10,"LineContent":" * Never returns fabricated/mock data."}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\cart.functions.ts","LineNumber":233,"LineContent":"    // 2. Tenta fazer a reserva atômica no banco de dados via RPC (Fase 12: Motor Transacional)"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\admin.configuracoes.lgpd.tsx","LineNumber":33,"LineContent":"        \"Solicitações de exclusão de conta devem ser tratadas manualmente via contato. Automatização prevista para Fase 5.\","}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\identity.ts","LineNumber":18,"LineContent":"  /** role do perfil — 'customer' como fallback */"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\routes.ts","LineNumber":35,"LineContent":"  /** If true, badge \"Em breve\" next to the nav label. */"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":15,"LineContent":" *   Missing config → explicit `unconfigured` state, never a silent fallback."}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\return-path.ts","LineNumber":3,"LineContent":"  fallback: string,"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\return-path.ts","LineNumber":6,"LineContent":"    return fallback;"}

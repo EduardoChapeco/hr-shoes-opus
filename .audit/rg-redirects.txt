@@ -1,0 +1,36 @@
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":29,"LineContent":"  redirectTo: z.string().optional(),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":40,"LineContent":"  redirectTo: z.string().optional(), // destination after email confirmation"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":83,"LineContent":"  .handler(async ({ data: { email, password, redirectTo } }) =\u003e {"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":126,"LineContent":"      if (redirectTo) {"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":128,"LineContent":"          to: normalizeInternalReturnPath(redirectTo, \"/admin\"),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":148,"LineContent":"      redirectTo: z.string(),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":151,"LineContent":"  .handler(async ({ data: { provider, redirectTo } }) =\u003e {"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":157,"LineContent":"          redirectTo,"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":175,"LineContent":"  .handler(async ({ data: { email, password, fullName, redirectTo } }) =\u003e {"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":187,"LineContent":"      const confirmUrl = `${siteUrl}/api/auth/confirm${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : \"\"}`;"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":245,"LineContent":"        to: normalizeInternalReturnPath(redirectTo, \"/conta\"),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":313,"LineContent":"  .validator(z.object({ email: z.string().email(), redirectTo: z.string() }))"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":314,"LineContent":"  .handler(async ({ data: { email, redirectTo } }) =\u003e {"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":318,"LineContent":"        redirectTo,"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.recuperar-senha.tsx","LineNumber":27,"LineContent":"          redirectTo: `${window.location.origin}/redefinir-senha`,"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.entrar.tsx","LineNumber":26,"LineContent":"  validateSearch: (search: Record\u003cstring, unknown\u003e): { returnUrl?: string; error?: string } =\u003e {"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.entrar.tsx","LineNumber":28,"LineContent":"      returnUrl: typeof search.returnUrl === \"string\" ? search.returnUrl : undefined,"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.entrar.tsx","LineNumber":46,"LineContent":"  const returnUrl = search.returnUrl ?? \"/conta\";"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.entrar.tsx","LineNumber":65,"LineContent":"        data: { ...data, redirectTo: returnUrl } "}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.entrar.tsx","LineNumber":76,"LineContent":"      navigate({ to: returnUrl });"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.entrar.tsx","LineNumber":84,"LineContent":"      const redirectTo = `${window.location.origin}/api/auth/callback?next=${returnUrl}`;"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.entrar.tsx","LineNumber":85,"LineContent":"      const result = await signInWithOAuth({ data: { provider, redirectTo } });"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.entrar.tsx","LineNumber":171,"LineContent":"              search={{ returnUrl }}"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.conta.tsx","LineNumber":12,"LineContent":"        search: { returnUrl: \"/conta\" },"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.cadastro.tsx","LineNumber":26,"LineContent":"  validateSearch: (search: Record\u003cstring, unknown\u003e): { returnUrl?: string; error?: string } =\u003e {"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.cadastro.tsx","LineNumber":28,"LineContent":"      returnUrl: typeof search.returnUrl === \"string\" ? search.returnUrl : undefined,"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.cadastro.tsx","LineNumber":51,"LineContent":"  const returnUrl = search.returnUrl ?? \"/conta\";"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.cadastro.tsx","LineNumber":74,"LineContent":"          redirectTo: returnUrl,"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.cadastro.tsx","LineNumber":89,"LineContent":"        navigate({ to: \"/entrar\", search: { returnUrl } });"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.cadastro.tsx","LineNumber":95,"LineContent":"      navigate({ to: returnUrl });"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.cadastro.tsx","LineNumber":105,"LineContent":"      const redirectTo = `${window.location.origin}/api/auth/callback?next=${returnUrl}`;"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.cadastro.tsx","LineNumber":106,"LineContent":"      const result = await signInWithOAuth({ data: { provider, redirectTo } });"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.cadastro.tsx","LineNumber":200,"LineContent":"              search={{ returnUrl }}"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\api.auth.confirm.ts","LineNumber":26,"LineContent":"        const next = normalizeInternalReturnPath(url.searchParams.get(\"next\"), \"/conta\");"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\api.auth.callback.ts","LineNumber":13,"LineContent":"        const next = normalizeInternalReturnPath(url.searchParams.get(\"next\"), \"/conta\");"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\admin.tsx","LineNumber":16,"LineContent":"        search: { returnUrl: location.pathname },"}

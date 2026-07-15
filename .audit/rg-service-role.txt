@@ -1,0 +1,9 @@
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":5,"LineContent":" *   Uses service_role key — NEVER import this in browser/component code."}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":14,"LineContent":" *   Server functions additionally require SUPABASE_SERVICE_ROLE_KEY (secret, server-only)."}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":32,"LineContent":"  SUPABASE_SERVICE_ROLE_KEY: z"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":34,"LineContent":"    .min(10, \"SUPABASE_SERVICE_ROLE_KEY is required for server operations\"),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":71,"LineContent":"      // Browser client handles refresh; never store service_role here."}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":80,"LineContent":"// Server client (service_role — server-side only)"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":86,"LineContent":" * Returns the server-side Supabase client with service_role privileges."}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":96,"LineContent":"    SUPABASE_SERVICE_ROLE_KEY: getEnvVar(\"SUPABASE_SERVICE_ROLE_KEY\"),"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase.ts","LineNumber":105,"LineContent":"    env.data.SUPABASE_SERVICE_ROLE_KEY, // service_role — bypasses RLS (server only)"}

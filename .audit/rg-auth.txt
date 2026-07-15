@@ -1,0 +1,9 @@
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":144,"LineContent":"export const signInWithOAuth = createServerFn({ method: \"POST\" })"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":154,"LineContent":"      const { data, error } = await supabase.auth.signInWithOAuth({"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.entrar.tsx","LineNumber":19,"LineContent":"import { signInWithPassword, signInWithOAuth } from \"@/services/auth.functions\";"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.entrar.tsx","LineNumber":85,"LineContent":"      const result = await signInWithOAuth({ data: { provider, redirectTo } });"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.cadastro.tsx","LineNumber":19,"LineContent":"import { signUpWithPassword, signInWithOAuth } from \"@/services/auth.functions\";"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\_store.cadastro.tsx","LineNumber":106,"LineContent":"      const result = await signInWithOAuth({ data: { provider, redirectTo } });"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\api.auth.confirm.ts","LineNumber":42,"LineContent":"        const { error } = await supabase.auth.verifyOtp({"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\api.auth.confirm.ts","LineNumber":48,"LineContent":"          console.error(\"[auth/confirm] verifyOtp error:\", error.message);"}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\routes\\api.auth.callback.ts","LineNumber":21,"LineContent":"          const { data, error } = await supabase.auth.exchangeCodeForSession(code);"}

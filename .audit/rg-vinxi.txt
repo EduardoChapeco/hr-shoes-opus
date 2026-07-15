@@ -1,0 +1,3 @@
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\auth.functions.ts","LineNumber":243,"LineContent":"      // since vinxi/http context is lost and we can't use setCookie."}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\services\\cart.functions.ts","LineNumber":26,"LineContent":"  // This prevents the vinxi/http unctx context loss on Cloudflare Pages."}
+{"File":"c:\\Users\\Excelência Tour SMO\\Documents\\hr-shoes-opus\\src\\lib\\supabase-ssr.ts","LineNumber":5,"LineContent":" * It uses the @supabase/ssr package to manage Auth cookies via vinxi/http."}
