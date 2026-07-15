@@ -177,7 +177,7 @@ function GiftCardsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {cards.map((c) => (
+              {cards.map((c: any) => (
                 <TableRow key={c.id}>
                   <TableCell className="font-mono text-muted-foreground">{c.code}</TableCell>
                   <TableCell>{c.purchaserName}</TableCell>

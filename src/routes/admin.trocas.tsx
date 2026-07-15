@@ -83,7 +83,7 @@ function ExchangesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {exchanges.map((ex) => (
+              {exchanges.map((ex: any) => (
                 <TableRow key={ex.id}>
                   <TableCell className="font-medium">#{ex.orderToken}</TableCell>
                   <TableCell>{ex.customerName}</TableCell>

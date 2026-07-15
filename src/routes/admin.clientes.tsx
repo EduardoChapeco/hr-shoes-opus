@@ -51,7 +51,7 @@ function CustomersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {customers.map((c) => (
+            {customers.map((c: any) => (
               <TableRow key={c.id}>
                 <TableCell className="font-medium">{c.name}</TableCell>
                 <TableCell>
