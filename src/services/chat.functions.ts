@@ -143,3 +143,101 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       return { status: "error" as const, message: "Erro ao enviar mensagem." };
     }
   });
+
+// ---------------------------------------------------------------------------
+// Customer-facing chat functions
+// ---------------------------------------------------------------------------
+
+export const getCustomerChatThread = createServerFn({ method: "GET" })
+  .validator(z.object({ threadId: z.string().uuid() }))
+  .handler(async ({ data: { threadId } }) => {
+    try {
+      const ssrClient = getSSRClient();
+      const {
+        data: { user },
+      } = await ssrClient.auth.getUser();
+      if (!user) throw new Error("Não autorizado");
+
+      const db = getServerClient();
+
+      // Fetch the thread (only if owned by this customer)
+      const { data: thread, error: threadErr } = await db
+        .from("chat_threads")
+        .select("id, subject, status, created_at")
+        .eq("id", threadId)
+        .eq("customer_id", user.id)
+        .single();
+
+      if (threadErr || !thread) throw new Error("Conversa não encontrada.");
+
+      const { data: messages, error: msgErr } = await db
+        .from("chat_messages")
+        .select("id, message, is_staff_reply, created_at")
+        .eq("thread_id", threadId)
+        .order("created_at", { ascending: true });
+
+      if (msgErr) throw new Error(msgErr.message);
+
+      return {
+        status: "ok" as const,
+        data: {
+          thread: {
+            id: thread.id as string,
+            subject: thread.subject as string | null,
+            status: thread.status as string,
+            createdAt: thread.created_at as string,
+          },
+          messages: (messages || []).map((m: any) => ({
+            id: m.id as string,
+            message: m.message as string,
+            isStaffReply: m.is_staff_reply as boolean,
+            createdAt: m.created_at as string,
+          })),
+        },
+      };
+    } catch (e: any) {
+      return { status: "error" as const, message: e.message || "Erro ao carregar conversa." };
+    }
+  });
+
+export const sendCustomerChatMessage = createServerFn({ method: "POST" })
+  .validator(z.object({ threadId: z.string().uuid(), message: z.string().min(1) }))
+  .handler(async ({ data: { threadId, message } }) => {
+    try {
+      const ssrClient = getSSRClient();
+      const {
+        data: { user },
+      } = await ssrClient.auth.getUser();
+      if (!user) throw new Error("Não autorizado");
+
+      const db = getServerClient();
+
+      // Validate ownership
+      const { data: thread } = await db
+        .from("chat_threads")
+        .select("id")
+        .eq("id", threadId)
+        .eq("customer_id", user.id)
+        .single();
+
+      if (!thread) throw new Error("Conversa não encontrada.");
+
+      const { error } = await db.from("chat_messages").insert({
+        thread_id: threadId,
+        message,
+        is_staff_reply: false,
+        sender_id: user.id,
+      });
+
+      if (error) throw new Error(error.message);
+
+      await db
+        .from("chat_threads")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", threadId);
+
+      return { status: "success" as const };
+    } catch (e: any) {
+      return { status: "error" as const, message: e.message || "Erro ao enviar mensagem." };
+    }
+  });

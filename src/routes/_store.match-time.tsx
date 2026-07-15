@@ -100,13 +100,13 @@ function MatchTimePage() {
     );
   }
 
-  const imageUrl = currentProduct.media?.[0]?.url || "https://placehold.co/600x800?text=Sem+Foto";
+  const imageUrl = currentProduct.media?.[0]?.url ?? "";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-center p-4 max-w-md mx-auto w-full">
         <div className="w-full aspect-[3/4] relative bg-muted rounded-2xl overflow-hidden shadow-xl mb-8">
-          <img src={imageUrl} alt={currentProduct.name} className="w-full h-full object-cover" />
+          {imageUrl && <img src={imageUrl} alt={currentProduct.name} className="w-full h-full object-cover" />}
           <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-6 pt-12">
             <h2 className="text-white text-2xl font-editorial font-medium mb-1">
               {currentProduct.name}

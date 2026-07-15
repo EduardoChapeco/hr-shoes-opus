@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { getAnonServerClient } from "@/lib/supabase";
+import { getBrowserClient } from "@/lib/supabase";
 
 export const Route = createFileRoute("/_store/recuperar-senha")({
   head: () => ({ meta: [{ title: "Recuperar senha — Hr Shoes" }] }),
@@ -21,7 +21,7 @@ function Page() {
 
     setIsSubmitting(true);
     try {
-      const supabase = getAnonServerClient();
+      const supabase = getBrowserClient();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/_store/redefinir-senha`,
       });

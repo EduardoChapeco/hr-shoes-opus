@@ -1,17 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getServerClient, getAnonServerClient } from "@/lib/supabase";
+import { getServerClient } from "@/lib/supabase";
+import { getSSRClient } from "@/lib/supabase-ssr";
 
 /**
  * Inicia ou retoma uma sessão de Match Time (Descoberta) para um cliente autenticado.
  */
 export const startMatchTimeSession = createServerFn({ method: "POST" }).handler(async () => {
   try {
-    const db = await getServerClient();
+    const ssrClient = getSSRClient();
     const {
       data: { user },
-    } = await db.auth.getUser();
-    if (!user) return { status: "error", message: "Não autorizado" };
+    } = await ssrClient.auth.getUser();
+    if (!user) return { status: "error", message: "Faça login para usar o Match Time." };
+
+    const db = getServerClient();
 
     const { data: store } = await db.from("stores").select("id").limit(1).single();
     if (!store) return { status: "error", message: "Loja não encontrada." };
@@ -71,11 +74,13 @@ export const endMatchTimeSession = createServerFn({ method: "POST" })
  */
 export const getNextProductsForSwipe = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const db = await getServerClient();
+    const ssrClient = getSSRClient();
     const {
       data: { user },
-    } = await db.auth.getUser();
-    if (!user) return { status: "error", message: "Não autorizado" };
+    } = await ssrClient.auth.getUser();
+    if (!user) return { status: "error", message: "Faça login para usar o Match Time." };
+
+    const db = getServerClient();
 
     const { data: store } = await db.from("stores").select("id").limit(1).single();
     if (!store) return { status: "error", message: "Loja não encontrada." };
@@ -133,12 +138,13 @@ export const recordSwipe = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { sessionId, productId, action } }) => {
     try {
-      const db = await getServerClient();
+      const ssrClient = getSSRClient();
       const {
         data: { user },
-      } = await db.auth.getUser();
+      } = await ssrClient.auth.getUser();
       if (!user) return { status: "error", message: "Não autorizado" };
 
+      const db = getServerClient();
       const { data: store } = await db.from("stores").select("id").limit(1).single();
       if (!store) return { status: "error", message: "Loja não encontrada." };
 
