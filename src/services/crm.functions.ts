@@ -1,36 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
-
-async function getCurrentIdentity() {
-  const ssrClient = getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) return { id: null, role: "customer", store_id: null };
-
-  const serverClient = getServerClient();
-  const { data: profile } = await serverClient
-    .from("profiles")
-    .select("role, store_id")
-    .eq("id", user.id)
-    .single();
-
-  return {
-    id: user.id,
-    role: profile?.role || "customer",
-    store_id: profile?.store_id || null,
-  };
-}
+import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 export const listCustomers = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
-  const identity = await getCurrentIdentity();
-
-  if (!identity.store_id || identity.role === "customer") {
-    throw new Error("Não autorizado");
-  }
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
 
   const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
@@ -87,11 +63,8 @@ export const getCustomer360 = createServerFn({ method: "GET" })
   .validator(z.object({ customerId: z.string().uuid() }))
   .handler(async ({ data: { customerId } }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-
-    if (!identity.store_id || identity.role === "customer") {
-      throw new Error("Não autorizado");
-    }
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
 
     const { data: profile, error } = await supabase
       .from("profiles")
@@ -135,11 +108,8 @@ export const updateCustomerCrm = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { customerId, notes, tags } }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-
-    if (!identity.store_id || identity.role === "customer") {
-      throw new Error("Não autorizado");
-    }
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
 
     const { error } = await supabase.from("customers_crm").upsert({
       id: customerId,

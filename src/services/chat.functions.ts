@@ -2,38 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
-
-async function getCurrentIdentity() {
-  const ssrClient = getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) return { id: null, role: "customer", store_id: null };
-
-  const serverClient = getServerClient();
-  const { data: profile } = await serverClient
-    .from("profiles")
-    .select("role, store_id, full_name")
-    .eq("id", user.id)
-    .single();
-
-  return {
-    id: user.id,
-    role: profile?.role || "customer",
-    store_id: profile?.store_id || null,
-    name: profile?.full_name || null,
-  };
-}
+import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 export const listChatThreads = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const db = getServerClient();
-    const identity = await getCurrentIdentity();
+    const identity = await getServerIdentity();
 
-    if (!identity.store_id || identity.role === "customer") {
-      throw new Error("Não autorizado");
-    }
+    assertStoreAccess(identity);
 
     const { data, error } = await db
       .from("chat_threads")
@@ -81,11 +57,9 @@ export const getChatMessages = createServerFn({ method: "GET" })
   .handler(async ({ data: { threadId } }) => {
     try {
       const db = getServerClient();
-      const identity = await getCurrentIdentity();
+      const identity = await getServerIdentity();
 
-      if (!identity.store_id || identity.role === "customer") {
-        throw new Error("Não autorizado");
-      }
+      assertStoreAccess(identity);
 
       const { data, error } = await db
         .from("chat_messages")

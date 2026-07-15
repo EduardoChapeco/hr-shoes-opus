@@ -1,36 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
-
-async function getCurrentIdentity() {
-  const ssrClient = getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) return { id: null, role: "customer", store_id: null };
-
-  const serverClient = getServerClient();
-  const { data: profile } = await serverClient
-    .from("profiles")
-    .select("role, store_id")
-    .eq("id", user.id)
-    .single();
-
-  return {
-    id: user.id,
-    role: profile?.role || "customer",
-    store_id: profile?.store_id || null,
-  };
-}
+import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 export const getActiveRegister = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
-  const identity = await getCurrentIdentity();
-
-  if (!identity.store_id || identity.role === "customer") {
-    throw new Error("Não autorizado");
-  }
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "finance", "seller"]);
 
   const { data: register, error } = await supabase
     .from("cash_registers")
@@ -68,11 +44,8 @@ export const openRegister = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { initialBalanceCents, notes } }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-
-    if (!identity.store_id || !identity.id || identity.role === "customer") {
-      throw new Error("Não autorizado");
-    }
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
     // Verificar se já tem caixa aberto
     const { data: existing } = await supabase
@@ -109,11 +82,8 @@ export const closeRegister = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { registerId, countedBalanceCents, notes } }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-
-    if (!identity.store_id || !identity.id || identity.role === "customer") {
-      throw new Error("Não autorizado");
-    }
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
     const { data: register, error: getError } = await supabase
       .from("cash_registers")
@@ -170,11 +140,8 @@ export const addRegisterEntry = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { registerId, amountCents, method, description } }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-
-    if (!identity.store_id || identity.role === "customer") {
-      throw new Error("Não autorizado");
-    }
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "finance", "seller"]);
 
     const { data: register } = await supabase
       .from("cash_registers")
@@ -199,13 +166,10 @@ export const addRegisterEntry = createServerFn({ method: "POST" })
     return { status: "success" };
   });
 
-export const listRegisterShifts = createServerFn({ method: "GET" }).handler(async () => {
+export const listRegisterHistory = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
-  const identity = await getCurrentIdentity();
-
-  if (!identity.store_id || identity.role === "customer") {
-    throw new Error("Não autorizado");
-  }
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
   const { data: registers, error } = await supabase
     .from("cash_registers")
