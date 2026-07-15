@@ -181,7 +181,7 @@ export const getPublicPageBySlug = createServerFn({ method: "GET" })
       return { status: "ok" as const, data: { ...page, sections } };
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError)
-        return { status: "unconfigured" as const, reason: "Sem banco configurado" };
+        return { status: "unconfigured" as const, reason: "Este conteúdo institucional está sendo atualizado." };
       console.error("[cms.functions] getPublicPageBySlug error:", e);
       return { status: "error" as const, message: "Erro inesperado ao carregar página." };
     }

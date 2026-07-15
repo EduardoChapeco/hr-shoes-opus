@@ -33,7 +33,7 @@ describe("critical UI states", () => {
 
   it("UnconfiguredState renders a missing-config message", () => {
     const html = renderToStaticMarkup(createElement(UnconfiguredState, {}));
-    expect(html).toContain("Configuração ausente");
+    expect(html).toContain("Vitrine em Atualização");
   });
 
   it("LoadingState renders an accessible status", () => {

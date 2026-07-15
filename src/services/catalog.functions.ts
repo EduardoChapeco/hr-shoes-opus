@@ -119,7 +119,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       if (e instanceof SupabaseUnconfiguredError) {
         return {
           status: "unconfigured",
-          reason: "Supabase não está configurado. Adicione as variáveis de ambiente.",
+          reason: "Nossa vitrine está passando por uma rápida atualização técnica.",
         };
       }
       console.error("[catalog.functions] unexpected error:", e);
@@ -173,7 +173,7 @@ export const listPublishedCategories = createServerFn({ method: "GET" }).handler
       if (e instanceof SupabaseUnconfiguredError) {
         return {
           status: "unconfigured",
-          reason: "Supabase não está configurado.",
+          reason: "Nossas categorias de calçados estão em manutenção temporária.",
         };
       }
       return { status: "error", message: "Erro inesperado ao carregar categorias." };
@@ -242,7 +242,7 @@ export const getStoreConfig = createServerFn({ method: "GET" }).handler(
       if (e instanceof SupabaseUnconfiguredError) {
         return {
           status: "unconfigured",
-          reason: "Supabase não está configurado.",
+          reason: "As configurações e dados da loja estão sendo restabelecidos.",
         };
       }
       return { status: "error", message: "Erro inesperado ao carregar configurações da loja." };

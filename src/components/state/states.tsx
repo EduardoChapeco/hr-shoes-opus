@@ -103,8 +103,8 @@ export function PermissionDenied({
 }
 
 export function UnconfiguredState({
-  title = "Configuração ausente",
-  description = "Esta integração ainda não foi conectada. Adicione as credenciais para ativá-la.",
+  title = "Vitrine em Atualização",
+  description = "Estamos preparando e atualizando nossa vitrine de produtos. Por favor, volte em alguns instantes para conferir as novidades.",
   ...props
 }: Omit<StateShellProps, "icon" | "tone" | "title" | "description"> & {
   title?: string;
@@ -125,11 +125,11 @@ export const PermissionState = PermissionDenied;
 export type EntityStatus = "unconfigured" | "testing" | "active" | "error" | "planned";
 
 const STATUS_MAP: Record<EntityStatus, { label: string; className: string }> = {
-  unconfigured: { label: "Não configurado", className: "bg-muted text-muted-foreground" },
-  testing: { label: "Em teste", className: "bg-warning/15 text-warning-foreground" },
-  active: { label: "Ativo", className: "bg-success/15 text-success" },
-  error: { label: "Erro", className: "bg-destructive/10 text-destructive" },
-  planned: { label: "Planejado", className: "bg-accent text-accent-foreground" },
+  unconfigured: { label: "Em ativação", className: "bg-muted text-muted-foreground" },
+  testing: { label: "Em homologação", className: "bg-warning/15 text-warning-foreground" },
+  active: { label: "Conectado", className: "bg-success/15 text-success" },
+  error: { label: "Instabilidade", className: "bg-destructive/10 text-destructive" },
+  planned: { label: "Fases futuras", className: "bg-accent text-accent-foreground" },
 };
 
 export function StatusBadge({

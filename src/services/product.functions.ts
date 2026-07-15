@@ -121,7 +121,7 @@ export const getProductBySlug = createServerFn({ method: "GET" })
       if (e instanceof SupabaseUnconfiguredError) {
         return {
           status: "unconfigured",
-          reason: "Supabase não está configurado.",
+          reason: "Os detalhes deste calçado estão temporariamente offline para manutenção.",
         };
       }
       console.error("[product.functions] unexpected error:", e);
