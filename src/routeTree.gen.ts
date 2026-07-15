@@ -83,6 +83,7 @@ import { Route as AdminCatalogoCategoriasRouteImport } from './routes/admin.cata
 import { Route as AdminCatalogoAtributosRouteImport } from './routes/admin.catalogo.atributos'
 import { Route as AdminCaixaTurnosRouteImport } from './routes/admin.caixa.turnos'
 import { Route as AdminCaixaLancamentosRouteImport } from './routes/admin.caixa.lancamentos'
+import { Route as StoreVendedoraSlugRouteImport } from './routes/_store.vendedora.$slug'
 import { Route as StoreProdutoSlugRouteImport } from './routes/_store.produto.$slug'
 import { Route as StorePoliticasSlugRouteImport } from './routes/_store.politicas.$slug'
 import { Route as StorePaginasSlugRouteImport } from './routes/_store.paginas.$slug'
@@ -480,6 +481,11 @@ const AdminCaixaLancamentosRoute = AdminCaixaLancamentosRouteImport.update({
   path: '/lancamentos',
   getParentRoute: () => AdminCaixaRoute,
 } as any)
+const StoreVendedoraSlugRoute = StoreVendedoraSlugRouteImport.update({
+  id: '/vendedora/$slug',
+  path: '/vendedora/$slug',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreProdutoSlugRoute = StoreProdutoSlugRouteImport.update({
   id: '/produto/$slug',
   path: '/produto/$slug',
@@ -666,6 +672,7 @@ export interface FileRoutesByFullPath {
   '/paginas/$slug': typeof StorePaginasSlugRoute
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
+  '/vendedora/$slug': typeof StoreVendedoraSlugRoute
   '/admin/caixa/lancamentos': typeof AdminCaixaLancamentosRoute
   '/admin/caixa/turnos': typeof AdminCaixaTurnosRoute
   '/admin/catalogo/atributos': typeof AdminCatalogoAtributosRoute
@@ -763,6 +770,7 @@ export interface FileRoutesByTo {
   '/paginas/$slug': typeof StorePaginasSlugRoute
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
+  '/vendedora/$slug': typeof StoreVendedoraSlugRoute
   '/admin/caixa/lancamentos': typeof AdminCaixaLancamentosRoute
   '/admin/caixa/turnos': typeof AdminCaixaTurnosRoute
   '/admin/catalogo/atributos': typeof AdminCatalogoAtributosRoute
@@ -864,6 +872,7 @@ export interface FileRoutesById {
   '/_store/paginas/$slug': typeof StorePaginasSlugRoute
   '/_store/politicas/$slug': typeof StorePoliticasSlugRoute
   '/_store/produto/$slug': typeof StoreProdutoSlugRoute
+  '/_store/vendedora/$slug': typeof StoreVendedoraSlugRoute
   '/admin/caixa/lancamentos': typeof AdminCaixaLancamentosRoute
   '/admin/caixa/turnos': typeof AdminCaixaTurnosRoute
   '/admin/catalogo/atributos': typeof AdminCatalogoAtributosRoute
@@ -965,6 +974,7 @@ export interface FileRouteTypes {
     | '/paginas/$slug'
     | '/politicas/$slug'
     | '/produto/$slug'
+    | '/vendedora/$slug'
     | '/admin/caixa/lancamentos'
     | '/admin/caixa/turnos'
     | '/admin/catalogo/atributos'
@@ -1062,6 +1072,7 @@ export interface FileRouteTypes {
     | '/paginas/$slug'
     | '/politicas/$slug'
     | '/produto/$slug'
+    | '/vendedora/$slug'
     | '/admin/caixa/lancamentos'
     | '/admin/caixa/turnos'
     | '/admin/catalogo/atributos'
@@ -1162,6 +1173,7 @@ export interface FileRouteTypes {
     | '/_store/paginas/$slug'
     | '/_store/politicas/$slug'
     | '/_store/produto/$slug'
+    | '/_store/vendedora/$slug'
     | '/admin/caixa/lancamentos'
     | '/admin/caixa/turnos'
     | '/admin/catalogo/atributos'
@@ -1727,6 +1739,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCaixaLancamentosRouteImport
       parentRoute: typeof AdminCaixaRoute
     }
+    '/_store/vendedora/$slug': {
+      id: '/_store/vendedora/$slug'
+      path: '/vendedora/$slug'
+      fullPath: '/vendedora/$slug'
+      preLoaderRoute: typeof StoreVendedoraSlugRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/produto/$slug': {
       id: '/_store/produto/$slug'
       path: '/produto/$slug'
@@ -1966,6 +1985,7 @@ interface StoreRouteChildren {
   StorePaginasSlugRoute: typeof StorePaginasSlugRoute
   StorePoliticasSlugRoute: typeof StorePoliticasSlugRoute
   StoreProdutoSlugRoute: typeof StoreProdutoSlugRoute
+  StoreVendedoraSlugRoute: typeof StoreVendedoraSlugRoute
   StorePedidoPublicTokenConfirmacaoRoute: typeof StorePedidoPublicTokenConfirmacaoRoute
 }
 
@@ -1996,6 +2016,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StorePaginasSlugRoute: StorePaginasSlugRoute,
   StorePoliticasSlugRoute: StorePoliticasSlugRoute,
   StoreProdutoSlugRoute: StoreProdutoSlugRoute,
+  StoreVendedoraSlugRoute: StoreVendedoraSlugRoute,
   StorePedidoPublicTokenConfirmacaoRoute:
     StorePedidoPublicTokenConfirmacaoRoute,
 }
