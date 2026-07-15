@@ -13,7 +13,13 @@ function ProductSkeleton() {
   );
 }
 
-export function ProductGrid({ isLoading, result }: { isLoading?: boolean; result: ProductListResult }) {
+export function ProductGrid({
+  isLoading,
+  result,
+}: {
+  isLoading?: boolean;
+  result: ProductListResult;
+}) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">

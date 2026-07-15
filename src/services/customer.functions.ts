@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr";
 
 const AddressSchema = z.object({
@@ -19,9 +18,7 @@ export const getCustomerAddresses = createServerFn({ method: "GET" }).handler(as
     data: { user },
   } = await ssrClient.auth.getUser();
   if (!user) throw new Error("Não autorizado");
-
-  const supabase = getServerClient();
-  const { data } = await supabase
+  const { data } = await ssrClient
     .from("customer_addresses")
     .select("*")
     .eq("customer_id", user.id)
@@ -39,16 +36,14 @@ export const addCustomerAddress = createServerFn({ method: "POST" })
       data: { user },
     } = await ssrClient.auth.getUser();
     if (!user) throw new Error("Não autorizado");
-
-    const supabase = getServerClient();
-    const { data: store } = await supabase.from("stores").select("id").limit(1).single();
+    const { data: store } = await ssrClient.from("stores").select("id").limit(1).single();
     if (!store) throw new Error("Loja não encontrada");
 
     // Check if it's the first address to make it default
     const existing = await getCustomerAddresses();
     const isDefault = existing.length === 0;
 
-    const { error } = await supabase.from("customer_addresses").insert({
+    const { error } = await ssrClient.from("customer_addresses").insert({
       customer_id: user.id,
       store_id: store.id,
       ...params,
@@ -67,9 +62,7 @@ export const deleteCustomerAddress = createServerFn({ method: "POST" })
       data: { user },
     } = await ssrClient.auth.getUser();
     if (!user) throw new Error("Não autorizado");
-
-    const supabase = getServerClient();
-    const { error } = await supabase
+    const { error } = await ssrClient
       .from("customer_addresses")
       .delete()
       .eq("id", id)
@@ -88,16 +81,14 @@ export const setDefaultAddress = createServerFn({ method: "POST" })
     } = await ssrClient.auth.getUser();
     if (!user) throw new Error("Não autorizado");
 
-    const supabase = getServerClient();
-
     // Unset current default
-    await supabase
+    await ssrClient
       .from("customer_addresses")
       .update({ is_default: false })
       .eq("customer_id", user.id);
 
     // Set new default
-    const { error } = await supabase
+    const { error } = await ssrClient
       .from("customer_addresses")
       .update({ is_default: true })
       .eq("id", id)

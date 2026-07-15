@@ -397,7 +397,7 @@ export const upsertProductVariant = createServerFn({ method: "POST" })
         attributes,
       };
 
-      let query = db.from("product_variants");
+      const query = db.from("product_variants");
       let result;
 
       if (id) {
@@ -453,7 +453,11 @@ export const getOnboardingProgress = createServerFn({ method: "GET" }).handler(a
     const db = getServerClient();
 
     // Fetch store
-    const { data: store } = await db.from("stores").select("id, name, settings").limit(1).maybeSingle();
+    const { data: store } = await db
+      .from("stores")
+      .select("id, name, settings")
+      .limit(1)
+      .maybeSingle();
 
     // Step 1: Store data config (is settings empty?)
     const storeDone = store ? Object.keys(store.settings ?? {}).length > 0 : false;
@@ -520,7 +524,9 @@ export const deleteProductMedia = createServerFn({ method: "POST" })
 
       const pathMatches = url.match(/product-media\/(.*)$/);
       if (pathMatches && pathMatches[1]) {
-        const { error: storageError } = await db.storage.from("product-media").remove([pathMatches[1]]);
+        const { error: storageError } = await db.storage
+          .from("product-media")
+          .remove([pathMatches[1]]);
         if (storageError) console.error("Storage delete error:", storageError);
       }
 
@@ -535,11 +541,15 @@ export const addProductMediaLink = createServerFn({ method: "POST" })
   .handler(async ({ data: { product_id, url } }) => {
     try {
       const db = getServerClient();
-      const { data, error } = await db.from("product_media").insert({
-        product_id,
-        url,
-        sort_order: 99,
-      }).select().single();
+      const { data, error } = await db
+        .from("product_media")
+        .insert({
+          product_id,
+          url,
+          sort_order: 99,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
       return { status: "success" as const, data };

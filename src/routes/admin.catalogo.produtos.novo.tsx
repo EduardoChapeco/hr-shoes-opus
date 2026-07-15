@@ -16,8 +16,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { listProductTypes, createProduct, uploadProductMedia } from "@/services/admin-catalog.functions";
-
+import {
+  listProductTypes,
+  createProduct,
+  uploadProductMedia,
+} from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/novo")({
   head: () => ({ meta: [{ title: "Novo produto — Hr Shoes" }] }),

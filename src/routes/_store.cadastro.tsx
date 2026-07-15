@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -40,6 +40,7 @@ type RegisterForm = z.infer<typeof RegisterSchema>;
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const router = useRouter();
   const search = Route.useSearch();
   const returnUrl = search.returnUrl ?? "/conta";
 
@@ -57,7 +58,16 @@ function RegisterPage() {
         return;
       }
 
+      if (!result.sessionActive) {
+        toast.success("Conta criada! Por favor, verifique seu e-mail para confirmar o cadastro.");
+        // Do NOT navigate to /conta because the user is not logged in yet.
+        navigate({ to: "/entrar", search: { returnUrl } });
+        return;
+      }
+
       toast.success("Conta criada com sucesso!");
+      // CRITICAL: We must invalidate the router to clear any cached unauthenticated data
+      await router.invalidate();
       navigate({ to: returnUrl });
     } catch (e) {
       toast.error("Ocorreu um erro ao tentar criar a conta.");

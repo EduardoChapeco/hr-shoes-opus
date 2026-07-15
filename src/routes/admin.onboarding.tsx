@@ -116,4 +116,3 @@ function Onboarding() {
     </div>
   );
 }
-

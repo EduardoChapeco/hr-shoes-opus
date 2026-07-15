@@ -72,7 +72,7 @@ function AdminProductsPage() {
               {products.map((product: AdminProductRow) => {
                 const cover = product.product_media?.[0]?.url;
                 return (
-                  <TableRow 
+                  <TableRow
                     key={product.id}
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => navigate({ to: `/admin/catalogo/produtos/${product.id}` })}

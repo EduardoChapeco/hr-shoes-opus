@@ -181,7 +181,10 @@ export const getPublicPageBySlug = createServerFn({ method: "GET" })
       return { status: "ok" as const, data: { ...page, sections } };
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError)
-        return { status: "unconfigured" as const, reason: "Este conteúdo institucional está sendo atualizado." };
+        return {
+          status: "unconfigured" as const,
+          reason: "Este conteúdo institucional está sendo atualizado.",
+        };
       console.error("[cms.functions] getPublicPageBySlug error:", e);
       return { status: "error" as const, message: "Erro inesperado ao carregar página." };
     }
@@ -308,7 +311,7 @@ export const upsertNavigationMenu = createServerFn({ method: "POST" })
         items: input.items,
       };
 
-      let query = db.from("navigation_menus");
+      const query = db.from("navigation_menus");
       let result;
 
       if (input.id) {
@@ -501,7 +504,7 @@ export const upsertStory = createServerFn({ method: "POST" })
         sort_order: input.sort_order,
       };
 
-      let query = db.from("stories");
+      const query = db.from("stories");
       let result;
 
       if (input.id) {

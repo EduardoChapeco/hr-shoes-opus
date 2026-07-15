@@ -337,7 +337,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
         .eq("slug", slug)
         .eq("status", "active")
         .single();
-        
+
       if (collError || !collection) {
         return { status: "empty" };
       }
@@ -348,12 +348,14 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
         .select("product_id")
         .eq("collection_id", collection.id);
 
-      const productIds = productIdsData?.map(row => row.product_id) || [];
+      const productIds = productIdsData?.map((row) => row.product_id) || [];
       if (productIds.length === 0) return { status: "empty" };
 
       const { data, error } = await db
         .from("products")
-        .select(`id, slug, title:name, brand, priceCents:price_cents, compareAtCents:compare_at_price_cents, status, media:product_media(url, alt, sort_order)`)
+        .select(
+          `id, slug, title:name, brand, priceCents:price_cents, compareAtCents:compare_at_price_cents, status, media:product_media(url, alt, sort_order)`,
+        )
         .eq("store_id", store.id)
         .eq("status", "published")
         .in("id", productIds)
@@ -363,7 +365,8 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
       if (!data || data.length === 0) return { status: "empty" };
 
       const mapped: ProductCardDTO[] = data.map((item: any) => {
-        const sortedMedia = item.media?.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)) || [];
+        const sortedMedia =
+          item.media?.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)) || [];
         return {
           id: item.id,
           title: item.title,
@@ -394,7 +397,9 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
 
       const { data, error } = await db
         .from("products")
-        .select(`id, slug, title:name, brand, priceCents:price_cents, compareAtCents:compare_at_price_cents, status, media:product_media(url, alt, sort_order)`)
+        .select(
+          `id, slug, title:name, brand, priceCents:price_cents, compareAtCents:compare_at_price_cents, status, media:product_media(url, alt, sort_order)`,
+        )
         .eq("store_id", store.id)
         .eq("status", "published")
         .gt("compare_at_price_cents", 0)
@@ -405,11 +410,14 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
       if (!data || data.length === 0) return { status: "empty" };
 
       // Filter natively to ensure only actual discounts are returned (compare > price)
-      const discountedData = data.filter(item => item.compareAtCents && item.compareAtCents > item.priceCents);
+      const discountedData = data.filter(
+        (item) => item.compareAtCents && item.compareAtCents > item.priceCents,
+      );
       if (discountedData.length === 0) return { status: "empty" };
 
       const mapped: ProductCardDTO[] = discountedData.map((item: any) => {
-        const sortedMedia = item.media?.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)) || [];
+        const sortedMedia =
+          item.media?.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)) || [];
         return {
           id: item.id,
           title: item.title,
@@ -426,5 +434,5 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
     } catch (e: any) {
       return { status: "error", message: e.message || "Erro desconhecido" };
     }
-  }
+  },
 );

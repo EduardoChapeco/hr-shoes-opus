@@ -564,7 +564,13 @@ function MediaManager({ product }: { product: any }) {
               <ImagePlus className="w-8 h-8 text-muted-foreground mb-2" />
             )}
             <span className="text-sm font-medium text-muted-foreground">Adicionar Foto</span>
-            <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={isUploading} />
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+              disabled={isUploading}
+            />
           </Label>
         </div>
       </CardContent>

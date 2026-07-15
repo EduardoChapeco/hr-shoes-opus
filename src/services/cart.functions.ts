@@ -335,7 +335,7 @@ export const mergeGuestCart = createServerFn({ method: "POST" })
       const url = process.env.VITE_SUPABASE_URL;
       const key = process.env.VITE_SUPABASE_ANON_KEY;
       if (!url || !key) throw new Error("Missing env vars for Supabase");
-      
+
       const { createClient } = await import("@supabase/supabase-js");
       supabase = createClient(url, key, {
         global: { headers: { Authorization: `Bearer ${accessToken}` } },
@@ -343,7 +343,7 @@ export const mergeGuestCart = createServerFn({ method: "POST" })
     } else {
       supabase = getSSRClient();
     }
-    
+
     const { session_token } = await getCurrentIdentity();
     if (!session_token) return { status: "success" };
 

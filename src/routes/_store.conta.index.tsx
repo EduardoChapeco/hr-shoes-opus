@@ -32,11 +32,31 @@ const ORDER_STATUS_LABELS: Record<string, string> = {
 
 const QUICK_ACCESS = [
   { to: "/conta/pedidos", label: "Pedidos", icon: Package, description: "Acompanhe seus pedidos" },
-  { to: "/conta/enderecos", label: "Endereços", icon: MapPin, description: "Gerencie seus endereços" },
-  { to: "/conta/pagamentos", label: "Pagamentos", icon: CreditCard, description: "Formas de pagamento" },
-  { to: "/conta/avaliacoes", label: "Avaliações", icon: Heart, description: "Seus produtos avaliados" },
+  {
+    to: "/conta/enderecos",
+    label: "Endereços",
+    icon: MapPin,
+    description: "Gerencie seus endereços",
+  },
+  {
+    to: "/conta/pagamentos",
+    label: "Pagamentos",
+    icon: CreditCard,
+    description: "Formas de pagamento",
+  },
+  {
+    to: "/conta/avaliacoes",
+    label: "Avaliações",
+    icon: Heart,
+    description: "Seus produtos avaliados",
+  },
   { to: "/conta/trocas", label: "Trocas", icon: RefreshCw, description: "Solicitações de troca" },
-  { to: "/conta/gift-cards", label: "Gift Cards", icon: ShoppingBag, description: "Saldo de cartões" },
+  {
+    to: "/conta/gift-cards",
+    label: "Gift Cards",
+    icon: ShoppingBag,
+    description: "Saldo de cartões",
+  },
 ] as const;
 
 function Page() {
@@ -47,7 +67,9 @@ function Page() {
     <section className="space-y-8">
       {/* Welcome banner */}
       <div className="rounded-2xl border border-border bg-card p-6">
-        <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Bem-vinda de volta</p>
+        <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">
+          Bem-vinda de volta
+        </p>
         <h2 className="text-editorial text-2xl text-foreground">
           {profile.fullName || profile.email}
         </h2>

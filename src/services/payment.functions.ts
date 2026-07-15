@@ -309,4 +309,3 @@ export const rejectPayment = createServerFn({ method: "POST" })
       return { status: "error" as const, message: e.message || "Erro ao rejeitar comprovante." };
     }
   });
-

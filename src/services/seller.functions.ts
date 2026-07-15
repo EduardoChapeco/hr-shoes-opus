@@ -11,14 +11,16 @@ export const getSellerShowcase = createServerFn({ method: "GET" })
 
       const { data: showcase, error } = await supabase
         .from("seller_showcases")
-        .select(`
+        .select(
+          `
           seller_id,
           slug,
           title,
           description,
           banner_url,
           profiles!inner(full_name)
-        `)
+        `,
+        )
         .eq("slug", slug)
         .eq("is_active", true)
         .single();

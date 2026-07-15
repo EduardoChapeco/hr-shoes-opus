@@ -8,20 +8,23 @@ export const Route = createFileRoute("/_store/vendedora/$slug")({
   head: ({ loaderData }) => ({
     meta: [
       {
-        title: loaderData && loaderData.status === "success" 
-          ? `${loaderData.data.title} — Hr Shoes` 
-          : "Vitrine — Hr Shoes",
+        title:
+          (loaderData as any) && (loaderData as any).status === "success"
+            ? `${(loaderData as any).data.title} — Hr Shoes`
+            : "Vitrine — Hr Shoes",
       },
     ],
   }),
-  loader: ({ params }) => getSellerShowcase({ data: { slug: params.slug } }),
+  loader: async ({ params }) => {
+    return await getSellerShowcase({ data: { slug: params.slug } });
+  },
   component: SellerShowcasePage,
 });
 
 function SellerShowcasePage() {
-  const result = Route.useLoaderData();
+  const result = Route.useLoaderData() as any;
 
-  if (result.status === "not_found") {
+  if (!result || result.status === "not_found") {
     return (
       <div className="mx-auto max-w-screen-xl px-4 py-20 md:px-6">
         <EmptyState
@@ -37,10 +40,10 @@ function SellerShowcasePage() {
     );
   }
 
-  if (result.status === "error") {
+  if (!result || result.status === "error") {
     return (
       <div className="mx-auto max-w-screen-xl px-4 py-20 md:px-6">
-        <ErrorState description={result.message} />
+        <ErrorState description={result?.message ?? "Erro desconhecido"} />
       </div>
     );
   }
@@ -53,10 +56,10 @@ function SellerShowcasePage() {
       <div className="mb-12 flex flex-col items-center text-center">
         <div className="mb-6 h-32 w-32 overflow-hidden rounded-full border-4 border-background bg-secondary shadow-lg">
           {showcase.bannerUrl ? (
-            <img 
-              src={showcase.bannerUrl} 
-              alt={showcase.title} 
-              className="h-full w-full object-cover" 
+            <img
+              src={showcase.bannerUrl}
+              alt={showcase.title}
+              className="h-full w-full object-cover"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-primary/10 text-4xl font-bold text-primary">
@@ -64,13 +67,12 @@ function SellerShowcasePage() {
             </div>
           )}
         </div>
-        <h1 className="mb-3 text-3xl font-bold text-foreground sm:text-4xl">
-          {showcase.title}
-        </h1>
+        <h1 className="mb-3 text-3xl font-bold text-foreground sm:text-4xl">{showcase.title}</h1>
         <p className="max-w-2xl text-lg text-muted-foreground">
-          {showcase.description || `Bem-vinda(o) à minha vitrine oficial da Hr Shoes! Navegue pelo catálogo e faça suas escolhas.`}
+          {showcase.description ||
+            `Bem-vinda(o) à minha vitrine oficial da Hr Shoes! Navegue pelo catálogo e faça suas escolhas.`}
         </p>
-        
+
         <div className="mt-8">
           <Button asChild size="lg" className="rounded-full px-8">
             <Link to="/catalogo">

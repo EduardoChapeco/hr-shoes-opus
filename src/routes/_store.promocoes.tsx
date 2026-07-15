@@ -23,7 +23,7 @@ function Page() {
       <PageHeader eyebrow="Ofertas" title="Promoções" description="Ofertas ativas da loja." />
       <div className="mt-8">
         {result.status === "ok" && result.data && result.data.length > 0 ? (
-          <ProductGrid products={result.data} />
+          <ProductGrid result={result} />
         ) : (
           <EmptyState
             title="Nenhuma promoção ativa"

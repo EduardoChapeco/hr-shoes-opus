@@ -148,7 +148,12 @@ function Page() {
             disabled={isSending}
             className="flex-1"
           />
-          <Button type="submit" disabled={!text.trim() || isSending} size="icon" aria-label="Enviar">
+          <Button
+            type="submit"
+            disabled={!text.trim() || isSending}
+            size="icon"
+            aria-label="Enviar"
+          >
             <Send className="size-4" aria-hidden />
           </Button>
         </form>

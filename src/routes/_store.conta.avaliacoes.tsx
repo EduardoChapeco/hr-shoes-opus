@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr";
 import { EmptyState } from "@/components/state/states";
 import { Button } from "@/components/ui/button";
@@ -19,10 +18,11 @@ const listCustomerReviews = createServerFn({ method: "GET" }).handler(async () =
     } = await ssrClient.auth.getUser();
     if (!user) throw new Error("Não autorizado");
 
-    const db = getServerClient();
-    const { data, error } = await db
+    const { data, error } = await ssrClient
       .from("reviews")
-      .select("id, rating, comment, status, created_at, products!reviews_product_id_fkey(name, slug)")
+      .select(
+        "id, rating, comment, status, created_at, products!reviews_product_id_fkey(name, slug)",
+      )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 

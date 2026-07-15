@@ -73,11 +73,11 @@ export const signInWithPassword = createServerFn({ method: "POST" })
 
       if (data.user) {
         try {
-          await mergeGuestCart({ 
-            data: { 
+          await mergeGuestCart({
+            data: {
               customerId: data.user.id,
-              accessToken: data.session?.access_token
-            } 
+              accessToken: data.session?.access_token,
+            },
           });
         } catch (err) {
           console.error("Falha ao mesclar carrinho durante login (ignorado):", err);
@@ -110,7 +110,10 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
 
       if (error) {
         if (error.status === 429) {
-          return { status: "error" as const, message: "Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente." };
+          return {
+            status: "error" as const,
+            message: "Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.",
+          };
         }
         return { status: "error" as const, message: error.message };
       }
@@ -128,12 +131,22 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
           if (!existingProfile) {
             console.log("[auth] Profile missing, creating manually for", data.user.id);
             // 1. Check if it's the first user
-            const { count } = await adminClient.from("profiles").select("*", { count: "exact", head: true });
+            const { count } = await adminClient
+              .from("profiles")
+              .select("*", { count: "exact", head: true });
             const isFirstUser = count === 0;
-            
+
             // 2. Get default store
-            const { data: defaultOrg } = await adminClient.from("organizations").select("id").eq("slug", "hr-shoes-org").single();
-            const { data: defaultStore } = await adminClient.from("stores").select("id").eq("slug", "hr-shoes").single();
+            const { data: defaultOrg } = await adminClient
+              .from("organizations")
+              .select("id")
+              .eq("slug", "hr-shoes-org")
+              .single();
+            const { data: defaultStore } = await adminClient
+              .from("stores")
+              .select("id")
+              .eq("slug", "hr-shoes")
+              .single();
 
             // 3. Create profile
             await adminClient.from("profiles").insert({
@@ -149,18 +162,18 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
         }
 
         try {
-          await mergeGuestCart({ 
-            data: { 
+          await mergeGuestCart({
+            data: {
               customerId: data.user.id,
-              accessToken: data.session?.access_token
-            } 
+              accessToken: data.session?.access_token,
+            },
           });
         } catch (err) {
           console.error("Falha ao mesclar carrinho durante cadastro (ignorado):", err);
         }
       }
 
-      return { status: "success" as const, data: data.user };
+      return { status: "success" as const, data: data.user, sessionActive: !!data.session };
     } catch (e: unknown) {
       if (e instanceof Error) {
         throw new Error("Erro ao realizar cadastro: " + e.message);

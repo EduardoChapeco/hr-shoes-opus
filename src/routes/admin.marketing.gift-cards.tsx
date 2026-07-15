@@ -188,7 +188,9 @@ function GiftCardsPage() {
                   </TableCell>
                   <TableCell>
                     {c.status === "active" ? (
-                      <Badge variant="default" className="bg-green-600 hover:bg-green-700">Ativo</Badge>
+                      <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                        Ativo
+                      </Badge>
                     ) : c.status === "exhausted" ? (
                       <Badge variant="secondary">Exaurido</Badge>
                     ) : (
@@ -197,7 +199,12 @@ function GiftCardsPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     {c.status === "active" && (
-                      <Button variant="ghost" size="sm" onClick={() => handleCancel(c.id)} className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCancel(c.id)}
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      >
                         Cancelar
                       </Button>
                     )}

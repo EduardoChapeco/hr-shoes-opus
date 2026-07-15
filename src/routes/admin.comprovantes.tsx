@@ -13,7 +13,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { listPendingManualPayments, approvePayment, rejectPayment } from "@/services/payment.functions";
+import {
+  listPendingManualPayments,
+  approvePayment,
+  rejectPayment,
+} from "@/services/payment.functions";
 import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
 
@@ -61,7 +65,6 @@ function ReceiptsPage() {
       toast.error("Erro inesperado");
     }
   };
-
 
   return (
     <div className="space-y-6">

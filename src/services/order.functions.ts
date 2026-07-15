@@ -107,7 +107,7 @@ export const listCustomerOrders = createServerFn({ method: "GET" }).handler(asyn
 
     if (!user) throw new Error("Não autenticado");
 
-    const db = await getServerClient();
+    const db = getSSRClient();
 
     const { data, error } = await db
       .from("orders")
@@ -141,7 +141,7 @@ export const getCustomerOrder = createServerFn({ method: "GET" })
 
       if (!user) throw new Error("Não autenticado");
 
-      const db = await getServerClient();
+      const db = getSSRClient();
 
       const { data: order, error } = await db
         .from("orders")

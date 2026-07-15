@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -39,6 +39,7 @@ type LoginForm = z.infer<typeof LoginSchema>;
 
 function LoginPage() {
   const navigate = useNavigate();
+  const router = useRouter();
   const search = Route.useSearch();
   const returnUrl = search.returnUrl ?? "/conta";
 
@@ -57,6 +58,8 @@ function LoginPage() {
       }
 
       toast.success("Login efetuado com sucesso!");
+      // CRITICAL: We must invalidate the router to clear any cached unauthenticated data
+      await router.invalidate();
       navigate({ to: returnUrl });
     } catch (e) {
       toast.error("Ocorreu um erro ao tentar fazer login.");
