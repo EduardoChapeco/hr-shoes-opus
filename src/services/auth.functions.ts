@@ -8,7 +8,6 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest, getResponseHeaders } from "@tanstack/react-start/server";
-import { isRedirect, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { getSSRClient } from "@/lib/supabase-ssr";
@@ -154,7 +153,6 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
 
       return { status: "success" as const, url: data.url };
     } catch (e: unknown) {
-      if (isRedirect(e)) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       return { status: "error" as const, message: `Erro ao inicializar OAuth: ${message}` };
     }
@@ -302,7 +300,6 @@ export const resetPasswordForEmail = createServerFn({ method: "POST" })
       }
       return { status: "success" as const };
     } catch (e) {
-      if (isRedirect(e)) throw e;
       return { status: "error" as const, message: "Erro ao solicitar redefinição." };
     }
   });
