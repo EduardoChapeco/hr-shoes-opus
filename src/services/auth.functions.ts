@@ -28,13 +28,21 @@ const LoginSchema = z.object({
 
 const RegisterSchema = z.object({
   email: z.string().email("E-mail inválido"),
-  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  password: z
+    .string()
+    .min(6, "A senha deve ter pelo menos 6 caracteres")
+    .regex(/[a-zA-Z]/, "A senha deve conter pelo menos uma letra")
+    .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
   fullName: z.string().min(2, "Nome é obrigatório"),
   redirectTo: z.string().optional(), // destination after email confirmation
 });
 
 const ResetPasswordSchema = z.object({
-  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  password: z
+    .string()
+    .min(6, "A senha deve ter pelo menos 6 caracteres")
+    .regex(/[a-zA-Z]/, "A senha deve conter pelo menos uma letra")
+    .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
 });
 
 // ---------------------------------------------------------------------------

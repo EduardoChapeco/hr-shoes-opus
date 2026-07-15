@@ -18,7 +18,11 @@ export const Route = createFileRoute("/_store/redefinir-senha")({
 
 const ResetSchema = z
   .object({
-    password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
+    password: z
+      .string()
+      .min(6, "A senha deve ter no mínimo 6 caracteres")
+      .regex(/[a-zA-Z]/, "A senha deve conter pelo menos uma letra")
+      .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
     confirmPassword: z.string().min(6, "Confirme sua nova senha"),
   })
   .refine((data) => data.password === data.confirmPassword, {

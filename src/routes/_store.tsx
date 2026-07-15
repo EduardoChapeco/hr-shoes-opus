@@ -17,6 +17,15 @@ export const Route = createFileRoute("/_store")({
     };
   },
   component: StoreLayout,
+  errorComponent: ({ error }: { error: any }) => (
+    <div className="flex min-h-[50vh] flex-col items-center justify-center text-center px-4">
+      <h1 className="text-2xl font-bold text-destructive">Erro Inesperado</h1>
+      <p className="mt-2 text-muted-foreground">Ocorreu um erro ao carregar esta seção da loja.</p>
+      <pre className="mt-4 max-w-lg overflow-auto rounded-md bg-muted p-4 text-xs text-left">
+        {error?.message || String(error)}
+      </pre>
+    </div>
+  ),
 });
 
 function StoreLayout() {

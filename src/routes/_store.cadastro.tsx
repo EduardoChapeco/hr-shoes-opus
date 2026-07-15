@@ -35,7 +35,11 @@ export const Route = createFileRoute("/_store/cadastro")({
 const RegisterSchema = z.object({
   fullName: z.string().min(2, "Digite seu nome completo"),
   email: z.string().email("Digite um e-mail válido"),
-  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  password: z
+    .string()
+    .min(6, "A senha deve ter pelo menos 6 caracteres")
+    .regex(/[a-zA-Z]/, "A senha deve conter pelo menos uma letra")
+    .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
 });
 
 type RegisterForm = z.infer<typeof RegisterSchema>;
