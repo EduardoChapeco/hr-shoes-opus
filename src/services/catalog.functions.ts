@@ -104,7 +104,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         return { status: "empty" };
       }
 
-      const products: ProductCardDTO[] = data.map((row) => {
+      const products: ProductCardDTO[] = data.map((row: any) => {
         // Pick the first media item sorted by sort_order (cover image)
         const media = Array.isArray(row.product_media)
           ? [...row.product_media].sort((a, b) => a.sort_order - b.sort_order)

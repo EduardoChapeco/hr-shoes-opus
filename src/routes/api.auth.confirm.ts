@@ -10,12 +10,13 @@
  * Without this route, email confirmation links would land on the app
  * without being processed — leaving users permanently stuck.
  */
+// @ts-ignore
 import { createAPIFileRoute } from "@tanstack/react-start/api";
 import { getSSRClient } from "@/lib/supabase-ssr";
-import { mergeGuestCart } from "@/services/cart.functions";
+import { mergeGuestCartLogic } from "@/services/cart.functions";
 
 export const APIRoute = createAPIFileRoute("/api/auth/confirm")({
-  GET: async ({ request }) => {
+  GET: async ({ request }: { request: Request }) => {
     const url = new URL(request.url);
     const token_hash = url.searchParams.get("token_hash");
     const type = url.searchParams.get("type") as "signup" | "recovery" | "email" | null;
@@ -51,12 +52,7 @@ export const APIRoute = createAPIFileRoute("/api/auth/confirm")({
     const { data: sessionData } = await supabaseAfter.auth.getSession();
     if (sessionData.session) {
       try {
-        await mergeGuestCart({
-          data: {
-            customerId: sessionData.session.user.id,
-            accessToken: sessionData.session.access_token,
-          },
-        });
+        await mergeGuestCartLogic(sessionData.session.user.id, sessionData.session.access_token);
       } catch (err) {
         console.error("[auth/confirm] mergeGuestCart failed (non-fatal):", err);
       }

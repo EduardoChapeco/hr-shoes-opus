@@ -19,7 +19,7 @@ const EnvSchema = z.object({
   VITE_SUPABASE_ANON_KEY: z.string().min(10),
 });
 
-export function getSSRClient() {
+export function getSSRClient(request?: Request, responseHeaders?: Headers) {
   const env = EnvSchema.safeParse({
     VITE_SUPABASE_URL: getEnvVar("VITE_SUPABASE_URL"),
     VITE_SUPABASE_ANON_KEY: getEnvVar("VITE_SUPABASE_ANON_KEY"),
@@ -32,19 +32,51 @@ export function getSSRClient() {
   return createServerClient(env.data.VITE_SUPABASE_URL, env.data.VITE_SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {
-        const cookies = parseCookies();
-        return Object.keys(cookies).map((name) => ({
-          name,
-          value: cookies[name]!,
-        }));
+        if (request) {
+          const cookieHeader = request.headers.get("cookie");
+          if (!cookieHeader) return [];
+          return cookieHeader.split(";").map((c) => {
+            const [name, ...rest] = c.split("=");
+            return { name: name.trim(), value: rest.join("=").trim() };
+          });
+        }
+        
+        // Fallback to vinxi for places that don't pass request
+        try {
+          const cookies = parseCookies();
+          return Object.keys(cookies).map((name) => ({
+            name,
+            value: cookies[name]!,
+          }));
+        } catch(e) {
+          return [];
+        }
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
-          setCookie(name, value, {
-            ...options,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-          });
+          if (responseHeaders) {
+            let cookieStr = `${name}=${encodeURIComponent(value)}`;
+            if (options.maxAge) cookieStr += `; Max-Age=${options.maxAge}`;
+            if (options.domain) cookieStr += `; Domain=${options.domain}`;
+            if (options.path) cookieStr += `; Path=${options.path}`;
+            if (options.expires) cookieStr += `; Expires=${options.expires.toUTCString()}`;
+            if (options.httpOnly) cookieStr += `; HttpOnly`;
+            if (process.env.NODE_ENV === "production" || options.secure) cookieStr += `; Secure`;
+            if (options.sameSite) cookieStr += `; SameSite=${options.sameSite}`;
+
+            responseHeaders.append("Set-Cookie", cookieStr);
+          } else {
+            // Fallback to vinxi
+            try {
+              setCookie(name, value, {
+                ...options,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+              });
+            } catch(e) {
+              console.error("Failed to set cookie in fallback mode:", e);
+            }
+          }
         });
       },
     },

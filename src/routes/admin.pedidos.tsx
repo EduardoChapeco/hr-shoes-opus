@@ -94,7 +94,7 @@ function AdminOrdersPage() {
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button size="sm" variant="outline" asChild>
-                        <Link to={`/admin/pedidos/${order.id}`}>Abrir</Link>
+                        <Link to="/admin/pedidos/$id" params={{ id: order.id }}>Abrir</Link>
                       </Button>
                       {order.status === "processing" && (
                         <Button size="sm" onClick={() => handleStatusChange(order.id, order.shipping_method === "pickup" ? "ready_for_pickup" : "shipped")}>

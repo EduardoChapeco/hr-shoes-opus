@@ -101,6 +101,7 @@ export interface CartDTO {
   totalCents: number;
   itemCount: number;
   couponCode?: string | null;
+  shippingMethod?: string | null;
 }
 
 // ---------------------------------------------------------------------------

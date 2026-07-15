@@ -184,10 +184,12 @@ export const rejectPayment = createServerFn({ method: "POST" })
     }
   });
 
-export const listPendingManualPayments = createServerFn({ method: "GET" }).handler(async () => {
-  return { status: "ok" as const, data: [] };
+export const listPendingManualPayments = createServerFn({ method: "GET" }).handler(async (): Promise<{ status: "success"; data: any[] } | { status: "error"; message: string }> => {
+  return { status: "success" as const, data: [] };
 });
 
-export const uploadPaymentReceipt = createServerFn({ method: "POST" }).handler(async () => {
-  return { status: "success" as const };
-});
+export const uploadPaymentReceipt = createServerFn({ method: "POST" })
+  .validator(z.object({ orderId: z.string().uuid(), fileName: z.string(), fileBase64: z.string() }))
+  .handler(async ({ data: { orderId, fileName, fileBase64 } }): Promise<{ status: "success" } | { status: "error"; message: string }> => {
+    return { status: "success" as const };
+  });

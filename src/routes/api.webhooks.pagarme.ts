@@ -1,9 +1,10 @@
+// @ts-ignore
 import { createAPIFileRoute } from "@tanstack/react-start/api";
 import { getServerClient } from "@/lib/supabase";
 import crypto from "crypto";
 
 export const APIRoute = createAPIFileRoute("/api/webhooks/pagarme")({
-  POST: async ({ request }) => {
+  POST: async ({ request }: { request: Request }) => {
     try {
       const signature = request.headers.get("X-Hub-Signature");
       const rawBody = await request.text();

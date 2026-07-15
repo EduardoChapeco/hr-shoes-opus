@@ -615,7 +615,7 @@ export const addProductMediaLink = createServerFn({ method: "POST" })
   });
 
 export const toggleProductCollection = createServerFn({ method: "POST" })
-  .validator(z.object({ productId: z.string().uuid(), collectionId: z.string().uuid() }))
-  .handler(async () => {
+  .validator(z.object({ productId: z.string().uuid(), collectionId: z.string().uuid().optional(), collectionSlug: z.string().optional(), add: z.boolean().optional() }))
+  .handler(async (): Promise<{ status: "success" } | { status: "error"; message: string }> => {
     return { status: "success" as const };
   });

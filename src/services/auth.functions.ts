@@ -40,9 +40,10 @@ const ResetPasswordSchema = z.object({
 // Functions
 // ---------------------------------------------------------------------------
 
-export const getUserSession = createServerFn({ method: "GET" }).handler(async () => {
+export const getUserSession = createServerFn({ method: "GET" }).handler(async ({ request }) => {
   try {
-    const supabase = getSSRClient();
+    const responseHeaders = new Headers();
+    const supabase = getSSRClient(request, responseHeaders);
     const {
       data: { user },
       error,
@@ -68,9 +69,10 @@ export const getUserSession = createServerFn({ method: "GET" }).handler(async ()
 
 export const signInWithPassword = createServerFn({ method: "POST" })
   .validator(LoginSchema)
-  .handler(async ({ data: { email, password } }) => {
+  .handler(async ({ data: { email, password }, request }) => {
     try {
-      const supabase = getSSRClient();
+      const responseHeaders = new Headers();
+      const supabase = getSSRClient(request, responseHeaders);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -93,8 +95,12 @@ export const signInWithPassword = createServerFn({ method: "POST" })
         }
       }
 
-      return { status: "success" as const, data: data.user };
+      throw redirect({
+        to: "/admin",
+        headers: responseHeaders,
+      });
     } catch (e: unknown) {
+      if (e instanceof Response) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       return { status: "error" as const, message: `Erro ao realizar login: ${message}` };
     }
@@ -107,9 +113,10 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
       redirectTo: z.string(),
     }),
   )
-  .handler(async ({ data: { provider, redirectTo } }) => {
+  .handler(async ({ data: { provider, redirectTo }, request }) => {
     try {
-      const supabase = getSSRClient();
+      const responseHeaders = new Headers();
+      const supabase = getSSRClient(request, responseHeaders);
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider as Provider,
         options: {
@@ -121,8 +128,12 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
         return { status: "error" as const, message: error.message };
       }
 
-      return { status: "success" as const, url: data.url };
+      throw redirect({
+        to: data.url,
+        headers: responseHeaders,
+      });
     } catch (e: unknown) {
+      if (e instanceof Response) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       return { status: "error" as const, message: `Erro ao inicializar OAuth: ${message}` };
     }
@@ -130,9 +141,10 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
 
 export const signUpWithPassword = createServerFn({ method: "POST" })
   .validator(RegisterSchema)
-  .handler(async ({ data: { email, password, fullName, redirectTo } }) => {
+  .handler(async ({ data: { email, password, fullName, redirectTo }, request }) => {
     try {
-      const supabase = getSSRClient();
+      const responseHeaders = new Headers();
+      const supabase = getSSRClient(request, responseHeaders);
 
       // Build the confirmation URL. Supabase will append token_hash and type.
       // The app's /api/auth/confirm handler will process these and create the session.
@@ -159,12 +171,10 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
         if (error.message?.toLowerCase().includes("already registered") || error.message?.toLowerCase().includes("user already")) {
           return { status: "error" as const, message: "Este e-mail já possui uma conta. Faça login ou recupere sua senha." };
         }
-        return { status: "error" as const, message: error.message };
+        return { status: "error" as const, message: `Erro ao realizar cadastro: ${error.message}` };
       }
 
       // Only merge guest cart if signup returned an active session (email confirmation disabled).
-      // When email confirmation is required, session is null here — the cart merge will happen
-      // at /api/auth/confirm after the user clicks the link.
       if (data.user && data.session) {
         try {
           await mergeGuestCart({
@@ -179,29 +189,53 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
         }
       }
 
-      return { status: "success" as const, data: data.user, sessionActive: !!data.session };
+      if (redirectTo) {
+        throw redirect({
+          to: redirectTo,
+          headers: responseHeaders,
+        });
+      }
+
+      throw redirect({
+        to: "/admin",
+        headers: responseHeaders,
+      });
     } catch (e: unknown) {
+      if (e instanceof Response) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
-      return { status: "error" as const, message: `Erro ao realizar cadastro: ${message}` };
+      console.error("[auth] Erro catastrófico no signUp:", e);
+      return { status: "error" as const, message: `Erro interno no cadastro: ${message}` };
     }
   });
 
-export const signOut = createServerFn({ method: "POST" }).handler(async () => {
-  try {
-    const supabase = getSSRClient();
-    await supabase.auth.signOut();
-    clearGuestSession();
-    return { status: "success" as const };
-  } catch {
-    return { status: "error" as const };
-  }
-});
+export const signOut = createServerFn({ method: "POST" })
+  .handler(async ({ request }) => {
+    try {
+      const responseHeaders = new Headers();
+      const supabase = getSSRClient(request, responseHeaders);
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        return { status: "error" as const, message: error.message };
+      }
+
+      throw redirect({
+        to: "/login",
+        headers: responseHeaders,
+      });
+    } catch (e: unknown) {
+      if (e instanceof Response) throw e;
+      const message = e instanceof Error ? e.message : "Erro desconhecido";
+      return { status: "error" as const, message: `Erro ao realizar logout: ${message}` };
+    }
+  });
 
 export const updatePassword = createServerFn({ method: "POST" })
   .validator(ResetPasswordSchema)
-  .handler(async ({ data: { password } }) => {
+  .handler(async ({ data: { password }, request }) => {
     try {
-      const supabase = getSSRClient();
+      const responseHeaders = new Headers();
+      const supabase = getSSRClient(request, responseHeaders);
       const { error } = await supabase.auth.updateUser({
         password,
       });
@@ -216,8 +250,26 @@ export const updatePassword = createServerFn({ method: "POST" })
     }
   });
 
-export const getProfile = createServerFn({ method: "GET" }).handler(async () => {
-  const supabase = getSSRClient();
+export const resetPasswordForEmail = createServerFn({ method: "POST" })
+  .validator(z.object({ email: z.string().email(), redirectTo: z.string() }))
+  .handler(async ({ data: { email, redirectTo }, request }) => {
+    try {
+      const responseHeaders = new Headers();
+      const supabase = getSSRClient(request, responseHeaders);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
+
+      if (error) return { status: "error" as const, message: error.message };
+      return { status: "success" as const };
+    } catch (e) {
+      return { status: "error" as const, message: "Erro ao solicitar redefinição." };
+    }
+  });
+
+export const getProfile = createServerFn({ method: "GET" }).handler(async ({ request }) => {
+  const responseHeaders = new Headers();
+  const supabase = getSSRClient(request, responseHeaders);
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -245,8 +297,9 @@ export const updateProfile = createServerFn({ method: "POST" })
       phone: z.string().optional(),
     }),
   )
-  .handler(async ({ data }) => {
-    const supabase = getSSRClient();
+  .handler(async ({ data, request }) => {
+    const responseHeaders = new Headers();
+    const supabase = getSSRClient(request, responseHeaders);
     const {
       data: { user },
     } = await supabase.auth.getUser();
