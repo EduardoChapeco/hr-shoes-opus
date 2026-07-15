@@ -9,21 +9,17 @@
  */
 
 import { createServerClient } from "@supabase/ssr";
-import { getRequest, getResponseHeaders } from "@tanstack/react-start/server";
+import { getRequestHeader, setCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { SupabaseUnconfiguredError } from "./supabase";
 import { getEnvVar } from "./env";
-import { appendResponseCookie, readAllCookiesFromRequest } from "./http-cookies";
 
 const EnvSchema = z.object({
   VITE_SUPABASE_URL: z.string().url(),
   VITE_SUPABASE_ANON_KEY: z.string().min(10),
 });
 
-export function getSSRClient(
-  request: Request = getRequest(),
-  responseHeaders: { append(name: "Set-Cookie", value: string): void } = getResponseHeaders(),
-) {
+export function getSSRClient() {
   const env = EnvSchema.safeParse({
     VITE_SUPABASE_URL: getEnvVar("VITE_SUPABASE_URL"),
     VITE_SUPABASE_ANON_KEY: getEnvVar("VITE_SUPABASE_ANON_KEY"),
@@ -36,11 +32,23 @@ export function getSSRClient(
   return createServerClient(env.data.VITE_SUPABASE_URL, env.data.VITE_SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {
-        return readAllCookiesFromRequest(request);
+        const cookieHeader = getRequestHeader("cookie");
+        if (!cookieHeader) return [];
+        // Extract { name, value } from the raw cookie header string using regex/split or supabase's parser if imported.
+        // Actually, we can use `getCookie` from @tanstack/react-start/server in a loop, but `getAll` expects all of them.
+        // Let's implement a simple parser for getAll since it's just `name=value; ...`
+        return cookieHeader.split(';').map(c => {
+          const [name, ...rest] = c.split('=');
+          return { name: name?.trim() || "", value: rest.join('=').trim() };
+        }).filter(c => c.name);
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
-          appendResponseCookie(responseHeaders, name, value, options);
+          setCookie(name, value, {
+            ...options,
+            // Ensure path defaults to / if not provided, just in case
+            path: options?.path ?? "/",
+          });
         });
       },
     },

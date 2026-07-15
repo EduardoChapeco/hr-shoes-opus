@@ -7,7 +7,7 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest, getResponseHeaders } from "@tanstack/react-start/server";
+import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 import { getSSRClient } from "@/lib/supabase-ssr";
@@ -244,11 +244,11 @@ export const signOut = createServerFn({ method: "POST" }).handler(async () => {
       return { status: "error" as const, message: error.message };
     }
 
-    // Clear guest session manually via Headers to avoid unctx crash
-    getResponseHeaders().append(
+    // Clear guest session manually using H3-compatible util
+    setResponseHeader(
       "Set-Cookie",
       `hr_shoes_guest_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
-        process.env.NODE_ENV === "production" ? "; Secure" : ""
+        getEnvVar("VITE_SITE_URL")?.includes("localhost") ? "" : "; Secure"
       }`,
     );
 

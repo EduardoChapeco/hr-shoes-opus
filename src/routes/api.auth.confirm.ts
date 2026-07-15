@@ -15,6 +15,7 @@ import { readCookieFromRequest } from "@/lib/http-cookies";
 import { normalizeInternalReturnPath } from "@/lib/return-path";
 import { getSSRClient } from "@/lib/supabase-ssr";
 import { mergeGuestCartLogic } from "@/services/cart-helpers";
+import { setResponseHeader, setResponseStatus } from "@tanstack/react-start/server";
 
 export const Route = createFileRoute("/api/auth/confirm")({
   server: {
@@ -29,16 +30,13 @@ export const Route = createFileRoute("/api/auth/confirm")({
         const guestSessionToken = readCookieFromRequest(request, "hr_shoes_guest_session");
 
         if (!token_hash || !type) {
-          return new Response(null, {
-            status: 302,
-            headers: {
-              Location: "/entrar?error=link-invalido",
-            },
-          });
+          setResponseHeader("Location", "/entrar?error=link-invalido");
+          setResponseStatus(302);
+          return new Response(null);
         }
 
-        const responseHeaders = new Headers();
-        const supabase = getSSRClient(request, responseHeaders);
+
+        const supabase = getSSRClient();
         const { error } = await supabase.auth.verifyOtp({
           token_hash,
           type,
@@ -46,12 +44,9 @@ export const Route = createFileRoute("/api/auth/confirm")({
 
         if (error) {
           console.error("[auth/confirm] verifyOtp error:", error.message);
-          return new Response(null, {
-            status: 302,
-            headers: {
-              Location: `/entrar?error=${encodeURIComponent(error.message)}`,
-            },
-          });
+          setResponseHeader("Location", `/entrar?error=${encodeURIComponent(error.message)}`);
+          setResponseStatus(302);
+          return new Response(null);
         }
 
         // Success — get the newly created session and merge guest cart
@@ -69,11 +64,9 @@ export const Route = createFileRoute("/api/auth/confirm")({
         }
 
         // Redirect the user to their intended destination.
-        responseHeaders.set("Location", next);
-        return new Response(null, {
-          status: 302,
-          headers: responseHeaders,
-        });
+        setResponseHeader("Location", next);
+        setResponseStatus(302);
+        return new Response(null);
       },
     },
   },

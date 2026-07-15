@@ -139,7 +139,7 @@ export const createProduct = createServerFn({ method: "POST" })
       const { data: storeData } = await db.from("stores").select("id").limit(1).single();
       if (!storeData) throw new Error("No store found");
 
-      const { media_urls, ...productInput } = input;
+      const { media_urls, variants, category_ids, ...productInput } = input;
 
       const { data, error } = await db
         .from("products")

@@ -3,6 +3,7 @@ import { readCookieFromRequest } from "@/lib/http-cookies";
 import { normalizeInternalReturnPath } from "@/lib/return-path";
 import { getSSRClient } from "@/lib/supabase-ssr";
 import { mergeGuestCartLogic } from "@/services/cart-helpers";
+import { setResponseHeader, setResponseStatus } from "@tanstack/react-start/server";
 
 export const Route = createFileRoute("/api/auth/callback")({
   server: {
@@ -16,8 +17,8 @@ export const Route = createFileRoute("/api/auth/callback")({
         const guestSessionToken = readCookieFromRequest(request, "hr_shoes_guest_session");
 
         if (code) {
-          const responseHeaders = new Headers();
-          const supabase = getSSRClient(request, responseHeaders);
+
+          const supabase = getSSRClient();
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           if (!error && data.session) {
             try {
@@ -30,11 +31,9 @@ export const Route = createFileRoute("/api/auth/callback")({
               console.error("Falha ao mesclar carrinho após OAuth (ignorado):", err);
             }
 
-            responseHeaders.set("Location", next);
-            return new Response(null, {
-              status: 302,
-              headers: responseHeaders,
-            });
+            setResponseHeader("Location", next);
+            setResponseStatus(302);
+            return new Response(null);
           }
         }
 
