@@ -17,6 +17,7 @@ const InitiatePaymentSchema = z.object({
   orderId: z.string().uuid(),
   method: z.enum(["pix", "credit_card", "boleto"]),
   amountCents: z.number().int().positive(),
+  publicToken: z.string().optional(), // Used for guests
   // For real integration, you'd add credit card tokens here
 });
 
@@ -26,20 +27,26 @@ const InitiatePaymentSchema = z.object({
  */
 export const initiatePaymentTransaction = createServerFn({ method: "POST" })
   .validator(InitiatePaymentSchema)
-  .handler(async ({ data: { orderId, method, amountCents } }) => {
+  .handler(async ({ data: { orderId, method, amountCents, publicToken } }) => {
     const supabase = getServerClient();
     const ssrClient = getSSRClient();
     const { data: { user } } = await ssrClient.auth.getUser();
 
-    if (!user) throw new Error("Usuário não autenticado");
-
     // 1. Validate order state
-    const { data: order, error: orderError } = await supabase
+    let query = supabase
       .from("orders")
       .select("id, status, total_cents")
-      .eq("id", orderId)
-      .eq("customer_id", user.id)
-      .single();
+      .eq("id", orderId);
+
+    if (user) {
+      query = query.eq("customer_id", user.id);
+    } else if (publicToken) {
+      query = query.eq("public_token", publicToken);
+    } else {
+      throw new Error("Autenticação ou token público obrigatórios.");
+    }
+
+    const { data: order, error: orderError } = await query.single();
 
     if (orderError || !order) throw new Error("Pedido não encontrado ou acesso negado.");
     if (order.status !== "awaiting_payment") throw new Error("Pedido não está aguardando pagamento.");

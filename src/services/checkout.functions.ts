@@ -13,6 +13,7 @@ import { z } from "zod";
 import crypto from "node:crypto";
 import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr";
+import { getCurrentIdentity } from "./cart.functions";
 
 const CheckoutSchema = z.object({
   cartId: z.string().uuid(),
@@ -58,6 +59,9 @@ export const processCheckout = createServerFn({ method: "POST" })
       // Idempotency key prevents double-processing
       const idempotencyKey = `checkout-${params.cartId}-${params.paymentMethod}`;
 
+      // Ensure anti-hijacking by extracting the actual current identity
+      const identity = await getCurrentIdentity();
+
       // Call the atomic RPC — all logic (coupon, stock, order creation) happens inside a single transaction
       const { data, error } = await db.rpc("process_checkout_atomic", {
         p_cart_id: params.cartId,
@@ -69,6 +73,8 @@ export const processCheckout = createServerFn({ method: "POST" })
         p_shipping_method: params.shippingMethod,
         p_shipping_address: params.shippingAddress || {},
         p_payment_method: params.paymentMethod,
+        p_customer_id: identity.customer_id,
+        p_session_token: identity.session_token,
       });
 
       if (error) throw new Error("Erro ao processar pedido: " + error.message);
@@ -86,24 +92,4 @@ export const processCheckout = createServerFn({ method: "POST" })
     }
   });
 
-/**
- * Legado — mantido para compatibilidade até migração completa dos clientes.
- * Delega para processCheckout com cartId obrigatório.
- * @deprecated Usar processCheckout diretamente com cartId.
- */
-export const getCartForCheckout = createServerFn({ method: "GET" }).handler(async () => {
-  const ssrClient = getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
 
-  const db = getServerClient();
-
-  let query = db.from("carts").select("id, status").eq("status", "active");
-  if (user) {
-    query = query.eq("customer_id", user.id);
-  }
-
-  const { data: cart } = await query.limit(1).maybeSingle();
-  return { cartId: cart?.id ?? null };
-});
