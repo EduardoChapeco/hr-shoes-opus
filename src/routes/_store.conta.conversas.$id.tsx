@@ -60,8 +60,8 @@ function Page() {
             isStaffReply: payload.new.is_staff_reply,
             createdAt: payload.new.created_at,
           };
-          setMessages((prev) => {
-            if (prev.find((m) => m.id === newMsg.id || m.message === newMsg.message && m.createdAt === newMsg.createdAt)) return prev;
+          setMessages((prev: any[]) => {
+            if (prev.find((m: any) => m.id === newMsg.id || m.message === newMsg.message && m.createdAt === newMsg.createdAt)) return prev;
             return [...prev, newMsg];
           });
         },
@@ -84,7 +84,7 @@ function Page() {
       isStaffReply: false,
       createdAt: new Date().toISOString(),
     };
-    setMessages((prev) => [...prev, optimistic]);
+    setMessages((prev: any[]) => [...prev, optimistic]);
     const sent = text;
     setText("");
 
@@ -93,12 +93,12 @@ function Page() {
       if (res.status === "error") {
         toast.error(res.message);
         // Rollback optimistic update
-        setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
+        setMessages((prev: any[]) => prev.filter((m: any) => m.id !== optimistic.id));
         setText(sent);
       }
     } catch {
       toast.error("Erro ao enviar mensagem.");
-      setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
+      setMessages((prev: any[]) => prev.filter((m: any) => m.id !== optimistic.id));
       setText(sent);
     } finally {
       setIsSending(false);
@@ -141,7 +141,7 @@ function Page() {
             Nenhuma mensagem ainda. Envie uma mensagem para a equipe.
           </p>
         )}
-        {messages.map((msg) => (
+        {messages.map((msg: any) => (
           <div
             key={msg.id}
             className={`flex ${msg.isStaffReply ? "justify-start" : "justify-end"}`}

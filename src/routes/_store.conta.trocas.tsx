@@ -59,7 +59,7 @@ function Page() {
         />
       ) : (
         <div className="space-y-4">
-          {exchanges.map((ex) => (
+          {exchanges.map((ex: any) => (
             <div key={ex.id} className="rounded-xl border border-border bg-card p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>

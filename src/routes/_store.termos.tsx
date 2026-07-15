@@ -36,7 +36,7 @@ function Page() {
           />
         ) : (
           <div className="prose prose-neutral max-w-none">
-            {page.sections?.map((section) => (
+            {page.sections?.map((section: any) => (
               <div key={section.id}>
                 {section.section_type === "text" && (
                   <div dangerouslySetInnerHTML={{ __html: section.content.html || "" }} />

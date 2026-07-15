@@ -37,7 +37,7 @@ function Page() {
         ) : (
           <div className="prose prose-neutral max-w-none">
             {/* Aqui renderizaríamos as seções do construtor de página se existissem. Como é texto rico, vamos simplificar: */}
-            {page.sections?.map((section) => (
+            {page.sections?.map((section: any) => (
               <div key={section.id}>
                 {section.section_type === "text" && (
                   <div dangerouslySetInnerHTML={{ __html: section.content.html || "" }} />

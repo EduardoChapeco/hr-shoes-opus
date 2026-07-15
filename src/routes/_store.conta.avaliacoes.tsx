@@ -104,7 +104,7 @@ function Page() {
         />
       ) : (
         <div className="space-y-4">
-          {reviews.map((review) => (
+          {reviews.map((review: any) => (
             <div key={review.id} className="rounded-xl border border-border bg-card p-5">
               <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                 <div>

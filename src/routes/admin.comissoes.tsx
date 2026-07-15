@@ -62,7 +62,7 @@ function CommissionsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {commissions.map((c) => (
+              {commissions.map((c: any) => (
                 <TableRow key={c.id}>
                   <TableCell className="font-medium">{c.sellerName}</TableCell>
                   <TableCell>#{c.orderToken}</TableCell>

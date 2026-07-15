@@ -50,7 +50,7 @@ function CustomerInstallmentsPage() {
       />
 
       <div className="space-y-8">
-        {plans.map((plan) => (
+        {plans.map((plan: any) => (
           <Card key={plan.id}>
             <CardHeader className="flex flex-row items-center justify-between bg-muted/30">
               <div>

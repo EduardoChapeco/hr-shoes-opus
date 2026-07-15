@@ -148,7 +148,7 @@ function CustomerDetailPage() {
               </div>
             ) : (
               <div className="divide-y">
-                {data.orders.map((o) => (
+                {data.orders.map((o: any) => (
                   <div key={o.id} className="flex items-center justify-between p-4">
                     <div>
                       <div className="font-medium">Pedido #{o.public_token}</div>
