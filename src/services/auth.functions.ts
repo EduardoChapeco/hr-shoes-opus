@@ -11,7 +11,6 @@ import { z } from "zod";
 
 import { getSSRClient } from "@/lib/supabase-ssr";
 import { getServerClient } from "@/lib/supabase";
-import { clearGuestSession } from "@/lib/session";
 import { mergeGuestCart } from "./cart.functions";
 import { Provider } from "@supabase/supabase-js";
 import { getEnvVar } from "@/lib/env";
@@ -71,6 +70,11 @@ export const signInWithPassword = createServerFn({ method: "POST" })
   .validator(LoginSchema)
   .handler(async ({ data: { email, password }, request }) => {
     try {
+      // Extract guest session manually before async context drops
+      const cookieHeader = request.headers.get("cookie") || "";
+      const match = cookieHeader.match(/hr_shoes_guest_session=([^;]+)/);
+      const guestSessionToken = match ? match[1] : null;
+
       const responseHeaders = new Headers();
       const supabase = getSSRClient(request, responseHeaders);
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -88,6 +92,7 @@ export const signInWithPassword = createServerFn({ method: "POST" })
             data: {
               customerId: data.user.id,
               accessToken: data.session?.access_token,
+              guestSessionToken,
             },
           });
         } catch (err) {
@@ -143,6 +148,11 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
   .validator(RegisterSchema)
   .handler(async ({ data: { email, password, fullName, redirectTo }, request }) => {
     try {
+      // Extract guest session manually before async context drops
+      const cookieHeader = request.headers.get("cookie") || "";
+      const match = cookieHeader.match(/hr_shoes_guest_session=([^;]+)/);
+      const guestSessionToken = match ? match[1] : null;
+
       const responseHeaders = new Headers();
       const supabase = getSSRClient(request, responseHeaders);
 
@@ -181,6 +191,7 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
             data: {
               customerId: data.user.id,
               accessToken: data.session.access_token,
+              guestSessionToken,
             },
           });
         } catch (err) {
@@ -219,8 +230,16 @@ export const signOut = createServerFn({ method: "POST" })
         return { status: "error" as const, message: error.message };
       }
 
+      // Clear guest session manually via Headers to avoid unctx crash
+      responseHeaders.append(
+        "Set-Cookie",
+        `hr_shoes_guest_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
+          process.env.NODE_ENV === "production" ? "; Secure" : ""
+        }`
+      );
+
       throw redirect({
-        to: "/login",
+        to: "/entrar",
         headers: responseHeaders,
       });
     } catch (e: unknown) {

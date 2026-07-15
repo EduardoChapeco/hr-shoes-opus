@@ -22,6 +22,11 @@ export const APIRoute = createAPIFileRoute("/api/auth/confirm")({
     const type = url.searchParams.get("type") as "signup" | "recovery" | "email" | null;
     const next = url.searchParams.get("next") ?? "/conta";
 
+    // Extract guest session token from headers BEFORE async bounds
+    const cookieHeader = request.headers.get("cookie") || "";
+    const match = cookieHeader.match(/hr_shoes_guest_session=([^;]+)/);
+    const guestSessionToken = match ? match[1] : null;
+
     if (!token_hash || !type) {
       return new Response(null, {
         status: 302,
@@ -52,7 +57,7 @@ export const APIRoute = createAPIFileRoute("/api/auth/confirm")({
     const { data: sessionData } = await supabaseAfter.auth.getSession();
     if (sessionData.session) {
       try {
-        await mergeGuestCartLogic(sessionData.session.user.id, sessionData.session.access_token);
+        await mergeGuestCartLogic(sessionData.session.user.id, sessionData.session.access_token, guestSessionToken);
       } catch (err) {
         console.error("[auth/confirm] mergeGuestCart failed (non-fatal):", err);
       }

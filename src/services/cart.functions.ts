@@ -22,6 +22,10 @@ import type { CartDTO } from "@/types/orders";
  */
 async function getCurrentIdentity() {
   const ssrClient = getSSRClient();
+  // Fetch or create guest session synchronously BEFORE any await.
+  // This prevents the vinxi/http unctx context loss on Cloudflare Pages.
+  const token = getOrCreateGuestSession();
+
   const {
     data: { user },
   } = await ssrClient.auth.getUser();
@@ -30,7 +34,6 @@ async function getCurrentIdentity() {
     return { customer_id: user.id, session_token: null };
   }
 
-  const token = getOrCreateGuestSession();
   return { customer_id: null, session_token: token };
 }
 
@@ -302,7 +305,7 @@ export const removeFromCart = createServerFn({ method: "POST" })
     return { status: "success" };
   });
 
-export async function mergeGuestCartLogic(customerId: string, accessToken?: string) {
+export async function mergeGuestCartLogic(customerId: string, accessToken?: string, explicitGuestToken?: string | null) {
   let supabase;
   if (accessToken) {
     const url = process.env.VITE_SUPABASE_URL;
@@ -317,7 +320,13 @@ export async function mergeGuestCartLogic(customerId: string, accessToken?: stri
     supabase = getSSRClient();
   }
 
-  const { session_token } = await getCurrentIdentity();
+  // Use explicitly passed token, or try to get current identity (only works if no unctx context loss has occurred)
+  let session_token = explicitGuestToken;
+  if (session_token === undefined) {
+    const identity = await getCurrentIdentity();
+    session_token = identity.session_token;
+  }
+
   if (!session_token) return { status: "success" };
 
   // Find if guest cart exists
@@ -391,9 +400,17 @@ export async function mergeGuestCartLogic(customerId: string, accessToken?: stri
 }
 
 export const mergeGuestCart = createServerFn({ method: "POST" })
-  .validator(z.object({ customerId: z.string().uuid(), accessToken: z.string().optional() }))
-  .handler(async ({ data: { customerId, accessToken } }) => {
-    return mergeGuestCartLogic(customerId, accessToken);
+  .validator(
+    z.object({
+      customerId: z.string(),
+      accessToken: z.string().optional(),
+      guestSessionToken: z.string().nullable().optional(),
+    }),
+  )
+  .handler(async ({ data: { customerId, accessToken, guestSessionToken } }) => {
+    // If not explicitly passed, try to read it (safe if synchronous, but might fail if after async)
+    const token = guestSessionToken !== undefined ? guestSessionToken : getGuestSession();
+    return mergeGuestCartLogic(customerId, accessToken, token);
   });
 
 export const updateCartItemQty = createServerFn({ method: "POST" })
