@@ -16,8 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { listProductTypes, createProduct } from "@/services/admin-catalog.functions";
-import { getBrowserClient } from "@/lib/supabase";
+import { listProductTypes, createProduct, uploadProductMedia } from "@/services/admin-catalog.functions";
+
 
 export const Route = createFileRoute("/admin/catalogo/produtos/novo")({
   head: () => ({ meta: [{ title: "Novo produto — Hr Shoes" }] }),
@@ -76,6 +76,18 @@ function NewProductPage() {
     setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const toBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1];
+        resolve(base64 || "");
+      };
+      reader.onerror = (error) => reject(error);
+    });
+
   const onSubmit = async (values: {
     title: string;
     slug: string;
@@ -85,25 +97,25 @@ function NewProductPage() {
   }) => {
     setIsSubmitting(true);
     try {
-      const supabase = getBrowserClient();
       const media_urls: string[] = [];
 
       // Upload files first
       for (const file of files) {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${values.slug}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const { data, error } = await supabase.storage
-          .from("product-media")
-          .upload(fileName, file, { upsert: false });
+        const base64 = await toBase64(file);
+        const res = await uploadProductMedia({
+          data: {
+            fileName: file.name,
+            fileBase64: base64,
+          },
+        });
 
-        if (error) {
-          toast.error("Erro no upload: " + error.message);
+        if (res.status === "error") {
+          toast.error("Erro no upload: " + res.message);
           setIsSubmitting(false);
           return;
         }
 
-        const { data: publicData } = supabase.storage.from("product-media").getPublicUrl(data.path);
-        media_urls.push(publicData.publicUrl);
+        media_urls.push(res.url);
       }
 
       const priceCents = parseInt(values.price_cents.replace(/\D/g, ""), 10) || 0;

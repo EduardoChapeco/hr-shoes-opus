@@ -417,3 +417,96 @@ export const upsertProductVariant = createServerFn({ method: "POST" })
       };
     }
   });
+
+export const uploadProductMedia = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      fileName: z.string(),
+      fileBase64: z.string(),
+    }),
+  )
+  .handler(async ({ data: { fileName, fileBase64 } }) => {
+    try {
+      const db = getServerClient();
+
+      const buffer = Buffer.from(fileBase64, "base64");
+      const fileExt = fileName.split(".").pop();
+      const path = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { data, error } = await db.storage.from("product-media").upload(path, buffer, {
+        contentType: `image/${fileExt === "png" ? "png" : "jpeg"}`,
+        upsert: false,
+      });
+
+      if (error) throw new Error(error.message);
+
+      const publicUrl = db.storage.from("product-media").getPublicUrl(data.path).data.publicUrl;
+      return { status: "success" as const, url: publicUrl };
+    } catch (e: any) {
+      console.error("[admin-catalog] uploadProductMedia error:", e.message);
+      return { status: "error" as const, message: e.message || "Erro ao realizar upload." };
+    }
+  });
+
+export const getOnboardingProgress = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+
+    // Fetch store
+    const { data: store } = await db.from("stores").select("id, name, settings").limit(1).maybeSingle();
+
+    // Step 1: Store data config (is settings empty?)
+    const storeDone = store ? Object.keys(store.settings ?? {}).length > 0 : false;
+
+    // Step 2: Theme Settings / Identidade visual
+    const { count: themeCount } = await db
+      .from("theme_settings")
+      .select("*", { count: "exact", head: true });
+    const themeDone = (themeCount ?? 0) > 0;
+
+    // Step 3: Products
+    const { count: productsCount } = await db
+      .from("products")
+      .select("*", { count: "exact", head: true });
+    const productsDone = (productsCount ?? 0) > 0;
+
+    // Step 4: Shipping table
+    const { count: shippingCount } = await db
+      .from("shipping_rates")
+      .select("*", { count: "exact", head: true });
+    const shippingDone = (shippingCount ?? 0) > 0;
+
+    // Step 5: Payments (Integration credentials for payment providers)
+    const { count: paymentCount } = await db
+      .from("integration_credentials")
+      .select("*", { count: "exact", head: true })
+      .in("provider", ["mercado_pago", "asaas", "custom_pix"]);
+    const paymentsDone = (paymentCount ?? 0) > 0;
+
+    // Step 6: CMS pages
+    const { count: pagesCount } = await db
+      .from("pages")
+      .select("*", { count: "exact", head: true });
+    const cmsDone = (pagesCount ?? 0) > 0;
+
+    return {
+      status: "ok" as const,
+      data: {
+        storeDone,
+        themeDone,
+        productsDone,
+        shippingDone,
+        paymentsDone,
+        cmsDone,
+      },
+    };
+  } catch (e: any) {
+    console.error("[admin-catalog] getOnboardingProgress error:", e);
+    return {
+      status: "error" as const,
+      message: e.message || "Erro ao carregar progresso de onboarding.",
+    };
+  }
+});
+
+

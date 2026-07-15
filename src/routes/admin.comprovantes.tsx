@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { listPendingManualPayments, approvePayment } from "@/services/payment.functions";
+import { listPendingManualPayments, approvePayment, rejectPayment } from "@/services/payment.functions";
 import { formatMoney } from "@/lib/money";
 import { EmptyState } from "@/components/state/states";
 
@@ -44,6 +44,24 @@ function ReceiptsPage() {
       toast.error("Erro inesperado");
     }
   };
+
+  const handleReject = async (orderId: string) => {
+    const reason = prompt("Motivo da rejeição:");
+    if (reason === null) return; // cancelled prompt
+
+    try {
+      const res = await rejectPayment({ data: { orderId, reason } });
+      if (res.status === "success") {
+        toast.success("Comprovante rejeitado!");
+        router.invalidate();
+      } else {
+        toast.error(res.message || "Erro ao rejeitar comprovante.");
+      }
+    } catch (e) {
+      toast.error("Erro inesperado");
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -95,6 +113,7 @@ function ReceiptsPage() {
                         variant="outline"
                         size="icon"
                         className="h-8 w-8 text-red-600"
+                        onClick={() => handleReject(r.id)}
                         title="Rejeitar Pagamento"
                       >
                         <X className="h-4 w-4" />

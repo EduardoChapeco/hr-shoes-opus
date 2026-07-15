@@ -235,7 +235,28 @@ export const approvePayment = createServerFn({ method: "POST" })
   .handler(async ({ data: { orderId } }) => {
     try {
       const db = getServerClient();
+      const ssrClient = getSSRClient();
+      const {
+        data: { user },
+      } = await ssrClient.auth.getUser();
 
+      // 1. Update receipt status to accepted
+      await db
+        .from("payments")
+        .update({
+          receipt_status: "accepted",
+          receipt_reviewed_by: user?.id || null,
+          receipt_reviewed_at: new Date().toISOString(),
+        })
+        .eq("order_id", orderId);
+
+      // 2. Confirm the payment (handles cash register, paid status etc.)
+      const confirmRes = await confirmPayment({ data: { orderId } });
+      if (confirmRes.status !== "success") {
+        throw new Error("Erro ao confirmar transação financeira");
+      }
+
+      // 3. Set order status to processing (preparing/separating for shipment)
       const { data, error } = await db
         .from("orders")
         .update({ status: "processing" })
@@ -245,8 +266,47 @@ export const approvePayment = createServerFn({ method: "POST" })
 
       if (error) throw error;
       return { status: "success" as const, data };
-    } catch (e: unknown) {
+    } catch (e: any) {
       console.error("[payment] approvePayment error:", e);
-      return { status: "error" as const, message: "Erro ao aprovar." };
+      return { status: "error" as const, message: e.message || "Erro ao aprovar pagamento." };
     }
   });
+
+export const rejectPayment = createServerFn({ method: "POST" })
+  .validator(z.object({ orderId: z.string().uuid(), reason: z.string().optional() }))
+  .handler(async ({ data: { orderId, reason } }) => {
+    try {
+      const db = getServerClient();
+      const ssrClient = getSSRClient();
+      const {
+        data: { user },
+      } = await ssrClient.auth.getUser();
+
+      // 1. Update payment to rejected
+      await db
+        .from("payments")
+        .update({
+          receipt_status: "rejected",
+          status: "failed",
+          failure_reason: reason || "Comprovante inválido ou ilegível",
+          receipt_reviewed_by: user?.id || null,
+          receipt_reviewed_at: new Date().toISOString(),
+        })
+        .eq("order_id", orderId);
+
+      // 2. Update order to payment_failed
+      const { data, error } = await db
+        .from("orders")
+        .update({ status: "payment_failed" })
+        .eq("id", orderId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { status: "success" as const, data };
+    } catch (e: any) {
+      console.error("[payment] rejectPayment error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao rejeitar comprovante." };
+    }
+  });
+
