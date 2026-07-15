@@ -175,7 +175,7 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
         if (error.status === 429) {
           return {
             status: "error" as const,
-            message: "Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.",
+            message: "Limite de tentativas atingido (Supabase Free Tier). Aguarde 60 min ou desative 'Confirm email' no seu painel do Supabase em Authentication -> Providers -> Email.",
           };
         }
         if (error.message?.toLowerCase().includes("already registered") || error.message?.toLowerCase().includes("user already")) {
@@ -200,15 +200,17 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
         }
       }
 
-      if (redirectTo) {
-        throw redirect({
-          to: redirectTo,
-          headers: responseHeaders,
-        });
+      // If no session is returned, it means email confirmation is required.
+      // We return success and let the client-side handle the redirect to /entrar with a toast.
+      // There are no auth cookies to set in this case.
+      if (!data.session) {
+        return { status: "success" as const, sessionActive: false };
       }
 
+      // If session is active, we MUST throw redirect to propagate the Set-Cookie headers
+      // since vinxi/http context is lost and we can't use setCookie.
       throw redirect({
-        to: "/admin",
+        to: redirectTo || "/conta",
         headers: responseHeaders,
       });
     } catch (e: unknown) {
