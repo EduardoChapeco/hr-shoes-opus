@@ -20,7 +20,7 @@ import type { CartDTO } from "@/types/orders";
 /**
  * Retrieves the current user's ID or the guest session token.
  */
-async function getCurrentIdentity() {
+export async function getCurrentIdentity() {
   const ssrClient = getSSRClient();
   // Fetch or create guest session synchronously BEFORE any await.
   // This prevents the vinxi/http unctx context loss on Cloudflare Pages.
@@ -296,7 +296,7 @@ export const removeFromCart = createServerFn({ method: "POST" })
     // Soltar reserva via RPC para garantir a atomicidade do decremento de stock_reserved
     await supabase.rpc("release_stock_for_cart_item", {
       p_cart_id: item.cart_id,
-      p_variant_id: item.variant_id
+      p_variant_id: item.variant_id,
     });
 
     // Delete item
@@ -305,7 +305,11 @@ export const removeFromCart = createServerFn({ method: "POST" })
     return { status: "success" };
   });
 
-export async function mergeGuestCartLogic(customerId: string, accessToken?: string, explicitGuestToken?: string | null) {
+export async function mergeGuestCartLogic(
+  customerId: string,
+  accessToken?: string,
+  explicitGuestToken?: string | null,
+) {
   let supabase;
   if (accessToken) {
     const url = process.env.VITE_SUPABASE_URL;
@@ -440,7 +444,7 @@ export const updateCartItemQty = createServerFn({ method: "POST" })
       // Just remove
       await supabase.rpc("release_stock_for_cart_item", {
         p_cart_id: cart.id,
-        p_variant_id: variantId
+        p_variant_id: variantId,
       });
       await supabase.from("cart_items").delete().eq("id", existingItem.id);
       return { status: "success" };
@@ -463,7 +467,7 @@ export const updateCartItemQty = createServerFn({ method: "POST" })
       // Or we can just let it expire. For correctness, let's just clear the full item reservation and re-reserve the correct amount.
       await supabase.rpc("release_stock_for_cart_item", {
         p_cart_id: cart.id,
-        p_variant_id: variantId
+        p_variant_id: variantId,
       });
       const { error: reReserveError } = await supabase.rpc("reserve_stock_for_cart", {
         p_cart_id: cart.id,
@@ -559,7 +563,7 @@ export const updateCartShipping = createServerFn({ method: "POST" })
       zipcode: z.string().min(8),
       method: z.string().min(2),
       cents: z.number().min(0),
-    })
+    }),
   )
   .handler(async ({ data: { zipcode, method, cents } }) => {
     const supabase = getServerClient();

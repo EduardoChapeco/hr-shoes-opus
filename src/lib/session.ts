@@ -1,5 +1,7 @@
-import { getCookie, setCookie } from "vinxi/http";
+import { getRequest, getResponseHeaders } from "@tanstack/react-start/server";
 import crypto from "node:crypto";
+
+import { appendResponseCookie, readCookieFromRequest } from "./http-cookies";
 
 const GUEST_SESSION_COOKIE = "hr_shoes_guest_session";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -10,10 +12,11 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
  * MUST be called within a server context (e.g. createServerFn).
  */
 export function getOrCreateGuestSession(): string {
-  let session = getCookie(GUEST_SESSION_COOKIE);
+  const request = getRequest();
+  let session = readCookieFromRequest(request, GUEST_SESSION_COOKIE);
   if (!session) {
     session = crypto.randomUUID();
-    setCookie(GUEST_SESSION_COOKIE, session, {
+    appendResponseCookie(getResponseHeaders(), GUEST_SESSION_COOKIE, session, {
       maxAge: COOKIE_MAX_AGE,
       path: "/",
       httpOnly: true,
@@ -28,7 +31,7 @@ export function getOrCreateGuestSession(): string {
  * Retrieves the current guest session token if it exists.
  */
 export function getGuestSession(): string | null {
-  return getCookie(GUEST_SESSION_COOKIE) || null;
+  return readCookieFromRequest(getRequest(), GUEST_SESSION_COOKIE);
 }
 
 /**
@@ -36,7 +39,7 @@ export function getGuestSession(): string | null {
  * for the next visit or preventing cart cross-contamination after logout.
  */
 export function clearGuestSession(): void {
-  setCookie(GUEST_SESSION_COOKIE, "", {
+  appendResponseCookie(getResponseHeaders(), GUEST_SESSION_COOKIE, "", {
     maxAge: 0,
     path: "/",
     httpOnly: true,
@@ -48,7 +51,7 @@ export function clearGuestSession(): void {
 const SELLER_REF_COOKIE = "hr_shoes_seller_ref";
 
 export function setSellerRefCookie(sellerId: string): void {
-  setCookie(SELLER_REF_COOKIE, sellerId, {
+  appendResponseCookie(getResponseHeaders(), SELLER_REF_COOKIE, sellerId, {
     maxAge: COOKIE_MAX_AGE,
     path: "/",
     httpOnly: true,
@@ -58,5 +61,5 @@ export function setSellerRefCookie(sellerId: string): void {
 }
 
 export function getSellerRefCookie(): string | null {
-  return getCookie(SELLER_REF_COOKIE) || null;
+  return readCookieFromRequest(getRequest(), SELLER_REF_COOKIE);
 }

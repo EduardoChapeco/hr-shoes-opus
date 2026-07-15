@@ -7,7 +7,8 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
-import * as Router from "@tanstack/react-router";
+import { getRequest } from "@tanstack/react-start/server";
+import { isRedirect, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { getSSRClient } from "@/lib/supabase-ssr";
@@ -15,6 +16,8 @@ import { getServerClient } from "@/lib/supabase";
 import { mergeGuestCart } from "./cart.functions";
 import { Provider } from "@supabase/supabase-js";
 import { getEnvVar } from "@/lib/env";
+import { readCookieFromRequest } from "@/lib/http-cookies";
+import { normalizeInternalReturnPath } from "@/lib/return-path";
 
 // ---------------------------------------------------------------------------
 // Schemas
@@ -49,10 +52,9 @@ const ResetPasswordSchema = z.object({
 // Functions
 // ---------------------------------------------------------------------------
 
-export const getUserSession = createServerFn({ method: "GET" }).handler(async ({ request }) => {
+export const getUserSession = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const responseHeaders = new Headers();
-    const supabase = getSSRClient(request, responseHeaders);
+    const supabase = getSSRClient();
     const {
       data: { user },
       error,
@@ -78,12 +80,11 @@ export const getUserSession = createServerFn({ method: "GET" }).handler(async ({
 
 export const signInWithPassword = createServerFn({ method: "POST" })
   .validator(LoginSchema)
-  .handler(async ({ data: { email, password, redirectTo }, request }) => {
+  .handler(async ({ data: { email, password, redirectTo } }) => {
     try {
+      const request = getRequest();
       // Extract guest session manually before async context drops
-      const cookieHeader = request.headers.get("cookie") || "";
-      const match = cookieHeader.match(/hr_shoes_guest_session=([^;]+)/);
-      const guestSessionToken = match ? match[1] : null;
+      const guestSessionToken = readCookieFromRequest(request, "hr_shoes_guest_session");
 
       const responseHeaders = new Headers();
       const supabase = getSSRClient(request, responseHeaders);
@@ -94,10 +95,16 @@ export const signInWithPassword = createServerFn({ method: "POST" })
 
       if (error) {
         if (error.status === 429) {
-          return { status: "error" as const, message: "Muitas tentativas de login. Aguarde alguns minutos." };
+          return {
+            status: "error" as const,
+            message: "Muitas tentativas de login. Aguarde alguns minutos.",
+          };
         }
         if (error.message.includes("Email not confirmed")) {
-          return { status: "error" as const, message: "E-mail não confirmado. Verifique sua caixa de entrada." };
+          return {
+            status: "error" as const,
+            message: "E-mail não confirmado. Verifique sua caixa de entrada.",
+          };
         }
         return { status: "error" as const, message: "E-mail ou senha incorretos." };
       }
@@ -117,18 +124,18 @@ export const signInWithPassword = createServerFn({ method: "POST" })
       }
 
       if (redirectTo) {
-        throw Router.redirect({
-          to: redirectTo,
+        throw redirect({
+          to: normalizeInternalReturnPath(redirectTo, "/admin"),
           headers: responseHeaders,
         });
       }
 
-      throw Router.redirect({
+      throw redirect({
         to: "/admin",
         headers: responseHeaders,
       });
     } catch (e: unknown) {
-      if (e instanceof Response || (e && typeof e === 'object' && 'isRedirect' in e)) throw e;
+      if (isRedirect(e)) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       return { status: "error" as const, message: `Erro ao realizar login: ${message}` };
     }
@@ -141,10 +148,9 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
       redirectTo: z.string(),
     }),
   )
-  .handler(async ({ data: { provider, redirectTo }, request }) => {
+  .handler(async ({ data: { provider, redirectTo } }) => {
     try {
-      const responseHeaders = new Headers();
-      const supabase = getSSRClient(request, responseHeaders);
+      const supabase = getSSRClient();
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider as Provider,
         options: {
@@ -158,7 +164,7 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
 
       return { status: "success" as const, url: data.url };
     } catch (e: unknown) {
-      if (e instanceof Response || (e && typeof e === 'object' && 'isRedirect' in e)) throw e;
+      if (isRedirect(e)) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       return { status: "error" as const, message: `Erro ao inicializar OAuth: ${message}` };
     }
@@ -166,12 +172,11 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
 
 export const signUpWithPassword = createServerFn({ method: "POST" })
   .validator(RegisterSchema)
-  .handler(async ({ data: { email, password, fullName, redirectTo }, request }) => {
+  .handler(async ({ data: { email, password, fullName, redirectTo } }) => {
     try {
+      const request = getRequest();
       // Extract guest session manually before async context drops
-      const cookieHeader = request.headers.get("cookie") || "";
-      const match = cookieHeader.match(/hr_shoes_guest_session=([^;]+)/);
-      const guestSessionToken = match ? match[1] : null;
+      const guestSessionToken = readCookieFromRequest(request, "hr_shoes_guest_session");
 
       const responseHeaders = new Headers();
       const supabase = getSSRClient(request, responseHeaders);
@@ -179,7 +184,7 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
       // Build the confirmation URL. Supabase will append token_hash and type.
       // The app's /api/auth/confirm handler will process these and create the session.
       const siteUrl = getEnvVar("VITE_SITE_URL") || "https://hrshoes.pages.dev";
-      const confirmUrl = `${siteUrl}/api/auth/confirm${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ''}`;
+      const confirmUrl = `${siteUrl}/api/auth/confirm${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ""}`;
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -195,11 +200,18 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
         if (error.status === 429) {
           return {
             status: "error" as const,
-            message: "Limite de tentativas atingido (Supabase Free Tier). Aguarde 60 min ou desative 'Confirm email' no seu painel do Supabase em Authentication -> Providers -> Email.",
+            message:
+              "Limite de tentativas atingido (Supabase Free Tier). Aguarde 60 min ou desative 'Confirm email' no seu painel do Supabase em Authentication -> Providers -> Email.",
           };
         }
-        if (error.message?.toLowerCase().includes("already registered") || error.message?.toLowerCase().includes("user already")) {
-          return { status: "error" as const, message: "Este e-mail já possui uma conta. Faça login ou recupere sua senha." };
+        if (
+          error.message?.toLowerCase().includes("already registered") ||
+          error.message?.toLowerCase().includes("user already")
+        ) {
+          return {
+            status: "error" as const,
+            message: "Este e-mail já possui uma conta. Faça login ou recupere sua senha.",
+          };
         }
         return { status: "error" as const, message: `Erro ao realizar cadastro: ${error.message}` };
       }
@@ -229,54 +241,53 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
 
       // If session is active, we MUST throw redirect to propagate the Set-Cookie headers
       // since vinxi/http context is lost and we can't use setCookie.
-      throw Router.redirect({
-        to: redirectTo || "/conta",
+      throw redirect({
+        to: normalizeInternalReturnPath(redirectTo, "/conta"),
         headers: responseHeaders,
       });
     } catch (e: unknown) {
-      if (e instanceof Response || (e && typeof e === 'object' && 'isRedirect' in e)) throw e;
+      if (isRedirect(e)) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       console.error("[auth] Erro catastrófico no signUp:", e);
       return { status: "error" as const, message: `Erro interno no cadastro: ${message}` };
     }
   });
 
-export const signOut = createServerFn({ method: "POST" })
-  .handler(async ({ request }) => {
-    try {
-      const responseHeaders = new Headers();
-      const supabase = getSSRClient(request, responseHeaders);
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        return { status: "error" as const, message: error.message };
-      }
+export const signOut = createServerFn({ method: "POST" }).handler(async () => {
+  try {
+    const responseHeaders = new Headers();
+    const supabase = getSSRClient(getRequest(), responseHeaders);
+    const { error } = await supabase.auth.signOut();
 
-      // Clear guest session manually via Headers to avoid unctx crash
-      responseHeaders.append(
-        "Set-Cookie",
-        `hr_shoes_guest_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
-          process.env.NODE_ENV === "production" ? "; Secure" : ""
-        }`
-      );
-
-      throw Router.redirect({
-        to: "/entrar",
-        headers: responseHeaders,
-      });
-    } catch (e: unknown) {
-      if (e instanceof Response || (e && typeof e === 'object' && 'isRedirect' in e)) throw e;
-      const message = e instanceof Error ? e.message : "Erro desconhecido";
-      return { status: "error" as const, message: `Erro ao realizar logout: ${message}` };
+    if (error) {
+      return { status: "error" as const, message: error.message };
     }
-  });
+
+    // Clear guest session manually via Headers to avoid unctx crash
+    responseHeaders.append(
+      "Set-Cookie",
+      `hr_shoes_guest_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
+        process.env.NODE_ENV === "production" ? "; Secure" : ""
+      }`,
+    );
+
+    throw redirect({
+      to: "/entrar",
+      headers: responseHeaders,
+    });
+  } catch (e: unknown) {
+    if (isRedirect(e)) throw e;
+    const message = e instanceof Error ? e.message : "Erro desconhecido";
+    return { status: "error" as const, message: `Erro ao realizar logout: ${message}` };
+  }
+});
 
 export const updatePassword = createServerFn({ method: "POST" })
   .validator(ResetPasswordSchema)
-  .handler(async ({ data: { password }, request }) => {
+  .handler(async ({ data: { password } }) => {
     try {
       const responseHeaders = new Headers();
-      const supabase = getSSRClient(request, responseHeaders);
+      const supabase = getSSRClient(getRequest(), responseHeaders);
       const { error } = await supabase.auth.updateUser({
         password,
       });
@@ -285,13 +296,13 @@ export const updatePassword = createServerFn({ method: "POST" })
         return { status: "error" as const, message: error.message };
       }
 
-      throw Router.redirect({
+      throw redirect({
         to: "/conta",
         headers: responseHeaders,
       });
     } catch (e: unknown) {
       // If it's a redirect, let it pass through
-      if (e instanceof Response || (e && typeof e === 'object' && 'isRedirect' in e)) {
+      if (isRedirect(e)) {
         throw e;
       }
       return { status: "error" as const, message: "Erro inesperado ao atualizar a senha." };
@@ -300,10 +311,9 @@ export const updatePassword = createServerFn({ method: "POST" })
 
 export const resetPasswordForEmail = createServerFn({ method: "POST" })
   .validator(z.object({ email: z.string().email(), redirectTo: z.string() }))
-  .handler(async ({ data: { email, redirectTo }, request }) => {
+  .handler(async ({ data: { email, redirectTo } }) => {
     try {
-      const responseHeaders = new Headers();
-      const supabase = getSSRClient(request, responseHeaders);
+      const supabase = getSSRClient();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
       });
@@ -312,27 +322,31 @@ export const resetPasswordForEmail = createServerFn({ method: "POST" })
         if (error.status === 429) {
           return {
             status: "error" as const,
-            message: "Limite de envio de e-mails atingido. Aguarde 60 minutos antes de solicitar novamente.",
+            message:
+              "Limite de envio de e-mails atingido. Aguarde 60 minutos antes de solicitar novamente.",
           };
         }
         return { status: "error" as const, message: error.message };
       }
       return { status: "success" as const };
     } catch (e) {
-      if (e instanceof Response || (e && typeof e === 'object' && 'isRedirect' in e)) throw e;
+      if (isRedirect(e)) throw e;
       return { status: "error" as const, message: "Erro ao solicitar redefinição." };
     }
   });
 
-export const getProfile = createServerFn({ method: "GET" }).handler(async ({ request }) => {
-  const responseHeaders = new Headers();
-  const supabase = getSSRClient(request, responseHeaders);
+export const getProfile = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getSSRClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Não autorizado");
 
-  const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
   if (error) {
     console.warn(`[auth] getProfile could not load profile for ${user.id}:`, error.message);
@@ -354,9 +368,8 @@ export const updateProfile = createServerFn({ method: "POST" })
       phone: z.string().optional(),
     }),
   )
-  .handler(async ({ data, request }) => {
-    const responseHeaders = new Headers();
-    const supabase = getSSRClient(request, responseHeaders);
+  .handler(async ({ data }) => {
+    const supabase = getSSRClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();

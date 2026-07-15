@@ -57,6 +57,9 @@ import { Route as StoreCarrinhoRouteImport } from './routes/_store.carrinho'
 import { Route as StoreCadastroRouteImport } from './routes/_store.cadastro'
 import { Route as StoreBuscarRouteImport } from './routes/_store.buscar'
 import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index'
+import { Route as ApiWebhooksPagarmeRouteImport } from './routes/api.webhooks.pagarme'
+import { Route as ApiAuthConfirmRouteImport } from './routes/api.auth.confirm'
+import { Route as ApiAuthCallbackRouteImport } from './routes/api.auth.callback'
 import { Route as AdminPedidosTrocasRouteImport } from './routes/admin.pedidos.trocas'
 import { Route as AdminPedidosIdRouteImport } from './routes/admin.pedidos.$id'
 import { Route as AdminMarketingNotificacoesRouteImport } from './routes/admin.marketing.notificacoes'
@@ -349,6 +352,21 @@ const StoreContaIndexRoute = StoreContaIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => StoreContaRoute,
+} as any)
+const ApiWebhooksPagarmeRoute = ApiWebhooksPagarmeRouteImport.update({
+  id: '/api/webhooks/pagarme',
+  path: '/api/webhooks/pagarme',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthConfirmRoute = ApiAuthConfirmRouteImport.update({
+  id: '/api/auth/confirm',
+  path: '/api/auth/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthCallbackRoute = ApiAuthCallbackRouteImport.update({
+  id: '/api/auth/callback',
+  path: '/api/auth/callback',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminPedidosTrocasRoute = AdminPedidosTrocasRouteImport.update({
   id: '/trocas',
@@ -713,6 +731,9 @@ export interface FileRoutesByFullPath {
   '/admin/marketing/notificacoes': typeof AdminMarketingNotificacoesRoute
   '/admin/pedidos/$id': typeof AdminPedidosIdRoute
   '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
+  '/api/auth/callback': typeof ApiAuthCallbackRoute
+  '/api/auth/confirm': typeof ApiAuthConfirmRoute
+  '/api/webhooks/pagarme': typeof ApiWebhooksPagarmeRoute
   '/conta/': typeof StoreContaIndexRoute
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
@@ -813,6 +834,9 @@ export interface FileRoutesByTo {
   '/admin/marketing/notificacoes': typeof AdminMarketingNotificacoesRoute
   '/admin/pedidos/$id': typeof AdminPedidosIdRoute
   '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
+  '/api/auth/callback': typeof ApiAuthCallbackRoute
+  '/api/auth/confirm': typeof ApiAuthConfirmRoute
+  '/api/webhooks/pagarme': typeof ApiWebhooksPagarmeRoute
   '/conta': typeof StoreContaIndexRoute
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
@@ -917,6 +941,9 @@ export interface FileRoutesById {
   '/admin/marketing/notificacoes': typeof AdminMarketingNotificacoesRoute
   '/admin/pedidos/$id': typeof AdminPedidosIdRoute
   '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
+  '/api/auth/callback': typeof ApiAuthCallbackRoute
+  '/api/auth/confirm': typeof ApiAuthConfirmRoute
+  '/api/webhooks/pagarme': typeof ApiWebhooksPagarmeRoute
   '/_store/conta/': typeof StoreContaIndexRoute
   '/_store/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/_store/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
@@ -1021,6 +1048,9 @@ export interface FileRouteTypes {
     | '/admin/marketing/notificacoes'
     | '/admin/pedidos/$id'
     | '/admin/pedidos/trocas'
+    | '/api/auth/callback'
+    | '/api/auth/confirm'
+    | '/api/webhooks/pagarme'
     | '/conta/'
     | '/conta/conversas/$id'
     | '/conta/pedidos/$id'
@@ -1121,6 +1151,9 @@ export interface FileRouteTypes {
     | '/admin/marketing/notificacoes'
     | '/admin/pedidos/$id'
     | '/admin/pedidos/trocas'
+    | '/api/auth/callback'
+    | '/api/auth/confirm'
+    | '/api/webhooks/pagarme'
     | '/conta'
     | '/conta/conversas/$id'
     | '/conta/pedidos/$id'
@@ -1224,6 +1257,9 @@ export interface FileRouteTypes {
     | '/admin/marketing/notificacoes'
     | '/admin/pedidos/$id'
     | '/admin/pedidos/trocas'
+    | '/api/auth/callback'
+    | '/api/auth/confirm'
+    | '/api/webhooks/pagarme'
     | '/_store/conta/'
     | '/_store/conta/conversas/$id'
     | '/_store/conta/pedidos/$id'
@@ -1241,6 +1277,9 @@ export interface RootRouteChildren {
   StoreRoute: typeof StoreRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiAuthCallbackRoute: typeof ApiAuthCallbackRoute
+  ApiAuthConfirmRoute: typeof ApiAuthConfirmRoute
+  ApiWebhooksPagarmeRoute: typeof ApiWebhooksPagarmeRoute
   AdminPedidosIdReciboRoute: typeof AdminPedidosIdReciboRoute
 }
 
@@ -1581,6 +1620,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/conta/'
       preLoaderRoute: typeof StoreContaIndexRouteImport
       parentRoute: typeof StoreContaRoute
+    }
+    '/api/webhooks/pagarme': {
+      id: '/api/webhooks/pagarme'
+      path: '/api/webhooks/pagarme'
+      fullPath: '/api/webhooks/pagarme'
+      preLoaderRoute: typeof ApiWebhooksPagarmeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/confirm': {
+      id: '/api/auth/confirm'
+      path: '/api/auth/confirm'
+      fullPath: '/api/auth/confirm'
+      preLoaderRoute: typeof ApiAuthConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/callback': {
+      id: '/api/auth/callback'
+      path: '/api/auth/callback'
+      fullPath: '/api/auth/callback'
+      preLoaderRoute: typeof ApiAuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/pedidos/trocas': {
       id: '/admin/pedidos/trocas'
@@ -2284,6 +2344,9 @@ const rootRouteChildren: RootRouteChildren = {
   StoreRoute: StoreRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiAuthCallbackRoute: ApiAuthCallbackRoute,
+  ApiAuthConfirmRoute: ApiAuthConfirmRoute,
+  ApiWebhooksPagarmeRoute: ApiWebhooksPagarmeRoute,
   AdminPedidosIdReciboRoute: AdminPedidosIdReciboRoute,
 }
 export const routeTree = rootRouteImport

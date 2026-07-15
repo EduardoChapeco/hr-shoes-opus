@@ -21,7 +21,7 @@ const CheckoutSchema = z.object({
   customerEmail: z.string().email(),
   customerDocument: z.string().optional(),
   customerPhone: z.string().optional(),
-  shippingMethod: z.enum(["delivery", "pickup", "manual_quote"]),
+  shippingMethod: z.enum(["manual_table", "provider", "pickup", "manual_quote"]),
   shippingAddress: z
     .object({
       zipcode: z.string().min(8),

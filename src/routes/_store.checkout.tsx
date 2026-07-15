@@ -49,7 +49,7 @@ function CheckoutPage() {
     customerDocument: "",
     customerPhone: "",
     paymentMethod: "pix" as any,
-    shippingMethod: "delivery" as any,
+    shippingMethod: "manual_table" as any,
     shippingAddress: {
       zipcode: "",
       street: "",
@@ -65,13 +65,13 @@ function CheckoutPage() {
     e.preventDefault();
     if (isSubmitting) return;
 
-    if (formData.shippingMethod === "delivery") {
+    if (formData.shippingMethod === "manual_table") {
       const { zipcode, street, number, neighborhood, city, state } = formData.shippingAddress;
       if (!zipcode || !street || !number || !neighborhood || !city || !state) {
         toast.error("Por favor, preencha todos os campos obrigatórios do endereço.");
         return;
       }
-      
+
       if (cart.shippingCents === 0) {
         toast.error("Por favor, calcule e selecione um frete no carrinho antes de continuar.");
         return;
@@ -82,14 +82,19 @@ function CheckoutPage() {
     try {
       // 1. Process Order
       const res = await processCheckout({
-        data: { 
-          ...formData, 
-          cartId: cart.id, 
+        data: {
+          ...formData,
+          cartId: cart.id,
           paymentMethod: formData.paymentMethod === "manual" ? "pix" : formData.paymentMethod,
-          shippingMethod: formData.shippingMethod === "delivery" ? (cart.shippingMethod || "delivery") : "pickup"
+          shippingMethod:
+            formData.shippingMethod === "pickup"
+              ? "pickup"
+              : cart.shippingMethod === "manual_quote"
+                ? "manual_quote"
+                : "manual_table",
         },
       });
-      
+
       if (res.status === "success") {
         // 2. Initiate Payment (Manual)
         try {
@@ -97,13 +102,13 @@ function CheckoutPage() {
             data: {
               orderId: res.orderToken,
               method: formData.paymentMethod === "credit_card" ? "credit_card" : "pix",
-              amountCents: cart.totalCents
-            }
+              amountCents: cart.totalCents,
+            },
           });
-        } catch(payErr: any) {
-           toast.error("Pedido criado, mas falha ao abrir transação de pagamento.");
+        } catch (payErr: any) {
+          toast.error("Pedido criado, mas falha ao abrir transação de pagamento.");
         }
-        
+
         setSuccessToken(res.orderToken);
       } else {
         toast.error(res.message);
@@ -121,15 +126,16 @@ function CheckoutPage() {
         <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-6" />
         <h1 className="text-3xl font-serif font-bold mb-4">Pedido Realizado!</h1>
         <p className="text-muted-foreground mb-8">
-          Seu pedido <strong>#{successToken.split("-")[0]}</strong> foi criado com sucesso e está aguardando
-          pagamento.
+          Seu pedido <strong>#{successToken.split("-")[0]}</strong> foi criado com sucesso e está
+          aguardando pagamento.
         </p>
 
         <div className="bg-muted/30 p-6 rounded-xl border border-border inline-block mb-8">
           <MessageCircle className="w-8 h-8 text-primary mx-auto mb-4" />
           <h3 className="font-semibold text-lg mb-2">Quase lá!</h3>
           <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
-            Sua vendedora entrará em contato com você pelo WhatsApp em breve com o link de pagamento exclusivo para finalizar sua compra.
+            Sua vendedora entrará em contato com você pelo WhatsApp em breve com o link de pagamento
+            exclusivo para finalizar sua compra.
           </p>
           <p className="text-xs text-muted-foreground mt-4">
             Assim que você confirmar o pagamento via WhatsApp, seu pedido será separado para envio.
@@ -194,8 +200,8 @@ function CheckoutPage() {
               <div className="flex gap-4 mb-4">
                 <Button
                   type="button"
-                  variant={formData.shippingMethod === "delivery" ? "default" : "outline"}
-                  onClick={() => setFormData({ ...formData, shippingMethod: "delivery" })}
+                  variant={formData.shippingMethod === "manual_table" ? "default" : "outline"}
+                  onClick={() => setFormData({ ...formData, shippingMethod: "manual_table" })}
                 >
                   Entregar no meu endereço
                 </Button>
@@ -208,7 +214,7 @@ function CheckoutPage() {
                 </Button>
               </div>
 
-              {formData.shippingMethod === "delivery" && (
+              {formData.shippingMethod === "manual_table" && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-muted/30 p-4 rounded-lg border">
                   <div className="space-y-2 md:col-span-1">
                     <label className="text-sm font-medium">CEP *</label>
@@ -391,13 +397,26 @@ function CheckoutPage() {
               </div>
             )}
             <div className="flex justify-between text-muted-foreground">
-              <span>Frete {formData.shippingMethod === "pickup" ? "(Retirada)" : (cart.shippingMethod ? `(${cart.shippingMethod})` : "")}</span>
-              <span>{formData.shippingMethod === "pickup" ? "Grátis" : formatMoney(cart.shippingCents)}</span>
+              <span>
+                Frete{" "}
+                {formData.shippingMethod === "pickup"
+                  ? "(Retirada)"
+                  : cart.shippingMethod
+                    ? `(${cart.shippingMethod})`
+                    : ""}
+              </span>
+              <span>
+                {formData.shippingMethod === "pickup" ? "Grátis" : formatMoney(cart.shippingCents)}
+              </span>
             </div>
           </div>
           <div className="flex justify-between items-end border-t pt-4 mb-8">
             <span className="font-semibold">Total</span>
-            <span className="font-bold text-2xl">{formatMoney(cart.totalCents - (formData.shippingMethod === "pickup" ? cart.shippingCents : 0))}</span>
+            <span className="font-bold text-2xl">
+              {formatMoney(
+                cart.totalCents - (formData.shippingMethod === "pickup" ? cart.shippingCents : 0),
+              )}
+            </span>
           </div>
 
           <div className="lg:hidden">

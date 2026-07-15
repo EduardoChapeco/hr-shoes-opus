@@ -10,65 +10,71 @@
  * Without this route, email confirmation links would land on the app
  * without being processed — leaving users permanently stuck.
  */
-// @ts-ignore
-import { createAPIFileRoute } from "@tanstack/react-start/api";
+import { createFileRoute } from "@tanstack/react-router";
+import { readCookieFromRequest } from "@/lib/http-cookies";
+import { normalizeInternalReturnPath } from "@/lib/return-path";
 import { getSSRClient } from "@/lib/supabase-ssr";
 import { mergeGuestCartLogic } from "@/services/cart.functions";
 
-export const APIRoute = createAPIFileRoute("/api/auth/confirm")({
-  GET: async ({ request }: { request: Request }) => {
-    const url = new URL(request.url);
-    const token_hash = url.searchParams.get("token_hash");
-    const type = url.searchParams.get("type") as "signup" | "recovery" | "email" | null;
-    const next = url.searchParams.get("next") ?? "/conta";
+export const Route = createFileRoute("/api/auth/confirm")({
+  server: {
+    handlers: {
+      GET: async ({ request }) => {
+        const url = new URL(request.url);
+        const token_hash = url.searchParams.get("token_hash");
+        const type = url.searchParams.get("type") as "signup" | "recovery" | "email" | null;
+        const next = normalizeInternalReturnPath(url.searchParams.get("next"), "/conta");
 
-    // Extract guest session token from headers BEFORE async bounds
-    const cookieHeader = request.headers.get("cookie") || "";
-    const match = cookieHeader.match(/hr_shoes_guest_session=([^;]+)/);
-    const guestSessionToken = match ? match[1] : null;
+        // Extract guest session token from headers BEFORE async bounds
+        const guestSessionToken = readCookieFromRequest(request, "hr_shoes_guest_session");
 
-    if (!token_hash || !type) {
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: "/entrar?error=link-invalido",
-        },
-      });
-    }
+        if (!token_hash || !type) {
+          return new Response(null, {
+            status: 302,
+            headers: {
+              Location: "/entrar?error=link-invalido",
+            },
+          });
+        }
 
-    const responseHeaders = new Headers();
-    const supabase = getSSRClient(request, responseHeaders);
-    const { error } = await supabase.auth.verifyOtp({
-      token_hash,
-      type,
-    });
+        const responseHeaders = new Headers();
+        const supabase = getSSRClient(request, responseHeaders);
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash,
+          type,
+        });
 
-    if (error) {
-      console.error("[auth/confirm] verifyOtp error:", error.message);
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: `/entrar?error=${encodeURIComponent(error.message)}`,
-        },
-      });
-    }
+        if (error) {
+          console.error("[auth/confirm] verifyOtp error:", error.message);
+          return new Response(null, {
+            status: 302,
+            headers: {
+              Location: `/entrar?error=${encodeURIComponent(error.message)}`,
+            },
+          });
+        }
 
-    // Success — get the newly created session and merge guest cart
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (sessionData.session) {
-      try {
-        await mergeGuestCartLogic(sessionData.session.user.id, sessionData.session.access_token, guestSessionToken);
-      } catch (err) {
-        console.error("[auth/confirm] mergeGuestCart failed (non-fatal):", err);
-      }
-    }
+        // Success — get the newly created session and merge guest cart
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData.session) {
+          try {
+            await mergeGuestCartLogic(
+              sessionData.session.user.id,
+              sessionData.session.access_token,
+              guestSessionToken,
+            );
+          } catch (err) {
+            console.error("[auth/confirm] mergeGuestCart failed (non-fatal):", err);
+          }
+        }
 
-    // Redirect the user to their intended destination.
-    responseHeaders.set("Location", next);
-    return new Response(null, {
-      status: 302,
-      headers: responseHeaders,
-    });
-
+        // Redirect the user to their intended destination.
+        responseHeaders.set("Location", next);
+        return new Response(null, {
+          status: 302,
+          headers: responseHeaders,
+        });
+      },
+    },
   },
 });
