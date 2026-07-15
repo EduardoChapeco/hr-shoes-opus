@@ -99,7 +99,7 @@ export const getCart = createServerFn({ method: "GET" }).handler(
           qty,
           product_variants (
             id,
-            price_cents,
+            price_override_cents,
             compare_at_cents,
             sku,
             attributes,
@@ -107,6 +107,7 @@ export const getCart = createServerFn({ method: "GET" }).handler(
               id,
               name,
               slug,
+              price_cents,
               product_media ( url )
             )
           )
@@ -128,13 +129,14 @@ export const getCart = createServerFn({ method: "GET" }).handler(
       qty: number;
       product_variants: {
         sku: string;
-        price_cents: number;
+        price_override_cents: number | null;
         compare_at_cents: number | null;
         attributes: Record<string, string>;
         product: {
           id: string;
           name: string;
           slug: string;
+          price_cents: number;
           product_media?: { url: string }[];
         };
       };
@@ -147,7 +149,7 @@ export const getCart = createServerFn({ method: "GET" }).handler(
       const variant = item.product_variants;
       const product = variant.product;
       const image = product.product_media?.[0]?.url;
-      const price = variant.price_cents;
+      const price = variant.price_override_cents ?? product.price_cents;
       const lineTotal = price * item.qty;
       totalCents += lineTotal;
 

@@ -472,7 +472,7 @@ export const getProductDetail = createServerFn({ method: "GET" })
           status, seo_title, seo_description,
           product_media(id, url, alt, media_type, sort_order),
           product_variants(
-            id, sku, price_cents, stock_on_hand, stock_reserved, attributes,
+            id, sku, price_override_cents, stock_on_hand, stock_reserved, attributes,
             product_media(id, url, alt, media_type, sort_order)
           )
         `)
@@ -515,7 +515,7 @@ export const getProductDetail = createServerFn({ method: "GET" })
         return {
           id: v.id,
           sku: v.sku,
-          effectivePriceCents: v.price_cents || data.price_cents,
+          effectivePriceCents: v.price_override_cents ?? data.price_cents,
           availableQty,
           attributes: v.attributes || {},
           media: variantMedia.length > 0 ? variantMedia : media, // Fallback para a mídia do produto
