@@ -265,7 +265,7 @@ export const searchProducts = createServerFn({ method: "GET" })
         .select(
           `
           id,
-          title:name,
+          title,
           slug,
           status,
           priceCents:price_cents,
@@ -354,7 +354,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
       const { data, error } = await db
         .from("products")
         .select(
-          `id, slug, title:name, brand, priceCents:price_cents, compareAtCents:compare_at_price_cents, status, media:product_media(url, alt, sort_order)`,
+          `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_price_cents, status, media:product_media(url, alt, sort_order)`,
         )
         .eq("store_id", store.id)
         .eq("status", "published")
@@ -398,7 +398,7 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
       const { data, error } = await db
         .from("products")
         .select(
-          `id, slug, title:name, brand, priceCents:price_cents, compareAtCents:compare_at_price_cents, status, media:product_media(url, alt, sort_order)`,
+          `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_price_cents, status, media:product_media(url, alt, sort_order)`,
         )
         .eq("store_id", store.id)
         .eq("status", "published")

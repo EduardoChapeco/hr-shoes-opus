@@ -1,28 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
-
-async function getCurrentIdentity() {
-  const ssrClient = getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) return { id: null, role: "customer", store_id: null };
-
-  const serverClient = getServerClient();
-  const { data: profile } = await serverClient
-    .from("profiles")
-    .select("role, store_id")
-    .eq("id", user.id)
-    .single();
-
-  return {
-    id: user.id,
-    role: profile?.role || "customer",
-    store_id: profile?.store_id || null,
-  };
-}
+import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 export const getCustomerInstallments = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
@@ -75,13 +54,10 @@ export const getCustomerInstallments = createServerFn({ method: "GET" }).handler
   }));
 });
 
-export const listAllInstallments = createServerFn({ method: "GET" }).handler(async () => {
+export const getInstallmentPlans = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
-  const identity = await getCurrentIdentity();
-
-  if (!identity.store_id || identity.role === "customer") {
-    throw new Error("Não autorizado");
-  }
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
   // Get all installments pending or late for the store
   const { data: installments, error } = await supabase
@@ -112,13 +88,11 @@ export const payInstallment = createServerFn({ method: "POST" })
       installmentId: z.string().uuid(),
     }),
   )
-  .handler(async ({ data: { installmentId } }) => {
+  .handler(async ({ data: input }) => {
+    const { installmentId } = input;
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-
-    if (!identity.store_id || identity.role === "customer") {
-      throw new Error("Não autorizado");
-    }
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "finance"]);
 
     const { data: installment, error: fetchError } = await supabase
       .from("installments")

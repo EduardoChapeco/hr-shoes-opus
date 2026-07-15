@@ -1,36 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
-
-async function getCurrentIdentity() {
-  const ssrClient = getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) return { id: null, role: "customer", store_id: null };
-
-  const serverClient = getServerClient();
-  const { data: profile } = await serverClient
-    .from("profiles")
-    .select("role, store_id")
-    .eq("id", user.id)
-    .single();
-
-  return {
-    id: user.id,
-    role: profile?.role || "customer",
-    store_id: profile?.store_id || null,
-  };
-}
+import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 export const listCommissions = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
-  const identity = await getCurrentIdentity();
-
-  if (!identity.store_id || identity.role === "customer" || !identity.id) {
-    throw new Error("Não autorizado");
-  }
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "finance", "seller"]);
 
   let query = supabase
     .from("commissions")
@@ -66,12 +42,8 @@ export const payCommission = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { commissionId } }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-
-    // Apenas finance, manager, admin ou owner podem pagar
-    if (!identity.store_id || !["owner", "admin", "manager", "finance"].includes(identity.role)) {
-      throw new Error("Não autorizado para pagar comissões");
-    }
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
     const { error } = await supabase
       .from("commissions")

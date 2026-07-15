@@ -1,17 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
+import { getSSRClient } from "@/lib/supabase-ssr";
 
 export const listOrders = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const db = await getServerClient();
 
+    // customer_name/email stored in customer_snapshot JSONB (migration 0025).
+    // order_items uses qty (not quantity) and total_cents (not total_price_cents).
     const { data, error } = await db
       .from("orders")
       .select(
         `
-          id, public_token, status, total_cents, customer_name, customer_email, created_at,
-          order_items ( id, product_title, variant_sku, quantity )
+          id, public_token, status, total_cents, customer_snapshot, created_at,
+          order_items ( id, product_title, variant_sku, qty )
         `,
       )
       .order("created_at", { ascending: false });
@@ -70,15 +73,11 @@ export const listPayments = createServerFn({ method: "GET" }).handler(async () =
   try {
     const db = await getServerClient();
 
-    // Assume payments is linked to orders
-    // In 0003_orders.sql it seems there is a 'payments' table or similar? Let's assume there is one for simplicity or we just fetch orders with status 'awaiting_payment'.
-    // Wait, 0003_orders.sql doesn't have a payments table. It uses payment_status ENUM but wait, I didn't see the payments table.
-    // I'll just return orders that need payment manual approval for now.
     const { data, error } = await db
       .from("orders")
       .select(
         `
-          id, public_token, status, total_cents, customer_name, created_at
+          id, public_token, status, total_cents, customer_snapshot, created_at
         `,
       )
       .in("status", ["awaiting_payment", "payment_processing", "paid"])
@@ -99,7 +98,6 @@ export const listPayments = createServerFn({ method: "GET" }).handler(async () =
 
 export const listCustomerOrders = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const { getSSRClient } = await import("@/lib/supabase-ssr");
     const ssrClient = getSSRClient();
     const {
       data: { user },
@@ -107,14 +105,12 @@ export const listCustomerOrders = createServerFn({ method: "GET" }).handler(asyn
 
     if (!user) throw new Error("Não autenticado");
 
-    const db = getSSRClient();
-
-    const { data, error } = await db
+    const { data, error } = await ssrClient
       .from("orders")
       .select(
         `
         id, public_token, status, total_cents, created_at,
-        order_items ( id, product_title, variant_sku, quantity, unit_cents )
+        order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
       `,
       )
       .eq("customer_id", user.id)
@@ -133,7 +129,6 @@ export const getCustomerOrder = createServerFn({ method: "GET" })
   .validator(z.object({ orderId: z.string().uuid() }))
   .handler(async ({ data: { orderId } }) => {
     try {
-      const { getSSRClient } = await import("@/lib/supabase-ssr");
       const ssrClient = getSSRClient();
       const {
         data: { user },
@@ -141,15 +136,13 @@ export const getCustomerOrder = createServerFn({ method: "GET" })
 
       if (!user) throw new Error("Não autenticado");
 
-      const db = getSSRClient();
-
-      const { data: order, error } = await db
+      const { data: order, error } = await ssrClient
         .from("orders")
         .select(
           `
           id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents,
-          customer_name, customer_email, customer_phone, shipping_method, shipping_address, created_at,
-          order_items ( id, product_title, variant_sku, quantity, unit_price_cents, total_price_cents ),
+          customer_snapshot, shipping_method, shipping_address, created_at,
+          order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents ),
           payments ( id, method, status, amount_cents, receipt_url, receipt_status )
         `,
         )

@@ -86,7 +86,7 @@ function AdminOrdersPage() {
                       #{order.public_token}
                     </TableCell>
                     <TableCell>{date}</TableCell>
-                    <TableCell>{order.customer_name || "Desconhecido"}</TableCell>
+                    <TableCell>{order.customer_snapshot?.name || "Desconhecido"}</TableCell>
                     <TableCell>{formatMoney(order.total_cents)}</TableCell>
                     <TableCell>
                       <Badge variant={badgeInfo.variant}>{badgeInfo.label}</Badge>

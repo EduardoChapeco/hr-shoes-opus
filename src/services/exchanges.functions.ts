@@ -2,28 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr";
-
-async function getCurrentIdentity() {
-  const ssrClient = getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) return { id: null, role: "customer", store_id: null, customer_id: null };
-
-  const serverClient = getServerClient();
-  const { data: profile } = await serverClient
-    .from("profiles")
-    .select("role, store_id")
-    .eq("id", user.id)
-    .single();
-
-  return {
-    id: user.id,
-    customer_id: user.id, // For easy access
-    role: profile?.role || "customer",
-    store_id: profile?.store_id || null,
-  };
-}
+import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 export const requestExchange = createServerFn({ method: "POST" })
   .validator(
@@ -34,9 +13,9 @@ export const requestExchange = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { orderId, reason } }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
+    const identity = await getServerIdentity();
 
-    if (!identity.customer_id) {
+    if (!identity.id) {
       throw new Error("Você precisa estar logado para solicitar uma troca");
     }
 
@@ -44,7 +23,7 @@ export const requestExchange = createServerFn({ method: "POST" })
       .from("orders")
       .select("id, store_id, status")
       .eq("id", orderId)
-      .eq("customer_id", identity.customer_id)
+      .eq("customer_id", identity.id)
       .single();
 
     if (orderError || !order) {
@@ -58,7 +37,7 @@ export const requestExchange = createServerFn({ method: "POST" })
     const { error: insertError } = await supabase.from("exchanges").insert({
       store_id: order.store_id,
       order_id: order.id,
-      customer_id: identity.customer_id,
+      customer_id: identity.id,
       reason,
       status: "requested",
       refund_amount_cents: 0,
@@ -73,11 +52,8 @@ export const requestExchange = createServerFn({ method: "POST" })
 
 export const listExchanges = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
-  const identity = await getCurrentIdentity();
-
-  if (!identity.store_id || identity.role === "customer") {
-    throw new Error("Não autorizado");
-  }
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance"]);
 
   const { data: exchanges, error } = await supabase
     .from("exchanges")
@@ -110,11 +86,8 @@ export const updateExchangeStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { exchangeId, status, refundCents } }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-
-    if (!identity.store_id || identity.role === "customer") {
-      throw new Error("Não autorizado");
-    }
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance"]);
 
     const updates: any = { status };
     if (refundCents !== undefined) {

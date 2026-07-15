@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { randomBytes } from "node:crypto";
 import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr";
+import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 async function getCurrentIdentity() {
   const ssrClient = getSSRClient();
@@ -24,13 +26,14 @@ async function getCurrentIdentity() {
   };
 }
 
-// Generate a random 12-char code like ABCD-1234-WXYZ
+// Generate a random 12-char code like ABCD-1234-WXYZ using cryptographically secure randomness
 function generateGiftCardCode() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const bytes = randomBytes(12);
   let code = "";
   for (let i = 0; i < 12; i++) {
     if (i > 0 && i % 4 === 0) code += "-";
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars[bytes[i] % chars.length];
   }
   return code;
 }
@@ -44,11 +47,8 @@ export const createGiftCard = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { initialBalanceCents, recipientEmail } }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-
-    if (!identity.store_id || !["owner", "admin", "manager", "finance"].includes(identity.role)) {
-      throw new Error("Não autorizado");
-    }
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
     const code = generateGiftCardCode();
 
@@ -69,11 +69,8 @@ export const createGiftCard = createServerFn({ method: "POST" })
 
 export const listGiftCards = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getServerClient();
-  const identity = await getCurrentIdentity();
-
-  if (!identity.store_id || identity.role === "customer") {
-    throw new Error("Não autorizado");
-  }
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "finance", "seller"]);
 
   const { data: cards, error } = await supabase
     .from("gift_cards")
@@ -140,11 +137,8 @@ export const cancelGiftCard = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { id } }) => {
     const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-
-    if (!identity.store_id || !["owner", "admin", "manager", "finance"].includes(identity.role)) {
-      throw new Error("Não autorizado");
-    }
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
 
     const { error } = await supabase
       .from("gift_cards")

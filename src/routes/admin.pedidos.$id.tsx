@@ -17,8 +17,8 @@ export const Route = createFileRoute("/admin/pedidos/$id")({
       .select(
         `
         id, public_token, status, total_cents, subtotal_cents, shipping_cents,
-        customer_name, customer_email, created_at, shipping_address,
-        order_items ( id, product_title, variant_sku, quantity, unit_price_cents, total_price_cents )
+        customer_snapshot, created_at, shipping_address,
+        order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
       `,
       )
       .eq("id", params.id)
@@ -53,7 +53,7 @@ function AdminOrderDetailPage() {
       <PageHeader
         eyebrow="Vendas"
         title={`Pedido #${order.public_token}`}
-        description={`Realizado em ${date} por ${order.customer_name}`}
+        description={`Realizado em ${date} por ${(order.customer_snapshot as any)?.name ?? "Desconhecido"}`}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -2,28 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
-
-async function getCurrentIdentity() {
-  const ssrClient = getSSRClient();
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-  if (!user) return { id: null, role: "customer", store_id: null };
-
-  const serverClient = getServerClient();
-  const { data: profile } = await serverClient
-    .from("profiles")
-    .select("role, store_id")
-    .eq("id", user.id)
-    .single();
-
-  return {
-    id: user.id,
-    role: profile?.role || "customer",
-    store_id: profile?.store_id || null,
-  };
-}
+import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 // ---------------------------------------------------------------------------
 // Team Management (Equipe)
@@ -31,12 +10,9 @@ async function getCurrentIdentity() {
 
 export const listTeamMembers = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const db = getServerClient();
-    const identity = await getCurrentIdentity();
-
-    if (!identity.store_id || !["owner", "admin", "manager"].includes(identity.role)) {
-      throw new Error("Não autorizado");
-    }
+    const db = await getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager"]);
 
     const { data, error } = await db
       .from("profiles")
@@ -63,12 +39,9 @@ export const updateTeamMemberRole = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      const db = getServerClient();
-      const identity = await getCurrentIdentity();
-
-      if (!identity.store_id || !["owner", "admin"].includes(identity.role)) {
-        throw new Error("Apenas donos/admins podem alterar cargos.");
-      }
+      const db = await getServerClient();
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin"]);
 
       // Prevent owner from demoting themselves
       if (input.id === identity.id && input.role !== "owner" && identity.role === "owner") {
