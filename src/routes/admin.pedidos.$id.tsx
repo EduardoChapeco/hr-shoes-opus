@@ -1,12 +1,8 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
-import { toast } from "sonner";
+import { createFileRoute } from "@tanstack/react-start";
 import { formatMoney } from "@/lib/money";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { getServerClient } from "@/lib/supabase";
-import { confirmPayment } from "@/services/payment.functions";
 
 export const Route = createFileRoute("/admin/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido — Hr Shoes" }] }),
@@ -31,22 +27,7 @@ export const Route = createFileRoute("/admin/pedidos/$id")({
 
 function AdminOrderDetailPage() {
   const order = Route.useLoaderData();
-  const router = useRouter();
-  const [isConfirming, setIsConfirming] = useState(false);
   const date = new Date(order.created_at).toLocaleDateString("pt-BR");
-
-  const handleConfirmPayment = async () => {
-    setIsConfirming(true);
-    try {
-      await confirmPayment({ data: { orderId: order.id } });
-      toast.success("Pagamento confirmado e estoque atualizado!");
-      router.invalidate();
-    } catch (e: any) {
-      toast.error(e.message || "Erro ao confirmar pagamento");
-    } finally {
-      setIsConfirming(false);
-    }
-  };
 
   return (
     <div className="space-y-8">
@@ -107,10 +88,10 @@ function AdminOrderDetailPage() {
               {order.status}
             </Badge>
 
-            {order.status === "awaiting_payment" && (
-              <Button className="w-full" onClick={handleConfirmPayment} disabled={isConfirming}>
-                {isConfirming ? "Confirmando..." : "Confirmar Pagamento"}
-              </Button>
+            {order.status === "payment_pending" && (
+              <p className="text-sm text-muted-foreground text-center bg-muted p-3 rounded-md">
+                Aguardando confirmação automática via Gateway (Pagar.me Webhook). Nenhuma ação manual é necessária.
+              </p>
             )}
           </div>
         </div>

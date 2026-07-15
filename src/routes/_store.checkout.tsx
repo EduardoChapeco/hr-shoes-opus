@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getCart } from "@/services/cart.functions";
 import { processCheckout } from "@/services/checkout.functions";
-import { CheckCircle2, Ticket } from "lucide-react";
+import { initiatePayment } from "@/services/payment.functions";
+import { CheckCircle2, Ticket, QrCode } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/_store/checkout")({
     const cart = await getCart();
     return (
       cart || {
+        id: "",
         items: [],
         totalCents: 0,
         subtotalCents: 0,
@@ -39,6 +41,7 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successToken, setSuccessToken] = useState("");
+  const [pixData, setPixData] = useState<{ qrCode: string | null }>({ qrCode: null });
 
   const [formData, setFormData] = useState({
     customerName: "",
@@ -72,10 +75,29 @@ function CheckoutPage() {
 
     setIsSubmitting(true);
     try {
+      // 1. Process Order
       const res = await processCheckout({
-        data: { ...formData, cartId: cart.id },
+        data: { ...formData, cartId: cart.id, paymentMethod: formData.paymentMethod === "manual" ? "pix" : formData.paymentMethod },
       });
+      
       if (res.status === "success") {
+        // 2. Initiate Payment (Gateway Transact)
+        try {
+          const payRes = await initiatePayment({
+            data: {
+              orderId: res.orderToken,
+              method: formData.paymentMethod === "credit_card" ? "credit_card" : "pix",
+              amountCents: cart.totalCents
+            }
+          });
+          
+          if (payRes.status === "success") {
+            setPixData({ qrCode: payRes.pix_qr_code });
+          }
+        } catch(payErr: any) {
+           toast.error("Pedido criado, mas falha ao comunicar com Gateway de Pagamento.");
+        }
+        
         setSuccessToken(res.orderToken);
       } else {
         toast.error(res.message);
@@ -93,10 +115,33 @@ function CheckoutPage() {
         <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-6" />
         <h1 className="text-3xl font-serif font-bold mb-4">Pedido Realizado!</h1>
         <p className="text-muted-foreground mb-8">
-          Seu pedido <strong>#{successToken}</strong> foi criado com sucesso e está aguardando
+          Seu pedido <strong>#{successToken.split("-")[0]}</strong> foi criado com sucesso e está aguardando
           pagamento.
         </p>
-        <Button onClick={() => navigate({ to: "/" })}>Voltar para a Loja</Button>
+
+        {pixData.qrCode && (
+          <div className="bg-muted/30 p-6 rounded-xl border border-border inline-block mb-8">
+            <QrCode className="w-8 h-8 text-primary mx-auto mb-4" />
+            <h3 className="font-semibold text-lg mb-2">Pague via PIX Copia e Cola</h3>
+            <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
+              Copie o código abaixo e cole no aplicativo do seu banco para finalizar a compra.
+            </p>
+            <div className="flex gap-2">
+              <Input readOnly value={pixData.qrCode} className="font-mono text-xs text-center" />
+              <Button onClick={() => {
+                navigator.clipboard.writeText(pixData.qrCode!);
+                toast.success("Código copiado!");
+              }}>Copiar</Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-4">
+              O status do pedido será atualizado automaticamente assim que o pagamento for reconhecido pelo banco.
+            </p>
+          </div>
+        )}
+
+        <div>
+          <Button onClick={() => navigate({ to: "/conta" })}>Acompanhar Pedido</Button>
+        </div>
       </div>
     );
   }
@@ -293,10 +338,10 @@ function CheckoutPage() {
                 </Button>
                 <Button
                   type="button"
-                  variant={formData.paymentMethod === "manual" ? "default" : "outline"}
-                  onClick={() => setFormData({ ...formData, paymentMethod: "manual" })}
+                  variant={formData.paymentMethod === "credit_card" ? "default" : "outline"}
+                  onClick={() => setFormData({ ...formData, paymentMethod: "credit_card" })}
                 >
-                  Transferência Manual
+                  Cartão de Crédito
                 </Button>
               </div>
             </div>
