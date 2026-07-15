@@ -14,7 +14,8 @@ export const APIRoute = createAPIFileRoute("/api/auth/callback")({
     const guestSessionToken = match ? match[1] : null;
 
     if (code) {
-      const supabase = getSSRClient();
+      const responseHeaders = new Headers();
+      const supabase = getSSRClient(request, responseHeaders);
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error && data.session) {
         try {
@@ -29,11 +30,10 @@ export const APIRoute = createAPIFileRoute("/api/auth/callback")({
           console.error("Falha ao mesclar carrinho após OAuth (ignorado):", err);
         }
 
+        responseHeaders.set("Location", next);
         return new Response(null, {
           status: 302,
-          headers: {
-            Location: next,
-          },
+          headers: responseHeaders,
         });
       }
     }

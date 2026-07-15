@@ -61,7 +61,9 @@ function LoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      const result = await signInWithPassword({ data });
+      const result = await signInWithPassword({ 
+        data: { ...data, redirectTo: returnUrl } 
+      });
 
       if (result.status === "error") {
         toast.error(result.message);

@@ -7,6 +7,7 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
+import { redirect } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { getSSRClient } from "@/lib/supabase-ssr";
@@ -22,6 +23,7 @@ import { getEnvVar } from "@/lib/env";
 const LoginSchema = z.object({
   email: z.string().email("E-mail inválido"),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  redirectTo: z.string().optional(),
 });
 
 const RegisterSchema = z.object({
@@ -68,7 +70,7 @@ export const getUserSession = createServerFn({ method: "GET" }).handler(async ({
 
 export const signInWithPassword = createServerFn({ method: "POST" })
   .validator(LoginSchema)
-  .handler(async ({ data: { email, password }, request }) => {
+  .handler(async ({ data: { email, password, redirectTo }, request }) => {
     try {
       // Extract guest session manually before async context drops
       const cookieHeader = request.headers.get("cookie") || "";
@@ -83,6 +85,12 @@ export const signInWithPassword = createServerFn({ method: "POST" })
       });
 
       if (error) {
+        if (error.status === 429) {
+          return { status: "error" as const, message: "Muitas tentativas de login. Aguarde alguns minutos." };
+        }
+        if (error.message.includes("Email not confirmed")) {
+          return { status: "error" as const, message: "E-mail não confirmado. Verifique sua caixa de entrada." };
+        }
         return { status: "error" as const, message: "E-mail ou senha incorretos." };
       }
 
@@ -100,12 +108,19 @@ export const signInWithPassword = createServerFn({ method: "POST" })
         }
       }
 
+      if (redirectTo) {
+        throw redirect({
+          to: redirectTo,
+          headers: responseHeaders,
+        });
+      }
+
       throw redirect({
         to: "/admin",
         headers: responseHeaders,
       });
     } catch (e: unknown) {
-      if (e instanceof Response) throw e;
+      if (e instanceof Response || (e && typeof e === 'object' && 'isRedirect' in e)) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       return { status: "error" as const, message: `Erro ao realizar login: ${message}` };
     }
@@ -133,12 +148,9 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
         return { status: "error" as const, message: error.message };
       }
 
-      throw redirect({
-        to: data.url,
-        headers: responseHeaders,
-      });
+      return { status: "success" as const, url: data.url };
     } catch (e: unknown) {
-      if (e instanceof Response) throw e;
+      if (e instanceof Response || (e && typeof e === 'object' && 'isRedirect' in e)) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       return { status: "error" as const, message: `Erro ao inicializar OAuth: ${message}` };
     }
@@ -214,7 +226,7 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
         headers: responseHeaders,
       });
     } catch (e: unknown) {
-      if (e instanceof Response) throw e;
+      if (e instanceof Response || (e && typeof e === 'object' && 'isRedirect' in e)) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       console.error("[auth] Erro catastrófico no signUp:", e);
       return { status: "error" as const, message: `Erro interno no cadastro: ${message}` };
@@ -245,7 +257,7 @@ export const signOut = createServerFn({ method: "POST" })
         headers: responseHeaders,
       });
     } catch (e: unknown) {
-      if (e instanceof Response) throw e;
+      if (e instanceof Response || (e && typeof e === 'object' && 'isRedirect' in e)) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       return { status: "error" as const, message: `Erro ao realizar logout: ${message}` };
     }
@@ -265,8 +277,15 @@ export const updatePassword = createServerFn({ method: "POST" })
         return { status: "error" as const, message: error.message };
       }
 
-      return { status: "success" as const };
+      throw redirect({
+        to: "/conta",
+        headers: responseHeaders,
+      });
     } catch (e: unknown) {
+      // If it's a redirect, let it pass through
+      if (e instanceof Response || (e && typeof e === 'object' && 'isRedirect' in e)) {
+        throw e;
+      }
       return { status: "error" as const, message: "Erro inesperado ao atualizar a senha." };
     }
   });
@@ -281,9 +300,18 @@ export const resetPasswordForEmail = createServerFn({ method: "POST" })
         redirectTo,
       });
 
-      if (error) return { status: "error" as const, message: error.message };
+      if (error) {
+        if (error.status === 429) {
+          return {
+            status: "error" as const,
+            message: "Limite de envio de e-mails atingido. Aguarde 60 minutos antes de solicitar novamente.",
+          };
+        }
+        return { status: "error" as const, message: error.message };
+      }
       return { status: "success" as const };
     } catch (e) {
+      if (e instanceof Response || (e && typeof e === 'object' && 'isRedirect' in e)) throw e;
       return { status: "error" as const, message: "Erro ao solicitar redefinição." };
     }
   });

@@ -36,7 +36,8 @@ export const APIRoute = createAPIFileRoute("/api/auth/confirm")({
       });
     }
 
-    const supabase = getSSRClient();
+    const responseHeaders = new Headers();
+    const supabase = getSSRClient(request, responseHeaders);
     const { error } = await supabase.auth.verifyOtp({
       token_hash,
       type,
@@ -53,8 +54,7 @@ export const APIRoute = createAPIFileRoute("/api/auth/confirm")({
     }
 
     // Success — get the newly created session and merge guest cart
-    const supabaseAfter = getSSRClient();
-    const { data: sessionData } = await supabaseAfter.auth.getSession();
+    const { data: sessionData } = await supabase.auth.getSession();
     if (sessionData.session) {
       try {
         await mergeGuestCartLogic(sessionData.session.user.id, sessionData.session.access_token, guestSessionToken);
@@ -64,11 +64,10 @@ export const APIRoute = createAPIFileRoute("/api/auth/confirm")({
     }
 
     // Redirect the user to their intended destination.
+    responseHeaders.set("Location", next);
     return new Response(null, {
       status: 302,
-      headers: {
-        Location: next,
-      },
+      headers: responseHeaders,
     });
 
   },

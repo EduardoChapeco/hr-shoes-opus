@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { getBrowserClient } from "@/lib/supabase";
+import { resetPasswordForEmail } from "@/services/auth.functions";
 
 export const Route = createFileRoute("/_store/recuperar-senha")({
   head: () => ({ meta: [{ title: "Recuperar senha — Hr Shoes" }] }),
@@ -21,12 +21,14 @@ function Page() {
 
     setIsSubmitting(true);
     try {
-      const supabase = getBrowserClient();
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/_store/redefinir-senha`,
+      const result = await resetPasswordForEmail({
+        data: {
+          email,
+          redirectTo: `${window.location.origin}/redefinir-senha`,
+        },
       });
 
-      if (error) throw error;
+      if (result.status === "error") throw new Error(result.message);
       setSuccess(true);
     } catch (e: any) {
       toast.error(e.message || "Erro ao solicitar recuperação de senha.");
