@@ -7,7 +7,7 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
+import { getRequest, getResponseHeaders } from "@tanstack/react-start/server";
 import { isRedirect, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 
@@ -86,8 +86,8 @@ export const signInWithPassword = createServerFn({ method: "POST" })
       // Extract guest session manually before async context drops
       const guestSessionToken = readCookieFromRequest(request, "hr_shoes_guest_session");
 
-      const responseHeaders = new Headers();
-      const supabase = getSSRClient(request, responseHeaders);
+      // Use global getResponseHeaders implicitly to ensure Set-Cookie is persisted on the RPC response
+      const supabase = getSSRClient();
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -123,19 +123,9 @@ export const signInWithPassword = createServerFn({ method: "POST" })
         }
       }
 
-      if (redirectTo) {
-        throw redirect({
-          to: normalizeInternalReturnPath(redirectTo, "/admin"),
-          headers: responseHeaders,
-        });
-      }
-
-      throw redirect({
-        to: "/admin",
-        headers: responseHeaders,
-      });
+      // Return success and let the client handle the redirect to preserve client-side router state
+      return { status: "success" as const };
     } catch (e: unknown) {
-      if (isRedirect(e)) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       return { status: "error" as const, message: `Erro ao realizar login: ${message}` };
     }
@@ -178,8 +168,7 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
       // Extract guest session manually before async context drops
       const guestSessionToken = readCookieFromRequest(request, "hr_shoes_guest_session");
 
-      const responseHeaders = new Headers();
-      const supabase = getSSRClient(request, responseHeaders);
+      const supabase = getSSRClient();
 
       // Build the confirmation URL. Supabase will append token_hash and type.
       // The app's /api/auth/confirm handler will process these and create the session.
@@ -239,14 +228,9 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
         return { status: "success" as const, sessionActive: false };
       }
 
-      // If session is active, we MUST throw redirect to propagate the Set-Cookie headers
-      // since vinxi/http context is lost and we can't use setCookie.
-      throw redirect({
-        to: normalizeInternalReturnPath(redirectTo, "/conta"),
-        headers: responseHeaders,
-      });
+      // If session is active, cookies are automatically set in getResponseHeaders
+      return { status: "success" as const, sessionActive: true };
     } catch (e: unknown) {
-      if (isRedirect(e)) throw e;
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       console.error("[auth] Erro catastrófico no signUp:", e);
       return { status: "error" as const, message: `Erro interno no cadastro: ${message}` };
@@ -255,8 +239,7 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
 
 export const signOut = createServerFn({ method: "POST" }).handler(async () => {
   try {
-    const responseHeaders = new Headers();
-    const supabase = getSSRClient(getRequest(), responseHeaders);
+    const supabase = getSSRClient();
     const { error } = await supabase.auth.signOut();
 
     if (error) {
@@ -264,19 +247,15 @@ export const signOut = createServerFn({ method: "POST" }).handler(async () => {
     }
 
     // Clear guest session manually via Headers to avoid unctx crash
-    responseHeaders.append(
+    getResponseHeaders().append(
       "Set-Cookie",
       `hr_shoes_guest_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${
         process.env.NODE_ENV === "production" ? "; Secure" : ""
       }`,
     );
 
-    throw redirect({
-      to: "/entrar",
-      headers: responseHeaders,
-    });
+    return { status: "success" as const };
   } catch (e: unknown) {
-    if (isRedirect(e)) throw e;
     const message = e instanceof Error ? e.message : "Erro desconhecido";
     return { status: "error" as const, message: `Erro ao realizar logout: ${message}` };
   }
@@ -286,8 +265,7 @@ export const updatePassword = createServerFn({ method: "POST" })
   .validator(ResetPasswordSchema)
   .handler(async ({ data: { password } }) => {
     try {
-      const responseHeaders = new Headers();
-      const supabase = getSSRClient(getRequest(), responseHeaders);
+      const supabase = getSSRClient();
       const { error } = await supabase.auth.updateUser({
         password,
       });
@@ -296,16 +274,10 @@ export const updatePassword = createServerFn({ method: "POST" })
         return { status: "error" as const, message: error.message };
       }
 
-      throw redirect({
-        to: "/conta",
-        headers: responseHeaders,
-      });
+      return { status: "success" as const };
     } catch (e: unknown) {
-      // If it's a redirect, let it pass through
-      if (isRedirect(e)) {
-        throw e;
-      }
-      return { status: "error" as const, message: "Erro inesperado ao atualizar a senha." };
+      const message = e instanceof Error ? e.message : "Erro desconhecido";
+      return { status: "error" as const, message: `Erro ao atualizar senha: ${message}` };
     }
   });
 
