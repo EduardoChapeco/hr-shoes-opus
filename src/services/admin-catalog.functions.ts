@@ -509,4 +509,41 @@ export const getOnboardingProgress = createServerFn({ method: "GET" }).handler(a
   }
 });
 
+export const deleteProductMedia = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid(), url: z.string().url() }))
+  .handler(async ({ data: { id, url } }) => {
+    try {
+      const db = getServerClient();
 
+      const { error: dbError } = await db.from("product_media").delete().eq("id", id);
+      if (dbError) throw dbError;
+
+      const pathMatches = url.match(/product-media\/(.*)$/);
+      if (pathMatches && pathMatches[1]) {
+        const { error: storageError } = await db.storage.from("product-media").remove([pathMatches[1]]);
+        if (storageError) console.error("Storage delete error:", storageError);
+      }
+
+      return { status: "success" as const };
+    } catch (e: any) {
+      return { status: "error" as const, message: e.message || "Erro ao deletar mídia." };
+    }
+  });
+
+export const addProductMediaLink = createServerFn({ method: "POST" })
+  .validator(z.object({ product_id: z.string().uuid(), url: z.string().url() }))
+  .handler(async ({ data: { product_id, url } }) => {
+    try {
+      const db = getServerClient();
+      const { data, error } = await db.from("product_media").insert({
+        product_id,
+        url,
+        sort_order: 99,
+      }).select().single();
+
+      if (error) throw error;
+      return { status: "success" as const, data };
+    } catch (e: any) {
+      return { status: "error" as const, message: e.message || "Erro ao vincular mídia" };
+    }
+  });

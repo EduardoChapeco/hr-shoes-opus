@@ -9,6 +9,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { getSSRClient } from "@/lib/supabase-ssr";
+import { getServerClient } from "@/lib/supabase";
 import { mergeGuestCart } from "./cart.functions";
 
 // ---------------------------------------------------------------------------
@@ -71,7 +72,16 @@ export const signInWithPassword = createServerFn({ method: "POST" })
       }
 
       if (data.user) {
-        await mergeGuestCart({ data: { customerId: data.user.id } });
+        try {
+          await mergeGuestCart({ 
+            data: { 
+              customerId: data.user.id,
+              accessToken: data.session?.access_token
+            } 
+          });
+        } catch (err) {
+          console.error("Falha ao mesclar carrinho durante login (ignorado):", err);
+        }
       }
 
       return { status: "success" as const, data: data.user };
@@ -99,11 +109,55 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
       });
 
       if (error) {
+        if (error.status === 429) {
+          return { status: "error" as const, message: "Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente." };
+        }
         return { status: "error" as const, message: error.message };
       }
 
       if (data.user) {
-        await mergeGuestCart({ data: { customerId: data.user.id } });
+        // [FORENSIC RECOVERY] Fallback: If trigger handle_new_user failed/missing, create profile manually
+        try {
+          const adminClient = getServerClient();
+          const { data: existingProfile } = await adminClient
+            .from("profiles")
+            .select("id")
+            .eq("id", data.user.id)
+            .maybeSingle();
+
+          if (!existingProfile) {
+            console.log("[auth] Profile missing, creating manually for", data.user.id);
+            // 1. Check if it's the first user
+            const { count } = await adminClient.from("profiles").select("*", { count: "exact", head: true });
+            const isFirstUser = count === 0;
+            
+            // 2. Get default store
+            const { data: defaultOrg } = await adminClient.from("organizations").select("id").eq("slug", "hr-shoes-org").single();
+            const { data: defaultStore } = await adminClient.from("stores").select("id").eq("slug", "hr-shoes").single();
+
+            // 3. Create profile
+            await adminClient.from("profiles").insert({
+              id: data.user.id,
+              organization_id: isFirstUser ? defaultOrg?.id : null,
+              store_id: isFirstUser ? defaultStore?.id : null,
+              role: isFirstUser ? "owner" : "customer",
+              full_name: fullName,
+            });
+          }
+        } catch (profileErr) {
+          console.error("Falha ao criar profile de fallback:", profileErr);
+        }
+
+        try {
+          await mergeGuestCart({ 
+            data: { 
+              customerId: data.user.id,
+              accessToken: data.session?.access_token
+            } 
+          });
+        } catch (err) {
+          console.error("Falha ao mesclar carrinho durante cadastro (ignorado):", err);
+        }
       }
 
       return { status: "success" as const, data: data.user };

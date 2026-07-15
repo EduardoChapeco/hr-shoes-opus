@@ -10,24 +10,31 @@ DECLARE
   default_store_id UUID;
   user_role TEXT;
 BEGIN
-  -- Set secure search path
-  SET search_path = public, pg_temp;
-
   -- Check if this is the first user ever registered (no entries in public.profiles yet)
   SELECT NOT EXISTS (SELECT 1 FROM public.profiles LIMIT 1) INTO is_first_user;
   
   IF is_first_user THEN
     user_role := 'owner';
     
-    -- Create default organization for the first user
-    INSERT INTO public.organizations (name, slug)
-    VALUES ('Hr Shoes Organization', 'hr-shoes-org')
-    RETURNING id INTO default_org_id;
+    -- Check if default organization already exists
+    SELECT id INTO default_org_id FROM public.organizations WHERE slug = 'hr-shoes-org' LIMIT 1;
     
-    -- Create default store linked to the organization
-    INSERT INTO public.stores (organization_id, name, slug)
-    VALUES (default_org_id, 'Hr Shoes', 'hr-shoes')
-    RETURNING id INTO default_store_id;
+    IF default_org_id IS NULL THEN
+      -- Create default organization
+      INSERT INTO public.organizations (name, slug)
+      VALUES ('Hr Shoes Organization', 'hr-shoes-org')
+      RETURNING id INTO default_org_id;
+    END IF;
+    
+    -- Check if default store already exists
+    SELECT id INTO default_store_id FROM public.stores WHERE slug = 'hr-shoes' AND organization_id = default_org_id LIMIT 1;
+    
+    IF default_store_id IS NULL THEN
+      -- Create default store
+      INSERT INTO public.stores (organization_id, name, slug)
+      VALUES (default_org_id, 'Hr Shoes', 'hr-shoes')
+      RETURNING id INTO default_store_id;
+    END IF;
   ELSE
     user_role := 'customer';
     default_org_id := NULL;
@@ -46,7 +53,7 @@ BEGIN
   
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- Trigger execution
 CREATE OR REPLACE TRIGGER on_auth_user_created

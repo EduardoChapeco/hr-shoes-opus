@@ -35,7 +35,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { listGiftCards, createGiftCard } from "@/services/giftcard.functions";
+import { listGiftCards, createGiftCard, cancelGiftCard } from "@/services/giftcard.functions";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/marketing/gift-cards")({
@@ -85,6 +85,17 @@ function GiftCardsPage() {
       toast.error(e instanceof Error ? e.message : "Erro ao criar cartão");
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleCancel = async (id: string) => {
+    if (!confirm("Tem certeza que deseja cancelar este cartão? O saldo será invalidado.")) return;
+    try {
+      await cancelGiftCard({ data: { id } });
+      toast.success("Cartão cancelado com sucesso.");
+      router.invalidate();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao cancelar cartão");
     }
   };
 
@@ -162,6 +173,7 @@ function GiftCardsPage() {
                 <TableHead>Valor Inicial</TableHead>
                 <TableHead>Saldo Atual</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -176,11 +188,18 @@ function GiftCardsPage() {
                   </TableCell>
                   <TableCell>
                     {c.status === "active" ? (
-                      <Badge variant="success">Ativo</Badge>
+                      <Badge variant="default" className="bg-green-600 hover:bg-green-700">Ativo</Badge>
                     ) : c.status === "exhausted" ? (
                       <Badge variant="secondary">Exaurido</Badge>
                     ) : (
                       <Badge variant="destructive">Cancelado</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {c.status === "active" && (
+                      <Button variant="ghost" size="sm" onClick={() => handleCancel(c.id)} className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                        Cancelar
+                      </Button>
                     )}
                   </TableCell>
                 </TableRow>

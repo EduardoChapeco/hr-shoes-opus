@@ -10,7 +10,7 @@ import { z } from "zod";
 
 import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr";
-import { getOrCreateGuestSession, getGuestSession } from "@/lib/session";
+import { getOrCreateGuestSession, getGuestSession, getSellerRefCookie } from "@/lib/session";
 import type { CartDTO } from "@/types/orders";
 
 // ---------------------------------------------------------------------------
@@ -179,13 +179,15 @@ export const getCart = createServerFn({ method: "GET" }).handler(
 const AddToCartSchema = z.object({
   variantId: z.string().uuid(),
   quantity: z.number().int().min(1),
+  sellerId: z.string().uuid().optional(),
 });
 
 export const addToCart = createServerFn({ method: "POST" })
   .validator(AddToCartSchema)
-  .handler(async ({ data: { variantId, quantity } }) => {
+  .handler(async ({ data: { variantId, quantity, sellerId } }) => {
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
+    const activeSellerId = sellerId || getSellerRefCookie();
 
     // Check if store exists to use for cart
     const { data: store } = await supabase.from("stores").select("id").limit(1).single();
@@ -208,11 +210,17 @@ export const addToCart = createServerFn({ method: "POST" })
           store_id: store.id,
           customer_id: identity.customer_id,
           session_token: identity.session_token,
+          seller_id: activeSellerId,
           status: "active",
         })
         .select("id")
         .single();
       cartId = newCart!.id;
+    }
+
+    // If adding to existing cart, we might want to update seller_id if it's provided now
+    if (existingCart && activeSellerId) {
+      await supabase.from("carts").update({ seller_id: activeSellerId }).eq("id", cartId);
     }
 
     // 2. Validate stock
@@ -320,9 +328,22 @@ export const removeFromCart = createServerFn({ method: "POST" })
   });
 
 export const mergeGuestCart = createServerFn({ method: "POST" })
-  .validator(z.object({ customerId: z.string().uuid() }))
-  .handler(async ({ data: { customerId } }) => {
-    const supabase = getServerClient();
+  .validator(z.object({ customerId: z.string().uuid(), accessToken: z.string().optional() }))
+  .handler(async ({ data: { customerId, accessToken } }) => {
+    let supabase;
+    if (accessToken) {
+      const url = process.env.VITE_SUPABASE_URL;
+      const key = process.env.VITE_SUPABASE_ANON_KEY;
+      if (!url || !key) throw new Error("Missing env vars for Supabase");
+      
+      const { createClient } = await import("@supabase/supabase-js");
+      supabase = createClient(url, key, {
+        global: { headers: { Authorization: `Bearer ${accessToken}` } },
+      });
+    } else {
+      supabase = getSSRClient();
+    }
+    
     const { session_token } = await getCurrentIdentity();
     if (!session_token) return { status: "success" };
 

@@ -317,3 +317,114 @@ export const searchProducts = createServerFn({ method: "GET" })
       return { status: "error", message: e.message || "Erro desconhecido" };
     }
   });
+
+export const getProductsByCollection = createServerFn({ method: "GET" })
+  .validator(z.object({ slug: z.string().min(1) }))
+  .handler(async ({ data: { slug } }): Promise<ProductListResult> => {
+    try {
+      const db = await getAnonServerClient();
+      const { data: store } = await db.from("stores").select("id").limit(1).single();
+
+      if (!store) {
+        return { status: "unconfigured", reason: "Loja não encontrada." };
+      }
+
+      // First get collection id
+      const { data: collection, error: collError } = await db
+        .from("collections")
+        .select("id")
+        .eq("store_id", store.id)
+        .eq("slug", slug)
+        .eq("status", "active")
+        .single();
+        
+      if (collError || !collection) {
+        return { status: "empty" };
+      }
+
+      // Get product_ids from product_collections junction
+      const { data: productIdsData } = await db
+        .from("product_collections")
+        .select("product_id")
+        .eq("collection_id", collection.id);
+
+      const productIds = productIdsData?.map(row => row.product_id) || [];
+      if (productIds.length === 0) return { status: "empty" };
+
+      const { data, error } = await db
+        .from("products")
+        .select(`id, slug, title:name, brand, priceCents:price_cents, compareAtCents:compare_at_price_cents, status, media:product_media(url, alt, sort_order)`)
+        .eq("store_id", store.id)
+        .eq("status", "published")
+        .in("id", productIds)
+        .order("created_at", { ascending: false });
+
+      if (error) return { status: "error", message: error.message };
+      if (!data || data.length === 0) return { status: "empty" };
+
+      const mapped: ProductCardDTO[] = data.map((item: any) => {
+        const sortedMedia = item.media?.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)) || [];
+        return {
+          id: item.id,
+          title: item.title,
+          slug: item.slug,
+          brand: item.brand,
+          priceCents: item.priceCents,
+          compareAtCents: item.compareAtCents,
+          coverUrl: sortedMedia[0]?.url || null,
+          coverAlt: sortedMedia[0]?.alt || null,
+        };
+      });
+
+      return { status: "ok", data: mapped };
+    } catch (e: any) {
+      return { status: "error", message: e.message || "Erro desconhecido" };
+    }
+  });
+
+export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
+  async (): Promise<ProductListResult> => {
+    try {
+      const db = await getAnonServerClient();
+      const { data: store } = await db.from("stores").select("id").limit(1).single();
+
+      if (!store) {
+        return { status: "unconfigured", reason: "Loja não encontrada." };
+      }
+
+      const { data, error } = await db
+        .from("products")
+        .select(`id, slug, title:name, brand, priceCents:price_cents, compareAtCents:compare_at_price_cents, status, media:product_media(url, alt, sort_order)`)
+        .eq("store_id", store.id)
+        .eq("status", "published")
+        .gt("compare_at_price_cents", 0)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) return { status: "error", message: error.message };
+      if (!data || data.length === 0) return { status: "empty" };
+
+      // Filter natively to ensure only actual discounts are returned (compare > price)
+      const discountedData = data.filter(item => item.compareAtCents && item.compareAtCents > item.priceCents);
+      if (discountedData.length === 0) return { status: "empty" };
+
+      const mapped: ProductCardDTO[] = discountedData.map((item: any) => {
+        const sortedMedia = item.media?.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)) || [];
+        return {
+          id: item.id,
+          title: item.title,
+          slug: item.slug,
+          brand: item.brand,
+          priceCents: item.priceCents,
+          compareAtCents: item.compareAtCents,
+          coverUrl: sortedMedia[0]?.url || null,
+          coverAlt: sortedMedia[0]?.alt || null,
+        };
+      });
+
+      return { status: "ok", data: mapped };
+    } catch (e: any) {
+      return { status: "error", message: e.message || "Erro desconhecido" };
+    }
+  }
+);

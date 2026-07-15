@@ -131,3 +131,28 @@ export const checkGiftCardBalance = createServerFn({ method: "POST" })
       balanceCents: card.current_balance_cents,
     };
   });
+
+export const cancelGiftCard = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+    }),
+  )
+  .handler(async ({ data: { id } }) => {
+    const supabase = getServerClient();
+    const identity = await getCurrentIdentity();
+
+    if (!identity.store_id || !["owner", "admin", "manager", "finance"].includes(identity.role)) {
+      throw new Error("Não autorizado");
+    }
+
+    const { error } = await supabase
+      .from("gift_cards")
+      .update({ status: "cancelled" })
+      .eq("id", id)
+      .eq("store_id", identity.store_id);
+
+    if (error) throw new Error("Erro ao cancelar cartão presente");
+
+    return { status: "success" };
+  });

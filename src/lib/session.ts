@@ -30,3 +30,19 @@ export function getOrCreateGuestSession(): string {
 export function getGuestSession(): string | null {
   return getCookie(GUEST_SESSION_COOKIE) || null;
 }
+
+const SELLER_REF_COOKIE = "hr_shoes_seller_ref";
+
+export function setSellerRefCookie(sellerId: string): void {
+  setCookie(SELLER_REF_COOKIE, sellerId, {
+    maxAge: COOKIE_MAX_AGE,
+    path: "/",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+}
+
+export function getSellerRefCookie(): string | null {
+  return getCookie(SELLER_REF_COOKIE) || null;
+}

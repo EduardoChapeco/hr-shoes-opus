@@ -2,7 +2,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, ImagePlus, X, Loader2, Trash2 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,9 @@ import {
   getProductById,
   updateProduct,
   upsertProductVariant,
+  deleteProductMedia,
+  uploadProductMedia,
+  addProductMediaLink,
 } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/$id")({
@@ -74,9 +77,10 @@ function EditProductPage() {
       />
 
       <Tabs defaultValue="geral" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+        <TabsList className="grid w-full grid-cols-3 max-w-[600px]">
           <TabsTrigger value="geral">Geral</TabsTrigger>
           <TabsTrigger value="variantes">Variantes (SKUs)</TabsTrigger>
+          <TabsTrigger value="midias">Mídias</TabsTrigger>
         </TabsList>
 
         <TabsContent value="geral" className="mt-6">
@@ -85,6 +89,10 @@ function EditProductPage() {
 
         <TabsContent value="variantes" className="mt-6">
           <VariantsManager product={product} />
+        </TabsContent>
+
+        <TabsContent value="midias" className="mt-6">
+          <MediaManager product={product} />
         </TabsContent>
       </Tabs>
     </div>
@@ -232,21 +240,22 @@ function VariantsManager({ product }: { product: any }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingVariant, setEditingVariant] = useState<any>(null);
 
+  const [attrFields, setAttrFields] = useState<{ k: string; v: string }[]>([]);
+
   const { register, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
       sku: "",
       status: "active",
-      attributes: "", // Will be parsed as JSON for simplicity here, or key/value pairs
       price_override_cents: "",
     },
   });
 
   const onOpenNew = () => {
     setEditingVariant(null);
+    setAttrFields([{ k: "Tamanho", v: "" }]);
     reset({
       sku: `${product.slug}-${product.product_variants.length + 1}`,
       status: "active",
-      attributes: '{"tamanho": "39"}',
       price_override_cents: "",
     });
     setOpen(true);
@@ -254,10 +263,12 @@ function VariantsManager({ product }: { product: any }) {
 
   const onOpenEdit = (v: any) => {
     setEditingVariant(v);
+    const attrs = v.attributes || {};
+    const parsedAttrs = Object.entries(attrs).map(([k, val]) => ({ k, v: String(val) }));
+    setAttrFields(parsedAttrs.length > 0 ? parsedAttrs : [{ k: "", v: "" }]);
     reset({
       sku: v.sku,
       status: v.status,
-      attributes: JSON.stringify(v.attributes),
       price_override_cents: v.price_override_cents ? (v.price_override_cents / 100).toFixed(2) : "",
     });
     setOpen(true);
@@ -266,14 +277,12 @@ function VariantsManager({ product }: { product: any }) {
   const onSubmit = async (values: any) => {
     setIsSubmitting(true);
     try {
-      let attrs = {};
-      try {
-        attrs = JSON.parse(values.attributes);
-      } catch (e) {
-        toast.error("Atributos devem ser um JSON válido");
-        setIsSubmitting(false);
-        return;
-      }
+      const attrs: Record<string, string> = {};
+      attrFields.forEach((field) => {
+        if (field.k.trim()) {
+          attrs[field.k.trim()] = field.v.trim();
+        }
+      });
 
       const price_override_cents = values.price_override_cents
         ? Math.round(parseFloat(values.price_override_cents.replace(",", ".")) * 100)
@@ -330,14 +339,50 @@ function VariantsManager({ product }: { product: any }) {
                 <Input {...register("sku", { required: true })} />
               </div>
               <div className="space-y-2">
-                <Label>Atributos Específicos (JSON)</Label>
-                <Textarea
-                  {...register("attributes")}
-                  placeholder='{"tamanho": "39", "cor": "Preto"}'
-                />
-                <p className="text-xs text-muted-foreground">
-                  Formato JSON estrito com aspas duplas.
-                </p>
+                <Label>Atributos (Ex: Tamanho, Cor)</Label>
+                <div className="space-y-2">
+                  {attrFields.map((field, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <Input
+                        placeholder="Nome (ex: Cor)"
+                        value={field.k}
+                        onChange={(e) => {
+                          const newF = [...attrFields];
+                          newF[idx].k = e.target.value;
+                          setAttrFields(newF);
+                        }}
+                      />
+                      <Input
+                        placeholder="Valor (ex: Preto)"
+                        value={field.v}
+                        onChange={(e) => {
+                          const newF = [...attrFields];
+                          newF[idx].v = e.target.value;
+                          setAttrFields(newF);
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setAttrFields(attrFields.filter((_, i) => i !== idx));
+                        }}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setAttrFields([...attrFields, { k: "", v: "" }])}
+                  >
+                    Adicionar Atributo
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Preço Específico (R$)</Label>
@@ -416,6 +461,111 @@ function VariantsManager({ product }: { product: any }) {
               ))}
             </TableBody>
           </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MediaManager({ product }: { product: any }) {
+  const router = useRouter();
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleDelete = async (id: string, url: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta imagem?")) return;
+    try {
+      const res = await deleteProductMedia({ data: { id, url } });
+      if (res.status === "success") {
+        toast.success("Imagem removida");
+        router.invalidate();
+      } else {
+        toast.error(res.message);
+      }
+    } catch (e) {
+      toast.error("Erro inesperado");
+    }
+  };
+
+  const toBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const result = reader.result as string;
+        const base64 = result.split(",")[1];
+        resolve(base64 || "");
+      };
+      reader.onerror = (error) => reject(error);
+    });
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setIsUploading(true);
+    try {
+      const file = e.target.files[0];
+      const base64 = await toBase64(file);
+
+      const resUpload = await uploadProductMedia({
+        data: { fileName: file.name, fileBase64: base64 },
+      });
+
+      if (resUpload.status === "success") {
+        const resLink = await addProductMediaLink({
+          data: { product_id: product.id, url: resUpload.url },
+        });
+
+        if (resLink.status === "success") {
+          toast.success("Imagem adicionada");
+          router.invalidate();
+        } else {
+          toast.error(resLink.message);
+        }
+      } else {
+        toast.error(resUpload.message);
+      }
+    } catch (e) {
+      toast.error("Erro no upload");
+    } finally {
+      setIsUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Galeria do Produto</CardTitle>
+        <CardDescription>
+          Faça upload de fotos para este produto. A primeira imagem será a capa.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {product.product_media?.map((media: any) => (
+            <div
+              key={media.id}
+              className="relative aspect-square border rounded-md overflow-hidden bg-muted group"
+            >
+              <img src={media.url} alt="Media" className="object-cover w-full h-full" />
+              <button
+                type="button"
+                onClick={() => handleDelete(media.id, media.url)}
+                className="absolute top-2 right-2 bg-black/50 hover:bg-black/80 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+
+          <Label className="flex flex-col items-center justify-center border-2 border-dashed rounded-md aspect-square cursor-pointer hover:bg-muted/50 transition-colors">
+            {isUploading ? (
+              <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" />
+            ) : (
+              <ImagePlus className="w-8 h-8 text-muted-foreground mb-2" />
+            )}
+            <span className="text-sm font-medium text-muted-foreground">Adicionar Foto</span>
+            <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={isUploading} />
+          </Label>
         </div>
       </CardContent>
     </Card>

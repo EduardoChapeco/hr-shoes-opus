@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -28,6 +28,7 @@ export const Route = createFileRoute("/admin/catalogo/produtos")({
 
 function AdminProductsPage() {
   const products = Route.useLoaderData();
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-8">
@@ -64,13 +65,18 @@ function AdminProductsPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Preço</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {products.map((product: AdminProductRow) => {
                 const cover = product.product_media?.[0]?.url;
                 return (
-                  <TableRow key={product.id}>
+                  <TableRow 
+                    key={product.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => navigate({ to: `/admin/catalogo/produtos/${product.id}` })}
+                  >
                     <TableCell>
                       <div className="flex items-center gap-3">
                         {cover ? (
@@ -99,6 +105,11 @@ function AdminProductsPage() {
                         : "Genérico"}
                     </TableCell>
                     <TableCell>{formatMoney(product.price_cents)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm">
+                        Editar
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 );
               })}
