@@ -7,7 +7,7 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
-import { redirect } from "@tanstack/react-router";
+import * as Router from "@tanstack/react-router";
 import { z } from "zod";
 
 import { getSSRClient } from "@/lib/supabase-ssr";
@@ -117,13 +117,13 @@ export const signInWithPassword = createServerFn({ method: "POST" })
       }
 
       if (redirectTo) {
-        throw redirect({
+        throw Router.redirect({
           to: redirectTo,
           headers: responseHeaders,
         });
       }
 
-      throw redirect({
+      throw Router.redirect({
         to: "/admin",
         headers: responseHeaders,
       });
@@ -229,7 +229,7 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
 
       // If session is active, we MUST throw redirect to propagate the Set-Cookie headers
       // since vinxi/http context is lost and we can't use setCookie.
-      throw redirect({
+      throw Router.redirect({
         to: redirectTo || "/conta",
         headers: responseHeaders,
       });
@@ -260,7 +260,7 @@ export const signOut = createServerFn({ method: "POST" })
         }`
       );
 
-      throw redirect({
+      throw Router.redirect({
         to: "/entrar",
         headers: responseHeaders,
       });
@@ -285,7 +285,7 @@ export const updatePassword = createServerFn({ method: "POST" })
         return { status: "error" as const, message: error.message };
       }
 
-      throw redirect({
+      throw Router.redirect({
         to: "/conta",
         headers: responseHeaders,
       });
