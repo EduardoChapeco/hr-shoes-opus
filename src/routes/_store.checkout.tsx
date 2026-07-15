@@ -39,7 +39,6 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successToken, setSuccessToken] = useState("");
-  const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   const [formData, setFormData] = useState({
     customerName: "",
@@ -74,7 +73,7 @@ function CheckoutPage() {
     setIsSubmitting(true);
     try {
       const res = await processCheckout({
-        data: { ...formData, idempotencyKey },
+        data: { ...formData, cartId: cart.id },
       });
       if (res.status === "success") {
         setSuccessToken(res.orderToken);

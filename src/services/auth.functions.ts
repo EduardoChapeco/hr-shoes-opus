@@ -1,8 +1,9 @@
 /**
  * Auth server functions — Hr Shoes Commerce
  *
- * Handles login, logout, and session retrieval using the SSR client.
+ * Handles login, signup, oauth, logout, and session retrieval using the SSR client.
  * Never stores credentials in the client; delegates all auth to Supabase.
+ * Profiles are created strictly by the DB trigger `handle_new_user` on auth.users insert.
  */
 
 import { createServerFn } from "@tanstack/react-start";
@@ -11,6 +12,7 @@ import { z } from "zod";
 import { getSSRClient } from "@/lib/supabase-ssr";
 import { getServerClient } from "@/lib/supabase";
 import { mergeGuestCart } from "./cart.functions";
+import { Provider } from "@supabase/supabase-js";
 
 // ---------------------------------------------------------------------------
 // Schemas
@@ -25,6 +27,10 @@ const RegisterSchema = z.object({
   email: z.string().email("E-mail inválido"),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
   fullName: z.string().min(2, "Nome é obrigatório"),
+});
+
+const ResetPasswordSchema = z.object({
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
 });
 
 // ---------------------------------------------------------------------------
@@ -93,6 +99,36 @@ export const signInWithPassword = createServerFn({ method: "POST" })
     }
   });
 
+export const signInWithOAuth = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      provider: z.enum(["google", "github", "apple", "azure"]),
+      redirectTo: z.string(),
+    }),
+  )
+  .handler(async ({ data: { provider, redirectTo } }) => {
+    try {
+      const supabase = getSSRClient();
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: provider as Provider,
+        options: {
+          redirectTo,
+        },
+      });
+
+      if (error) {
+        return { status: "error" as const, message: error.message };
+      }
+
+      return { status: "success" as const, url: data.url };
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        throw new Error("Erro ao inicializar OAuth: " + e.message);
+      }
+      throw new Error("Erro ao inicializar OAuth");
+    }
+  });
+
 export const signUpWithPassword = createServerFn({ method: "POST" })
   .validator(RegisterSchema)
   .handler(async ({ data: { email, password, fullName } }) => {
@@ -119,47 +155,8 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
       }
 
       if (data.user) {
-        // [FORENSIC RECOVERY] Fallback: If trigger handle_new_user failed/missing, create profile manually
-        try {
-          const adminClient = getServerClient();
-          const { data: existingProfile } = await adminClient
-            .from("profiles")
-            .select("id")
-            .eq("id", data.user.id)
-            .maybeSingle();
-
-          if (!existingProfile) {
-            console.log("[auth] Profile missing, creating manually for", data.user.id);
-            // 1. Check if it's the first user
-            const { count } = await adminClient
-              .from("profiles")
-              .select("*", { count: "exact", head: true });
-            const isFirstUser = count === 0;
-
-            // 2. Get default store
-            const { data: defaultOrg } = await adminClient
-              .from("organizations")
-              .select("id")
-              .eq("slug", "hr-shoes-org")
-              .single();
-            const { data: defaultStore } = await adminClient
-              .from("stores")
-              .select("id")
-              .eq("slug", "hr-shoes")
-              .single();
-
-            // 3. Create profile
-            await adminClient.from("profiles").insert({
-              id: data.user.id,
-              organization_id: isFirstUser ? defaultOrg?.id : null,
-              store_id: isFirstUser ? defaultStore?.id : null,
-              role: isFirstUser ? "owner" : "customer",
-              full_name: fullName,
-            });
-          }
-        } catch (profileErr) {
-          console.error("Falha ao criar profile de fallback:", profileErr);
-        }
+        // We do NOT manually create the profile here anymore.
+        // The DB trigger `handle_new_user` handles profile creation securely.
 
         try {
           await mergeGuestCart({
@@ -191,6 +188,25 @@ export const signOut = createServerFn({ method: "POST" }).handler(async () => {
     return { status: "error" as const };
   }
 });
+
+export const updatePassword = createServerFn({ method: "POST" })
+  .validator(ResetPasswordSchema)
+  .handler(async ({ data: { password } }) => {
+    try {
+      const supabase = getSSRClient();
+      const { error } = await supabase.auth.updateUser({
+        password,
+      });
+
+      if (error) {
+        return { status: "error" as const, message: error.message };
+      }
+
+      return { status: "success" as const };
+    } catch (e: unknown) {
+      return { status: "error" as const, message: "Erro inesperado ao atualizar a senha." };
+    }
+  });
 
 export const getProfile = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getSSRClient();

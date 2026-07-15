@@ -15,8 +15,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/commerce/page-header";
-import { signUpWithPassword } from "@/services/auth.functions";
+import { signUpWithPassword, signInWithOAuth } from "@/services/auth.functions";
 import { toast } from "sonner";
+import { FcGoogle } from "react-icons/fc";
 
 export const Route = createFileRoute("/_store/cadastro")({
   head: () => ({
@@ -71,6 +72,20 @@ function RegisterPage() {
       navigate({ to: returnUrl });
     } catch (e) {
       toast.error("Ocorreu um erro ao tentar criar a conta.");
+    }
+  };
+
+  const handleOAuth = async (provider: "google" | "github") => {
+    try {
+      const redirectTo = `${window.location.origin}/api/auth/callback?next=${returnUrl}`;
+      const result = await signInWithOAuth({ data: { provider, redirectTo } });
+      if (result.status === "success" && result.url) {
+        window.location.href = result.url;
+      } else {
+        toast.error(result.message || "Erro ao inicializar login social.");
+      }
+    } catch (e) {
+      toast.error("Ocorreu um erro com o login social.");
     }
   };
 
@@ -138,6 +153,20 @@ function RegisterPage() {
               </Button>
             </form>
           </Form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Ou cadastre-se com</span>
+            </div>
+          </div>
+
+          <Button variant="outline" className="w-full font-normal" onClick={() => handleOAuth("google")}>
+            <FcGoogle className="mr-2 h-4 w-4" />
+            Google
+          </Button>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Já tem uma conta?{" "}
