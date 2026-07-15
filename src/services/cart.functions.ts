@@ -100,7 +100,7 @@ export const getCart = createServerFn({ method: "GET" }).handler(
           product_variants (
             id,
             price_cents,
-            compare_at_price_cents,
+            compare_at_cents,
             sku,
             attributes,
             product:products (
@@ -129,7 +129,7 @@ export const getCart = createServerFn({ method: "GET" }).handler(
       product_variants: {
         sku: string;
         price_cents: number;
-        compare_at_price_cents: number | null;
+        compare_at_cents: number | null;
         attributes: Record<string, string>;
         product: {
           id: string;
@@ -225,27 +225,18 @@ export const addToCart = createServerFn({ method: "POST" })
       await supabase.from("carts").update({ seller_id: activeSellerId }).eq("id", cartId);
     }
 
-    // 2. Validate stock
-    // Available = on_hand - SUM(reservations where expires_at > now())
-    const { data: stockData } = await supabase
-      .from("product_variants")
-      .select(
-        `
-        stock_on_hand,
-        stock_reservations ( qty, expires_at )
-      `,
-      )
-      .eq("id", variantId)
-      .single();
+    // 2. Tenta fazer a reserva atômica no banco de dados via RPC (Fase 12: Motor Transacional)
+    // Se não houver estoque disponível (on_hand - reserved), a RPC lançará exceção e abortará
+    const { error: reserveError } = await supabase.rpc("reserve_stock_for_cart", {
+      p_cart_id: cartId,
+      p_variant_id: variantId,
+      p_qty: quantity,
+      p_expires_in_minutes: 15,
+    });
 
-    if (!stockData) throw new Error("Variante não encontrada");
-
-    const now = new Date();
-    const reserved = stockData.stock_reservations
-      .filter((r: { qty: number; expires_at: string }) => new Date(r.expires_at) > now)
-      .reduce((acc: number, r: { qty: number; expires_at: string }) => acc + r.qty, 0);
-
-    const available = stockData.stock_on_hand - reserved;
+    if (reserveError) {
+      throw new Error(reserveError.message || "Erro ao reservar estoque.");
+    }
 
     // Find if item already in cart to check total requested
     const { data: existingItem } = await supabase
@@ -255,35 +246,16 @@ export const addToCart = createServerFn({ method: "POST" })
       .eq("variant_id", variantId)
       .maybeSingle();
 
-    const currentQtyInCart = existingItem ? existingItem.qty : 0;
-    const additionalQty = quantity;
-    const newTotalQty = currentQtyInCart + additionalQty;
-
-    // Note: We only check if the *additional* quantity is available because the current
-    // quantity already has a reservation.
-    if (available < additionalQty) {
-      throw new Error(`Estoque insuficiente. Apenas ${available} disponíveis.`);
-    }
+    const newTotalQty = existingItem ? existingItem.qty + quantity : quantity;
 
     // Fetch snapshot price for safety
     const { data: vInfo } = await supabase
       .from("product_variants")
-      .select("price_override_cents, product_id, products(price_cents)")
+      .select("price_cents, product_id, products(price_cents)")
       .eq("id", variantId)
       .single();
 
-    const priceCents = vInfo?.price_override_cents ?? (vInfo?.products as any)?.price_cents ?? 0;
-
-    // 3. Create or update stock reservation (15 mins TTL)
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
-
-    await supabase.from("stock_reservations").insert({
-      cart_id: cartId,
-      variant_id: variantId,
-      qty: additionalQty,
-      expires_at: expiresAt.toISOString(),
-    });
+    const priceCents = vInfo?.price_cents ?? (vInfo?.products as any)?.price_cents ?? 0;
 
     // 4. Add or update item in cart
     if (existingItem) {
@@ -292,7 +264,7 @@ export const addToCart = createServerFn({ method: "POST" })
       await supabase.from("cart_items").insert({
         cart_id: cartId,
         variant_id: variantId,
-        qty: additionalQty,
+        qty: quantity,
         price_snapshot_cents: priceCents,
       });
     }
@@ -316,12 +288,11 @@ export const removeFromCart = createServerFn({ method: "POST" })
 
     if (!item) return { status: "error", message: "Item não encontrado" };
 
-    // Delete reservations for this cart + variant
-    await supabase
-      .from("stock_reservations")
-      .delete()
-      .eq("cart_id", item.cart_id)
-      .eq("variant_id", item.variant_id);
+    // Soltar reserva via RPC para garantir a atomicidade do decremento de stock_reserved
+    await supabase.rpc("release_stock_for_cart_item", {
+      p_cart_id: item.cart_id,
+      p_variant_id: item.variant_id
+    });
 
     // Delete item
     await supabase.from("cart_items").delete().eq("id", itemId);
@@ -444,52 +415,41 @@ export const updateCartItemQty = createServerFn({ method: "POST" })
     const newTotalQty = existingItem.qty + delta;
     if (newTotalQty <= 0) {
       // Just remove
-      await supabase
-        .from("stock_reservations")
-        .delete()
-        .eq("cart_id", cart.id)
-        .eq("variant_id", variantId);
+      await supabase.rpc("release_stock_for_cart_item", {
+        p_cart_id: cart.id,
+        p_variant_id: variantId
+      });
       await supabase.from("cart_items").delete().eq("id", existingItem.id);
       return { status: "success" };
     }
 
     if (delta > 0) {
-      // Need to verify stock for the additional delta
-      const { data: stockData } = await supabase
-        .from("product_variants")
-        .select("stock_on_hand, stock_reservations ( qty, expires_at )")
-        .eq("id", variantId)
-        .single();
+      // Need to verify stock for the additional delta via RPC
+      const { error: reserveError } = await supabase.rpc("reserve_stock_for_cart", {
+        p_cart_id: cart.id,
+        p_variant_id: variantId,
+        p_qty: delta,
+        p_expires_in_minutes: 15,
+      });
 
-      if (!stockData) throw new Error("Variante não encontrada");
-
-      const now = new Date();
-      const reserved = stockData.stock_reservations
-        .filter((r: { qty: number; expires_at: string }) => new Date(r.expires_at) > now)
-        .reduce((acc: number, r: { qty: number; expires_at: string }) => acc + r.qty, 0);
-
-      const available = stockData.stock_on_hand - reserved;
-      if (available < delta) {
-        throw new Error(`Estoque insuficiente. Apenas ${available} disponíveis.`);
-      }
+      if (reserveError) throw new Error(reserveError.message || "Erro ao reservar estoque.");
+    } else if (delta < 0) {
+      // When reducing quantity, we need to release part of the stock reservation.
+      // But our RPCs currently either add to the reservation or clear it completely.
+      // Since it's a reduction, we can manually decrement the reservation and stock_reserved.
+      // Or we can just let it expire. For correctness, let's just clear the full item reservation and re-reserve the correct amount.
+      await supabase.rpc("release_stock_for_cart_item", {
+        p_cart_id: cart.id,
+        p_variant_id: variantId
+      });
+      const { error: reReserveError } = await supabase.rpc("reserve_stock_for_cart", {
+        p_cart_id: cart.id,
+        p_variant_id: variantId,
+        p_qty: newTotalQty,
+        p_expires_in_minutes: 15,
+      });
+      if (reReserveError) throw new Error(reReserveError.message || "Erro ao atualizar estoque.");
     }
-
-    // Clean up old reservations and create a fresh one for the new total
-    await supabase
-      .from("stock_reservations")
-      .delete()
-      .eq("cart_id", cart.id)
-      .eq("variant_id", variantId);
-
-    const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
-
-    await supabase.from("stock_reservations").insert({
-      cart_id: cart.id,
-      variant_id: variantId,
-      qty: newTotalQty,
-      expires_at: expiresAt.toISOString(),
-    });
 
     await supabase.from("cart_items").update({ qty: newTotalQty }).eq("id", existingItem.id);
 

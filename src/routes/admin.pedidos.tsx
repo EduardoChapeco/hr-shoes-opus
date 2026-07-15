@@ -29,7 +29,8 @@ function getStatusLabel(status: string) {
     draft: { label: "Rascunho", variant: "secondary" },
     awaiting_payment: { label: "Aguardando Pagto", variant: "outline" },
     paid: { label: "Pago", variant: "default" },
-    processing: { label: "Processando", variant: "secondary" },
+    processing: { label: "Em Separação", variant: "secondary" },
+    ready_for_pickup: { label: "Pronto p/ Retirada", variant: "default" },
     shipped: { label: "Enviado", variant: "default" },
     delivered: { label: "Entregue", variant: "default" },
     cancelled: { label: "Cancelado", variant: "destructive" },
@@ -92,14 +93,17 @@ function AdminOrdersPage() {
                       <Badge variant={badgeInfo.variant}>{badgeInfo.label}</Badge>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
-                      {order.status === "awaiting_payment" && (
-                        <Button size="sm" onClick={() => handleStatusChange(order.id, "paid")}>
-                          Aprovar Pagto
+                      <Button size="sm" variant="outline" asChild>
+                        <Link to={`/admin/pedidos/${order.id}`}>Abrir</Link>
+                      </Button>
+                      {order.status === "processing" && (
+                        <Button size="sm" onClick={() => handleStatusChange(order.id, order.shipping_method === "pickup" ? "ready_for_pickup" : "shipped")}>
+                          {order.shipping_method === "pickup" ? "Pronto p/ Retirar" : "Marcar Enviado"}
                         </Button>
                       )}
-                      {order.status === "paid" && (
-                        <Button size="sm" onClick={() => handleStatusChange(order.id, "shipped")}>
-                          Marcar Enviado
+                      {(order.status === "shipped" || order.status === "ready_for_pickup") && (
+                        <Button size="sm" onClick={() => handleStatusChange(order.id, "delivered")}>
+                          {order.status === "shipped" ? "Marcar Entregue" : "Entregar Cliente"}
                         </Button>
                       )}
                     </TableCell>

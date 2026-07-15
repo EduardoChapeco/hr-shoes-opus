@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-start";
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";

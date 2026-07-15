@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ADMIN_SIDEBAR_NAV, ADMIN_BOTTOM_NAV } from "@/lib/routes";
+import { ADMIN_SIDEBAR_NAV, ADMIN_BOTTOM_NAV, getRoute, hasRoleAccess } from "@/lib/routes";
 
 // ---------------------------------------------------------------------------
 // Icon registry — resolves icon name strings from routes.ts to LucideIcon
@@ -59,10 +59,19 @@ function resolveIcon(name: string): LucideIcon {
 // ---------------------------------------------------------------------------
 // NavLinks — driven entirely by ADMIN_SIDEBAR_NAV from routes.ts
 // ---------------------------------------------------------------------------
-function NavLinks({ collapsed = false }: { collapsed?: boolean }) {
+function NavLinks({ collapsed = false, session }: { collapsed?: boolean; session: any }) {
+  // Filter sidebar groups based on user's role
+  const filteredNav = ADMIN_SIDEBAR_NAV.map((group) => {
+    const allowedItems = group.items.filter((item) => {
+      const route = getRoute(item.path);
+      return route ? hasRoleAccess(session?.role, route.roles) : false;
+    });
+    return { ...group, items: allowedItems };
+  }).filter((group) => group.items.length > 0);
+
   return (
     <nav className="space-y-6">
-      {ADMIN_SIDEBAR_NAV.map((group) => (
+      {filteredNav.map((group) => (
         <div key={group.title}>
           {!collapsed ? (
             <p className="eyebrow px-3 pb-2 text-muted-foreground">{group.title}</p>
@@ -100,7 +109,7 @@ function NavLinks({ collapsed = false }: { collapsed?: boolean }) {
 // ---------------------------------------------------------------------------
 // AdminShell — main layout wrapper for all /admin/* routes
 // ---------------------------------------------------------------------------
-export function AdminShell({ children }: { children: ReactNode }) {
+export function AdminShell({ children, session }: { children: ReactNode; session: any }) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -133,7 +142,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </Button>
         </div>
         <ScrollArea className="flex-1 px-3 py-4">
-          <NavLinks collapsed={collapsed} />
+          <NavLinks collapsed={collapsed} session={session} />
         </ScrollArea>
         <div className="border-t border-sidebar-border p-3">
           <Button variant="outline" size="sm" asChild className="w-full">
@@ -159,7 +168,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 <Logo className="h-6" />
               </SheetHeader>
               <ScrollArea className="h-[calc(100vh-4rem)] px-3 py-4">
-                <NavLinks />
+                <NavLinks session={session} />
               </ScrollArea>
             </SheetContent>
           </Sheet>
@@ -180,7 +189,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
         className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur pb-safe md:hidden"
       >
         <ul className="flex items-stretch justify-around">
-          {ADMIN_BOTTOM_NAV.map(({ path, label, icon }) => {
+          {ADMIN_BOTTOM_NAV.filter(item => {
+             const route = getRoute(item.path);
+             return route ? hasRoleAccess(session?.role, route.roles) : false;
+          }).map(({ path, label, icon }) => {
             const Icon = resolveIcon(icon);
             return (
               <li key={path} className="flex-1">

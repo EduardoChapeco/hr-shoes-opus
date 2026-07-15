@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-start";
+import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useState } from "react";
 import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Printer, Banknote, Landmark } from "lucide-react";
 import { getServerClient } from "@/lib/supabase";
 import { approvePayment, rejectPayment } from "@/services/payment.functions";
+import { updateOrderStatus } from "@/services/order.functions";
 
 export const Route = createFileRoute("/admin/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido — Hr Shoes" }] }),
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/admin/pedidos/$id")({
       .select(
         `
         id, public_token, status, total_cents, subtotal_cents, shipping_cents,
-        customer_snapshot, created_at, shipping_address,
+        customer_snapshot, created_at, shipping_method, shipping_address,
         order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
       `,
       )
@@ -36,8 +37,22 @@ function AdminOrderDetailPage() {
   const router = useRouter();
   const [isConfirming, setIsConfirming] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const date = new Date(order.created_at).toLocaleDateString("pt-BR");
+
+  const handleStatusChange = async (newStatus: string) => {
+    setIsUpdating(true);
+    try {
+      await updateOrderStatus({ data: { orderId: order.id, status: newStatus as any } });
+      toast.success("Status atualizado!");
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao atualizar");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const handleApprove = async (method: "cash" | "bank_transfer") => {
     setIsConfirming(true);
@@ -127,10 +142,10 @@ function AdminOrderDetailPage() {
           <div className="rounded-md border p-6 bg-card text-card-foreground">
             <h3 className="font-semibold text-lg mb-4">Status</h3>
             <Badge variant="outline" className="text-lg py-1 px-3 mb-4 block text-center">
-              {order.status}
+              {order.status === "processing" ? "Em Separação" : order.status}
             </Badge>
 
-            {order.status === "payment_pending" && (
+            {order.status === "awaiting_payment" && (
               <div className="space-y-3">
                 <Dialog>
                   <DialogTrigger asChild>
@@ -164,6 +179,33 @@ function AdminOrderDetailPage() {
                 <p className="text-xs text-muted-foreground text-center mt-2">
                   Você enviou o link ou chave PIX para o cliente? Assim que ele pagar, clique em Marcar como Pago para liberar a separação.
                 </p>
+              </div>
+            )}
+
+            {order.status === "processing" && (
+              <div className="space-y-3 mt-4">
+                <Button 
+                  className="w-full" 
+                  onClick={() => handleStatusChange(order.shipping_method === "pickup" ? "ready_for_pickup" : "shipped")}
+                  disabled={isUpdating}
+                >
+                  {order.shipping_method === "pickup" ? "Pronto para Retirada" : "Despachar Pedido (Enviado)"}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Confirme que os itens foram separados e faturados.
+                </p>
+              </div>
+            )}
+
+            {(order.status === "shipped" || order.status === "ready_for_pickup") && (
+              <div className="space-y-3 mt-4">
+                <Button 
+                  className="w-full bg-green-600 hover:bg-green-700" 
+                  onClick={() => handleStatusChange("delivered")}
+                  disabled={isUpdating}
+                >
+                  {order.status === "shipped" ? "Confirmar Entrega" : "Entregar ao Cliente"}
+                </Button>
               </div>
             )}
           </div>

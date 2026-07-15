@@ -13,7 +13,7 @@ export const listOrders = createServerFn({ method: "GET" }).handler(async () => 
       .from("orders")
       .select(
         `
-          id, public_token, status, total_cents, customer_snapshot, created_at,
+          id, public_token, status, total_cents, customer_snapshot, created_at, shipping_method,
           order_items ( id, product_title, variant_sku, qty )
         `,
       )

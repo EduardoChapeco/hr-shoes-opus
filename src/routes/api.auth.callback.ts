@@ -1,5 +1,5 @@
 import { createAPIFileRoute } from "@tanstack/react-start/api";
-import { getServerClient } from "@/lib/supabase";
+import { getSSRClient } from "@/lib/supabase-ssr";
 import { mergeGuestCart } from "@/services/cart.functions";
 
 export const APIRoute = createAPIFileRoute("/api/auth/callback")({
@@ -9,7 +9,7 @@ export const APIRoute = createAPIFileRoute("/api/auth/callback")({
     const next = url.searchParams.get("next") ?? "/conta";
 
     if (code) {
-      const supabase = getServerClient();
+      const supabase = getSSRClient();
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error && data.session) {
         try {

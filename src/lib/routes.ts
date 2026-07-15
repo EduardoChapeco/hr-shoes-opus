@@ -794,7 +794,21 @@ export const ADMIN_ROUTES: RouteEntry[] = [
 export const ALL_ROUTES: RouteEntry[] = [...PUBLIC_ROUTES, ...CUSTOMER_ROUTES, ...ADMIN_ROUTES];
 
 export function getRoute(path: string): RouteEntry | undefined {
-  return ALL_ROUTES.find((r) => r.path === path);
+  const exact = ALL_ROUTES.find((r) => r.path === path);
+  if (exact) return exact;
+
+  return ALL_ROUTES.find((r) => {
+    if (!r.dynamic) return false;
+    // Replace :param with [^/]+ for regex matching
+    const regexPath = r.path.replace(/:[^\/]+/g, "[^/]+");
+    const regex = new RegExp(`^${regexPath}$`);
+    return regex.test(path);
+  });
+}
+
+export function hasRoleAccess(userRole: string | undefined | null, allowedRoles: Role[]): boolean {
+  if (!userRole) return allowedRoles.includes("visitor");
+  return allowedRoles.includes(userRole as Role);
 }
 
 // ---------------------------------------------------------------------------

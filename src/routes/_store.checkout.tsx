@@ -1,5 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { formatMoney } from "@/lib/money";
 import { getCart } from "@/services/cart.functions";
 import { processCheckout } from "@/services/checkout.functions";
 import { initiatePaymentTransaction } from "@/services/payment.functions";
@@ -357,11 +360,20 @@ function CheckoutPage() {
           <h2 className="text-xl font-semibold mb-6">Resumo do Pedido</h2>
           <div className="space-y-4 mb-6">
             {cart.items.map((item: any) => (
-              <div key={item.id} className="flex justify-between text-sm">
-                <span>
-                  {item.qty}x {item.productTitle}
-                </span>
-                <span className="font-medium">{formatMoney(item.lineTotalCents)}</span>
+              <div key={item.id} className="flex flex-col text-sm">
+                <div className="flex justify-between">
+                  <span>
+                    {item.qty}x {item.productTitle}
+                  </span>
+                  <span className="font-medium">{formatMoney(item.lineTotalCents)}</span>
+                </div>
+                {(item.variantAttributes?.color || item.variantAttributes?.size) && (
+                  <span className="text-xs text-muted-foreground mt-0.5">
+                    {item.variantAttributes?.color && `Cor: ${item.variantAttributes.color}`}
+                    {item.variantAttributes?.color && item.variantAttributes?.size && " | "}
+                    {item.variantAttributes?.size && `Tam: ${item.variantAttributes.size}`}
+                  </span>
+                )}
               </div>
             ))}
           </div>

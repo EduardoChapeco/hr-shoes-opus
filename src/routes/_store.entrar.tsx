@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/commerce/page-header";
 import { signInWithPassword, signInWithOAuth } from "@/services/auth.functions";
 import { toast } from "sonner";
-import { FcGoogle } from "react-icons/fc";
 
 export const Route = createFileRoute("/_store/entrar")({
   head: () => ({
@@ -159,7 +158,7 @@ function LoginPage() {
           </div>
 
           <Button variant="outline" className="w-full font-normal" onClick={() => handleOAuth("google")}>
-            <FcGoogle className="mr-2 h-4 w-4" />
+            <span className="mr-2 h-4 w-4 text-lg font-bold">G</span>
             Google
           </Button>
 

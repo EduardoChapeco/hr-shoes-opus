@@ -95,38 +95,19 @@ export const closeRegister = createServerFn({ method: "POST" })
     if (getError || !register) throw new Error("Caixa não encontrado");
     if (register.status !== "open") throw new Error("Este caixa não está aberto");
 
-    // Calcular total esperado
-    const { data: entries } = await supabase
-      .from("cash_register_entries")
-      .select("amount_cents")
-      .eq("register_id", registerId);
+    // Usar o RPC atômico no banco de dados para evitar Race Conditions financeiras
+    const { data: result, error: rpcError } = await supabase.rpc("close_cash_register", {
+      p_register_id: registerId,
+      p_counted_cents: countedBalanceCents,
+      p_user_id: identity.id,
+      p_notes: notes || "",
+    });
 
-    const expectedBalanceCents =
-      register.initial_balance_cents +
-      (entries?.reduce((acc: number, e: any) => acc + e.amount_cents, 0) || 0);
+    if (rpcError || !result) {
+      throw new Error("Erro atômico ao fechar caixa: " + (rpcError?.message || "Sem resposta do banco"));
+    }
 
-    const hasDiscrepancy = countedBalanceCents !== expectedBalanceCents;
-
-    const { error: updateError } = await supabase
-      .from("cash_registers")
-      .update({
-        status: hasDiscrepancy ? "discrepancy" : "closed",
-        closed_at: new Date().toISOString(),
-        closed_by: identity.id,
-        expected_balance_cents: expectedBalanceCents,
-        final_balance_cents: countedBalanceCents,
-        notes: notes ? notes : hasDiscrepancy ? "Fechado com diferença de caixa" : null,
-      })
-      .eq("id", registerId);
-
-    if (updateError) throw new Error("Erro ao fechar caixa");
-
-    return {
-      status: "success",
-      expected: expectedBalanceCents,
-      counted: countedBalanceCents,
-      discrepancy: hasDiscrepancy,
-    };
+    return result as { status: string; expected: number; counted: number; discrepancy: boolean };
   });
 
 export const addRegisterEntry = createServerFn({ method: "POST" })

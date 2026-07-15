@@ -278,7 +278,7 @@ export const searchProducts = createServerFn({ method: "GET" })
           slug,
           status,
           priceCents:price_cents,
-          compareAtCents:compare_at_price_cents,
+          compareAtCents:compare_at_cents,
           media:product_media(id, url, alt, sort_order)
         `,
         )
@@ -363,7 +363,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
       const { data, error } = await db
         .from("products")
         .select(
-          `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_price_cents, status, media:product_media(url, alt, sort_order)`,
+          `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order)`,
         )
         .eq("store_id", store.id)
         .eq("status", "published")
@@ -407,11 +407,11 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
       const { data, error } = await db
         .from("products")
         .select(
-          `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_price_cents, status, media:product_media(url, alt, sort_order)`,
+          `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order)`,
         )
         .eq("store_id", store.id)
         .eq("status", "published")
-        .gt("compare_at_price_cents", 0)
+        .gt("compare_at_cents", 0)
         .order("created_at", { ascending: false })
         .limit(20);
 
@@ -445,3 +445,108 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
     }
   },
 );
+
+// ---------------------------------------------------------------------------
+// getProductDetail (PDP)
+// ---------------------------------------------------------------------------
+
+export const getProductDetail = createServerFn({ method: "GET" })
+  .validator(z.object({ slug: z.string().min(1) }))
+  .handler(async ({ data: { slug } }): Promise<import("@/types/catalog").ProductDetailResult> => {
+    try {
+      const db = getAnonServerClient();
+      const { data: store, error: storeError } = await db.from("stores").select("id").limit(1).single();
+
+      if (storeError || !store) {
+        return {
+          status: "unconfigured",
+          reason: "Nenhuma loja foi configurada.",
+        };
+      }
+
+      // Consulta o produto, mídia e variantes em uma única query
+      const { data, error } = await db
+        .from("products")
+        .select(`
+          id, slug, title, description, brand, price_cents, compare_at_cents,
+          status, seo_title, seo_description,
+          product_media(id, url, alt, media_type, sort_order),
+          product_variants(
+            id, sku, price_cents, stock_on_hand, stock_reserved, attributes,
+            product_media(id, url, alt, media_type, sort_order)
+          )
+        `)
+        .eq("store_id", store.id)
+        .eq("slug", slug)
+        .eq("status", "published")
+        .single();
+
+      if (error || !data) {
+        return { status: "not_found" };
+      }
+
+      // Formatar mídia principal do produto
+      const media = (data.product_media || [])
+        .sort((a: any, b: any) => a.sort_order - b.sort_order)
+        .map((m: any) => ({
+          id: m.id,
+          url: m.url,
+          alt: m.alt,
+          mediaType: m.media_type,
+          sortOrder: m.sort_order,
+        }));
+
+      // Formatar variantes
+      const variants = (data.product_variants || []).map((v: any) => {
+        // Mídia específica da variante
+        const variantMedia = (v.product_media || [])
+          .sort((a: any, b: any) => a.sort_order - b.sort_order)
+          .map((m: any) => ({
+            id: m.id,
+            url: m.url,
+            alt: m.alt,
+            mediaType: m.media_type,
+            sortOrder: m.sort_order,
+          }));
+
+        // Calcula estoque disponível real: on_hand - reserved
+        const availableQty = Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0));
+
+        return {
+          id: v.id,
+          sku: v.sku,
+          effectivePriceCents: v.price_cents || data.price_cents,
+          availableQty,
+          attributes: v.attributes || {},
+          media: variantMedia.length > 0 ? variantMedia : media, // Fallback para a mídia do produto
+        };
+      });
+
+      return {
+        status: "ok",
+        data: {
+          id: data.id,
+          slug: data.slug,
+          title: data.title,
+          description: data.description,
+          brand: data.brand,
+          priceCents: data.price_cents,
+          compareAtCents: data.compare_at_cents,
+          media,
+          variants,
+          allowsPreorder: false,
+          seoTitle: data.seo_title,
+          seoDescription: data.seo_description,
+        },
+      };
+    } catch (e) {
+      if (e instanceof SupabaseUnconfiguredError) {
+        return {
+          status: "unconfigured",
+          reason: "Nossa vitrine está passando por uma rápida atualização técnica.",
+        };
+      }
+      console.error("[catalog.functions] getProductDetail:", e);
+      return { status: "error", message: "Erro inesperado ao carregar detalhes do produto." };
+    }
+  });

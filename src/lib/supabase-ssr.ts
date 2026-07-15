@@ -12,6 +12,7 @@ import { createServerClient } from "@supabase/ssr";
 import { getCookie, setCookie, parseCookies } from "vinxi/http";
 import { z } from "zod";
 import { SupabaseUnconfiguredError } from "./supabase";
+import { getEnvVar } from "./env";
 
 const EnvSchema = z.object({
   VITE_SUPABASE_URL: z.string().url(),
@@ -20,8 +21,8 @@ const EnvSchema = z.object({
 
 export function getSSRClient() {
   const env = EnvSchema.safeParse({
-    VITE_SUPABASE_URL: process.env["VITE_SUPABASE_URL"],
-    VITE_SUPABASE_ANON_KEY: process.env["VITE_SUPABASE_ANON_KEY"],
+    VITE_SUPABASE_URL: getEnvVar("VITE_SUPABASE_URL"),
+    VITE_SUPABASE_ANON_KEY: getEnvVar("VITE_SUPABASE_ANON_KEY"),
   });
 
   if (!env.success) {

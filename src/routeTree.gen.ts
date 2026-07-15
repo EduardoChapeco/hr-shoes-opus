@@ -40,6 +40,7 @@ import { Route as AdminAvaliacoesRouteImport } from './routes/admin.avaliacoes'
 import { Route as StoreTrocasEDevolucoesRouteImport } from './routes/_store.trocas-e-devolucoes'
 import { Route as StoreTermosRouteImport } from './routes/_store.termos'
 import { Route as StoreStoriesRouteImport } from './routes/_store.stories'
+import { Route as StoreRedefinirSenhaRouteImport } from './routes/_store.redefinir-senha'
 import { Route as StoreRecuperarSenhaRouteImport } from './routes/_store.recuperar-senha'
 import { Route as StorePromocoesRouteImport } from './routes/_store.promocoes'
 import { Route as StorePrivacidadeRouteImport } from './routes/_store.privacidade'
@@ -99,6 +100,7 @@ import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.cr
 import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.avaliacoes'
 import { Route as StoreColecaoSlugRouteImport } from './routes/_store.colecao.$slug'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store.categoria.$slug'
+import { Route as AdminPedidosIdReciboRouteImport } from './routes/admin_.pedidos.$id.recibo'
 import { Route as AdminCmsPaginasNovoRouteImport } from './routes/admin.cms.paginas.novo'
 import { Route as AdminCatalogoProdutosNovoRouteImport } from './routes/admin.catalogo.produtos.novo'
 import { Route as AdminCatalogoProdutosIdRouteImport } from './routes/admin.catalogo.produtos.$id'
@@ -261,6 +263,11 @@ const StoreTermosRoute = StoreTermosRouteImport.update({
 const StoreStoriesRoute = StoreStoriesRouteImport.update({
   id: '/stories',
   path: '/stories',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreRedefinirSenhaRoute = StoreRedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreRecuperarSenhaRoute = StoreRecuperarSenhaRouteImport.update({
@@ -561,6 +568,11 @@ const StoreCategoriaSlugRoute = StoreCategoriaSlugRouteImport.update({
   path: '/categoria/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
+const AdminPedidosIdReciboRoute = AdminPedidosIdReciboRouteImport.update({
+  id: '/admin_/pedidos/$id/recibo',
+  path: '/admin/pedidos/$id/recibo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminCmsPaginasNovoRoute = AdminCmsPaginasNovoRouteImport.update({
   id: '/novo',
   path: '/novo',
@@ -630,6 +642,7 @@ export interface FileRoutesByFullPath {
   '/privacidade': typeof StorePrivacidadeRoute
   '/promocoes': typeof StorePromocoesRoute
   '/recuperar-senha': typeof StoreRecuperarSenhaRoute
+  '/redefinir-senha': typeof StoreRedefinirSenhaRoute
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
@@ -709,6 +722,7 @@ export interface FileRoutesByFullPath {
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
   '/admin/cms/paginas/novo': typeof AdminCmsPaginasNovoRoute
+  '/admin/pedidos/$id/recibo': typeof AdminPedidosIdReciboRoute
   '/admin/cms/paginas/$id/editor': typeof AdminCmsPaginasIdEditorRoute
 }
 export interface FileRoutesByTo {
@@ -727,6 +741,7 @@ export interface FileRoutesByTo {
   '/privacidade': typeof StorePrivacidadeRoute
   '/promocoes': typeof StorePromocoesRoute
   '/recuperar-senha': typeof StoreRecuperarSenhaRoute
+  '/redefinir-senha': typeof StoreRedefinirSenhaRoute
   '/stories': typeof StoreStoriesRoute
   '/termos': typeof StoreTermosRoute
   '/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
@@ -807,6 +822,7 @@ export interface FileRoutesByTo {
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
   '/admin/cms/paginas/novo': typeof AdminCmsPaginasNovoRoute
+  '/admin/pedidos/$id/recibo': typeof AdminPedidosIdReciboRoute
   '/admin/cms/paginas/$id/editor': typeof AdminCmsPaginasIdEditorRoute
 }
 export interface FileRoutesById {
@@ -829,6 +845,7 @@ export interface FileRoutesById {
   '/_store/privacidade': typeof StorePrivacidadeRoute
   '/_store/promocoes': typeof StorePromocoesRoute
   '/_store/recuperar-senha': typeof StoreRecuperarSenhaRoute
+  '/_store/redefinir-senha': typeof StoreRedefinirSenhaRoute
   '/_store/stories': typeof StoreStoriesRoute
   '/_store/termos': typeof StoreTermosRoute
   '/_store/trocas-e-devolucoes': typeof StoreTrocasEDevolucoesRoute
@@ -909,6 +926,7 @@ export interface FileRoutesById {
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
   '/admin/cms/paginas/novo': typeof AdminCmsPaginasNovoRoute
+  '/admin_/pedidos/$id/recibo': typeof AdminPedidosIdReciboRoute
   '/admin/cms/paginas/$id/editor': typeof AdminCmsPaginasIdEditorRoute
 }
 export interface FileRouteTypes {
@@ -932,6 +950,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/promocoes'
     | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/stories'
     | '/termos'
     | '/trocas-e-devolucoes'
@@ -1011,6 +1030,7 @@ export interface FileRouteTypes {
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
     | '/admin/cms/paginas/novo'
+    | '/admin/pedidos/$id/recibo'
     | '/admin/cms/paginas/$id/editor'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1029,6 +1049,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/promocoes'
     | '/recuperar-senha'
+    | '/redefinir-senha'
     | '/stories'
     | '/termos'
     | '/trocas-e-devolucoes'
@@ -1109,6 +1130,7 @@ export interface FileRouteTypes {
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
     | '/admin/cms/paginas/novo'
+    | '/admin/pedidos/$id/recibo'
     | '/admin/cms/paginas/$id/editor'
   id:
     | '__root__'
@@ -1130,6 +1152,7 @@ export interface FileRouteTypes {
     | '/_store/privacidade'
     | '/_store/promocoes'
     | '/_store/recuperar-senha'
+    | '/_store/redefinir-senha'
     | '/_store/stories'
     | '/_store/termos'
     | '/_store/trocas-e-devolucoes'
@@ -1210,6 +1233,7 @@ export interface FileRouteTypes {
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
     | '/admin/cms/paginas/novo'
+    | '/admin_/pedidos/$id/recibo'
     | '/admin/cms/paginas/$id/editor'
   fileRoutesById: FileRoutesById
 }
@@ -1217,6 +1241,7 @@ export interface RootRouteChildren {
   StoreRoute: typeof StoreRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  AdminPedidosIdReciboRoute: typeof AdminPedidosIdReciboRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1436,6 +1461,13 @@ declare module '@tanstack/react-router' {
       path: '/stories'
       fullPath: '/stories'
       preLoaderRoute: typeof StoreStoriesRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/redefinir-senha': {
+      id: '/_store/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof StoreRedefinirSenhaRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/recuperar-senha': {
@@ -1851,6 +1883,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreCategoriaSlugRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/admin_/pedidos/$id/recibo': {
+      id: '/admin_/pedidos/$id/recibo'
+      path: '/admin/pedidos/$id/recibo'
+      fullPath: '/admin/pedidos/$id/recibo'
+      preLoaderRoute: typeof AdminPedidosIdReciboRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/cms/paginas/novo': {
       id: '/admin/cms/paginas/novo'
       path: '/novo'
@@ -1974,6 +2013,7 @@ interface StoreRouteChildren {
   StorePrivacidadeRoute: typeof StorePrivacidadeRoute
   StorePromocoesRoute: typeof StorePromocoesRoute
   StoreRecuperarSenhaRoute: typeof StoreRecuperarSenhaRoute
+  StoreRedefinirSenhaRoute: typeof StoreRedefinirSenhaRoute
   StoreStoriesRoute: typeof StoreStoriesRoute
   StoreTermosRoute: typeof StoreTermosRoute
   StoreTrocasEDevolucoesRoute: typeof StoreTrocasEDevolucoesRoute
@@ -2005,6 +2045,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StorePrivacidadeRoute: StorePrivacidadeRoute,
   StorePromocoesRoute: StorePromocoesRoute,
   StoreRecuperarSenhaRoute: StoreRecuperarSenhaRoute,
+  StoreRedefinirSenhaRoute: StoreRedefinirSenhaRoute,
   StoreStoriesRoute: StoreStoriesRoute,
   StoreTermosRoute: StoreTermosRoute,
   StoreTrocasEDevolucoesRoute: StoreTrocasEDevolucoesRoute,
@@ -2243,6 +2284,7 @@ const rootRouteChildren: RootRouteChildren = {
   StoreRoute: StoreRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  AdminPedidosIdReciboRoute: AdminPedidosIdReciboRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

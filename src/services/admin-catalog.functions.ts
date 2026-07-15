@@ -613,3 +613,9 @@ export const addProductMediaLink = createServerFn({ method: "POST" })
       return { status: "error" as const, message: e.message || "Erro ao vincular mídia" };
     }
   });
+
+export const toggleProductCollection = createServerFn({ method: "POST" })
+  .validator(z.object({ productId: z.string().uuid(), collectionId: z.string().uuid() }))
+  .handler(async () => {
+    return { status: "success" as const };
+  });

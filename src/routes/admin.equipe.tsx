@@ -47,6 +47,7 @@ export const Route = createFileRoute("/admin/equipe")({
 function TeamPage() {
   const team = Route.useLoaderData() || [];
   const router = useRouter();
+  const { session } = Route.useRouteContext() as any;
   
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteData, setInviteData] = useState({ fullName: "", email: "", role: "seller" });
@@ -178,7 +179,11 @@ function TeamPage() {
                     <Select
                       defaultValue={member.role}
                       onValueChange={(val) => handleRoleChange(member.id, val)}
-                      disabled={member.role === "owner"}
+                      disabled={
+                        member.role === "owner" || 
+                        (session?.role !== "owner" && member.role === "admin") ||
+                        member.id === session?.id
+                      }
                     >
                       <SelectTrigger className="w-[180px] ml-auto h-8">
                         <SelectValue />

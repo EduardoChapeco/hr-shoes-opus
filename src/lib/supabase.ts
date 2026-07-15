@@ -17,6 +17,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { getEnvVar } from "./env";
 
 // ---------------------------------------------------------------------------
 // Environment validation schemas
@@ -90,9 +91,9 @@ export function getServerClient(): SupabaseClient {
   if (_serverClient) return _serverClient;
 
   const env = ServerEnvSchema.safeParse({
-    VITE_SUPABASE_URL: process.env["VITE_SUPABASE_URL"],
-    VITE_SUPABASE_ANON_KEY: process.env["VITE_SUPABASE_ANON_KEY"],
-    SUPABASE_SERVICE_ROLE_KEY: process.env["SUPABASE_SERVICE_ROLE_KEY"],
+    VITE_SUPABASE_URL: getEnvVar("VITE_SUPABASE_URL"),
+    VITE_SUPABASE_ANON_KEY: getEnvVar("VITE_SUPABASE_ANON_KEY"),
+    SUPABASE_SERVICE_ROLE_KEY: getEnvVar("SUPABASE_SERVICE_ROLE_KEY"),
   });
 
   if (!env.success) {
@@ -127,8 +128,8 @@ export function getAnonServerClient(): SupabaseClient {
   if (_anonServerClient) return _anonServerClient;
 
   const env = BrowserEnvSchema.safeParse({
-    VITE_SUPABASE_URL: process.env["VITE_SUPABASE_URL"],
-    VITE_SUPABASE_ANON_KEY: process.env["VITE_SUPABASE_ANON_KEY"],
+    VITE_SUPABASE_URL: getEnvVar("VITE_SUPABASE_URL"),
+    VITE_SUPABASE_ANON_KEY: getEnvVar("VITE_SUPABASE_ANON_KEY"),
   });
 
   if (!env.success) {

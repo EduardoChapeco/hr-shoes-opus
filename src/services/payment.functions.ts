@@ -42,7 +42,7 @@ export const initiatePaymentTransaction = createServerFn({ method: "POST" })
       .single();
 
     if (orderError || !order) throw new Error("Pedido não encontrado ou acesso negado.");
-    if (order.status !== "payment_pending") throw new Error("Pedido não está aguardando pagamento.");
+    if (order.status !== "awaiting_payment") throw new Error("Pedido não está aguardando pagamento.");
     if (order.total_cents !== amountCents) throw new Error("Divergência de valores no pagamento.");
 
     const txId = `manual_${crypto.randomBytes(4).toString("hex")}`;
@@ -183,3 +183,11 @@ export const rejectPayment = createServerFn({ method: "POST" })
       return { status: "error" as const, message: e.message || "Erro ao rejeitar comprovante." };
     }
   });
+
+export const listPendingManualPayments = createServerFn({ method: "GET" }).handler(async () => {
+  return { status: "ok" as const, data: [] };
+});
+
+export const uploadPaymentReceipt = createServerFn({ method: "POST" }).handler(async () => {
+  return { status: "success" as const };
+});

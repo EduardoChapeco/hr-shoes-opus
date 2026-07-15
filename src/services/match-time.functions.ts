@@ -101,7 +101,7 @@ export const getNextProductsForSwipe = createServerFn({ method: "GET" }).handler
           name,
           slug,
           price_cents,
-          compare_at_price_cents,
+          compare_at_cents,
           media:product_media(id, url, alt, sort_order)
         `,
       )
