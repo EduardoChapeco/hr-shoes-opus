@@ -9,33 +9,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
-import { getOrCreateGuestSession, getGuestSession, getSellerRefCookie } from "@/lib/session";
+import { getGuestSession, getSellerRefCookie } from "@/lib/session";
+import { getCurrentIdentity, mergeGuestCartLogic } from "./cart-helpers";
 import type { CartDTO } from "@/types/orders";
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Retrieves the current user's ID or the guest session token.
- */
-export async function getCurrentIdentity() {
-  const ssrClient = getSSRClient();
-  // Fetch or create guest session synchronously BEFORE any await.
-  // This prevents the vinxi/http unctx context loss on Cloudflare Pages.
-  const token = getOrCreateGuestSession();
-
-  const {
-    data: { user },
-  } = await ssrClient.auth.getUser();
-
-  if (user) {
-    return { customer_id: user.id, session_token: null };
-  }
-
-  return { customer_id: null, session_token: token };
-}
+// Helpers (getCurrentIdentity, mergeGuestCartLogic) live in ./cart-helpers
+// because tss-serverfn-split strips sibling declarations from this file.
 
 /**
  * Ensures a cart exists for the current identity.

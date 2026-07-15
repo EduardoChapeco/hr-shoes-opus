@@ -13,7 +13,7 @@ import { z } from "zod";
 import crypto from "node:crypto";
 import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr";
-import { getCurrentIdentity } from "./cart.functions";
+import { getCurrentIdentity } from "./cart-helpers";
 
 const CheckoutSchema = z.object({
   cartId: z.string().uuid(),
