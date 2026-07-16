@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MapPin, Plus, Save, Trash2 } from "lucide-react";
@@ -25,13 +25,9 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/admin/fretes/")({
-  head: () => ({ meta: [{ title: "Fretes e Zonas — Hr Shoes" }] }),
-  loader: async () => {
-    const res = await listShippingZones();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+  beforeLoad: () => {
+    throw redirect({ to: "/admin/fretes/tabelas", replace: true });
   },
-  component: ShippingPage,
 });
 
 function ShippingPage() {
