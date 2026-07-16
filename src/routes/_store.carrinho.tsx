@@ -99,11 +99,7 @@ function StoreCartPage() {
 
   const handleUpdateQty = async (variantId: string, delta: number) => {
     try {
-      const res = await updateCartItemQty({ data: { variantId, delta } });
-      if (res.status === "error") {
-        toast.error(res.message || "Erro ao atualizar quantidade.");
-        return;
-      }
+      await updateCartItemQty({ data: { variantId, delta } });
       router.invalidate();
     } catch (e: any) {
       toast.error("Erro ao atualizar carrinho.");
