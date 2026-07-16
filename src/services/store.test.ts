@@ -6,6 +6,8 @@ import {
   savePoliciesHandler,
   getStoreSeoHandler,
   saveStoreSeoHandler,
+  getPublicProfileHandler,
+  savePublicProfileHandler,
 } from "./store.functions";
 import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity } from "@/lib/identity";
@@ -160,6 +162,37 @@ describe("Store Settings Server Functions", () => {
       const result = await saveStoreSeoHandler(mockSeo);
 
       expect(supabaseMock.from().update).toHaveBeenCalledWith(mockSeo);
+      expect(result).toEqual({ status: "success" });
+    });
+  });
+
+  describe("getPublicProfile", () => {
+    it("should successfully retrieve public profile", async () => {
+      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", organization_id: "org-789" };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
+
+      const mockStoreData = { id: "store-456", name: "Hr Shoes" };
+      supabaseMock.from().select.mockReturnValue(supabaseMock.from());
+      supabaseMock.from().eq.mockReturnValue(supabaseMock.from());
+      supabaseMock.from().single.mockResolvedValue({ data: mockStoreData, error: null });
+
+      const result = await getPublicProfileHandler();
+
+      expect(result).toEqual({ status: "ok", data: mockStoreData });
+    });
+  });
+
+  describe("savePublicProfile", () => {
+    it("should successfully update public profile", async () => {
+      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", organization_id: "org-789" };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
+
+      supabaseMock.from().update.mockReturnValue(supabaseMock.from());
+      supabaseMock.from().eq.mockResolvedValue({ error: null });
+
+      const mockProfile = { description: "desc", phone: "123", address: "addr", business_hours: "hours" };
+      const result = await savePublicProfileHandler(mockProfile);
+
       expect(result).toEqual({ status: "success" });
     });
   });

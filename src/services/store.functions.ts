@@ -157,3 +157,54 @@ export async function saveStoreSeoHandler(data: z.infer<typeof saveStoreSeoSchem
 export const saveStoreSeo = createServerFn({ method: "POST" })
   .validator(saveStoreSeoSchema)
   .handler(async ({ data }) => saveStoreSeoHandler(data));
+
+
+// --- PERFIL PÚBLICO DA LOJA ---
+
+export async function getPublicProfileHandler() {
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "support", "finance", "seller"]);
+
+  const db = getServerClient();
+  const { data: store, error } = await db
+    .from("stores")
+    .select("id, name, description, logo_url, address, phone, business_hours, social_links")
+    .eq("id", identity.store_id)
+    .single();
+
+  if (error || !store) {
+    throw new Error("Loja não encontrada ou erro ao carregar perfil público");
+  }
+
+  return { status: "ok" as const, data: store };
+}
+
+export const getPublicProfile = createServerFn({ method: "GET" }).handler(getPublicProfileHandler);
+
+export const savePublicProfileSchema = z.object({
+  description: z.string().max(500),
+  phone: z.string().max(20).optional(),
+  address: z.string().max(200).optional(),
+  business_hours: z.string().max(200).optional(),
+});
+
+export async function savePublicProfileHandler(data: z.infer<typeof savePublicProfileSchema>) {
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin"]);
+
+  const db = getServerClient();
+  const { error } = await db
+    .from("stores")
+    .update(data)
+    .eq("id", identity.store_id);
+
+  if (error) {
+    throw new Error("Erro ao salvar perfil público: " + error.message);
+  }
+
+  return { status: "success" };
+}
+
+export const savePublicProfile = createServerFn({ method: "POST" })
+  .validator(savePublicProfileSchema)
+  .handler(async ({ data }) => savePublicProfileHandler(data));

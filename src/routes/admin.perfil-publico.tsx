@@ -2,49 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ExternalLink, Store, MapPin, Phone, Clock } from "lucide-react";
-import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+import { useRouter } from "@tanstack/react-router";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getServerClient } from "@/lib/supabase";
-import { useRouter } from "@tanstack/react-router";
-
-const getPublicProfile = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const db = getServerClient();
-    const { data: store, error } = await db
-      .from("stores")
-      .select("id, name, description, logo_url, address, phone, business_hours, social_links")
-      .limit(1)
-      .single();
-    if (error || !store) return { status: "unconfigured" as const };
-    return { status: "ok" as const, data: store };
-  } catch {
-    return { status: "error" as const, message: "Erro ao carregar perfil." };
-  }
-});
-
-const savePublicProfile = createServerFn({ method: "POST" })
-  .validator(
-    z.object({
-      description: z.string().max(500),
-      phone: z.string().max(20).optional(),
-      address: z.string().max(200).optional(),
-      business_hours: z.string().max(200).optional(),
-    }),
-  )
-  .handler(async ({ data }) => {
-    const db = getServerClient();
-    const { data: store } = await db.from("stores").select("id").limit(1).single();
-    if (!store) throw new Error("Loja não encontrada");
-    const { error } = await db.from("stores").update(data).eq("id", store.id);
-    if (error) throw new Error(error.message);
-    return { status: "success" };
-  });
+import { getPublicProfile, savePublicProfile } from "@/services/store.functions";
 
 export const Route = createFileRoute("/admin/perfil-publico")({
   head: () => ({ meta: [{ title: "Perfil Público — Hr Shoes" }] }),
@@ -70,8 +35,7 @@ function PerfilPublicoPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const res = await savePublicProfile({ data: form });
-      if (res.status === "error") throw new Error(res.message);
+      await savePublicProfile({ data: form });
       toast.success("Perfil público atualizado!");
       router.invalidate();
     } catch (e: any) {

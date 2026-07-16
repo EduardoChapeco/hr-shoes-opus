@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Activity } from "lucide-react";
-import { createServerFn } from "@tanstack/react-start";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -13,42 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/state/states";
-import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr.server";
-
-const getAuditLog = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const ssrClient = getSSRClient();
-    const {
-      data: { user },
-    } = await ssrClient.auth.getUser();
-    if (!user) throw new Error("Não autorizado");
-
-    const db = getServerClient();
-    const { data: profile } = await db
-      .from("profiles")
-      .select("role, store_id")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.store_id || !["owner", "admin"].includes(profile.role)) {
-      throw new Error("Acesso negado");
-    }
-
-    const { data, error } = await db
-      .from("audit_log")
-      .select("id, action, table_name, record_id, changed_by, created_at, metadata")
-      .eq("store_id", profile.store_id)
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    if (error) throw error;
-    return { status: "ok" as const, data: data || [] };
-  } catch (e: any) {
-    console.error("[auditoria] getAuditLog:", e.message);
-    return { status: "error" as const, message: e.message || "Erro ao carregar auditoria." };
-  }
-});
+import { getAuditLog } from "@/services/audit.functions";
 
 export const Route = createFileRoute("/admin/configuracoes/auditoria")({
   head: () => ({ meta: [{ title: "Auditoria — Hr Shoes" }] }),
@@ -60,18 +24,6 @@ export const Route = createFileRoute("/admin/configuracoes/auditoria")({
 
 function AuditoriaPage() {
   const res = Route.useLoaderData();
-
-  if (res.status === "error") {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Log de Auditoria"
-          description="Histórico de ações realizadas no sistema."
-        />
-        <p className="text-sm text-muted-foreground">{res.message}</p>
-      </div>
-    );
-  }
 
   const entries = res.data;
 
