@@ -6,6 +6,8 @@ CAPACIDADE: Visualizar e atualizar políticas e metadados SEO da loja com isolam
 
 COMMIT-BASE: `0863f46`
 
+COMMIT-FINAL: `53eaa60`
+
 ### BASELINE
 
 ESTADO ANTERIOR:
