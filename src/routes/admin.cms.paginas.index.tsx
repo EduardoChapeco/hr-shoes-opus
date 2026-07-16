@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
 import { listAdminPages } from "@/services/cms.functions";
 
-export const Route = createFileRoute("/admin/cms/paginas")({
+export const Route = createFileRoute("/admin/cms/paginas/")({
   head: () => ({ meta: [{ title: "Páginas — Hr Shoes" }] }),
   loader: async () => {
     const res = await listAdminPages();

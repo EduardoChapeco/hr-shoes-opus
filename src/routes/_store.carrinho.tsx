@@ -89,13 +89,21 @@ function StoreCartPage() {
   };
 
   const handleRemove = async (itemId: string) => {
-    await removeFromCart({ data: { itemId } });
+    const res = await removeFromCart({ data: { itemId } });
+    if (res.status === "error") {
+      toast.error(res.message || "Erro ao remover do carrinho.");
+      return;
+    }
     router.invalidate();
   };
 
   const handleUpdateQty = async (variantId: string, delta: number) => {
     try {
-      await updateCartItemQty({ data: { variantId, delta } });
+      const res = await updateCartItemQty({ data: { variantId, delta } });
+      if (res.status === "error") {
+        toast.error(res.message || "Erro ao atualizar quantidade.");
+        return;
+      }
       router.invalidate();
     } catch (e: any) {
       toast.error("Erro ao atualizar carrinho.");

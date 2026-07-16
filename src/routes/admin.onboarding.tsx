@@ -11,6 +11,16 @@ export const Route = createFileRoute("/admin/onboarding")({
   loader: async () => {
     const res = await getOnboardingProgress();
     if (res.status === "error") throw new Error(res.message);
+    if (res.status === "unconfigured") {
+      return {
+        storeDone: false,
+        themeDone: false,
+        productsDone: false,
+        shippingDone: false,
+        paymentsDone: false,
+        cmsDone: false,
+      };
+    }
     return res.data;
   },
   component: Onboarding,

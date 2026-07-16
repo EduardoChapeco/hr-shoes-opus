@@ -24,7 +24,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-export const Route = createFileRoute("/admin/fretes")({
+export const Route = createFileRoute("/admin/fretes/")({
   head: () => ({ meta: [{ title: "Fretes e Zonas — Hr Shoes" }] }),
   loader: async () => {
     const res = await listShippingZones();
@@ -60,6 +60,8 @@ function ShippingPage() {
         setOpenZone(false);
         setNewZoneName("");
         router.invalidate();
+      } else {
+        toast.error(res.message || "Erro ao criar zona");
       }
     } catch {
       toast.error("Erro ao criar zona.");

@@ -57,13 +57,16 @@ function MatchTimePage() {
     setCurrentIndex((prev) => prev + 1);
 
     try {
-      await recordSwipe({
+      const res = await recordSwipe({
         data: {
           sessionId,
           productId: currentProduct.id,
           action,
         },
       });
+      if (res.status === "error") {
+        toast.error(res.message || "Erro ao registrar avaliação");
+      }
     } catch {
       toast.error("Erro ao registrar avaliação");
     }

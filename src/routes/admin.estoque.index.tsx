@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
 import { getStockLevels, adjustStock } from "@/services/stock.functions";
 
-export const Route = createFileRoute("/admin/estoque")({
+export const Route = createFileRoute("/admin/estoque/")({
   head: () => ({ meta: [{ title: "Estoque — Hr Shoes" }] }),
   loader: async () => {
     const res = await getStockLevels();

@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { listCustomers } from "@/services/crm.functions";
 import { formatMoney } from "@/lib/money";
 
-export const Route = createFileRoute("/admin/clientes")({
+export const Route = createFileRoute("/admin/clientes/")({
   head: () => ({ meta: [{ title: "Clientes — Hr Shoes" }] }),
   loader: async () => {
     return await listCustomers();

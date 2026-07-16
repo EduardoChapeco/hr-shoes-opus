@@ -561,6 +561,9 @@ export const getOnboardingProgress = createServerFn({ method: "GET" }).handler(a
       },
     };
   } catch (e: any) {
+    if (e.code === "supabase_unconfigured" || e.message?.includes("unconfigured")) {
+      return { status: "unconfigured" as const };
+    }
     console.error("[admin-catalog] getOnboardingProgress error:", e);
     return {
       status: "error" as const,

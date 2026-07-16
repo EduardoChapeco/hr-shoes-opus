@@ -13,43 +13,43 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
-import { listCategories } from "@/services/admin-catalog.functions";
+import { listCollections } from "@/services/admin-catalog.functions";
 
-export const Route = createFileRoute("/admin/catalogo/categorias")({
-  head: () => ({ meta: [{ title: "Categorias — Hr Shoes" }] }),
+export const Route = createFileRoute("/admin/catalogo/colecoes/")({
+  head: () => ({ meta: [{ title: "Coleções — Hr Shoes" }] }),
   loader: async () => {
-    const res = await listCategories();
+    const res = await listCollections();
     return res.status === "ok" ? res.data : [];
   },
-  component: AdminCategoriesPage,
+  component: AdminCollectionsPage,
 });
 
-function AdminCategoriesPage() {
-  const categories = Route.useLoaderData();
+function AdminCollectionsPage() {
+  const collections = Route.useLoaderData();
 
   return (
     <div className="space-y-8">
       <PageHeader
         eyebrow="Catálogo"
-        title="Categorias"
-        description="Organize seus produtos em categorias hierárquicas."
+        title="Coleções"
+        description="Agrupe produtos para campanhas, estações ou promoções especiais."
         actions={
           <Button asChild>
-            <Link to="/admin/catalogo/categorias/novo">
+            <Link to="/admin/catalogo/colecoes/novo">
               <Plus className="mr-2 size-4" aria-hidden />
-              Nova categoria
+              Nova coleção
             </Link>
           </Button>
         }
       />
 
-      {categories.length === 0 ? (
+      {collections.length === 0 ? (
         <EmptyState
-          title="Nenhuma categoria cadastrada"
-          description="Crie categorias para organizar seus produtos na vitrine."
+          title="Nenhuma coleção cadastrada"
+          description="Crie coleções para agrupar produtos para vitrines e campanhas."
           action={
             <Button asChild>
-              <Link to="/admin/catalogo/categorias/novo">Nova categoria</Link>
+              <Link to="/admin/catalogo/colecoes/novo">Nova coleção</Link>
             </Button>
           }
         />
@@ -64,13 +64,13 @@ function AdminCategoriesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {categories.map((cat: any) => (
-                <TableRow key={cat.id}>
-                  <TableCell className="font-medium">{cat.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
+              {collections.map((col: any) => (
+                <TableRow key={col.id}>
+                  <TableCell className="font-medium">{col.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{col.slug}</TableCell>
                   <TableCell>
-                    <Badge variant={cat.status === "active" ? "default" : "secondary"}>
-                      {cat.status === "active" ? "Ativa" : "Inativa"}
+                    <Badge variant={col.status === "active" ? "default" : "secondary"}>
+                      {col.status === "active" ? "Ativa" : "Inativa"}
                     </Badge>
                   </TableCell>
                 </TableRow>

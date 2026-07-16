@@ -62,7 +62,7 @@ function FretesTabelasPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await upsertShippingZone({
+      const res = await upsertShippingZone({
         data: {
           name: zoneForm.name,
           regions: zoneForm.regions
@@ -72,6 +72,10 @@ function FretesTabelasPage() {
           is_active: true,
         },
       });
+      if (res.status === "error") {
+        toast.error(res.message || "Erro ao criar zona");
+        return;
+      }
       toast.success("Zona adicionada!");
       setAddZoneOpen(false);
       setZoneForm({ name: "", regions: "" });
@@ -87,7 +91,7 @@ function FretesTabelasPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await upsertShippingRate({
+      const res = await upsertShippingRate({
         data: {
           zone_id: zoneId,
           name: rateForm.name,
@@ -99,6 +103,10 @@ function FretesTabelasPage() {
           is_active: true,
         },
       });
+      if (res.status === "error") {
+        toast.error(res.message || "Erro ao adicionar taxa");
+        return;
+      }
       toast.success("Taxa adicionada!");
       setAddRateOpen(null);
       setRateForm({ name: "", price: "", minOrderCents: "", estimatedDays: "" });
@@ -112,7 +120,11 @@ function FretesTabelasPage() {
 
   const handleDeleteRate = async (id: string) => {
     try {
-      await deleteShippingRate({ data: { id } });
+      const res = await deleteShippingRate({ data: { id } });
+      if (res.status === "error") {
+        toast.error(res.message || "Erro ao remover taxa");
+        return;
+      }
       toast.success("Taxa removida.");
       router.invalidate();
     } catch (e: any) {

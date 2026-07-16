@@ -43,7 +43,7 @@ import {
 } from "@/services/cash.functions";
 import { formatMoney } from "@/lib/money";
 
-export const Route = createFileRoute("/admin/caixa")({
+export const Route = createFileRoute("/admin/caixa/")({
   head: () => ({ meta: [{ title: "Frente de Caixa — Hr Shoes" }] }),
   loader: async () => {
     return await getActiveRegister();

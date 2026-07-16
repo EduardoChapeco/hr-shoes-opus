@@ -15,7 +15,7 @@ import { EmptyState } from "@/components/state/states";
 import { listOrders, updateOrderStatus } from "@/services/order.functions";
 import { useState } from "react";
 
-export const Route = createFileRoute("/admin/pedidos")({
+export const Route = createFileRoute("/admin/pedidos/")({
   head: () => ({ meta: [{ title: "Pedidos — Hr Shoes" }] }),
   loader: async () => {
     const res = await listOrders();
