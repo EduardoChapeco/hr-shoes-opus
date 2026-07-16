@@ -6,7 +6,7 @@ CAPACIDADE: Visualização, criação, edição e exclusão (CRUD) de produtos, 
 
 COMMIT-BASE: `dd43aee`
 
-COMMIT-FINAL: `60429dc`
+COMMIT-FINAL: `ffa9505`
 
 ### BASELINE
 
