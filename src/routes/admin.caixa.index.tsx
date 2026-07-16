@@ -100,7 +100,6 @@ function CashRegisterPage() {
     try {
       const cents = parseMoneyInput(data.initialBalance);
       const res = await openRegister({ data: { initialBalanceCents: cents, notes: data.notes } });
-      if (res.status === "error") throw new Error(res.message);
       toast.success("Caixa aberto com sucesso");
       router.invalidate();
     } catch (e: unknown) {
@@ -122,7 +121,6 @@ function CashRegisterPage() {
           notes: data.notes,
         },
       });
-      if (res.status === "error") throw new Error(res.message);
 
       if (res.discrepancy) {
         toast.warning(
@@ -154,7 +152,6 @@ function CashRegisterPage() {
           description: data.description,
         },
       });
-      if (res.status === "error") throw new Error(res.message);
       toast.success("Lançamento adicionado");
       entryForm.reset();
       router.invalidate();
