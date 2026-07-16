@@ -6,7 +6,7 @@ CAPACIDADE: Modelagem e criação/listagem (CRUD) de categorias no painel admini
 
 COMMIT-BASE: `1daf422`
 
-COMMIT-FINAL: `2654032`
+COMMIT-FINAL: `e53e94a`
 
 ### BASELINE
 
