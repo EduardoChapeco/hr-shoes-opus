@@ -95,23 +95,27 @@ export const createProductType = createServerFn({ method: "POST" })
 // Products
 // ---------------------------------------------------------------------------
 
+export async function listAdminProductsHandler() {
+  const db = getServerClient();
+
+  const { data, error } = await db
+    .from("products")
+    .select(
+      `
+        id, title, slug, status, price_cents, compare_at_cents, brand,
+        product_types (id, name),
+        product_media (url, alt, sort_order)
+      `,
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
 export const listAdminProducts = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const db = getServerClient();
-
-    const { data, error } = await db
-      .from("products")
-      .select(
-        `
-          id, title, slug, status, price_cents, compare_at_cents, brand,
-          product_types (id, name),
-          product_media (url, alt, sort_order)
-        `,
-      )
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-
+    const data = await listAdminProductsHandler();
     return { status: "ok" as const, data };
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
@@ -119,6 +123,109 @@ export const listAdminProducts = createServerFn({ method: "GET" }).handler(async
     return { status: "error" as const, message: "Erro ao listar produtos." };
   }
 });
+
+export async function createProductHandler(input: {
+  type_id?: string | null;
+  title: string;
+  slug: string;
+  description?: string | null;
+  status: "draft" | "published" | "archived";
+  brand?: string | null;
+  price_cents: number;
+  compare_at_cents?: number | null;
+  cost_cents?: number | null;
+  attributes: Record<string, any>;
+  weight_grams?: number | null;
+  media_urls?: string[];
+  category_ids?: string[];
+  variants?: {
+    sku: string;
+    attributes: Record<string, any>;
+    price_cents?: number;
+    stock: number;
+  }[];
+}) {
+  const db = getServerClient();
+
+  const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+  if (!storeData) throw new Error("No store found");
+
+  const { media_urls, variants, category_ids, ...productInput } = input;
+
+  const { data, error } = await db
+    .from("products")
+    .insert({
+      store_id: storeData.id,
+      ...productInput,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  // Create Categories Mapping
+  if (category_ids && category_ids.length > 0) {
+    const catRecords = category_ids.map(cid => ({
+      product_id: data.id,
+      category_id: cid
+    }));
+    await db.from("product_categories").insert(catRecords);
+  }
+
+  // Create Variants
+  if (variants && variants.length > 0) {
+    for (const v of variants) {
+      const { data: variantData, error: variantError } = await db
+        .from("product_variants")
+        .insert({
+          product_id: data.id,
+          sku: v.sku,
+          price_override_cents: v.price_cents,
+          attributes: v.attributes,
+          stock_on_hand: v.stock // Allow initial stock bypass for creation
+        })
+        .select()
+        .single();
+
+      if (variantError) throw variantError;
+      
+      if (v.stock > 0) {
+         await db.from("stock_movements").insert({
+           variant_id: variantData.id,
+           store_id: storeData.id,
+           movement_type: "adjustment",
+           qty: v.stock,
+           note: "Estoque Inicial (Criação)"
+         });
+      }
+    }
+  } else {
+    // Create a default variant if none provided
+    const { error: variantError } = await db
+      .from("product_variants")
+      .insert({
+        product_id: data.id,
+        sku: `${input.slug}-01`,
+        price_override_cents: input.price_cents,
+        attributes: input.attributes,
+        stock_on_hand: 0
+      });
+
+    if (variantError) throw variantError;
+  }
+
+  // Insert media if provided
+  if (media_urls && media_urls.length > 0) {
+    const mediaRecords = media_urls.map((url, idx) => ({
+      product_id: data.id,
+      url,
+      sort_order: idx,
+    }));
+    await db.from("product_media").insert(mediaRecords);
+  }
+
+  return data;
+}
 
 export const createProduct = createServerFn({ method: "POST" })
   .validator(
@@ -146,85 +253,7 @@ export const createProduct = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      const db = getServerClient();
-
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
-      if (!storeData) throw new Error("No store found");
-
-      const { media_urls, variants, category_ids, ...productInput } = input;
-
-      const { data, error } = await db
-        .from("products")
-        .insert({
-          store_id: storeData.id,
-          ...productInput,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Create Categories Mapping
-      if (input.category_ids && input.category_ids.length > 0) {
-        const catRecords = input.category_ids.map(cid => ({
-          product_id: data.id,
-          category_id: cid
-        }));
-        await db.from("product_categories").insert(catRecords);
-      }
-
-      // Create Variants
-      if (input.variants && input.variants.length > 0) {
-        for (const v of input.variants) {
-          const { data: variantData, error: variantError } = await db
-            .from("product_variants")
-            .insert({
-              product_id: data.id,
-              sku: v.sku,
-              price_override_cents: v.price_cents,
-              attributes: v.attributes,
-              stock_on_hand: v.stock // Allow initial stock bypass for creation
-            })
-            .select()
-            .single();
-
-          if (variantError) throw variantError;
-          
-          if (v.stock > 0) {
-             await db.from("stock_movements").insert({
-               variant_id: variantData.id,
-               store_id: storeData.id,
-               movement_type: "adjustment",
-               qty: v.stock,
-               note: "Estoque Inicial (Criação)"
-             });
-          }
-        }
-      } else {
-        // Create a default variant if none provided
-        const { error: variantError } = await db
-          .from("product_variants")
-          .insert({
-            product_id: data.id,
-            sku: `${input.slug}-01`,
-            price_override_cents: input.price_cents,
-            attributes: input.attributes,
-            stock_on_hand: 0
-          });
-
-        if (variantError) throw variantError;
-      }
-
-      // Insert media if provided
-      if (media_urls && media_urls.length > 0) {
-        const mediaRecords = media_urls.map((url, idx) => ({
-          product_id: data.id,
-          url,
-          sort_order: idx,
-        }));
-        await db.from("product_media").insert(mediaRecords);
-      }
-
+      const data = await createProductHandler(input);
       return { status: "success" as const, data };
     } catch (e: unknown) {
       console.error("[admin-catalog] createProduct error:", e);
@@ -371,27 +400,31 @@ export const createCollection = createServerFn({ method: "POST" })
 // Product Edit & Variants
 // ---------------------------------------------------------------------------
 
+export async function getProductByIdHandler(id: string) {
+  const db = getServerClient();
+
+  const { data, error } = await db
+    .from("products")
+    .select(
+      `
+      *,
+      product_variants (*),
+      product_media (*),
+      product_categories (category_id)
+    `,
+    )
+    .eq("id", id)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export const getProductById = createServerFn({ method: "GET" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     try {
-      const db = getServerClient();
-
-      const { data, error } = await db
-        .from("products")
-        .select(
-          `
-          *,
-          product_variants (*),
-          product_media (*),
-          product_categories (category_id)
-        `,
-        )
-        .eq("id", id)
-        .single();
-
-      if (error) throw error;
-
+      const data = await getProductByIdHandler(id);
       return { status: "ok" as const, data };
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
@@ -399,6 +432,46 @@ export const getProductById = createServerFn({ method: "GET" })
       return { status: "error" as const, message: "Erro ao buscar produto." };
     }
   });
+
+export async function updateProductHandler(input: {
+  id: string;
+  title?: string;
+  description?: string | null;
+  status?: "draft" | "published" | "archived";
+  brand?: string | null;
+  price_cents?: number;
+  compare_at_cents?: number | null;
+  cost_cents?: number | null;
+  attributes?: Record<string, any>;
+  weight_grams?: number | null;
+  type_id?: string | null;
+  category_ids?: string[];
+}) {
+  const db = getServerClient();
+  const { id, category_ids, ...updates } = input;
+
+  const { data, error } = await db
+    .from("products")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  if (category_ids !== undefined) {
+    await db.from("product_categories").delete().eq("product_id", id);
+    if (category_ids.length > 0) {
+      const catRecords = category_ids.map(cid => ({
+        product_id: id,
+        category_id: cid
+      }));
+      await db.from("product_categories").insert(catRecords);
+    }
+  }
+
+  return data;
+}
 
 export const updateProduct = createServerFn({ method: "POST" })
   .validator(
@@ -419,29 +492,7 @@ export const updateProduct = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      const db = getServerClient();
-      const { id, category_ids, ...updates } = input;
-
-      const { data, error } = await db
-        .from("products")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      if (category_ids !== undefined) {
-        await db.from("product_categories").delete().eq("product_id", id);
-        if (category_ids.length > 0) {
-          const catRecords = category_ids.map(cid => ({
-            product_id: id,
-            category_id: cid
-          }));
-          await db.from("product_categories").insert(catRecords);
-        }
-      }
-
+      const data = await updateProductHandler(input);
       return { status: "success" as const, data };
     } catch (e: unknown) {
       console.error("[admin-catalog] updateProduct error:", e);
@@ -451,6 +502,40 @@ export const updateProduct = createServerFn({ method: "POST" })
       };
     }
   });
+
+export async function upsertProductVariantHandler(input: {
+  id?: string;
+  product_id: string;
+  sku: string;
+  barcode?: string | null;
+  status: "active" | "inactive" | "archived";
+  price_override_cents?: number | null;
+  attributes: Record<string, any>;
+}) {
+  const db = getServerClient();
+  const { id, product_id, sku, barcode, status, price_override_cents, attributes } = input;
+
+  const payload = {
+    product_id,
+    sku,
+    barcode,
+    status,
+    price_override_cents,
+    attributes,
+  };
+
+  const query = db.from("product_variants");
+  let result;
+
+  if (id) {
+    result = await query.update(payload).eq("id", id).select().single();
+  } else {
+    result = await query.insert(payload).select().single();
+  }
+
+  if (result.error) throw result.error;
+  return result.data;
+}
 
 export const upsertProductVariant = createServerFn({ method: "POST" })
   .validator(
@@ -466,30 +551,8 @@ export const upsertProductVariant = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      const db = getServerClient();
-      const { id, product_id, sku, barcode, status, price_override_cents, attributes } = input;
-
-      const payload = {
-        product_id,
-        sku,
-        barcode,
-        status,
-        price_override_cents,
-        attributes,
-      };
-
-      const query = db.from("product_variants");
-      let result;
-
-      if (id) {
-        result = await query.update(payload).eq("id", id).select().single();
-      } else {
-        result = await query.insert(payload).select().single();
-      }
-
-      if (result.error) throw result.error;
-
-      return { status: "success" as const, data: result.data };
+      const data = await upsertProductVariantHandler(input);
+      return { status: "success" as const, data };
     } catch (e: unknown) {
       console.error("[admin-catalog] upsertProductVariant error:", e);
       return {
@@ -602,45 +665,57 @@ export const getOnboardingProgress = createServerFn({ method: "GET" }).handler(a
   }
 });
 
+export async function deleteProductMediaHandler(input: { id: string; url: string }) {
+  const db = getServerClient();
+  const { id, url } = input;
+
+  const { error: dbError } = await db.from("product_media").delete().eq("id", id);
+  if (dbError) throw dbError;
+
+  const pathMatches = url.match(/product-media\/(.*)$/);
+  if (pathMatches && pathMatches[1]) {
+    const { error: storageError } = await db.storage
+      .from("product-media")
+      .remove([pathMatches[1]]);
+    if (storageError) console.error("Storage delete error:", storageError);
+  }
+
+  return { status: "success" as const };
+}
+
 export const deleteProductMedia = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid(), url: z.string().url() }))
-  .handler(async ({ data: { id, url } }) => {
+  .handler(async ({ data: input }) => {
     try {
-      const db = getServerClient();
-
-      const { error: dbError } = await db.from("product_media").delete().eq("id", id);
-      if (dbError) throw dbError;
-
-      const pathMatches = url.match(/product-media\/(.*)$/);
-      if (pathMatches && pathMatches[1]) {
-        const { error: storageError } = await db.storage
-          .from("product-media")
-          .remove([pathMatches[1]]);
-        if (storageError) console.error("Storage delete error:", storageError);
-      }
-
-      return { status: "success" as const };
+      return await deleteProductMediaHandler(input);
     } catch (e: any) {
       return { status: "error" as const, message: e.message || "Erro ao deletar mídia." };
     }
   });
 
+export async function addProductMediaLinkHandler(input: { product_id: string; url: string }) {
+  const db = getServerClient();
+  const { product_id, url } = input;
+
+  const { data, error } = await db
+    .from("product_media")
+    .insert({
+      product_id,
+      url,
+      sort_order: 99,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 export const addProductMediaLink = createServerFn({ method: "POST" })
   .validator(z.object({ product_id: z.string().uuid(), url: z.string().url() }))
-  .handler(async ({ data: { product_id, url } }) => {
+  .handler(async ({ data: input }) => {
     try {
-      const db = getServerClient();
-      const { data, error } = await db
-        .from("product_media")
-        .insert({
-          product_id,
-          url,
-          sort_order: 99,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
+      const data = await addProductMediaLinkHandler(input);
       return { status: "success" as const, data };
     } catch (e: any) {
       return { status: "error" as const, message: e.message || "Erro ao vincular mídia" };
