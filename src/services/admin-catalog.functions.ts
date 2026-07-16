@@ -341,17 +341,21 @@ export const createCategory = createServerFn({ method: "POST" })
 // Collections
 // ---------------------------------------------------------------------------
 
+export async function listCollectionsHandler() {
+  const db = getServerClient();
+
+  const { data, error } = await db
+    .from("collections")
+    .select("id, name, slug, status, sort_order")
+    .order("sort_order", { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
+
 export const listCollections = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const db = getServerClient();
-
-    const { data, error } = await db
-      .from("collections")
-      .select("id, name, slug, status, sort_order")
-      .order("sort_order", { ascending: true });
-
-    if (error) throw error;
-
+    const data = await listCollectionsHandler();
     return { status: "ok" as const, data };
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
@@ -359,6 +363,29 @@ export const listCollections = createServerFn({ method: "GET" }).handler(async (
     return { status: "error" as const, message: "Erro ao listar coleções." };
   }
 });
+
+export async function createCollectionHandler(input: {
+  name: string;
+  slug: string;
+  status: "active" | "inactive";
+}) {
+  const db = getServerClient();
+
+  const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+  if (!storeData) throw new Error("No store found");
+
+  const { data, error } = await db
+    .from("collections")
+    .insert({
+      store_id: storeData.id,
+      ...input,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
 
 export const createCollection = createServerFn({ method: "POST" })
   .validator(
@@ -370,22 +397,7 @@ export const createCollection = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      const db = getServerClient();
-
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
-      if (!storeData) throw new Error("No store found");
-
-      const { data, error } = await db
-        .from("collections")
-        .insert({
-          store_id: storeData.id,
-          ...input,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const data = await createCollectionHandler(input);
       return { status: "success" as const, data };
     } catch (e: unknown) {
       console.error("[admin-catalog] createCollection error:", e);

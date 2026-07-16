@@ -12,6 +12,8 @@ import {
   upsertProductVariantHandler,
   deleteProductMediaHandler,
   addProductMediaLinkHandler,
+  listCollectionsHandler,
+  createCollectionHandler,
 } from "./admin-catalog.functions";
 import { getServerClient } from "@/lib/supabase";
 
@@ -465,6 +467,61 @@ describe("Admin Catalog Functions", () => {
       await expect(
         addProductMediaLinkHandler({ product_id: "prod-1", url: "https://foo.com/pic.jpg" }),
       ).rejects.toThrow("Link insert fail");
+    });
+  });
+
+  describe("listCollectionsHandler", () => {
+    it("should retrieve collections ordered by sort_order", async () => {
+      const mockCols = [{ id: "col-1", name: "Estação", slug: "estacao" }];
+      mockOrder.mockResolvedValueOnce({ data: mockCols, error: null });
+
+      const res = await listCollectionsHandler();
+      expect(res).toEqual(mockCols);
+      expect(mockFrom).toHaveBeenCalledWith("collections");
+      expect(mockOrder).toHaveBeenCalledWith("sort_order", { ascending: true });
+    });
+
+    it("should propagate select database error", async () => {
+      mockOrder.mockResolvedValueOnce({ data: null, error: { message: "DB collections select fail" } });
+
+      await expect(listCollectionsHandler()).rejects.toThrow("DB collections select fail");
+    });
+  });
+
+  describe("createCollectionHandler", () => {
+    it("should successfully insert collection linked to store", async () => {
+      mockSingle
+        .mockResolvedValueOnce({ data: { id: "store-123" } })
+        .mockResolvedValueOnce({ data: { id: "col-1", name: "Verão", slug: "verao" }, error: null });
+
+      const input = { name: "Verão", slug: "verao", status: "active" as const };
+      const res = await createCollectionHandler(input);
+
+      expect(res).toEqual({ id: "col-1", name: "Verão", slug: "verao" });
+      expect(mockFrom).toHaveBeenCalledWith("stores");
+      expect(mockFrom).toHaveBeenCalledWith("collections");
+      expect(mockInsert).toHaveBeenCalledWith({
+        store_id: "store-123",
+        ...input,
+      });
+    });
+
+    it("should throw if store is missing", async () => {
+      mockSingle.mockResolvedValueOnce({ data: null });
+
+      await expect(
+        createCollectionHandler({ name: "Verão", slug: "verao", status: "active" }),
+      ).rejects.toThrow("No store found");
+    });
+
+    it("should propagate database insert error", async () => {
+      mockSingle
+        .mockResolvedValueOnce({ data: { id: "store-123" } })
+        .mockResolvedValueOnce({ data: null, error: { message: "DB collections insert fail" } });
+
+      await expect(
+        createCollectionHandler({ name: "Verão", slug: "verao", status: "active" }),
+      ).rejects.toThrow("DB collections insert fail");
     });
   });
 });
