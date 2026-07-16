@@ -56,7 +56,8 @@ function PoliticasPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await savePolicies({ data: form });
+      const res = await savePolicies({ data: form });
+      if (res.status === "error") throw new Error(res.message);
       toast.success("Políticas salvas com sucesso!");
       router.invalidate();
     } catch (e: any) {

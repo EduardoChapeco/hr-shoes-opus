@@ -58,13 +58,14 @@ function CustomerDetailPage() {
         .map((t) => t.trim())
         .filter((t) => t.length > 0);
 
-      await updateCustomerCrm({
+      const res = await updateCustomerCrm({
         data: {
           customerId: id,
           notes: formData.notes || null,
           tags: tagsArray,
         },
       });
+      if (res.status === "error") throw new Error(res.message);
       toast.success("Ficha do cliente atualizada.");
       router.invalidate();
     } catch (e: unknown) {

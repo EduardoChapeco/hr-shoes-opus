@@ -70,7 +70,8 @@ function PerfilPublicoPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await savePublicProfile({ data: form });
+      const res = await savePublicProfile({ data: form });
+      if (res.status === "error") throw new Error(res.message);
       toast.success("Perfil público atualizado!");
       router.invalidate();
     } catch (e: any) {

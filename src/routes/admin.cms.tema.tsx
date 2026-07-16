@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { getThemeSettings, updateThemeSettings } from "@/services/cms.functions";
 
 export const Route = createFileRoute("/admin/cms/tema")({
@@ -22,7 +23,8 @@ export const Route = createFileRoute("/admin/cms/tema")({
   loader: async () => {
     const res = await getThemeSettings();
     if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    if (res.status === "unconfigured") return {};
+    return res.data || {};
   },
   component: ThemeSettingsPage,
 });
@@ -32,7 +34,7 @@ function ThemeSettingsPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register, handleSubmit, setValue } = useForm({
+  const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
       primary_color: theme.primary_color || "#FF4FB8",
       background_color: theme.background_color || "#F3F1EC",
@@ -40,6 +42,8 @@ function ThemeSettingsPage() {
       font_heading: theme.font_heading || "Fraunces",
       font_body: theme.font_body || "Manrope",
       border_radius: theme.border_radius || "0.5rem",
+      logo_url: theme.logo_url || null,
+      favicon_url: theme.favicon_url || null,
     },
   });
 
@@ -94,6 +98,33 @@ function ThemeSettingsPage() {
                 <Input type="color" className="w-12 h-10 p-1" {...register("text_color")} />
                 <Input type="text" {...register("text_color")} placeholder="#292729" />
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Identidade Visual</CardTitle>
+            <CardDescription>Envie o logotipo e o favicon da sua loja.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label>Logotipo (Recomendado: PNG Transparente)</Label>
+              <ImageUpload
+                value={watch("logo_url")}
+                onChange={(url) => setValue("logo_url", url, { shouldDirty: true })}
+                onRemove={() => setValue("logo_url", null, { shouldDirty: true })}
+                bucket="cms-media"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Favicon (Recomendado: Ícone 1:1, 32x32px)</Label>
+              <ImageUpload
+                value={watch("favicon_url")}
+                onChange={(url) => setValue("favicon_url", url, { shouldDirty: true })}
+                onRemove={() => setValue("favicon_url", null, { shouldDirty: true })}
+                bucket="cms-media"
+              />
             </div>
           </CardContent>
         </Card>

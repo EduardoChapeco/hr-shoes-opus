@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState } from "@/components/state/states";
 import { listCustomerOrders } from "@/services/order.functions";
 
-export const Route = createFileRoute("/_store/conta/pedidos")({
+export const Route = createFileRoute("/_store/conta/pedidos/")({
   head: () => ({ meta: [{ title: "Meus Pedidos — Hr Shoes" }] }),
   loader: async () => {
     const res = await listCustomerOrders();

@@ -55,14 +55,11 @@ function ShippingPage() {
           is_active: true,
         },
       });
-      if (res.status === "success") {
-        toast.success("Zona criada!");
-        setOpenZone(false);
-        setNewZoneName("");
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao criar zona");
-      }
+      if (res.status === "error") throw new Error(res.message);
+      toast.success("Zona criada!");
+      setOpenZone(false);
+      setNewZoneName("");
+      router.invalidate();
     } catch {
       toast.error("Erro ao criar zona.");
     } finally {
@@ -72,9 +69,10 @@ function ShippingPage() {
 
   const handleToggleZone = async (zone: any, active: boolean) => {
     try {
-      await upsertShippingZone({
+      const res = await upsertShippingZone({
         data: { id: zone.id, name: zone.name, regions: zone.regions, is_active: active },
       });
+      if (res.status === "error") throw new Error(res.message);
       router.invalidate();
     } catch {
       toast.error("Erro ao atualizar status");
@@ -182,12 +180,11 @@ function RatesTable({
           is_active: true,
         },
       });
-      if (res.status === "success") {
-        setOpenRate(false);
-        setName("");
-        setPrice("");
-        onRefresh();
-      }
+      if (res.status === "error") throw new Error(res.message);
+      setOpenRate(false);
+      setName("");
+      setPrice("");
+      onRefresh();
     } catch {
       toast.error("Erro ao adicionar taxa");
     } finally {
@@ -197,7 +194,8 @@ function RatesTable({
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteShippingRate({ data: { id } });
+      const res = await deleteShippingRate({ data: { id } });
+      if (res.status === "error") throw new Error(res.message);
       onRefresh();
     } catch {
       toast.error("Erro ao remover taxa");

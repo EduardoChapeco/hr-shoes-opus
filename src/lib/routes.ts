@@ -557,7 +557,7 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 4,
   },
   {
-    path: "/admin/trocas",
+    path: "/admin/pedidos/trocas",
     label: "Trocas",
     description: "Trocas e devoluções",
     audience: "admin",

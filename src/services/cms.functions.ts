@@ -253,6 +253,8 @@ export const updateThemeSettings = createServerFn({ method: "POST" })
       font_heading: z.string().min(1),
       font_body: z.string().min(1),
       border_radius: z.string().min(1),
+      logo_url: z.string().url().optional().nullable(),
+      favicon_url: z.string().url().optional().nullable(),
     }),
   )
   .handler(async ({ data: input }) => {

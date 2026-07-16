@@ -19,6 +19,7 @@ import { getAdminPageDetails, savePageSections } from "@/services/cms.functions"
 import { listCollections } from "@/services/admin-catalog.functions";
 import { EmptyState } from "@/components/state/states";
 import { cmsRegistry, cmsBlocksList, type CmsFieldDef } from "@/lib/cms-registry";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 export const Route = createFileRoute("/admin/cms/paginas/$id/editor")({
   head: () => ({ meta: [{ title: "Editor de Página — Hr Shoes" }] }),
@@ -169,18 +170,41 @@ function PageEditor() {
                   return (
                     <div key={subField.name} className="space-y-2">
                       <Label>{subField.label}</Label>
-                      <Input
-                        type={subField.type === "color" ? "color" : subField.type === "number" ? "number" : "text"}
-                        value={subValue}
-                        onChange={(e) => {
-                          const newItems = [...items];
-                          newItems[itemIdx] = {
-                            ...newItems[itemIdx],
-                            [subField.name]: subField.type === "number" ? Number(e.target.value) : e.target.value,
-                          };
-                          updateSectionContent(index, field.name, newItems);
-                        }}
-                      />
+                      {subField.type === "image" ? (
+                        <ImageUpload
+                          value={String(subValue || "")}
+                          onChange={(url) => {
+                            const newItems = [...items];
+                            newItems[itemIdx] = {
+                              ...newItems[itemIdx],
+                              [subField.name]: url,
+                            };
+                            updateSectionContent(index, field.name, newItems);
+                          }}
+                          onRemove={() => {
+                            const newItems = [...items];
+                            newItems[itemIdx] = {
+                              ...newItems[itemIdx],
+                              [subField.name]: "",
+                            };
+                            updateSectionContent(index, field.name, newItems);
+                          }}
+                          bucket="cms-media"
+                        />
+                      ) : (
+                        <Input
+                          type={subField.type === "color" ? "color" : subField.type === "number" ? "number" : "text"}
+                          value={subValue}
+                          onChange={(e) => {
+                            const newItems = [...items];
+                            newItems[itemIdx] = {
+                              ...newItems[itemIdx],
+                              [subField.name]: subField.type === "number" ? Number(e.target.value) : e.target.value,
+                            };
+                            updateSectionContent(index, field.name, newItems);
+                          }}
+                        />
+                      )}
                     </div>
                   );
                 })}

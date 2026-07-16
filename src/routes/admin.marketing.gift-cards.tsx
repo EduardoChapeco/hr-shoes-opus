@@ -77,7 +77,8 @@ function GiftCardsPage() {
           recipientEmail: data.email || undefined,
         },
       });
-      toast.success(`Cartão criado com sucesso! Código: ${res.code}`);
+      if (res.status === "error") throw new Error(res.message);
+      toast.success(`Cartão criado com sucesso! Código: ${res.code || "desconhecido"}`);
       setOpen(false);
       form.reset();
       router.invalidate();
@@ -91,7 +92,8 @@ function GiftCardsPage() {
   const handleCancel = async (id: string) => {
     if (!confirm("Tem certeza que deseja cancelar este cartão? O saldo será invalidado.")) return;
     try {
-      await cancelGiftCard({ data: { id } });
+      const res = await cancelGiftCard({ data: { id } });
+      if (res.status === "error") throw new Error(res.message);
       toast.success("Cartão cancelado com sucesso.");
       router.invalidate();
     } catch (e: unknown) {

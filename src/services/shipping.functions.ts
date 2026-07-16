@@ -91,7 +91,7 @@ export const upsertShippingZone = createServerFn({ method: "POST" })
       return { status: "success" as const, data: result.data };
     } catch (e: any) {
       console.error("[shipping] upsertShippingZone error:", e);
-      return { status: "error" as const, message: "Erro ao salvar zona de frete." };
+      return { status: "error" as const, message: e.message || "Erro ao salvar zona de frete." };
     }
   });
 

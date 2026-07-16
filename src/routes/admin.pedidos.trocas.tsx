@@ -43,7 +43,8 @@ function ExchangesPage() {
   const handleUpdate = async (id: string, status: any, refundCents?: number) => {
     setProcessingId(id);
     try {
-      await updateExchangeStatus({ data: { exchangeId: id, status, refundCents } });
+      const res = await updateExchangeStatus({ data: { exchangeId: id, status, refundCents } });
+      if (res.status === "error") throw new Error(res.message);
       toast.success("Status atualizado com sucesso!");
       router.invalidate();
     } catch (e: any) {

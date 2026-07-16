@@ -68,7 +68,8 @@ function SeoPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await saveStoreSeo({ data: form });
+      const res = await saveStoreSeo({ data: form });
+      if (res.status === "error") throw new Error(res.message);
       toast.success("Configurações de SEO salvas!");
       router.invalidate();
     } catch (e: any) {

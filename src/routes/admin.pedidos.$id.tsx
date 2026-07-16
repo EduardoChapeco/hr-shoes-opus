@@ -44,7 +44,8 @@ function AdminOrderDetailPage() {
   const handleStatusChange = async (newStatus: string) => {
     setIsUpdating(true);
     try {
-      await updateOrderStatus({ data: { orderId: order.id, status: newStatus as any } });
+      const res = await updateOrderStatus({ data: { orderId: order.id, status: newStatus as any } });
+      if (res.status === "error") throw new Error(res.message);
       toast.success("Status atualizado!");
       router.invalidate();
     } catch (e: any) {
@@ -57,7 +58,8 @@ function AdminOrderDetailPage() {
   const handleApprove = async (method: "cash" | "bank_transfer") => {
     setIsConfirming(true);
     try {
-      await approvePayment({ data: { orderId: order.id, receivedMethod: method } });
+      const res = await approvePayment({ data: { orderId: order.id, receivedMethod: method } });
+      if (res.status === "error") throw new Error(res.message);
       toast.success("Pagamento confirmado. O pedido está agora em separação!");
       router.invalidate();
     } catch (e: any) {
@@ -71,7 +73,8 @@ function AdminOrderDetailPage() {
     if (!window.confirm("Tem certeza que deseja cancelar esta venda por falta de pagamento?")) return;
     setIsRejecting(true);
     try {
-      await rejectPayment({ data: { orderId: order.id, reason: "Cancelado manualmente pela vendedora" } });
+      const res = await rejectPayment({ data: { orderId: order.id, reason: "Cancelado manualmente pela vendedora" } });
+      if (res.status === "error") throw new Error(res.message);
       toast.success("Pedido cancelado e pagamento rejeitado.");
       router.invalidate();
     } catch (e: any) {
