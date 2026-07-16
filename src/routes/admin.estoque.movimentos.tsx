@@ -19,7 +19,7 @@ export const Route = createFileRoute("/admin/estoque/movimentos")({
   head: () => ({ meta: [{ title: "Movimentos de estoque — Hr Shoes" }] }),
   loader: async () => {
     const res = await getStockMovements({ data: { limit: 100 } });
-    if (res.status === "error") throw new Error(res.message);
+    if (res.status === "error") throw new Error((res as any).message);
     return res.data;
   },
   component: MovementsPage,
@@ -46,7 +46,7 @@ function translateMovementType(type: string) {
 }
 
 function MovementsPage() {
-  const movements = Route.useLoaderData();
+  const movements = Route.useLoaderData() ?? [];
 
   return (
     <div className="space-y-6">
@@ -66,11 +66,10 @@ function MovementsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Data</TableHead>
-                <TableHead>Produto</TableHead>
+                <TableHead>Produto / SKU</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead className="text-right">Qtd</TableHead>
                 <TableHead>Referência / Nota</TableHead>
-                <TableHead>Usuário</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -98,9 +97,6 @@ function MovementsPage() {
                       )}
                       <span className="text-muted-foreground">{mov.note || "-"}</span>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground truncate max-w-[120px]">
-                    {mov.actor?.email || "Sistema"}
                   </TableCell>
                 </TableRow>
               ))}

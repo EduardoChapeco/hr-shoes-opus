@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Package, Plus, Minus, Search } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -20,7 +21,7 @@ import { getStockLevels, adjustStock } from "@/services/stock.functions";
 export const Route = createFileRoute("/admin/estoque/")({
   head: () => ({ meta: [{ title: "Estoque — Hr Shoes" }] }),
   loader: async () => {
-    const res = await getStockLevels();
+    const res = await getStockLevels({ data: {} });
     return res.status === "ok" ? res.data : [];
   },
   component: AdminStockPage,
@@ -55,11 +56,12 @@ function AdminStockPage() {
             return v;
           }),
         );
+        toast.success("Estoque atualizado.");
       } else {
-        alert(res.message);
+        toast.error((res as any).message || "Erro ao atualizar estoque.");
       }
     } catch (e) {
-      alert("Erro ao atualizar o estoque.");
+      toast.error("Erro ao atualizar o estoque.");
     } finally {
       setIsUpdating(false);
     }

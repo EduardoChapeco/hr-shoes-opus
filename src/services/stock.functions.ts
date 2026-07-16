@@ -1,6 +1,33 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getServerClient, getAnonServerClient } from "@/lib/supabase";
+import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
+
+// ---------------------------------------------------------------------------
+// Handlers (decoupled for unit testing)
+// ---------------------------------------------------------------------------
+
+export async function getStockLevelsHandler(params: { search?: string }) {
+  const db = getServerClient();
+
+  let query = db
+    .from("product_variants")
+    .select(
+      `
+      id, sku, stock_on_hand, stock_reserved,
+      products ( id, title, status, store_id )
+    `,
+    )
+    .order("sku");
+
+  if (params.search) {
+    query = query.ilike("sku", `%${params.search}%`);
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return data || [];
+}
 
 export const getStockLevels = createServerFn({ method: "GET" })
   .validator(
@@ -12,33 +39,35 @@ export const getStockLevels = createServerFn({ method: "GET" })
   )
   .handler(async ({ data: params }) => {
     try {
-      const db = await getServerClient();
-
-      let query = db
-        .from("product_variants")
-        .select(
-          `
-          id, sku, stock_on_hand, stock_reserved,
-          products ( id, title, status, store_id )
-        `,
-        )
-        .order("sku");
-
-      if (params.search) {
-        // Simple search on SKU or product title
-        query = query.or(`sku.ilike.%${params.search}%`);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      return { status: "ok", data: data || [] };
+      const data = await getStockLevelsHandler(params);
+      return { status: "ok" as const, data };
     } catch (e: any) {
+      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
       console.error("[stock.functions] getStockLevels:", e.message);
-      return { status: "error", message: "Erro ao buscar estoque." };
+      return { status: "error" as const, message: "Erro ao buscar estoque." };
     }
   });
+
+// ---------------------------------------------------------------------------
+
+export async function adjustStockHandler(params: {
+  variantId: string;
+  qty: number;
+  movementType: "purchase" | "adjustment" | "damage" | "transfer" | "return";
+  note?: string;
+}) {
+  const db = getServerClient();
+
+  const { error } = await db.rpc("adjust_stock", {
+    p_variant_id: params.variantId,
+    p_qty: params.qty,
+    p_movement_type: params.movementType,
+    p_note: params.note || null,
+  });
+
+  if (error) throw error;
+  return { status: "ok" as const, message: "Estoque ajustado com sucesso." };
+}
 
 export const adjustStock = createServerFn({ method: "POST" })
   .validator(
@@ -51,23 +80,42 @@ export const adjustStock = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: params }) => {
     try {
-      const db = await getServerClient();
-
-      const { error } = await db.rpc("adjust_stock", {
-        p_variant_id: params.variantId,
-        p_qty: params.qty,
-        p_movement_type: params.movementType,
-        p_note: params.note || null,
-      });
-
-      if (error) throw error;
-
-      return { status: "ok", message: "Estoque ajustado com sucesso." };
+      return await adjustStockHandler(params);
     } catch (e: any) {
+      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
       console.error("[stock.functions] adjustStock:", e.message);
-      return { status: "error", message: e.message || "Erro ao ajustar estoque." };
+      return { status: "error" as const, message: e.message || "Erro ao ajustar estoque." };
     }
   });
+
+// ---------------------------------------------------------------------------
+
+export async function getStockMovementsHandler(limit: number) {
+  const db = getServerClient();
+
+  const { data, error } = await db
+    .from("stock_movements")
+    .select(
+      `
+      id,
+      movement_type,
+      qty,
+      reference_type,
+      note,
+      created_at,
+      actor_id,
+      variant:product_variants(
+        sku,
+        product:products(title)
+      )
+    `,
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return data || [];
+}
 
 export const getStockMovements = createServerFn({ method: "GET" })
   .validator(
@@ -79,33 +127,11 @@ export const getStockMovements = createServerFn({ method: "GET" })
   )
   .handler(async ({ data: { limit } }) => {
     try {
-      const db = await getServerClient();
-
-      const { data, error } = await db
-        .from("stock_movements")
-        .select(
-          `
-          id,
-          movement_type,
-          qty,
-          reference_type,
-          note,
-          created_at,
-          variant:product_variants(
-            sku,
-            product:products(title)
-          ),
-          actor:auth.users(email)
-        `,
-        )
-        .order("created_at", { ascending: false })
-        .limit(limit);
-
-      if (error) throw error;
-
-      return { status: "ok", data: data || [] };
+      const data = await getStockMovementsHandler(limit);
+      return { status: "ok" as const, data };
     } catch (e: any) {
+      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
       console.error("[stock.functions] getStockMovements:", e.message);
-      return { status: "error", message: "Erro ao buscar ledger de estoque." };
+      return { status: "error" as const, message: "Erro ao buscar ledger de estoque." };
     }
   });
