@@ -6,6 +6,8 @@ CAPACIDADE: Executar lançamentos manuais no caixa ativo e efetuar o pagamento d
 
 COMMIT-BASE: `f4b2a87`
 
+COMMIT-FINAL: `93f03c6`
+
 ### BASELINE
 
 ESTADO ANTERIOR:
