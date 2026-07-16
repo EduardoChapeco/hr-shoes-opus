@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 
 const getStoreSettings = createServerFn({ method: "GET" }).handler(async () => {
   try {

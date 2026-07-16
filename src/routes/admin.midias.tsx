@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/state/states";
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 
 const listMediaFiles = createServerFn({ method: "GET" }).handler(async () => {
   try {

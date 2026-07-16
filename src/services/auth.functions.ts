@@ -10,7 +10,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest, setResponseHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 
-import { getSSRClient } from "@/lib/supabase-ssr";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { getServerClient } from "@/lib/supabase";
 import { mergeGuestCart } from "./cart.functions";
 import { Provider } from "@supabase/supabase-js";

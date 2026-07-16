@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 export const requestExchange = createServerFn({ method: "POST" })

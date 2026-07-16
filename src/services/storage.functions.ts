@@ -1,7 +1,7 @@
-import { getSSRClient } from "@/lib/supabase-ssr";
+import { getBrowserClient } from "@/lib/supabase";
 
 export async function uploadMedia(file: File, bucket: "product-media" | "cms-media"): Promise<string> {
-  const supabase = getSSRClient();
+  const supabase = getBrowserClient();
   
   // Ensure unique filename
   const ext = file.name.split('.').pop();

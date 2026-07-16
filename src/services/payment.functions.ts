@@ -10,7 +10,7 @@ import { z } from "zod";
 import crypto from "crypto";
 
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 
 // Schema for initiating a payment
 const InitiatePaymentSchema = z.object({

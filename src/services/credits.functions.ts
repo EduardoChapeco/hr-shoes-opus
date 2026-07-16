@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getSSRClient } from "@/lib/supabase-ssr";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 
 export const getCustomerCredits = createServerFn({ method: "GET" }).handler(async () => {
   try {

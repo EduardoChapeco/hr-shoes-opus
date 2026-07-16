@@ -7,7 +7,7 @@
  */
 
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { getOrCreateGuestSession } from "@/lib/session";
 
 export async function getCurrentIdentity() {

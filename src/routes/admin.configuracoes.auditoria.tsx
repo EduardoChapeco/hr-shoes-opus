@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/state/states";
 import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 
 const getAuditLog = createServerFn({ method: "GET" }).handler(async () => {
   try {

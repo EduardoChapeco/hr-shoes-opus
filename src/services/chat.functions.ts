@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 export const listChatThreads = createServerFn({ method: "GET" }).handler(async () => {

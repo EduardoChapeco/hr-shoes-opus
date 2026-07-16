@@ -9,7 +9,7 @@
  *   const identity = await getServerIdentity();
  */
 
-import { getSSRClient } from "@/lib/supabase-ssr";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { getServerClient } from "@/lib/supabase";
 
 export interface ServerIdentity {

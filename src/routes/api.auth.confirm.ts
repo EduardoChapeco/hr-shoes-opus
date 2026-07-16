@@ -13,7 +13,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { readCookieFromRequest } from "@/lib/http-cookies";
 import { normalizeInternalReturnPath } from "@/lib/return-path";
-import { getSSRClient } from "@/lib/supabase-ssr";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { mergeGuestCartLogic } from "@/services/cart-helpers";
 import { setResponseHeader, setResponseStatus } from "@tanstack/react-start/server";
 
