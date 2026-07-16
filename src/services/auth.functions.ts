@@ -354,13 +354,15 @@ export const updateProfile = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     // Also update profiles table
-    await supabase
+    const { error: dbError } = await supabase
       .from("profiles")
       .update({
         full_name: data.fullName,
         phone: data.phone,
       })
       .eq("id", user.id);
+
+    if (dbError) throw new Error(dbError.message);
 
     return { status: "success" };
   });
