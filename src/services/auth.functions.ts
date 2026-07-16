@@ -330,6 +330,36 @@ export const getProfile = createServerFn({ method: "GET" }).handler(async () => 
   };
 });
 
+export async function updateProfileHandler(data: { fullName: string; phone?: string }) {
+  const supabase = getSSRClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Não autorizado");
+
+  const { error } = await supabase.auth.updateUser({
+    data: {
+      full_name: data.fullName,
+      phone: data.phone,
+    },
+  });
+
+  if (error) throw new Error(error.message);
+
+  // Also update profiles table
+  const { error: dbError } = await supabase
+    .from("profiles")
+    .update({
+      full_name: data.fullName,
+      phone: data.phone,
+    })
+    .eq("id", user.id);
+
+  if (dbError) throw new Error(dbError.message);
+
+  return { status: "success" as const };
+}
+
 export const updateProfile = createServerFn({ method: "POST" })
   .validator(
     z.object({
@@ -337,32 +367,4 @@ export const updateProfile = createServerFn({ method: "POST" })
       phone: z.string().optional(),
     }),
   )
-  .handler(async ({ data }) => {
-    const supabase = getSSRClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error("Não autorizado");
-
-    const { error } = await supabase.auth.updateUser({
-      data: {
-        full_name: data.fullName,
-        phone: data.phone,
-      },
-    });
-
-    if (error) throw new Error(error.message);
-
-    // Also update profiles table
-    const { error: dbError } = await supabase
-      .from("profiles")
-      .update({
-        full_name: data.fullName,
-        phone: data.phone,
-      })
-      .eq("id", user.id);
-
-    if (dbError) throw new Error(dbError.message);
-
-    return { status: "success" };
-  });
+  .handler(async ({ data }) => updateProfileHandler(data));

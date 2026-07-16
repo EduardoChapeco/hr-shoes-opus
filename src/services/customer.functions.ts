@@ -72,30 +72,32 @@ export const deleteCustomerAddress = createServerFn({ method: "POST" })
     return { status: "success" };
   });
 
+export async function setDefaultAddressHandler(id: string) {
+  const ssrClient = getSSRClient();
+  const {
+    data: { user },
+  } = await ssrClient.auth.getUser();
+  if (!user) throw new Error("Não autorizado");
+
+  // Unset current default
+  const { error: unsetError } = await ssrClient
+    .from("customer_addresses")
+    .update({ is_default: false })
+    .eq("customer_id", user.id);
+
+  if (unsetError) throw new Error(unsetError.message);
+
+  // Set new default
+  const { error } = await ssrClient
+    .from("customer_addresses")
+    .update({ is_default: true })
+    .eq("id", id)
+    .eq("customer_id", user.id);
+
+  if (error) throw new Error(error.message);
+  return { status: "success" as const };
+}
+
 export const setDefaultAddress = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
-  .handler(async ({ data: { id } }) => {
-    const ssrClient = getSSRClient();
-    const {
-      data: { user },
-    } = await ssrClient.auth.getUser();
-    if (!user) throw new Error("Não autorizado");
-
-    // Unset current default
-    const { error: unsetError } = await ssrClient
-      .from("customer_addresses")
-      .update({ is_default: false })
-      .eq("customer_id", user.id);
-
-    if (unsetError) throw new Error(unsetError.message);
-
-    // Set new default
-    const { error } = await ssrClient
-      .from("customer_addresses")
-      .update({ is_default: true })
-      .eq("id", id)
-      .eq("customer_id", user.id);
-
-    if (error) throw new Error(error.message);
-    return { status: "success" };
-  });
+  .handler(async ({ data: { id } }) => setDefaultAddressHandler(id));
