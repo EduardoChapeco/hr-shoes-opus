@@ -6,6 +6,8 @@ CAPACIDADE: Visualizar listagem de clientes, detalhar CRM/LTV e processar solici
 
 COMMIT-BASE: `adb628e`
 
+COMMIT-FINAL: `b2f749c`
+
 ### BASELINE
 
 ESTADO ANTERIOR:
