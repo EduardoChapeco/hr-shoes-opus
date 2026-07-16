@@ -80,7 +80,7 @@ function CaixaLancamentosPage() {
     const cents = Math.round(parsed * 100);
     setIsSaving(true);
     try {
-      const res = await addRegisterEntry({
+      await addRegisterEntry({
         data: {
           registerId: register.id,
           amountCents: form.type === "out" ? -cents : cents,
@@ -88,7 +88,6 @@ function CaixaLancamentosPage() {
           description: form.description,
         },
       });
-      if (res.status === "error") throw new Error(res.message);
       toast.success("Lançamento registrado!");
       setOpen(false);
       setForm({ amountCents: "", method: "cash", description: "", type: "in" });

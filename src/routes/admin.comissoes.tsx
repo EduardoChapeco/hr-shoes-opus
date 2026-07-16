@@ -31,8 +31,7 @@ function CommissionsPage() {
 
   const handlePay = async (id: string) => {
     try {
-      const res = await payCommission({ data: { commissionId: id } });
-      if (res.status === "error") throw new Error(res.message);
+      await payCommission({ data: { commissionId: id } });
       toast.success("Comissão marcada como paga.");
       router.invalidate();
     } catch (e: unknown) {
