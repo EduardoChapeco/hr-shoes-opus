@@ -2,7 +2,9 @@ MICROFASE: 0B
 
 ESCOPO: `_store.conta.enderecos.tsx`, `_store.conta.perfil.tsx`, `updateProfile`, `addCustomerAddress`, `deleteCustomerAddress`, `setDefaultAddress`.
 
-COMMIT-BASE: Atual do working tree (após Microfase 0A)
+COMMIT-BASE: `c665980`
+
+COMMIT-FINAL: `87d75a3`
 
 ARQUIVOS ANALISADOS:
 - `src/routes/_store.conta.enderecos.tsx`
