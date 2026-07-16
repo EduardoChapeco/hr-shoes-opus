@@ -32,6 +32,7 @@ import { listCollections } from "@/services/admin-catalog.functions";
 import { EmptyState } from "@/components/state/states";
 import { cmsRegistry, cmsBlocksList, type CmsFieldDef } from "@/lib/cms-registry";
 import { ImageUpload } from "@/components/ui/image-upload";
+import type { ProductCardDTO } from "@/types/catalog";
 
 // Storefront components for live preview
 import { AnnouncementBar as CMSAnnouncementBar } from "@/components/commerce/dynamic-sections/announcement-bar";
@@ -41,50 +42,50 @@ import { ProductRail } from "@/components/commerce/dynamic-sections/product-rail
 import { RichText } from "@/components/commerce/dynamic-sections/rich-text";
 
 // Mock products to allow rendering preview rails visually
-const MOCK_PRODUCTS = [
+const MOCK_PRODUCTS: ProductCardDTO[] = [
   {
     id: "1",
     slug: "scarpin-nude",
     title: "Scarpin Nude Verniz",
+    brand: "Hr Shoes",
+    priceCents: 19990,
+    compareAtCents: null,
     coverUrl: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=500&auto=format&fit=crop&q=60",
     coverAlt: "Scarpin Nude Verniz",
-    basePrice: 19990,
-    currentPrice: 19990,
-    hasDiscount: false,
-    discountLabel: ""
+    isOutOfStock: false
   },
   {
     id: "2",
     slug: "sandalia-salto-bloco",
     title: "Sandália Salto Bloco Couro",
+    brand: "Hr Shoes",
+    priceCents: 17990,
+    compareAtCents: 24990,
     coverUrl: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&auto=format&fit=crop&q=60",
     coverAlt: "Sandália Salto Bloco Couro",
-    basePrice: 24990,
-    currentPrice: 17990,
-    hasDiscount: true,
-    discountLabel: "28% OFF"
+    isOutOfStock: false
   },
   {
     id: "3",
     slug: "sapatilha-bico-fino",
     title: "Sapatilha Bico Fino Confort",
+    brand: "Hr Shoes",
+    priceCents: 12990,
+    compareAtCents: null,
     coverUrl: "https://images.unsplash.com/photo-1539185441755-769473a23570?w=500&auto=format&fit=crop&q=60",
     coverAlt: "Sapatilha Bico Fino Confort",
-    basePrice: 12990,
-    currentPrice: 12990,
-    hasDiscount: false,
-    discountLabel: ""
+    isOutOfStock: false
   },
   {
     id: "4",
     slug: "mule-tassel-preto",
     title: "Mule Tassel Camurça Preto",
+    brand: "Hr Shoes",
+    priceCents: 15990,
+    compareAtCents: null,
     coverUrl: "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=500&auto=format&fit=crop&q=60",
     coverAlt: "Mule Tassel Camurça Preto",
-    basePrice: 15990,
-    currentPrice: 15990,
-    hasDiscount: false,
-    discountLabel: ""
+    isOutOfStock: false
   }
 ];
 
