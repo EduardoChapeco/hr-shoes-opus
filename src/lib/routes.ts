@@ -758,6 +758,14 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 0,
   },
   {
+    path: "/admin/configuracoes/pagamentos",
+    label: "Métodos de Pagamento",
+    description: "Configuração de Pix Manual, Ficha e taxas",
+    audience: "admin",
+    roles: ["owner", "admin"],
+    phase: 2,
+  },
+  {
     path: "/admin/configuracoes/politicas",
     label: "Políticas",
     description: "Políticas e termos",

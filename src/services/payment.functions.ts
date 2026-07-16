@@ -200,3 +200,119 @@ export const uploadPaymentReceipt = createServerFn({ method: "POST" })
   .handler(async ({ data: { orderId, fileName, fileBase64 } }): Promise<{ status: "success" } | { status: "error"; message: string }> => {
     return { status: "success" as const };
   });
+
+// ---------------------------------------------------------------------------
+// Manual Payment Methods Configuration (Microfase 3E)
+// ---------------------------------------------------------------------------
+
+async function getAdminIdentity() {
+  const ssrClient = getSSRClient();
+  const { data: { user } } = await ssrClient.auth.getUser();
+  if (!user) throw new Error("Não autorizado");
+
+  const db = getServerClient();
+  const { data: profile } = await db
+    .from("profiles")
+    .select("role, store_id")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.store_id || !["owner", "admin", "manager"].includes(profile.role)) {
+    throw new Error("Acesso negado");
+  }
+
+  return profile;
+}
+
+const SaveManualPaymentMethodSchema = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().min(1, "Nome é obrigatório"),
+  instructions: z.string().optional(),
+  surcharge_percentage: z.number().min(0, "A taxa deve ser positiva ou zero"),
+  discount_percentage: z.number().min(0, "O desconto deve ser positivo ou zero"),
+  is_active: z.boolean(),
+});
+
+const DeleteManualPaymentMethodSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const listManualPaymentMethods = createServerFn({ method: "GET" })
+  .handler(async () => {
+    try {
+      const identity = await getAdminIdentity();
+      const db = getServerClient();
+      const { data, error } = await db
+        .from("manual_payment_methods")
+        .select("*")
+        .eq("store_id", identity.store_id)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return { status: "success" as const, data: data || [] };
+    } catch (e: any) {
+      console.error("[payment] listManualPaymentMethods error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao listar métodos de pagamento manual." };
+    }
+  });
+
+export const saveManualPaymentMethod = createServerFn({ method: "POST" })
+  .validator(SaveManualPaymentMethodSchema)
+  .handler(async ({ data }) => {
+    try {
+      const identity = await getAdminIdentity();
+      const db = getServerClient();
+
+      const payload = {
+        store_id: identity.store_id,
+        name: data.name,
+        instructions: data.instructions || "",
+        surcharge_percentage: data.surcharge_percentage,
+        discount_percentage: data.discount_percentage,
+        is_active: data.is_active,
+      };
+
+      if (data.id) {
+        const { error } = await db
+          .from("manual_payment_methods")
+          .update(payload)
+          .eq("id", data.id)
+          .eq("store_id", identity.store_id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await db
+          .from("manual_payment_methods")
+          .insert(payload);
+
+        if (error) throw error;
+      }
+
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[payment] saveManualPaymentMethod error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao salvar método de pagamento." };
+    }
+  });
+
+export const deleteManualPaymentMethod = createServerFn({ method: "POST" })
+  .validator(DeleteManualPaymentMethodSchema)
+  .handler(async ({ data: { id } }) => {
+    try {
+      const identity = await getAdminIdentity();
+      const db = getServerClient();
+
+      const { error } = await db
+        .from("manual_payment_methods")
+        .delete()
+        .eq("id", id)
+        .eq("store_id", identity.store_id);
+
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[payment] deleteManualPaymentMethod error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao excluir método de pagamento." };
+    }
+  });
+

@@ -72,6 +72,7 @@ import { Route as AdminEstoqueMovimentosRouteImport } from './routes/admin.estoq
 import { Route as AdminEstoqueAlertasRouteImport } from './routes/admin.estoque.alertas'
 import { Route as AdminConfiguracoesSeoRouteImport } from './routes/admin.configuracoes.seo'
 import { Route as AdminConfiguracoesPoliticasRouteImport } from './routes/admin.configuracoes.politicas'
+import { Route as AdminConfiguracoesPagamentosRouteImport } from './routes/admin.configuracoes.pagamentos'
 import { Route as AdminConfiguracoesLojaRouteImport } from './routes/admin.configuracoes.loja'
 import { Route as AdminConfiguracoesLgpdRouteImport } from './routes/admin.configuracoes.lgpd'
 import { Route as AdminConfiguracoesAuditoriaRouteImport } from './routes/admin.configuracoes.auditoria'
@@ -429,6 +430,12 @@ const AdminConfiguracoesPoliticasRoute =
     path: '/configuracoes/politicas',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminConfiguracoesPagamentosRoute =
+  AdminConfiguracoesPagamentosRouteImport.update({
+    id: '/configuracoes/pagamentos',
+    path: '/configuracoes/pagamentos',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminConfiguracoesLojaRoute = AdminConfiguracoesLojaRouteImport.update({
   id: '/configuracoes/loja',
   path: '/configuracoes/loja',
@@ -704,6 +711,7 @@ export interface FileRoutesByFullPath {
   '/admin/configuracoes/auditoria': typeof AdminConfiguracoesAuditoriaRoute
   '/admin/configuracoes/lgpd': typeof AdminConfiguracoesLgpdRoute
   '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
+  '/admin/configuracoes/pagamentos': typeof AdminConfiguracoesPagamentosRoute
   '/admin/configuracoes/politicas': typeof AdminConfiguracoesPoliticasRoute
   '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
   '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
@@ -806,6 +814,7 @@ export interface FileRoutesByTo {
   '/admin/configuracoes/auditoria': typeof AdminConfiguracoesAuditoriaRoute
   '/admin/configuracoes/lgpd': typeof AdminConfiguracoesLgpdRoute
   '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
+  '/admin/configuracoes/pagamentos': typeof AdminConfiguracoesPagamentosRoute
   '/admin/configuracoes/politicas': typeof AdminConfiguracoesPoliticasRoute
   '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
   '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
@@ -912,6 +921,7 @@ export interface FileRoutesById {
   '/admin/configuracoes/auditoria': typeof AdminConfiguracoesAuditoriaRoute
   '/admin/configuracoes/lgpd': typeof AdminConfiguracoesLgpdRoute
   '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
+  '/admin/configuracoes/pagamentos': typeof AdminConfiguracoesPagamentosRoute
   '/admin/configuracoes/politicas': typeof AdminConfiguracoesPoliticasRoute
   '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
   '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
@@ -1018,6 +1028,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/auditoria'
     | '/admin/configuracoes/lgpd'
     | '/admin/configuracoes/loja'
+    | '/admin/configuracoes/pagamentos'
     | '/admin/configuracoes/politicas'
     | '/admin/configuracoes/seo'
     | '/admin/estoque/alertas'
@@ -1120,6 +1131,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/auditoria'
     | '/admin/configuracoes/lgpd'
     | '/admin/configuracoes/loja'
+    | '/admin/configuracoes/pagamentos'
     | '/admin/configuracoes/politicas'
     | '/admin/configuracoes/seo'
     | '/admin/estoque/alertas'
@@ -1225,6 +1237,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/auditoria'
     | '/admin/configuracoes/lgpd'
     | '/admin/configuracoes/loja'
+    | '/admin/configuracoes/pagamentos'
     | '/admin/configuracoes/politicas'
     | '/admin/configuracoes/seo'
     | '/admin/estoque/alertas'
@@ -1717,6 +1730,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminConfiguracoesPoliticasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/configuracoes/pagamentos': {
+      id: '/admin/configuracoes/pagamentos'
+      path: '/configuracoes/pagamentos'
+      fullPath: '/admin/configuracoes/pagamentos'
+      preLoaderRoute: typeof AdminConfiguracoesPagamentosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/configuracoes/loja': {
       id: '/admin/configuracoes/loja'
       path: '/configuracoes/loja'
@@ -2128,6 +2148,7 @@ interface AdminRouteChildren {
   AdminConfiguracoesAuditoriaRoute: typeof AdminConfiguracoesAuditoriaRoute
   AdminConfiguracoesLgpdRoute: typeof AdminConfiguracoesLgpdRoute
   AdminConfiguracoesLojaRoute: typeof AdminConfiguracoesLojaRoute
+  AdminConfiguracoesPagamentosRoute: typeof AdminConfiguracoesPagamentosRoute
   AdminConfiguracoesPoliticasRoute: typeof AdminConfiguracoesPoliticasRoute
   AdminConfiguracoesSeoRoute: typeof AdminConfiguracoesSeoRoute
   AdminEstoqueAlertasRoute: typeof AdminEstoqueAlertasRoute
@@ -2187,6 +2208,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminConfiguracoesAuditoriaRoute: AdminConfiguracoesAuditoriaRoute,
   AdminConfiguracoesLgpdRoute: AdminConfiguracoesLgpdRoute,
   AdminConfiguracoesLojaRoute: AdminConfiguracoesLojaRoute,
+  AdminConfiguracoesPagamentosRoute: AdminConfiguracoesPagamentosRoute,
   AdminConfiguracoesPoliticasRoute: AdminConfiguracoesPoliticasRoute,
   AdminConfiguracoesSeoRoute: AdminConfiguracoesSeoRoute,
   AdminEstoqueAlertasRoute: AdminEstoqueAlertasRoute,
