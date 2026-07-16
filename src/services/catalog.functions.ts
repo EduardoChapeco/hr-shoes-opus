@@ -24,7 +24,9 @@ import type {
   AnnouncementDTO,
   BenefitDTO,
   HeroBannerDTO,
+  CatalogResult,
 } from "@/types/catalog";
+
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -550,3 +552,76 @@ export const getProductDetail = createServerFn({ method: "GET" })
       return { status: "error", message: "Erro inesperado ao carregar detalhes do produto." };
     }
   });
+
+// ---------------------------------------------------------------------------
+// getPublicStoreProfile — public profile (no auth required)
+// ---------------------------------------------------------------------------
+
+export interface PublicStoreProfileDTO {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  /** Resolved from settings.logoUrl (JSONB column) */
+  logoUrl: string | null;
+  /** Resolved from settings.instagramHandle */
+  instagramHandle: string | null;
+  /** Resolved from settings.businessHours */
+  businessHours: string | null;
+}
+
+export type PublicStoreProfileResult = CatalogResult<PublicStoreProfileDTO>;
+
+export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
+  async (): Promise<PublicStoreProfileResult> => {
+    try {
+      const db = getAnonServerClient();
+
+      const { data, error } = await db
+        .from("stores")
+        .select("id, name, slug, description, phone, email, address, city, state, settings")
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .single();
+
+      if (error || !data) {
+        return { status: "unconfigured", reason: "Loja não encontrada." };
+      }
+
+      const settings = (data.settings ?? {}) as Record<string, unknown>;
+
+      const profile: PublicStoreProfileDTO = {
+        id: data.id as string,
+        name: data.name as string,
+        slug: data.slug as string,
+        description: (data.description as string | null) ?? null,
+        phone: (data.phone as string | null) ?? null,
+        email: (data.email as string | null) ?? null,
+        address: (data.address as string | null) ?? null,
+        city: (data.city as string | null) ?? null,
+        state: (data.state as string | null) ?? null,
+        logoUrl: typeof settings.logoUrl === "string" ? settings.logoUrl : null,
+        instagramHandle:
+          typeof settings.instagramHandle === "string" ? settings.instagramHandle : null,
+        businessHours:
+          typeof settings.businessHours === "string" ? settings.businessHours : null,
+      };
+
+      return { status: "ok", data: profile };
+    } catch (e) {
+      if (e instanceof SupabaseUnconfiguredError) {
+        return {
+          status: "unconfigured",
+          reason: "Nossa vitrine está passando por uma rápida atualização técnica.",
+        };
+      }
+      console.error("[catalog.functions] getPublicStoreProfile:", e);
+      return { status: "error", message: "Erro inesperado ao carregar perfil da loja." };
+    }
+  },
+);

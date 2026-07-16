@@ -1,0 +1,5 @@
+fix(env): resolve environment variables from TanStack Start event storage in production
+
+- env.ts: Implement a custom environment resolver that fetches Cloudflare bindings from the TanStack Start AsyncLocalStorage store. This bypasses the broken getEvent() function in vinxi/http on Cloudflare Workers/Pages.
+- session.ts: Replace process.env.NODE_ENV with import.meta.env.PROD for reliable production cookie secure flag evaluation.
+- api.debug-env.ts: Deleted the debug endpoint.
