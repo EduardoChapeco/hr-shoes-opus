@@ -6,7 +6,7 @@ CAPACIDADE: Modelagem e criação/listagem (CRUD) de coleções no painel admini
 
 COMMIT-BASE: `ffa9505`
 
-COMMIT-FINAL: `72d1c4d`
+COMMIT-FINAL: `41bc335`
 
 ### BASELINE
 
