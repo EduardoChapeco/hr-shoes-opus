@@ -6,7 +6,7 @@ CAPACIDADE: Rastreamento do progresso de onboarding da loja e configurações fu
 
 COMMIT-BASE: `9d7afde`
 
-COMMIT-FINAL: `a88f4dd`
+COMMIT-FINAL: `9196b00`
 
 ### BASELINE
 
