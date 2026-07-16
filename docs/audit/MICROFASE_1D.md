@@ -6,7 +6,7 @@ CAPACIDADE: Modelagem e criação/listagem (CRUD) de atributos dinâmicos e tipo
 
 COMMIT-BASE: `dd43aee`
 
-COMMIT-FINAL: `4d54ad4`
+COMMIT-FINAL: `e884962`
 
 ### BASELINE
 
