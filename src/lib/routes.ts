@@ -857,7 +857,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     title: "Vendas",
     items: [
       { path: "/admin/pedidos", label: "Pedidos", icon: "ShoppingCart" },
-      { path: "/admin/fretes", label: "Fretes", icon: "Truck" },
+      { path: "/admin/fretes/tabelas", label: "Fretes", icon: "Truck" },
       { path: "/admin/pagamentos", label: "Pagamentos", icon: "CreditCard" },
     ],
   },

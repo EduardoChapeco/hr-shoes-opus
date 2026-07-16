@@ -17,26 +17,45 @@ import {
 } from "@/components/ui/select";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { getThemeSettings, updateThemeSettings } from "@/services/cms.functions";
+import { ErrorState, UnconfiguredState } from "@/components/state/states";
 
 export const Route = createFileRoute("/admin/cms/tema")({
   head: () => ({ meta: [{ title: "Tema — Hr Shoes" }] }),
   loader: async () => {
-    try {
-      const res = await getThemeSettings();
-      if (res.status === "error") return {};
-      if (res.status === "unconfigured") return {};
-      return res.data || {};
-    } catch {
-      return {};
-    }
+    return await getThemeSettings();
   },
   component: ThemeSettingsPage,
 });
 
 function ThemeSettingsPage() {
-  const theme = Route.useLoaderData();
+  const res = Route.useLoaderData();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (res.status === "unconfigured") {
+    return (
+      <div className="container max-w-4xl py-12 mx-auto px-4">
+        <UnconfiguredState
+          title="Integração Indisponível"
+          description="A conexão com o Supabase não está configurada no servidor de produção."
+        />
+      </div>
+    );
+  }
+
+  if (res.status === "error" || !res.data) {
+    return (
+      <div className="container max-w-4xl py-12 mx-auto px-4">
+        <ErrorState
+          title="Erro ao Carregar Tema"
+          description={res.message || "Não foi possível conectar ao banco de dados."}
+          onRetry={() => router.invalidate()}
+        />
+      </div>
+    );
+  }
+
+  const theme = res.data;
 
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
