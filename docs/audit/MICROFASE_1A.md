@@ -6,7 +6,7 @@ CAPACIDADE: Autenticação de usuários administrativos, checagens seguras de RL
 
 COMMIT-BASE: `2c61ebe`
 
-COMMIT-FINAL: `0ea7df6`
+COMMIT-FINAL: `4f4117e`
 
 ### BASELINE
 
