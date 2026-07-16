@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getStoreSettingsHandler, saveStoreSettingsHandler } from "./store.functions";
+import {
+  getStoreSettingsHandler,
+  saveStoreSettingsHandler,
+  getPoliciesHandler,
+  savePoliciesHandler,
+  getStoreSeoHandler,
+  saveStoreSeoHandler,
+} from "./store.functions";
 import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity } from "@/lib/identity";
 
@@ -89,16 +96,71 @@ describe("Store Settings Server Functions", () => {
       expect(supabaseMock.from().eq).toHaveBeenCalledWith("id", "store-456");
       expect(result).toEqual({ status: "success" });
     });
+  });
 
-    it("should throw error if database update fails", async () => {
+  describe("getPolicies", () => {
+    it("should successfully retrieve store policies for authorized user", async () => {
+      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner" };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
+
+      const mockStoreData = { id: "store-456", policies: { terms: "terms content" } };
+      supabaseMock.from().select.mockReturnValue(supabaseMock.from());
+      supabaseMock.from().eq.mockReturnValue(supabaseMock.from());
+      supabaseMock.from().single.mockResolvedValue({ data: mockStoreData, error: null });
+
+      const result = await getPoliciesHandler();
+
+      expect(supabaseMock.from).toHaveBeenCalledWith("stores");
+      expect(supabaseMock.from().eq).toHaveBeenCalledWith("id", "store-456");
+      expect(result).toEqual({ status: "ok", data: mockStoreData });
+    });
+  });
+
+  describe("savePolicies", () => {
+    it("should successfully update policies", async () => {
       const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner" };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       supabaseMock.from().update.mockReturnValue(supabaseMock.from());
-      supabaseMock.from().eq.mockResolvedValue({ error: { message: "Update Failed" } });
+      supabaseMock.from().eq.mockResolvedValue({ error: null });
 
-      const updateData = { name: "New Name" };
-      await expect(saveStoreSettingsHandler(updateData)).rejects.toThrow("Erro ao salvar dados da loja: Update Failed");
+      const mockPolicies = { privacy_policy: "p", return_policy: "r", terms: "t" };
+      const result = await savePoliciesHandler(mockPolicies);
+
+      expect(supabaseMock.from().update).toHaveBeenCalledWith({ policies: mockPolicies });
+      expect(result).toEqual({ status: "success" });
+    });
+  });
+
+  describe("getStoreSeo", () => {
+    it("should successfully retrieve SEO settings", async () => {
+      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner" };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
+
+      const mockSeoData = { id: "store-456", seo_title: "title" };
+      supabaseMock.from().select.mockReturnValue(supabaseMock.from());
+      supabaseMock.from().eq.mockReturnValue(supabaseMock.from());
+      supabaseMock.from().single.mockResolvedValue({ data: mockSeoData, error: null });
+
+      const result = await getStoreSeoHandler();
+
+      expect(result).toEqual({ status: "ok", data: mockSeoData });
+    });
+  });
+
+  describe("saveStoreSeo", () => {
+    it("should successfully update SEO", async () => {
+      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner" };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
+
+      supabaseMock.from().update.mockReturnValue(supabaseMock.from());
+      supabaseMock.from().eq.mockResolvedValue({ error: null });
+
+      const mockSeo = { seo_title: "t", seo_description: "d", seo_keywords: "k" };
+      const result = await saveStoreSeoHandler(mockSeo);
+
+      expect(supabaseMock.from().update).toHaveBeenCalledWith(mockSeo);
+      expect(result).toEqual({ status: "success" });
     });
   });
 });

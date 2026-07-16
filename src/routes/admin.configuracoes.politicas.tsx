@@ -7,31 +7,7 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getServerClient } from "@/lib/supabase";
-import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
-
-const getPolicies = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const db = getServerClient();
-    const { data: store } = await db.from("stores").select("id, policies").limit(1).single();
-    if (!store) return { status: "unconfigured" as const };
-    return { status: "ok" as const, data: store };
-  } catch {
-    return { status: "error" as const, message: "Erro ao carregar políticas." };
-  }
-});
-
-const savePolicies = createServerFn({ method: "POST" })
-  .validator(z.object({ privacy_policy: z.string(), return_policy: z.string(), terms: z.string() }))
-  .handler(async ({ data }) => {
-    const db = getServerClient();
-    const { data: store } = await db.from("stores").select("id").limit(1).single();
-    if (!store) throw new Error("Loja não encontrada");
-    const { error } = await db.from("stores").update({ policies: data }).eq("id", store.id);
-    if (error) throw new Error(error.message);
-    return { status: "success" };
-  });
+import { getPolicies, savePolicies } from "@/services/store.functions";
 
 export const Route = createFileRoute("/admin/configuracoes/politicas")({
   head: () => ({ meta: [{ title: "Políticas da Loja — Hr Shoes" }] }),
@@ -56,8 +32,7 @@ function PoliticasPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const res = await savePolicies({ data: form });
-      if (res.status === "error") throw new Error(res.message);
+      await savePolicies({ data: form });
       toast.success("Políticas salvas com sucesso!");
       router.invalidate();
     } catch (e: any) {

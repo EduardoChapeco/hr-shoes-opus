@@ -2,47 +2,13 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Globe } from "lucide-react";
-import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getServerClient } from "@/lib/supabase";
-
-const getStoreSeo = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const db = getServerClient();
-    const { data: store } = await db
-      .from("stores")
-      .select("id, seo_title, seo_description, seo_keywords")
-      .limit(1)
-      .single();
-    if (!store) return { status: "unconfigured" as const };
-    return { status: "ok" as const, data: store };
-  } catch {
-    return { status: "error" as const, message: "Erro ao carregar SEO." };
-  }
-});
-
-const saveStoreSeo = createServerFn({ method: "POST" })
-  .validator(
-    z.object({
-      seo_title: z.string().max(60),
-      seo_description: z.string().max(160),
-      seo_keywords: z.string(),
-    }),
-  )
-  .handler(async ({ data }) => {
-    const db = getServerClient();
-    const { data: store } = await db.from("stores").select("id").limit(1).single();
-    if (!store) throw new Error("Loja não encontrada");
-    const { error } = await db.from("stores").update(data).eq("id", store.id);
-    if (error) throw new Error(error.message);
-    return { status: "success" };
-  });
+import { getStoreSeo, saveStoreSeo } from "@/services/store.functions";
 
 export const Route = createFileRoute("/admin/configuracoes/seo")({
   head: () => ({ meta: [{ title: "SEO — Hr Shoes" }] }),
@@ -68,8 +34,7 @@ function SeoPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const res = await saveStoreSeo({ data: form });
-      if (res.status === "error") throw new Error(res.message);
+      await saveStoreSeo({ data: form });
       toast.success("Configurações de SEO salvas!");
       router.invalidate();
     } catch (e: any) {
