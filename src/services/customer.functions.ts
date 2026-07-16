@@ -82,10 +82,12 @@ export const setDefaultAddress = createServerFn({ method: "POST" })
     if (!user) throw new Error("Não autorizado");
 
     // Unset current default
-    await ssrClient
+    const { error: unsetError } = await ssrClient
       .from("customer_addresses")
       .update({ is_default: false })
       .eq("customer_id", user.id);
+
+    if (unsetError) throw new Error(unsetError.message);
 
     // Set new default
     const { error } = await ssrClient
