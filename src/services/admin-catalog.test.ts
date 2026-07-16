@@ -3,6 +3,8 @@ import {
   getOnboardingProgressHandler,
   listCategoriesHandler,
   createCategoryHandler,
+  listProductTypesHandler,
+  createProductTypeHandler,
 } from "./admin-catalog.functions";
 import { getServerClient } from "@/lib/supabase";
 
@@ -163,6 +165,62 @@ describe("Admin Catalog Functions", () => {
 
       await expect(
         createCategoryHandler({ name: "Novidades", slug: "novidades", status: "active" }),
+      ).rejects.toThrow("DB insert error");
+    });
+  });
+
+  describe("listProductTypesHandler", () => {
+    it("should retrieve product types ordered by created_at desc", async () => {
+      const mockTypes = [{ id: "type-1", name: "Tênis", slug: "tenis", field_schema: [] }];
+      mockOrder.mockResolvedValueOnce({ data: mockTypes, error: null });
+
+      const res = await listProductTypesHandler();
+      expect(res).toEqual(mockTypes);
+      expect(mockFrom).toHaveBeenCalledWith("product_types");
+      expect(mockOrder).toHaveBeenCalledWith("created_at", { ascending: false });
+    });
+
+    it("should propagate database error", async () => {
+      mockOrder.mockResolvedValueOnce({ data: null, error: { message: "DB select error" } });
+
+      await expect(listProductTypesHandler()).rejects.toThrow("DB select error");
+    });
+  });
+
+  describe("createProductTypeHandler", () => {
+    it("should successfully insert a product type linked to store and organization", async () => {
+      mockSingle
+        .mockResolvedValueOnce({ data: { id: "store-123", organization_id: "org-456" } })
+        .mockResolvedValueOnce({ data: { id: "type-1", name: "Tênis", slug: "tenis" }, error: null });
+
+      const input = { name: "Tênis", slug: "tenis", field_schema: [{ name: "Tamanho", kind: "text", required: true }] };
+      const res = await createProductTypeHandler(input);
+
+      expect(res).toEqual({ id: "type-1", name: "Tênis", slug: "tenis" });
+      expect(mockFrom).toHaveBeenCalledWith("stores");
+      expect(mockFrom).toHaveBeenCalledWith("product_types");
+      expect(mockInsert).toHaveBeenCalledWith({
+        store_id: "store-123",
+        organization_id: "org-456",
+        ...input,
+      });
+    });
+
+    it("should throw error if store is missing", async () => {
+      mockSingle.mockResolvedValueOnce({ data: null });
+
+      await expect(
+        createProductTypeHandler({ name: "Tênis", slug: "tenis", field_schema: [] }),
+      ).rejects.toThrow("No store found");
+    });
+
+    it("should propagate database insert error", async () => {
+      mockSingle
+        .mockResolvedValueOnce({ data: { id: "store-123", organization_id: "org-456" } })
+        .mockResolvedValueOnce({ data: null, error: { message: "DB insert error" } });
+
+      await expect(
+        createProductTypeHandler({ name: "Tênis", slug: "tenis", field_schema: [] }),
       ).rejects.toThrow("DB insert error");
     });
   });

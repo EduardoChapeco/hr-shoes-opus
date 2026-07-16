@@ -15,18 +15,22 @@ import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 // Product Types (Formulário Adaptativo)
 // ---------------------------------------------------------------------------
 
+export async function listProductTypesHandler() {
+  const db = getServerClient();
+
+  // RLS will enforce store isolation
+  const { data, error } = await db
+    .from("product_types")
+    .select("id, name, slug, field_schema, created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
 export const listProductTypes = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const db = getServerClient();
-
-    // RLS will enforce store isolation
-    const { data, error } = await db
-      .from("product_types")
-      .select("id, name, slug, field_schema, created_at")
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-
+    const data = await listProductTypesHandler();
     return { status: "ok" as const, data };
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
@@ -34,6 +38,37 @@ export const listProductTypes = createServerFn({ method: "GET" }).handler(async 
     return { status: "error" as const, message: "Erro ao listar tipos de produto." };
   }
 });
+
+export async function createProductTypeHandler(input: {
+  name: string;
+  slug: string;
+  field_schema: any[];
+}) {
+  const db = getServerClient();
+
+  // Need to resolve storeId for insertion
+  const { data: storeData } = await db
+    .from("stores")
+    .select("id, organization_id")
+    .limit(1)
+    .single();
+  if (!storeData) throw new Error("No store found");
+
+  const { data, error } = await db
+    .from("product_types")
+    .insert({
+      organization_id: storeData.organization_id,
+      store_id: storeData.id,
+      name: input.name,
+      slug: input.slug,
+      field_schema: input.field_schema,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
 
 export const createProductType = createServerFn({ method: "POST" })
   .validator(
@@ -45,30 +80,7 @@ export const createProductType = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      const db = getServerClient();
-
-      // Need to resolve storeId for insertion
-      const { data: storeData } = await db
-        .from("stores")
-        .select("id, organization_id")
-        .limit(1)
-        .single();
-      if (!storeData) throw new Error("No store found");
-
-      const { data, error } = await db
-        .from("product_types")
-        .insert({
-          organization_id: storeData.organization_id,
-          store_id: storeData.id,
-          name: input.name,
-          slug: input.slug,
-          field_schema: input.field_schema,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const data = await createProductTypeHandler(input);
       return { status: "success" as const, data };
     } catch (e: unknown) {
       console.error("[admin-catalog] createProductType error:", e);
