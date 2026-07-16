@@ -9,6 +9,7 @@
 import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { getOrCreateGuestSession } from "@/lib/session";
+import { getEnvVar } from "@/lib/env";
 
 export async function getCurrentIdentity() {
   const ssrClient = getSSRClient();
@@ -34,8 +35,8 @@ export async function mergeGuestCartLogic(
 ) {
   let supabase;
   if (accessToken) {
-    const url = process.env.VITE_SUPABASE_URL;
-    const key = process.env.VITE_SUPABASE_ANON_KEY;
+    const url = getEnvVar("VITE_SUPABASE_URL");
+    const key = getEnvVar("VITE_SUPABASE_ANON_KEY");
     if (!url || !key) throw new Error("Missing env vars for Supabase");
 
     const { createClient } = await import("@supabase/supabase-js");

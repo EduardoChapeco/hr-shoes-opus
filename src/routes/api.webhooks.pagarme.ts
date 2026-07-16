@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getServerClient } from "@/lib/supabase";
 import crypto from "crypto";
+import { getEnvVar } from "@/lib/env";
+import { getServerClient } from "@/lib/supabase";
 
 export const Route = createFileRoute("/api/webhooks/pagarme")({
   server: {
@@ -11,7 +12,7 @@ export const Route = createFileRoute("/api/webhooks/pagarme")({
           const rawBody = await request.text();
 
           // In a real environment, load this from env
-          const pagarmeWebhookKey = process.env.PAGARME_WEBHOOK_KEY;
+          const pagarmeWebhookKey = getEnvVar("PAGARME_WEBHOOK_KEY");
 
           if (!pagarmeWebhookKey) {
             console.error("[Webhook] Pagar.me webhook received but integration is not configured (missing PAGARME_WEBHOOK_KEY).");
