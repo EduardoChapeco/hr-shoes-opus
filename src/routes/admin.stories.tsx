@@ -19,6 +19,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { listAdminStories, upsertStory, deleteStory } from "@/services/cms.functions";
 
 export const Route = createFileRoute("/admin/stories")({
@@ -37,14 +38,20 @@ function StoriesPage() {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register, handleSubmit, reset } = useForm({
+  const { register, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
       media_url: "",
       link_url: "",
     },
   });
 
+  const mediaUrlValue = watch("media_url");
+
   const onSubmit = async (values: any) => {
+    if (!values.media_url) {
+      toast.error("Por favor, envie uma imagem para o story");
+      return;
+    }
     setIsSubmitting(true);
     try {
       const res = await upsertStory({
@@ -105,8 +112,13 @@ function StoriesPage() {
               </DialogHeader>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>URL da Mídia (Imagem ou Vídeo)</Label>
-                  <Input {...register("media_url", { required: true })} placeholder="https://..." />
+                  <Label>Mídia do Story (Imagem ou Vídeo)</Label>
+                  <ImageUpload
+                    value={mediaUrlValue}
+                    onChange={(url) => setValue("media_url", url)}
+                    onRemove={() => setValue("media_url", "")}
+                    bucket="cms-media"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Link de Destino (Opcional)</Label>
