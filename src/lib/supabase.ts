@@ -41,7 +41,17 @@ const ServerEnvSchema = BrowserEnvSchema.extend({
 export class SupabaseUnconfiguredError extends Error {
   readonly code = "supabase_unconfigured" as const;
   constructor(reason: string) {
-    super(`Supabase not configured: ${reason}`);
+    let debugInfo = "";
+    try {
+      // globalThis.__env__ is set by Nitro's cloudflare-pages.mjs before every request
+      const gEnv = (globalThis as any).__env__;
+      debugInfo += ` [__env__: ${gEnv ? Object.keys(gEnv).join(",") : "null"}]`;
+    } catch {}
+    try {
+      const keysInProcess = typeof process !== "undefined" && process.env ? Object.keys(process.env) : [];
+      debugInfo += ` [process.env keys: ${keysInProcess.length}]`;
+    } catch {}
+    super(`Supabase not configured: ${reason}${debugInfo}`);
   }
 }
 
@@ -67,8 +77,6 @@ export function getBrowserClient(): SupabaseClient {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      // Prefer cookies over localStorage for Auth — set by the server via Set-Cookie.
-      // Browser client handles refresh; never store service_role here.
       detectSessionInUrl: true,
     },
   });
@@ -80,16 +88,16 @@ export function getBrowserClient(): SupabaseClient {
 // Server client (service_role — server-side only)
 // ---------------------------------------------------------------------------
 
-let _serverClient: SupabaseClient | null = null;
-
 /**
  * Returns the server-side Supabase client with service_role privileges.
  * MUST only be called inside createServerFn() or server-only modules.
  * Throws SupabaseUnconfiguredError if env vars are missing.
+ *
+ * NOTE: Not cached at module level — Cloudflare Workers reuse module instances
+ * across requests. Since globalThis.__env__ is updated per-request by Nitro,
+ * we must re-resolve env vars on every call.
  */
 export function getServerClient(): SupabaseClient {
-  if (_serverClient) return _serverClient;
-
   const env = ServerEnvSchema.safeParse({
     VITE_SUPABASE_URL: getEnvVar("VITE_SUPABASE_URL"),
     VITE_SUPABASE_ANON_KEY: getEnvVar("VITE_SUPABASE_ANON_KEY"),
@@ -100,7 +108,7 @@ export function getServerClient(): SupabaseClient {
     throw new SupabaseUnconfiguredError(env.error.issues.map((i) => i.message).join("; "));
   }
 
-  _serverClient = createClient(
+  return createClient(
     env.data.VITE_SUPABASE_URL,
     env.data.SUPABASE_SERVICE_ROLE_KEY, // service_role — bypasses RLS (server only)
     {
@@ -110,23 +118,19 @@ export function getServerClient(): SupabaseClient {
       },
     },
   );
-
-  return _serverClient;
 }
 
 // ---------------------------------------------------------------------------
 // Anon Server client (anon key — server-side only, respects RLS)
 // ---------------------------------------------------------------------------
 
-let _anonServerClient: SupabaseClient | null = null;
-
 /**
  * Returns the server-side Supabase client with anon privileges.
  * Respects RLS and uses the public anon key.
+ *
+ * NOTE: Not cached at module level — see getServerClient() for reasoning.
  */
 export function getAnonServerClient(): SupabaseClient {
-  if (_anonServerClient) return _anonServerClient;
-
   const env = BrowserEnvSchema.safeParse({
     VITE_SUPABASE_URL: getEnvVar("VITE_SUPABASE_URL"),
     VITE_SUPABASE_ANON_KEY: getEnvVar("VITE_SUPABASE_ANON_KEY"),
@@ -136,14 +140,12 @@ export function getAnonServerClient(): SupabaseClient {
     throw new SupabaseUnconfiguredError(env.error.issues.map((i) => i.message).join("; "));
   }
 
-  _anonServerClient = createClient(env.data.VITE_SUPABASE_URL, env.data.VITE_SUPABASE_ANON_KEY, {
+  return createClient(env.data.VITE_SUPABASE_URL, env.data.VITE_SUPABASE_ANON_KEY, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
     },
   });
-
-  return _anonServerClient;
 }
 
 // ---------------------------------------------------------------------------
@@ -160,6 +162,7 @@ export function isSupabaseConfigured(): boolean {
     return true;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) return false;
+    // Re-throw unexpected errors (network, etc.)
     throw e;
   }
 }
