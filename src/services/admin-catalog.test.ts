@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getOnboardingProgressHandler } from "./admin-catalog.functions";
+import {
+  getOnboardingProgressHandler,
+  listCategoriesHandler,
+  createCategoryHandler,
+} from "./admin-catalog.functions";
 import { getServerClient } from "@/lib/supabase";
 
 const mockFrom = vi.fn();
@@ -7,18 +11,27 @@ const mockSelect = vi.fn();
 const mockLimit = vi.fn();
 const mockMaybeSingle = vi.fn();
 const mockIn = vi.fn();
+const mockOrder = vi.fn();
+const mockInsert = vi.fn();
+const mockSingle = vi.fn();
 
 const mockQueryBuilder = {
   select: mockSelect,
   limit: mockLimit,
   maybeSingle: mockMaybeSingle,
   in: mockIn,
+  order: mockOrder,
+  insert: mockInsert,
+  single: mockSingle,
 };
 
 mockSelect.mockReturnValue(mockQueryBuilder);
 mockLimit.mockReturnValue(mockQueryBuilder);
 mockMaybeSingle.mockReturnValue(mockQueryBuilder);
 mockIn.mockReturnValue(mockQueryBuilder);
+mockOrder.mockReturnValue(mockQueryBuilder);
+mockInsert.mockReturnValue(mockQueryBuilder);
+mockSingle.mockReturnValue(mockQueryBuilder);
 
 const mockSupabase = {
   from: mockFrom,
@@ -39,6 +52,9 @@ describe("Admin Catalog Functions", () => {
     mockLimit.mockReturnValue(mockQueryBuilder);
     mockMaybeSingle.mockReturnValue(mockQueryBuilder);
     mockIn.mockReturnValue(mockQueryBuilder);
+    mockOrder.mockReturnValue(mockQueryBuilder);
+    mockInsert.mockReturnValue(mockQueryBuilder);
+    mockSingle.mockReturnValue(mockQueryBuilder);
   });
 
   describe("getOnboardingProgressHandler", () => {
@@ -88,6 +104,66 @@ describe("Admin Catalog Functions", () => {
         paymentsDone: true,
         cmsDone: true,
       });
+    });
+  });
+
+  describe("listCategoriesHandler", () => {
+    it("should retrieve categories ordered by sort_order", async () => {
+      const mockCategories = [{ id: "cat-1", name: "Sapatos", slug: "sapatos" }];
+      mockOrder.mockResolvedValueOnce({ data: mockCategories, error: null });
+
+      const res = await listCategoriesHandler();
+      expect(res).toEqual(mockCategories);
+      expect(mockFrom).toHaveBeenCalledWith("categories");
+      expect(mockOrder).toHaveBeenCalledWith("sort_order", { ascending: true });
+    });
+
+    it("should propagate database error", async () => {
+      mockOrder.mockResolvedValueOnce({ data: null, error: { message: "DB select error" } });
+
+      await expect(listCategoriesHandler()).rejects.toThrow("DB select error");
+    });
+  });
+
+  describe("createCategoryHandler", () => {
+    it("should successfully insert a category linked to the store", async () => {
+      // 1st single (store query): returns store id
+      // 2nd single (category query): returns new category
+      mockSingle
+        .mockResolvedValueOnce({ data: { id: "store-123" } })
+        .mockResolvedValueOnce({ data: { id: "cat-1", name: "Novidades", slug: "novidades" }, error: null });
+
+      const input = { name: "Novidades", slug: "novidades", status: "active" as const };
+      const res = await createCategoryHandler(input);
+
+      expect(res).toEqual({ id: "cat-1", name: "Novidades", slug: "novidades" });
+      expect(mockFrom).toHaveBeenCalledWith("stores");
+      expect(mockFrom).toHaveBeenCalledWith("categories");
+      expect(mockInsert).toHaveBeenCalledWith({
+        store_id: "store-123",
+        ...input,
+      });
+    });
+
+    it("should throw error if store is missing", async () => {
+      // 1st single returns null
+      mockSingle.mockResolvedValueOnce({ data: null });
+
+      await expect(
+        createCategoryHandler({ name: "Novidades", slug: "novidades", status: "active" }),
+      ).rejects.toThrow("No store found");
+    });
+
+    it("should propagate database insert error", async () => {
+      // 1st single returns store
+      // 2nd single returns insert error
+      mockSingle
+        .mockResolvedValueOnce({ data: { id: "store-123" } })
+        .mockResolvedValueOnce({ data: null, error: { message: "DB insert error" } });
+
+      await expect(
+        createCategoryHandler({ name: "Novidades", slug: "novidades", status: "active" }),
+      ).rejects.toThrow("DB insert error");
     });
   });
 });

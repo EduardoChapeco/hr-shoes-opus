@@ -227,17 +227,21 @@ export const createProduct = createServerFn({ method: "POST" })
 // Categories
 // ---------------------------------------------------------------------------
 
+export async function listCategoriesHandler() {
+  const db = getServerClient();
+
+  const { data, error } = await db
+    .from("categories")
+    .select("id, name, slug, status, sort_order, parent_id")
+    .order("sort_order", { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
+
 export const listCategories = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const db = getServerClient();
-
-    const { data, error } = await db
-      .from("categories")
-      .select("id, name, slug, status, sort_order, parent_id")
-      .order("sort_order", { ascending: true });
-
-    if (error) throw error;
-
+    const data = await listCategoriesHandler();
     return { status: "ok" as const, data };
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
@@ -245,6 +249,30 @@ export const listCategories = createServerFn({ method: "GET" }).handler(async ()
     return { status: "error" as const, message: "Erro ao listar categorias." };
   }
 });
+
+export async function createCategoryHandler(input: {
+  name: string;
+  slug: string;
+  parent_id?: string | null;
+  status: "active" | "inactive";
+}) {
+  const db = getServerClient();
+
+  const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+  if (!storeData) throw new Error("No store found");
+
+  const { data, error } = await db
+    .from("categories")
+    .insert({
+      store_id: storeData.id,
+      ...input,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
 
 export const createCategory = createServerFn({ method: "POST" })
   .validator(
@@ -257,22 +285,7 @@ export const createCategory = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
-      const db = getServerClient();
-
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
-      if (!storeData) throw new Error("No store found");
-
-      const { data, error } = await db
-        .from("categories")
-        .insert({
-          store_id: storeData.id,
-          ...input,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const data = await createCategoryHandler(input);
       return { status: "success" as const, data };
     } catch (e: unknown) {
       console.error("[admin-catalog] createCategory error:", e);
