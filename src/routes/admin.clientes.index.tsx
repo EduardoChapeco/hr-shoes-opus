@@ -19,10 +19,7 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/admin/clientes/")({
   head: () => ({ meta: [{ title: "Clientes — Hr Shoes" }] }),
   loader: async () => {
-    const res = await listCustomers();
-    if (res.status === "error") throw new Error(res.message);
-    if (res.status === "unconfigured") return [];
-    return res.data || [];
+    return await listCustomers();
   },
   component: CustomersPage,
 });
