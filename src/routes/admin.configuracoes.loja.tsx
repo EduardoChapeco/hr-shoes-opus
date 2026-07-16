@@ -1,71 +1,13 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getServerClient } from "@/lib/supabase";
-import { getSSRClient } from "@/lib/supabase-ssr.server";
-
-const getStoreSettings = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const db = getServerClient();
-    const { data: store, error } = await db
-      .from("stores")
-      .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, description")
-      .limit(1)
-      .single();
-    if (error || !store) return { status: "not_found" as const };
-    return { status: "ok" as const, data: store };
-  } catch {
-    return { status: "error" as const, message: "Erro ao carregar dados da loja." };
-  }
-});
-
-const saveStoreSettings = createServerFn({ method: "POST" })
-  .validator(
-    z.object({
-      name: z.string().min(2).max(100),
-      email: z.string().email().optional().or(z.literal("")),
-      phone: z.string().max(20).optional(),
-      cnpj: z.string().max(18).optional(),
-      address: z.string().max(200).optional(),
-      city: z.string().max(100).optional(),
-      state: z.string().max(2).optional(),
-      zip_code: z.string().max(9).optional(),
-      description: z.string().max(500).optional(),
-    }),
-  )
-  .handler(async ({ data }) => {
-    try {
-      const ssrClient = getSSRClient();
-      const {
-        data: { user },
-      } = await ssrClient.auth.getUser();
-      if (!user) throw new Error("Não autorizado");
-
-      const db = getServerClient();
-      const { data: profile } = await db
-        .from("profiles")
-        .select("role, store_id")
-        .eq("id", user.id)
-        .single();
-      if (!profile?.store_id || !["owner", "admin"].includes(profile.role)) {
-        throw new Error("Apenas proprietários podem editar dados da loja");
-      }
-
-      const { error } = await db.from("stores").update(data).eq("id", profile.store_id);
-      if (error) throw new Error(error.message);
-      return { status: "success" };
-    } catch (e: any) {
-      return { status: "error" as const, message: e.message };
-    }
-  });
+import { getStoreSettings, saveStoreSettings } from "@/services/store.functions";
 
 export const Route = createFileRoute("/admin/configuracoes/loja")({
   head: () => ({ meta: [{ title: "Dados da Loja — Hr Shoes" }] }),
@@ -96,8 +38,7 @@ function StoreSettings() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const res = await saveStoreSettings({ data: form });
-      if (res.status === "error") throw new Error(res.message);
+      await saveStoreSettings({ data: form });
       toast.success("Dados da loja salvos!");
       router.invalidate();
     } catch (e: any) {
