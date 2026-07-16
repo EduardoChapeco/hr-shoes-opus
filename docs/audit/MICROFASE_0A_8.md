@@ -6,6 +6,8 @@ CAPACIDADE: Alterar quantidades dos itens no carrinho de compras do cliente.
 
 COMMIT-BASE: `b257eec`
 
+COMMIT-FINAL: `c7b777e`
+
 ### BASELINE
 
 ESTADO ANTERIOR:
