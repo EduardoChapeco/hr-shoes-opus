@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ExternalLink, Store, MapPin, Phone, Clock } from "lucide-react";
+import { ExternalLink, Store, MapPin, Phone, Clock, Image as ImageIcon } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { getPublicProfile, savePublicProfile } from "@/services/store.functions";
 
 export const Route = createFileRoute("/admin/perfil-publico")({
@@ -28,6 +29,7 @@ function PerfilPublicoPage() {
     phone: (store as any)?.phone || "",
     address: (store as any)?.address || "",
     business_hours: (store as any)?.business_hours || "",
+    logo_url: (store as any)?.logo_url || "",
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -70,26 +72,66 @@ function PerfilPublicoPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-lg border bg-card p-5 space-y-3">
-          <div className="flex items-center gap-3">
-            {(store as any).logo_url && (
+        {/* Preview Card */}
+        <div className="rounded-lg border bg-card p-5 space-y-4">
+          <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">
+            Prévia do Perfil Público
+          </h3>
+          <div className="flex items-center gap-4">
+            {form.logo_url ? (
               <img
-                src={(store as any).logo_url}
+                src={form.logo_url}
                 alt={(store as any).name}
-                className="h-12 w-12 rounded-full object-cover"
+                className="h-16 w-16 rounded-xl object-cover border"
               />
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
+                <Store className="h-8 w-8 text-primary" />
+              </div>
             )}
             <div>
-              <p className="font-semibold text-lg">{(store as any).name}</p>
-              <p className="text-xs text-muted-foreground">Prévia do perfil público</p>
+              <p className="font-bold text-lg">{(store as any).name}</p>
+              <p className="text-xs text-muted-foreground">/{ (store as any).slug }</p>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {form.description || "Sem descrição definida."}
-          </p>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            {form.description ? (
+              <p className="italic">"{form.description}"</p>
+            ) : (
+              <p className="text-destructive/80">Sem descrição definida.</p>
+            )}
+            <div className="border-t pt-2 mt-2 space-y-1.5 text-xs">
+              <p className="flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5" />
+                {form.phone || <span className="text-destructive/80">Telefone não definido</span>}
+              </p>
+              <p className="flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5" />
+                {form.address || <span className="text-destructive/80">Endereço não definido</span>}
+              </p>
+              <p className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" />
+                {form.business_hours || <span className="text-destructive/80">Horário não definido</span>}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-4">
+        {/* Edit Form */}
+        <form onSubmit={handleSave} className="space-y-5 rounded-lg border bg-card p-5">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <ImageIcon className="h-4 w-4 text-muted-foreground" />
+              <Label>Logotipo da Loja</Label>
+            </div>
+            <ImageUpload
+              value={form.logo_url}
+              onChange={(url) => setForm((f) => ({ ...f, logo_url: url }))}
+              onRemove={() => setForm((f) => ({ ...f, logo_url: "" }))}
+              bucket="cms-media"
+            />
+          </div>
+
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Store className="h-4 w-4 text-muted-foreground" />

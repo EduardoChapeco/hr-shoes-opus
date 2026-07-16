@@ -186,6 +186,7 @@ export const savePublicProfileSchema = z.object({
   phone: z.string().max(20).optional(),
   address: z.string().max(200).optional(),
   business_hours: z.string().max(200).optional(),
+  logo_url: z.string().url().optional().or(z.literal("")),
 });
 
 export async function savePublicProfileHandler(data: z.infer<typeof savePublicProfileSchema>) {
@@ -204,6 +205,7 @@ export async function savePublicProfileHandler(data: z.infer<typeof savePublicPr
 
   return { status: "success" };
 }
+
 
 export const savePublicProfile = createServerFn({ method: "POST" })
   .validator(savePublicProfileSchema)

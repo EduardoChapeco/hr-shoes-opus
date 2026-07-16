@@ -195,7 +195,7 @@ export const getPublicStoreSettings = createServerFn({ method: "GET" }).handler(
     const db = getServerClient();
     const { data: store, error } = await db
       .from("stores")
-      .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, description")
+      .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, seo_title, seo_description, seo_keywords")
       .limit(1)
       .single();
     if (error || !store) return { status: "not_found" as const };

@@ -87,30 +87,39 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const store = (loaderData as any)?.store;
     const theme = (loaderData as any)?.theme;
     const storeName = store?.name || "Hr Shoes";
-    const storeDesc = store?.description || "Moda feminina contemporânea com conforto e estilo. Descubra a curadoria da Hr Shoes.";
+    
+    const seoTitle = store?.seo_title || `${storeName} — Conforto e Estilo`;
+    const seoDesc = store?.seo_description || store?.description || "Moda feminina contemporânea com conforto e estilo. Descubra a curadoria da Hr Shoes.";
+    const seoKeywords = store?.seo_keywords || "";
+    
+    const metaTags = [
+      { charSet: "utf-8" },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5",
+      },
+      { title: seoTitle },
+      {
+        name: "description",
+        content: seoDesc,
+      },
+      { name: "author", content: storeName },
+      { name: "theme-color", content: theme?.background_color || "#F3F1EC" },
+      { property: "og:title", content: seoTitle },
+      {
+        property: "og:description",
+        content: seoDesc,
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ];
+
+    if (seoKeywords) {
+      metaTags.push({ name: "keywords", content: seoKeywords });
+    }
     
     return {
-      meta: [
-        { charSet: "utf-8" },
-        {
-          name: "viewport",
-          content: "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5",
-        },
-        { title: `${storeName} — Conforto e Estilo` },
-        {
-          name: "description",
-          content: storeDesc,
-        },
-        { name: "author", content: storeName },
-        { name: "theme-color", content: theme?.background_color || "#F3F1EC" },
-        { property: "og:title", content: `${storeName} — Conforto e Estilo` },
-        {
-          property: "og:description",
-          content: storeDesc,
-        },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
-      ],
+      meta: metaTags,
       links: [
         { rel: "stylesheet", href: appCss },
         { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
