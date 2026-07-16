@@ -29,13 +29,30 @@ export function ImageUpload({
 
     setIsUploading(true);
     try {
-      const url = await uploadMedia(file, bucket);
-      onChange(url);
-      toast.success("Imagem enviada com sucesso!");
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64 = reader.result as string;
+        const res = await uploadMedia({
+          data: { fileName: file.name, fileBase64: base64, bucket },
+        });
+
+        if (res.status === "error") {
+          toast.error(res.message);
+        } else {
+          onChange(res.url);
+          toast.success("Imagem enviada com sucesso!");
+        }
+        setIsUploading(false);
+      };
+      reader.onerror = () => {
+        toast.error("Erro ao processar arquivo");
+        setIsUploading(false);
+      };
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer upload da imagem");
-    } finally {
       setIsUploading(false);
+    } finally {
       if (inputRef.current) {
         inputRef.current.value = "";
       }

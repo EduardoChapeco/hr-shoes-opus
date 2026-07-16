@@ -113,14 +113,14 @@ export const updateExchangeStatus = createServerFn({ method: "POST" })
       // 1. Revert stock via adjust_stock(exchange_in)
       const { data: orderItems } = await supabase
         .from("order_items")
-        .select("variant_id, quantity")
+        .select("variant_id, qty")
         .eq("order_id", exchange.order_id);
 
       if (orderItems) {
         for (const item of orderItems) {
           await supabase.rpc("adjust_stock", {
             p_variant_id: item.variant_id,
-            p_qty: item.quantity,
+            p_qty: item.qty,
             p_movement_type: "exchange_in",
             p_note: `Troca/Devolução #${exchangeId.split("-")[0]}`,
             p_reference_type: "exchange",

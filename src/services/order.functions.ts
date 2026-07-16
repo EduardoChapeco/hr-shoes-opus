@@ -1,77 +1,126 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr.server";
+
+// ---------------------------------------------------------------------------
+// Order status enum (shared between validator and domain logic)
+// ---------------------------------------------------------------------------
+
+export const ORDER_STATUS_VALUES = [
+  "draft",
+  "awaiting_shipping_quote",
+  "awaiting_payment",
+  "payment_processing",
+  "paid",
+  "processing",
+  "ready_for_pickup",
+  "shipped",
+  "delivered",
+  "completed",
+  "cancelled",
+  "payment_failed",
+  "return_requested",
+  "returned",
+  "refunded",
+] as const;
+
+// ---------------------------------------------------------------------------
+// Handlers (decoupled for unit testing)
+// ---------------------------------------------------------------------------
+
+export async function listOrdersHandler() {
+  const db = getServerClient();
+
+  const { data, error } = await db
+    .from("orders")
+    .select(
+      `
+        id, public_token, status, total_cents, customer_snapshot, created_at, shipping_method,
+        order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
+      `,
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getOrderByIdHandler(orderId: string) {
+  const db = getServerClient();
+
+  const { data, error } = await db
+    .from("orders")
+    .select(
+      `
+      id, public_token, status, total_cents, subtotal_cents, shipping_cents,
+      customer_snapshot, created_at, shipping_method, shipping_address,
+      order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
+    `,
+    )
+    .eq("id", orderId)
+    .single();
+
+  if (error) throw new Error("Pedido não encontrado");
+  return data;
+}
+
+export async function updateOrderStatusHandler(orderId: string, status: (typeof ORDER_STATUS_VALUES)[number]) {
+  const db = getServerClient();
+
+  const { error } = await db.from("orders").update({ status }).eq("id", orderId);
+  if (error) throw error;
+  return { status: "ok" as const, message: "Status do pedido atualizado." };
+}
+
+// ---------------------------------------------------------------------------
+// Server Functions
+// ---------------------------------------------------------------------------
 
 export const listOrders = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const db = await getServerClient();
-
-    // customer_name/email stored in customer_snapshot JSONB (migration 0025).
-    // order_items uses qty (not quantity) and total_cents (not total_price_cents).
-    const { data, error } = await db
-      .from("orders")
-      .select(
-        `
-          id, public_token, status, total_cents, customer_snapshot, created_at, shipping_method,
-          order_items ( id, product_title, variant_sku, qty )
-        `,
-      )
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-
-    return { status: "ok", data: data || [] };
+    const data = await listOrdersHandler();
+    return { status: "ok" as const, data };
   } catch (e: any) {
+    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
     console.error("[order.functions] listOrders:", e.message);
-    return { status: "error", message: "Erro ao buscar pedidos." };
+    return { status: "error" as const, message: "Erro ao buscar pedidos." };
   }
 });
+
+export const getOrderById = createServerFn({ method: "GET" })
+  .validator(z.object({ orderId: z.string().uuid() }))
+  .handler(async ({ data: { orderId } }) => {
+    try {
+      const data = await getOrderByIdHandler(orderId);
+      return { status: "ok" as const, data };
+    } catch (e: any) {
+      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      console.error("[order.functions] getOrderById:", e.message);
+      return { status: "error" as const, message: e.message || "Pedido não encontrado." };
+    }
+  });
 
 export const updateOrderStatus = createServerFn({ method: "POST" })
   .validator(
     z.object({
       orderId: z.string().uuid(),
-      status: z.enum([
-        "draft",
-        "awaiting_shipping_quote",
-        "awaiting_payment",
-        "payment_processing",
-        "paid",
-        "processing",
-        "ready_for_pickup",
-        "shipped",
-        "delivered",
-        "completed",
-        "cancelled",
-        "payment_failed",
-        "return_requested",
-        "returned",
-        "refunded",
-      ]),
+      status: z.enum(ORDER_STATUS_VALUES),
     }),
   )
   .handler(async ({ data: params }) => {
     try {
-      const db = await getServerClient();
-
-      const { error } = await db
-        .from("orders")
-        .update({ status: params.status })
-        .eq("id", params.orderId);
-
-      if (error) throw error;
-
-      return { status: "ok", message: "Status do pedido atualizado." };
+      return await updateOrderStatusHandler(params.orderId, params.status);
     } catch (e: any) {
+      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
       console.error("[order.functions] updateOrderStatus:", e.message);
-      return { status: "error", message: "Erro ao atualizar pedido." };
+      return { status: "error" as const, message: "Erro ao atualizar pedido." };
     }
   });
 
 export const listPayments = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const db = await getServerClient();
+    const db = getServerClient();
 
     const { data, error } = await db
       .from("orders")
@@ -85,10 +134,11 @@ export const listPayments = createServerFn({ method: "GET" }).handler(async () =
 
     if (error) throw error;
 
-    return { status: "ok", data: data || [] };
+    return { status: "ok" as const, data: data || [] };
   } catch (e: any) {
+    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
     console.error("[order.functions] listPayments:", e.message);
-    return { status: "error", message: "Erro ao buscar pagamentos." };
+    return { status: "error" as const, message: "Erro ao buscar pagamentos." };
   }
 });
 

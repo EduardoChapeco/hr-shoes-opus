@@ -42,7 +42,14 @@ function StoreSettings() {
       toast.success("Dados da loja salvos!");
       router.invalidate();
     } catch (e: any) {
-      toast.error(e.message || "Erro ao salvar");
+      let msg = e.message || "Erro ao salvar";
+      try {
+        const parsed = JSON.parse(e.message);
+        if (Array.isArray(parsed) && parsed[0]?.message) {
+          msg = parsed.map((p: any) => p.message).join(", ");
+        }
+      } catch {}
+      toast.error(msg);
     } finally {
       setIsSaving(false);
     }

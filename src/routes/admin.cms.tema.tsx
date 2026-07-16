@@ -21,10 +21,14 @@ import { getThemeSettings, updateThemeSettings } from "@/services/cms.functions"
 export const Route = createFileRoute("/admin/cms/tema")({
   head: () => ({ meta: [{ title: "Tema — Hr Shoes" }] }),
   loader: async () => {
-    const res = await getThemeSettings();
-    if (res.status === "error") throw new Error(res.message);
-    if (res.status === "unconfigured") return {};
-    return res.data || {};
+    try {
+      const res = await getThemeSettings();
+      if (res.status === "error") return {};
+      if (res.status === "unconfigured") return {};
+      return res.data || {};
+    } catch {
+      return {};
+    }
   },
   component: ThemeSettingsPage,
 });

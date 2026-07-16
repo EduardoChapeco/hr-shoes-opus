@@ -60,8 +60,15 @@ function ShippingPage() {
       setOpenZone(false);
       setNewZoneName("");
       router.invalidate();
-    } catch {
-      toast.error("Erro ao criar zona.");
+    } catch (e: any) {
+      let msg = e.message || "Erro ao criar zona.";
+      try {
+        const parsed = JSON.parse(e.message);
+        if (Array.isArray(parsed) && parsed[0]?.message) {
+          msg = parsed.map((p: any) => p.message).join(", ");
+        }
+      } catch {}
+      toast.error(msg);
     } finally {
       setIsSaving(false);
     }
@@ -74,8 +81,8 @@ function ShippingPage() {
       });
       if (res.status === "error") throw new Error(res.message);
       router.invalidate();
-    } catch {
-      toast.error("Erro ao atualizar status");
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao atualizar status");
     }
   };
 

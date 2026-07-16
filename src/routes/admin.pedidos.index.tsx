@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { formatMoney } from "@/lib/money";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -46,8 +47,9 @@ function AdminOrdersPage() {
     const res = await updateOrderStatus({ data: { orderId: id, status: newStatus } });
     if (res.status === "ok") {
       setOrders(orders.map((o: any) => (o.id === id ? { ...o, status: newStatus } : o)));
+      toast.success("Status atualizado.");
     } else {
-      alert("Erro ao atualizar status");
+      toast.error((res as any).message || "Erro ao atualizar status");
     }
   };
 
