@@ -42,18 +42,6 @@ function PoliticasPage() {
     }
   };
 
-  if (res.status === "unconfigured") {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Políticas da Loja"
-          description="Configure as políticas exibidas na vitrine."
-        />
-        <p className="text-muted-foreground text-sm">Loja não configurada.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <PageHeader
