@@ -20,7 +20,7 @@ export function getOrCreateGuestSession(): string {
       maxAge: COOKIE_MAX_AGE,
       path: "/",
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: import.meta.env.PROD,
       sameSite: "lax",
     });
   }
@@ -43,7 +43,7 @@ export function clearGuestSession(): void {
     maxAge: 0,
     path: "/",
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: import.meta.env.PROD,
     sameSite: "lax",
   });
 }
@@ -55,7 +55,7 @@ export function setSellerRefCookie(sellerId: string): void {
     maxAge: COOKIE_MAX_AGE,
     path: "/",
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: import.meta.env.PROD,
     sameSite: "lax",
   });
 }
