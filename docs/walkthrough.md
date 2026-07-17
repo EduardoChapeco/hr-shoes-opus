@@ -48,3 +48,15 @@ Este documento resume as investigações, refatorações e os procedimentos de d
 
 - **.gitignore**: Adicionado o arquivo `.env` para garantir que credenciais locais de banco de dados e APIs nunca sejam commitadas.
 - **Commit & Push**: Alterações integradas à branch `main` e enviadas para o repositório remoto.
+
+---
+
+## 7. Microfase 3H — CRM, Ficha/Carnê e Pagamento/Comprovantes Reais
+
+- **Chave PIX e Instruções Dinâmicas**: Adicionados campos `pix_key` e `payment_instructions` na tabela `stores` (Migration 0044). Atualizados os formulários em `/admin/configuracoes/pagamentos` para persistência no banco e retirados todos os hardcodes da tela de detalhes de pedido do cliente (`/_store/conta/pedidos/$id`).
+- **Upload de Comprovantes Real**: Implementado o upload binário via Base64 para o bucket privado `receipts` na Supabase Storage, atualizando a URL de recebimento (`payments.receipt_url`) e marcando o status como `pending_review`.
+- **Validação de Contrato**: Corrigidos bugs nos nomes de campos na listagem de itens do pedido (`total_price_cents` -> `total_cents` e `quantity` -> `qty`) para bater exatamente com o schema do banco.
+- **Substituição de Confirm/Prompt Dialogs**: Removidos os prompts nativos do navegador (`confirm`, `prompt`) e instalados diálogos baseados em Radix/shadcn em `/admin/comprovantes` e `/admin/configuracoes/pagamentos` para manter fidelidade visual e consistência na plataforma.
+- **Deploy**: Deploy atualizado em produção no Cloudflare Pages:
+  👉 **https://bd2c7d5b.hrshoes.pages.dev**
+
