@@ -191,14 +191,116 @@ export const rejectPayment = createServerFn({ method: "POST" })
     }
   });
 
-export const listPendingManualPayments = createServerFn({ method: "GET" }).handler(async (): Promise<{ status: "success"; data: any[] } | { status: "error"; message: string }> => {
-  return { status: "success" as const, data: [] };
-});
+export const listPendingManualPayments = createServerFn({ method: "GET" })
+  .handler(async (): Promise<{ status: "success"; data: any[] } | { status: "error"; message: string }> => {
+    try {
+      const db = getServerClient();
+      const { data, error } = await db
+        .from("payments")
+        .select(
+          `id, order_id, method, status, amount_cents, receipt_url, receipt_status, created_at,
+           orders ( id, public_token, customer_snapshot, status )`
+        )
+        .eq("receipt_status", "pending_review")
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return { status: "success" as const, data: data || [] };
+    } catch (e: any) {
+      console.error("[payment] listPendingManualPayments error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao buscar comprovantes pendentes." };
+    }
+  });
 
 export const uploadPaymentReceipt = createServerFn({ method: "POST" })
-  .validator(z.object({ orderId: z.string().uuid(), fileName: z.string(), fileBase64: z.string() }))
+  .validator(z.object({
+    orderId: z.string().uuid(),
+    fileName: z.string().min(1).max(200),
+    fileBase64: z.string().min(1),
+  }))
   .handler(async ({ data: { orderId, fileName, fileBase64 } }): Promise<{ status: "success" } | { status: "error"; message: string }> => {
-    return { status: "success" as const };
+    try {
+      const ssrClient = getSSRClient();
+      const { data: { user } } = await ssrClient.auth.getUser();
+      if (!user) throw new Error("Autenticação obrigatória.");
+
+      const db = getServerClient();
+
+      // 1. Verify order ownership — only the customer can upload their receipt
+      const { data: order, error: orderError } = await ssrClient
+        .from("orders")
+        .select("id, status, store_id")
+        .eq("id", orderId)
+        .eq("customer_id", user.id)
+        .single();
+
+      if (orderError || !order) throw new Error("Pedido não encontrado ou acesso negado.");
+      if (order.status !== "awaiting_payment") {
+        throw new Error("Este pedido não está aguardando pagamento.");
+      }
+
+      // 2. Upload to Supabase Storage: receipts/{userId}/{orderId}/{timestamp}_{filename}
+      const timestamp = Date.now();
+      const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const storagePath = `${user.id}/${orderId}/${timestamp}_${safeFileName}`;
+
+      // Convert base64 to Uint8Array for storage
+      const binaryStr = atob(fileBase64);
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+
+      // Determine MIME type from file extension
+      const ext = safeFileName.split(".").pop()?.toLowerCase() || "";
+      const mimeMap: Record<string, string> = {
+        jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+        webp: "image/webp", pdf: "application/pdf", heic: "image/heic",
+      };
+      const contentType = mimeMap[ext] || "application/octet-stream";
+
+      const { error: uploadError } = await db.storage
+        .from("receipts")
+        .upload(storagePath, bytes, { contentType, upsert: false });
+
+      if (uploadError) {
+        console.error("[payment] receipt upload error:", uploadError);
+        throw new Error("Falha ao enviar o arquivo. Tente novamente.");
+      }
+
+      // 3. Get a signed URL (valid 30 days) for admin review
+      const { data: signedUrlData } = await db.storage
+        .from("receipts")
+        .createSignedUrl(storagePath, 60 * 60 * 24 * 30); // 30 days
+
+      const receiptUrl = signedUrlData?.signedUrl || storagePath;
+
+      // 4. Update the payments record
+      const { error: paymentUpdateError } = await db
+        .from("payments")
+        .update({
+          receipt_url: receiptUrl,
+          receipt_status: "pending_review",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("order_id", orderId);
+
+      if (paymentUpdateError) {
+        console.error("[payment] payments update error:", paymentUpdateError);
+        // Non-fatal: file is uploaded; log and continue
+      }
+
+      // 5. Transition order status to payment_processing
+      await db
+        .from("orders")
+        .update({ status: "payment_processing" })
+        .eq("id", orderId);
+
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[payment] uploadPaymentReceipt error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao enviar comprovante." };
+    }
   });
 
 // ---------------------------------------------------------------------------

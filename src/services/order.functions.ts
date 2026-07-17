@@ -286,3 +286,49 @@ export const updateOrderShippingQuote = createServerFn({ method: "POST" })
       return { status: "error" as const, message: e.message || "Erro ao atualizar frete do pedido." };
     }
   });
+
+// ---------------------------------------------------------------------------
+// Customer-facing: get payment instructions (PIX key, instructions) for order
+// Tenant-safe: reads store_id from the order, then fetches store config via
+// service role. Customers cannot read the stores table directly via RLS.
+// ---------------------------------------------------------------------------
+
+export const getOrderPaymentInstructions = createServerFn({ method: "GET" })
+  .validator(z.object({ orderId: z.string().uuid() }))
+  .handler(async ({ data: { orderId } }) => {
+    try {
+      const ssrClient = getSSRClient();
+      const { data: { user } } = await ssrClient.auth.getUser();
+      if (!user) throw new Error("Não autenticado");
+
+      const db = getServerClient();
+
+      // Verify ownership via SSR client (RLS enforces customer_id = user.id)
+      const { data: order, error: orderError } = await ssrClient
+        .from("orders")
+        .select("id, store_id")
+        .eq("id", orderId)
+        .eq("customer_id", user.id)
+        .single();
+
+      if (orderError || !order) throw new Error("Pedido não encontrado");
+
+      // Fetch store payment config via service role (stores table not exposed to customer RLS)
+      const { data: store } = await db
+        .from("stores")
+        .select("pix_key, payment_instructions")
+        .eq("id", order.store_id)
+        .single();
+
+      return {
+        status: "ok" as const,
+        data: {
+          pix_key: store?.pix_key ?? null,
+          payment_instructions: store?.payment_instructions ?? null,
+        },
+      };
+    } catch (e: any) {
+      console.error("[order.functions] getOrderPaymentInstructions:", e);
+      return { status: "error" as const, message: e.message || "Erro ao buscar instruções de pagamento." };
+    }
+  });

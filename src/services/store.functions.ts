@@ -210,3 +210,75 @@ export async function savePublicProfileHandler(data: z.infer<typeof savePublicPr
 export const savePublicProfile = createServerFn({ method: "POST" })
   .validator(savePublicProfileSchema)
   .handler(async ({ data }) => savePublicProfileHandler(data));
+
+
+// --- CONFIGURAÇÕES DE PAGAMENTO ---
+
+export async function getPaymentSettingsHandler() {
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "finance"]);
+
+  const db = getServerClient();
+  const { data: store, error } = await db
+    .from("stores")
+    .select("id, pix_key, payment_instructions")
+    .eq("id", identity.store_id)
+    .single();
+
+  if (error || !store) {
+    throw new Error("Loja não encontrada");
+  }
+
+  return { status: "ok" as const, data: store };
+}
+
+export const getPaymentSettings = createServerFn({ method: "GET" })
+  .handler(getPaymentSettingsHandler);
+
+export const savePaymentSettingsSchema = z.object({
+  pix_key: z.string().max(255).optional().or(z.literal("")),
+  payment_instructions: z.string().max(1000).optional().or(z.literal("")),
+});
+
+export const savePaymentSettings = createServerFn({ method: "POST" })
+  .validator(savePaymentSettingsSchema)
+  .handler(async ({ data }) => {
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin"]);
+
+    const db = getServerClient();
+    const { error } = await db
+      .from("stores")
+      .update(data)
+      .eq("id", identity.store_id);
+
+    if (error) throw new Error("Erro ao salvar configurações de pagamento: " + error.message);
+
+    return { status: "success" as const };
+  });
+
+/**
+ * Public-facing: Returns PIX key and payment instructions for a specific order.
+ * Uses service role so it's safe to call from customer-facing server functions.
+ * The order's store_id is used to look up the store, ensuring tenant isolation.
+ */
+export async function getStorePaymentInfoByOrderId(orderId: string) {
+  const db = getServerClient();
+
+  // Get the store_id from the order (service role bypasses RLS safely)
+  const { data: order } = await db
+    .from("orders")
+    .select("store_id")
+    .eq("id", orderId)
+    .single();
+
+  if (!order?.store_id) return null;
+
+  const { data: store } = await db
+    .from("stores")
+    .select("pix_key, payment_instructions")
+    .eq("id", order.store_id)
+    .single();
+
+  return store || null;
+}

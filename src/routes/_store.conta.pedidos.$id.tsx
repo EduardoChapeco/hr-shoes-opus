@@ -10,6 +10,7 @@ import {
   Upload,
   Info,
   AlertTriangle,
+  QrCode,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -17,15 +18,27 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/commerce/page-header";
 import { ErrorState, EmptyState } from "@/components/state/states";
 import { formatMoney } from "@/lib/money";
-import { getCustomerOrder } from "@/services/order.functions";
+import { getCustomerOrder, getOrderPaymentInstructions } from "@/services/order.functions";
 import { uploadPaymentReceipt } from "@/services/payment.functions";
 
 export const Route = createFileRoute("/_store/conta/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido — Hr Shoes" }] }),
   loader: async ({ params }) => {
-    const res = await getCustomerOrder({ data: { orderId: params.id } });
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    const [orderRes, instrRes] = await Promise.all([
+      getCustomerOrder({ data: { orderId: params.id } }),
+      getOrderPaymentInstructions({ data: { orderId: params.id } }).catch(() => ({
+        status: "error" as const,
+        data: null,
+      })),
+    ]);
+
+    if (orderRes.status === "error") throw new Error(orderRes.message);
+
+    return {
+      order: orderRes.data,
+      paymentInstructions:
+        instrRes.status === "ok" ? instrRes.data : { pix_key: null, payment_instructions: null },
+    };
   },
   component: CustomerOrderDetailPage,
 });
@@ -56,7 +69,10 @@ function getStatusVariant(status: string): "default" | "secondary" | "destructiv
 }
 
 function CustomerOrderDetailPage() {
-  const order = Route.useLoaderData() as any;
+  const { order, paymentInstructions } = Route.useLoaderData() as {
+    order: any;
+    paymentInstructions: { pix_key: string | null; payment_instructions: string | null };
+  };
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
 
@@ -78,15 +94,14 @@ function CustomerOrderDetailPage() {
   }
 
   const payment = order.payments?.[0];
+  // Use canonical field names from order_items: qty and total_cents
   const items = order.order_items || [];
   const address = order.shipping_address || {};
 
-  const pixKey =
-    "00020101021226830014br.gov.bcb.pix2561pix.hrshoes.com.br/qr/v2/cobv/7ff34b92-9642-4f33-8a30-fef0d27038cf5204000053039865802BR5908Hr Shoes6009Chapeco62070503***6304D1A2";
-
   const handleCopyPix = () => {
-    navigator.clipboard.writeText(pixKey);
-    toast.success("Código Pix copiado com sucesso!");
+    if (!paymentInstructions.pix_key) return;
+    navigator.clipboard.writeText(paymentInstructions.pix_key);
+    toast.success("Chave PIX copiada com sucesso!");
   };
 
   const handleUploadReceipt = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,7 +126,7 @@ function CustomerOrderDetailPage() {
           },
         });
         if (res.status === "error") throw new Error(res.message);
-        toast.success("Comprovante enviado para análise!");
+        toast.success("Comprovante enviado! Aguardando confirmação da loja.");
         router.invalidate();
       } catch (err: any) {
         toast.error(err.message || "Erro ao enviar comprovante.");
@@ -140,7 +155,7 @@ function CustomerOrderDetailPage() {
       />
 
       <div className="grid gap-6 md:grid-cols-3">
-        {/* Left main info */}
+        {/* Left: items + shipping */}
         <div className="md:col-span-2 space-y-6">
           {/* Order items */}
           <div className="rounded-lg border bg-card p-5 space-y-4">
@@ -161,9 +176,11 @@ function CustomerOrderDetailPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">{formatMoney(item.total_price_cents)}</p>
+                    {/* Canonical DB field: total_cents (not total_price_cents) */}
+                    <p className="font-semibold">{formatMoney(item.total_cents)}</p>
+                    {/* Canonical DB field: qty (not quantity) */}
                     <p className="text-xs text-muted-foreground">
-                      {item.quantity}x {formatMoney(item.unit_price_cents)}
+                      {item.qty}x {formatMoney(item.unit_price_cents)}
                     </p>
                   </div>
                 </div>
@@ -179,28 +196,33 @@ function CustomerOrderDetailPage() {
             </h3>
             {order.shipping_method === "pickup" ? (
               <p className="text-sm text-muted-foreground">
-                Modalidade: <strong>Retirada na Loja</strong> (Avenida Central, 100 — Centro,
-                Chapecó)
+                Modalidade: <strong>Retirada na Loja</strong>
               </p>
             ) : (
               <div className="text-sm text-muted-foreground space-y-1">
                 <p>
                   <strong>Modalidade:</strong> Entrega domiciliar
                 </p>
-                <p>
-                  {address.street}, {address.number}{" "}
-                  {address.complement && `— ${address.complement}`}
-                </p>
-                <p>
-                  {address.neighborhood} — {address.city}/{address.state}
-                </p>
-                <p className="font-mono text-xs mt-1">CEP: {address.zipcode}</p>
+                {address.street && (
+                  <p>
+                    {address.street}, {address.number}
+                    {address.complement && ` — ${address.complement}`}
+                  </p>
+                )}
+                {address.neighborhood && (
+                  <p>
+                    {address.neighborhood} — {address.city}/{address.state}
+                  </p>
+                )}
+                {address.zipcode && (
+                  <p className="font-mono text-xs mt-1">CEP: {address.zipcode}</p>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* Right billing / payment instructions */}
+        {/* Right: totals + payment */}
         <div className="space-y-6">
           {/* Summary totals */}
           <div className="rounded-lg border bg-card p-5 space-y-3">
@@ -229,119 +251,110 @@ function CustomerOrderDetailPage() {
             </div>
           </div>
 
-          {/* Payment receipt / Upload section */}
-          {payment && (
+          {/* Payment instructions & Upload */}
+          {order.status === "awaiting_payment" && (
             <div className="rounded-lg border bg-card p-5 space-y-4">
               <h3 className="font-semibold flex items-center gap-2 text-foreground">
                 <CreditCard className="h-5 w-5 text-muted-foreground" />
-                Pagamento ({payment.method === "pix" ? "Pix" : "Depósito Bancário"})
+                Como Pagar
               </h3>
 
-              {order.status === "awaiting_payment" && (
-                <div className="space-y-4">
-                  {payment.method === "pix" ? (
-                    <div className="space-y-3">
-                      <p className="text-xs text-muted-foreground">
-                        Copia e cole a chave abaixo no app do seu banco:
-                      </p>
-                      <div className="bg-muted p-3 rounded text-[10px] font-mono break-all line-clamp-3 select-all">
-                        {pixKey}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="w-full"
-                        onClick={handleCopyPix}
-                      >
-                        <Copy className="h-3.5 w-3.5 mr-2" /> Copiar Código
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 text-xs text-muted-foreground font-mono bg-muted p-3 rounded">
-                      <p>
-                        <strong>Banco:</strong> Itaú (341)
-                      </p>
-                      <p>
-                        <strong>Agência:</strong> 0123
-                      </p>
-                      <p>
-                        <strong>Conta:</strong> 45678-9
-                      </p>
-                      <p>
-                        <strong>Favorecido:</strong> HR SHOES LTDA
-                      </p>
-                      <p>
-                        <strong>CNPJ:</strong> 00.000.000/0001-00
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Upload box */}
-                  <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center space-y-2">
-                    <Upload className="h-6 w-6 mx-auto text-muted-foreground" />
+              {paymentInstructions.pix_key ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <QrCode className="h-4 w-4 text-muted-foreground shrink-0" />
                     <p className="text-xs text-muted-foreground">
-                      Envie o comprovante de pagamento para liberação do pedido.
+                      Copie a chave abaixo e cole no app do seu banco:
                     </p>
-                    <input
-                      type="file"
-                      id="receipt-file"
-                      className="hidden"
-                      accept="image/*,application/pdf"
-                      onChange={handleUploadReceipt}
-                      disabled={uploading}
-                    />
-                    <Button
-                      asChild
-                      size="sm"
-                      variant="secondary"
-                      className="w-full"
-                      disabled={uploading}
-                    >
-                      <label htmlFor="receipt-file" className="cursor-pointer">
-                        {uploading ? "Enviando..." : "Anexar Comprovante"}
-                      </label>
-                    </Button>
                   </div>
+                  <div className="bg-muted p-3 rounded text-[11px] font-mono break-all select-all">
+                    {paymentInstructions.pix_key}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleCopyPix}
+                  >
+                    <Copy className="h-3.5 w-3.5 mr-2" /> Copiar Chave PIX
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Entre em contato com a loja para obter as instruções de pagamento.
+                </p>
+              )}
+
+              {paymentInstructions.payment_instructions && (
+                <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground border">
+                  <p className="font-medium text-foreground mb-1">Instruções adicionais:</p>
+                  <p className="whitespace-pre-wrap">{paymentInstructions.payment_instructions}</p>
                 </div>
               )}
 
-              {order.status === "payment_processing" && (
-                <div className="flex items-start gap-2 bg-yellow-50 text-yellow-800 text-xs p-3 rounded-lg border border-yellow-200">
-                  <Info className="h-4 w-4 shrink-0 mt-0.5 text-yellow-600" />
-                  <div>
-                    <p className="font-semibold">Comprovante em análise</p>
-                    <p className="mt-0.5 text-yellow-700">
-                      A equipe está confirmando seu pagamento. Você receberá uma notificação em
-                      breve.
-                    </p>
-                  </div>
-                </div>
-              )}
+              {/* Upload section */}
+              <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center space-y-2">
+                <Upload className="h-6 w-6 mx-auto text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">
+                  Envie o comprovante de pagamento para agilizar a confirmação.
+                </p>
+                <input
+                  type="file"
+                  id="receipt-file"
+                  className="hidden"
+                  accept="image/*,application/pdf"
+                  onChange={handleUploadReceipt}
+                  disabled={uploading}
+                />
+                <Button
+                  asChild
+                  size="sm"
+                  variant="secondary"
+                  className="w-full"
+                  disabled={uploading}
+                >
+                  <label htmlFor="receipt-file" className="cursor-pointer">
+                    {uploading ? "Enviando..." : "Anexar Comprovante"}
+                  </label>
+                </Button>
+              </div>
+            </div>
+          )}
 
-              {payment.receipt_status === "rejected" && (
-                <div className="flex items-start gap-2 bg-red-50 text-red-800 text-xs p-3 rounded-lg border border-red-200">
-                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-red-600" />
-                  <div>
-                    <p className="font-semibold">Comprovante Recusado</p>
-                    <p className="mt-0.5 text-red-700">
-                      O comprovante enviado não pôde ser validado. Por favor, envie novamente ou
-                      contate o suporte.
-                    </p>
-                  </div>
-                </div>
-              )}
+          {/* Payment status messages */}
+          {order.status === "payment_processing" && (
+            <div className="flex items-start gap-2 bg-yellow-50 text-yellow-800 text-xs p-3 rounded-lg border border-yellow-200">
+              <Info className="h-4 w-4 shrink-0 mt-0.5 text-yellow-600" />
+              <div>
+                <p className="font-semibold">Comprovante em análise</p>
+                <p className="mt-0.5 text-yellow-700">
+                  A equipe está confirmando seu pagamento. Você será notificado em breve.
+                </p>
+              </div>
+            </div>
+          )}
 
-              {["paid", "processing", "completed"].includes(order.status) && (
-                <div className="flex items-start gap-2 bg-green-50 text-green-800 text-xs p-3 rounded-lg border border-green-200">
-                  <Info className="h-4 w-4 shrink-0 mt-0.5 text-green-600" />
-                  <div>
-                    <p className="font-semibold">Pagamento Confirmado</p>
-                    <p className="mt-0.5 text-green-700">
-                      Seu pagamento foi confirmado! O pedido está sendo preparado.
-                    </p>
-                  </div>
-                </div>
-              )}
+          {payment?.receipt_status === "rejected" && (
+            <div className="flex items-start gap-2 bg-red-50 text-red-800 text-xs p-3 rounded-lg border border-red-200">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-red-600" />
+              <div>
+                <p className="font-semibold">Comprovante Recusado</p>
+                <p className="mt-0.5 text-red-700">
+                  O comprovante não pôde ser validado. Por favor, envie novamente ou contate a loja.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {["paid", "processing", "completed"].includes(order.status) && (
+            <div className="flex items-start gap-2 bg-green-50 text-green-800 text-xs p-3 rounded-lg border border-green-200">
+              <Info className="h-4 w-4 shrink-0 mt-0.5 text-green-600" />
+              <div>
+                <p className="font-semibold">Pagamento Confirmado</p>
+                <p className="mt-0.5 text-green-700">
+                  Seu pagamento foi confirmado! O pedido está sendo preparado.
+                </p>
+              </div>
             </div>
           )}
         </div>
