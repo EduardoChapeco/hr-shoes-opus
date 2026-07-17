@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   TrendingUp,
   ShoppingCart,
-  PackageAlert,
+  AlertTriangle,
   Users,
   Wallet,
   Store,
@@ -16,8 +16,6 @@ import {
   Truck,
   CreditCard,
   ShoppingBag,
-  ArrowUpRight,
-  ShieldAlert,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -182,7 +180,7 @@ function DashboardPage() {
               Estoque Crítico
             </CardTitle>
             <div className="flex size-8 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
-              <PackageAlert className="size-4" aria-hidden />
+              <AlertTriangle className="size-4" aria-hidden />
             </div>
           </CardHeader>
           <CardContent>

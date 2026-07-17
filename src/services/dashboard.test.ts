@@ -69,7 +69,6 @@ describe("Dashboard Services", () => {
 
     vi.mocked(getServerIdentity).mockResolvedValue({
       id: "user-123",
-      email: "admin@hrshoes.com",
       role: "owner",
       store_id: "store-123",
     });
@@ -162,7 +161,6 @@ describe("Dashboard Services", () => {
   it("should throw error if user has no store access", async () => {
     vi.mocked(getServerIdentity).mockResolvedValue({
       id: "user-999",
-      email: "unauthorized@hrshoes.com",
       role: "visitor",
       store_id: null as any,
     });
