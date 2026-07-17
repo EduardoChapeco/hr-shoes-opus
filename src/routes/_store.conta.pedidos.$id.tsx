@@ -270,12 +270,7 @@ function CustomerOrderDetailPage() {
                   <div className="bg-muted p-3 rounded text-[11px] font-mono break-all select-all">
                     {paymentInstructions.pix_key}
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleCopyPix}
-                  >
+                  <Button size="sm" variant="outline" className="w-full" onClick={handleCopyPix}>
                     <Copy className="h-3.5 w-3.5 mr-2" /> Copiar Chave PIX
                   </Button>
                 </div>

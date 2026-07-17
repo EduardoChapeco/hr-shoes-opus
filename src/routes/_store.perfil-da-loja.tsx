@@ -139,9 +139,7 @@ function PerfilView({ store }: { store: PublicStoreProfileDTO }) {
       <div className="mx-auto max-w-screen-xl px-4 py-12 md:px-6">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Contato */}
-          {(store.phone || store.email) && (
-            <ContactCard phone={store.phone} email={store.email} />
-          )}
+          {(store.phone || store.email) && <ContactCard phone={store.phone} email={store.email} />}
 
           {/* Endereço */}
           {fullAddress && <AddressCard address={fullAddress} />}

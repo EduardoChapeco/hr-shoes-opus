@@ -46,7 +46,8 @@ export const Route = createFileRoute("/_store/")({
       const fetchPromises = [];
       for (const section of homePage.sections) {
         if (
-          (section.section_type === "featured_products" || section.section_type === "product_grid") &&
+          (section.section_type === "featured_products" ||
+            section.section_type === "product_grid") &&
           section.content.collection_slug
         ) {
           const slug = String(section.content.collection_slug);
@@ -55,7 +56,7 @@ export const Route = createFileRoute("/_store/")({
             fetchPromises.push(
               getProductsByCollection({ data: { slug } }).then((res) => {
                 collectionsData[slug] = res.status === "ok" ? res.data : [];
-              })
+              }),
             );
           }
         }
@@ -213,12 +214,14 @@ function Home() {
         {config.heroBanners[0] && (
           <HeroCarousel
             content={{
-              banners: [{
-                title: config.heroBanners[0].headline,
-                image_url: config.heroBanners[0].imageUrl,
-                button_text: config.heroBanners[0].ctaLabel,
-                link: config.heroBanners[0].ctaLink,
-              }]
+              banners: [
+                {
+                  title: config.heroBanners[0].headline,
+                  image_url: config.heroBanners[0].imageUrl,
+                  button_text: config.heroBanners[0].ctaLabel,
+                  link: config.heroBanners[0].ctaLink,
+                },
+              ],
             }}
           />
         )}

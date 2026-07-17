@@ -9,11 +9,13 @@ export const Route = createFileRoute("/admin_/pedidos/$id/recibo")({
     const db = await getServerClient();
     const { data, error } = await db
       .from("orders")
-      .select(`
+      .select(
+        `
         id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents,
         customer_snapshot, created_at, shipping_method,
         order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_price_cents )
-      `)
+      `,
+      )
       .eq("id", params.id)
       .single();
     if (error) throw new Error("Pedido não encontrado");
@@ -46,14 +48,25 @@ function ReceiptPrintPage() {
 
       <div className="flex justify-between items-start mb-8 text-sm">
         <div>
-          <p><strong>Pedido:</strong> #{order.public_token}</p>
-          <p><strong>Data:</strong> {date}</p>
-          <p><strong>Status:</strong> {order.status}</p>
+          <p>
+            <strong>Pedido:</strong> #{order.public_token}
+          </p>
+          <p>
+            <strong>Data:</strong> {date}
+          </p>
+          <p>
+            <strong>Status:</strong> {order.status}
+          </p>
         </div>
         <div className="text-right">
-          <p><strong>Cliente:</strong> {customer?.name || "Consumidor Final"}</p>
+          <p>
+            <strong>Cliente:</strong> {customer?.name || "Consumidor Final"}
+          </p>
           <p>{customer?.document || ""}</p>
-          <p><strong>Entrega:</strong> {order.shipping_method === 'pickup' ? 'Retirada na Loja' : 'Envio'}</p>
+          <p>
+            <strong>Entrega:</strong>{" "}
+            {order.shipping_method === "pickup" ? "Retirada na Loja" : "Envio"}
+          </p>
         </div>
       </div>
 
@@ -109,7 +122,9 @@ function ReceiptPrintPage() {
         <p>Desenvolvido para Hr Shoes Commerce</p>
       </div>
 
-      <style dangerouslySetInnerHTML={{__html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @media print {
           body {
             background-color: white !important;
@@ -118,7 +133,9 @@ function ReceiptPrintPage() {
           }
           @page { margin: 0.5cm; }
         }
-      `}} />
+      `,
+        }}
+      />
     </div>
   );
 }

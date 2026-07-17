@@ -8,14 +8,14 @@ export const uploadMedia = createServerFn({ method: "POST" })
       fileName: z.string().min(1),
       fileBase64: z.string().min(1),
       bucket: z.enum(["product-media", "cms-media"]),
-    })
+    }),
   )
   .handler(async ({ data: { fileName, fileBase64, bucket } }) => {
     try {
       const supabase = getServerClient();
-      
+
       // Ensure unique filename
-      const ext = fileName.split('.').pop() || "png";
+      const ext = fileName.split(".").pop() || "png";
       const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${ext}`;
       const filePath = `${uniqueName}`;
 
@@ -36,7 +36,7 @@ export const uploadMedia = createServerFn({ method: "POST" })
 
       // Get public URL
       const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(filePath);
-      
+
       return { status: "success" as const, url: urlData.publicUrl };
     } catch (e: any) {
       console.error("[storage.functions] uploadMedia error:", e);

@@ -11,7 +11,13 @@ const FALLBACK_NAV = [
   { url: "/perfil-da-loja", label: "A loja" },
 ];
 
-export function PublicHeader({ menuItems = [], storeName }: { menuItems?: any[]; storeName?: string }) {
+export function PublicHeader({
+  menuItems = [],
+  storeName,
+}: {
+  menuItems?: any[];
+  storeName?: string;
+}) {
   const navItems = menuItems.length > 0 ? menuItems : FALLBACK_NAV;
 
   return (
@@ -44,9 +50,17 @@ export function PublicHeader({ menuItems = [], storeName }: { menuItems?: any[];
           </SheetContent>
         </Sheet>
 
-        <Link to="/" className="flex items-center gap-2" aria-label={`${storeName || 'Hr Shoes'} — início`}>
+        <Link
+          to="/"
+          className="flex items-center gap-2"
+          aria-label={`${storeName || "Hr Shoes"} — início`}
+        >
           <Logo />
-          {storeName && <span className="font-bold text-lg tracking-tight hidden sm:inline-block">{storeName}</span>}
+          {storeName && (
+            <span className="font-bold text-lg tracking-tight hidden sm:inline-block">
+              {storeName}
+            </span>
+          )}
         </Link>
 
         <nav className="ml-6 hidden items-center gap-1 md:flex">

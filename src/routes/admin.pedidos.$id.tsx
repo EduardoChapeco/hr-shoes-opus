@@ -61,7 +61,9 @@ function AdminOrderDetailPage() {
   const handleStatusChange = async (newStatus: string) => {
     setIsUpdating(true);
     try {
-      const res = await updateOrderStatus({ data: { orderId: order.id, status: newStatus as any } });
+      const res = await updateOrderStatus({
+        data: { orderId: order.id, status: newStatus as any },
+      });
       if (res.status !== "ok") throw new Error((res as any).message);
       toast.success("Status atualizado!");
       router.invalidate();

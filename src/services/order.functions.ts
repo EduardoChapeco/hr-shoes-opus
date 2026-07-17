@@ -65,7 +65,10 @@ export async function getOrderByIdHandler(orderId: string) {
   return data;
 }
 
-export async function updateOrderStatusHandler(orderId: string, status: (typeof ORDER_STATUS_VALUES)[number]) {
+export async function updateOrderStatusHandler(
+  orderId: string,
+  status: (typeof ORDER_STATUS_VALUES)[number],
+) {
   const db = getServerClient();
 
   const { error } = await db.from("orders").update({ status }).eq("id", orderId);
@@ -212,8 +215,8 @@ export const getCustomerOrder = createServerFn({ method: "GET" })
     }
   });
 
-export const listOrdersAwaitingShippingQuote = createServerFn({ method: "GET" })
-  .handler(async () => {
+export const listOrdersAwaitingShippingQuote = createServerFn({ method: "GET" }).handler(
+  async () => {
     try {
       const db = getServerClient();
       const { data, error } = await db
@@ -222,7 +225,7 @@ export const listOrdersAwaitingShippingQuote = createServerFn({ method: "GET" })
           `
             id, public_token, status, subtotal_cents, discount_cents, total_cents,
             customer_snapshot, shipping_address, created_at, shipping_method
-          `
+          `,
         )
         .eq("status", "awaiting_shipping_quote")
         .order("created_at", { ascending: true });
@@ -231,16 +234,20 @@ export const listOrdersAwaitingShippingQuote = createServerFn({ method: "GET" })
       return { status: "ok" as const, data: data || [] };
     } catch (e: any) {
       console.error("[order.functions] listOrdersAwaitingShippingQuote error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao buscar solicitações de frete." };
+      return {
+        status: "error" as const,
+        message: e.message || "Erro ao buscar solicitações de frete.",
+      };
     }
-  });
+  },
+);
 
 export const updateOrderShippingQuote = createServerFn({ method: "POST" })
   .validator(
     z.object({
       orderId: z.string().uuid(),
       shippingCents: z.number().int().min(0),
-    })
+    }),
   )
   .handler(async ({ data: { orderId, shippingCents } }) => {
     try {
@@ -264,7 +271,7 @@ export const updateOrderShippingQuote = createServerFn({ method: "POST" })
         .update({
           shipping_cents: shippingCents,
           total_cents: newTotal >= 0 ? newTotal : 0,
-          status: "awaiting_payment"
+          status: "awaiting_payment",
         })
         .eq("id", orderId);
 
@@ -274,7 +281,7 @@ export const updateOrderShippingQuote = createServerFn({ method: "POST" })
       const { error: payError } = await db
         .from("payments")
         .update({
-          amount_cents: newTotal >= 0 ? newTotal : 0
+          amount_cents: newTotal >= 0 ? newTotal : 0,
         })
         .eq("order_id", orderId);
 
@@ -283,7 +290,10 @@ export const updateOrderShippingQuote = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[order.functions] updateOrderShippingQuote error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao atualizar frete do pedido." };
+      return {
+        status: "error" as const,
+        message: e.message || "Erro ao atualizar frete do pedido.",
+      };
     }
   });
 
@@ -298,7 +308,9 @@ export const getOrderPaymentInstructions = createServerFn({ method: "GET" })
   .handler(async ({ data: { orderId } }) => {
     try {
       const ssrClient = getSSRClient();
-      const { data: { user } } = await ssrClient.auth.getUser();
+      const {
+        data: { user },
+      } = await ssrClient.auth.getUser();
       if (!user) throw new Error("Não autenticado");
 
       const db = getServerClient();
@@ -329,6 +341,9 @@ export const getOrderPaymentInstructions = createServerFn({ method: "GET" })
       };
     } catch (e: any) {
       console.error("[order.functions] getOrderPaymentInstructions:", e);
-      return { status: "error" as const, message: e.message || "Erro ao buscar instruções de pagamento." };
+      return {
+        status: "error" as const,
+        message: e.message || "Erro ao buscar instruções de pagamento.",
+      };
     }
   });

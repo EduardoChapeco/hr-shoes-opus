@@ -17,7 +17,6 @@ export const Route = createFileRoute("/api/auth/callback")({
         const guestSessionToken = readCookieFromRequest(request, "hr_shoes_guest_session");
 
         if (code) {
-
           const supabase = getSSRClient();
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           if (!error && data.session) {

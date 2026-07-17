@@ -14,8 +14,10 @@ if (!supabaseUrl || !supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function run() {
-  const { data, error } = await supabase.rpc('get_policies' as any).catch(() => ({ data: null, error: 'RPC failed' }));
-  
+  const { data, error } = await supabase
+    .rpc("get_policies" as any)
+    .catch(() => ({ data: null, error: "RPC failed" }));
+
   // Actually, standard supabase-js cannot query pg_policies easily without raw SQL.
   // I will just use postgres directly via a query if I could, but let's just write a migration that DROPs all known bad policies and RECREATES simple ones.
   console.log("To check policies, we will just create a migration to drop and recreate them.");

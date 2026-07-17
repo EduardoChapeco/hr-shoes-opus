@@ -6,7 +6,8 @@
 
 ---
 
-## 1. Gestão de Organizações Multi-Tenant 
+## 1. Gestão de Organizações Multi-Tenant
+
 - **Módulo:** Core / Admin
 - **Rota Original:** N/A (foi idealizado no plano, mas não implementado na UI)
 - **Origem do Requisito:** Arquitetura Base
@@ -19,6 +20,7 @@
 - **Fase Futura:** Expansão de Franquias/Multi-tenant (Fase 3).
 
 ## 2. Redefinição de Senha Completa
+
 - **Módulo:** Auth
 - **Rota Original:** `/redefinir-senha` (faltante)
 - **Origem do Requisito:** UX de Segurança
@@ -29,6 +31,7 @@
 - **Motivo da Remoção:** Tela de "recuperar senha" foi feita, mas a rota de destino do link do e-mail nunca foi criada, tornando a funcionalidade um Stub inoperante.
 
 ## 3. Gestão Completa de Estoque (Reservas Reais)
+
 - **Módulo:** Commerce
 - **Rota Original:** `/admin/estoque` (Existe como UI, mas sem engine real validada E2E)
 - **Origem do Requisito:** Vendas Físico/Digital
@@ -39,6 +42,7 @@
 - **Motivo da Remoção:** A UI existe, mas as regras transacionais de "Race Condition" não foram totalmente acopladas nas regras do SSR Checkout, permitindo teoricamente "Overbooking".
 
 ## 4. Integração Real de Webhooks de Pagamento
+
 - **Módulo:** Financeiro / Checkout
 - **Rota Original:** API `/api/webhooks/pagarme` (Inexistente)
 - **Origem do Requisito:** Pagamento Automatizado (Fase 2)
@@ -47,4 +51,4 @@
 - **Estado Atual:** PENDENTE DE RECONSTRUÇÃO REAL
 - **Motivo da Remoção:** Foram criados botões manuais (Pix via WhatsApp e "Marcar como Pago") no admin, mas a integração canônica via código/webhook foi empurrada para "Em Breve".
 
-*(Este documento será expandido continuamente conforme outras capacidades fantasma forem mapeadas durante as auditorias sistêmicas)*
+_(Este documento será expandido continuamente conforme outras capacidades fantasma forem mapeadas durante as auditorias sistêmicas)_

@@ -51,7 +51,7 @@ function StoreCartPage() {
   const handleCalculateShipping = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!zipcode || zipcode.length < 8) return toast.error("CEP inválido.");
-    
+
     setIsCalculatingZip(true);
     try {
       const res = await calculateShipping({ data: { zipcode } });
@@ -71,13 +71,13 @@ function StoreCartPage() {
   };
 
   const handleSelectRate = async (rateId: string) => {
-    const rate = shippingRates.find(r => r.id === rateId);
+    const rate = shippingRates.find((r) => r.id === rateId);
     if (!rate) return;
-    
+
     setSelectedRateId(rateId);
     try {
       const res = await updateCartShipping({
-        data: { zipcode, method: rate.name, cents: rate.price_cents }
+        data: { zipcode, method: rate.name, cents: rate.price_cents },
       });
       if (res.status === "success") {
         toast.success("Frete adicionado ao carrinho!");
@@ -233,36 +233,47 @@ function StoreCartPage() {
 
               <div className="flex flex-col gap-3 py-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1"><Truck className="h-4 w-4" /> Frete</span>
-                  <span className="font-medium">{cart.shippingCents > 0 ? formatMoney(cart.shippingCents) : "--"}</span>
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    <Truck className="h-4 w-4" /> Frete
+                  </span>
+                  <span className="font-medium">
+                    {cart.shippingCents > 0 ? formatMoney(cart.shippingCents) : "--"}
+                  </span>
                 </div>
-                
+
                 <form onSubmit={handleCalculateShipping} className="flex gap-2 mt-2">
                   <Input
                     placeholder="Calcular CEP"
                     value={zipcode}
-                    onChange={(e) => setZipcode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                    onChange={(e) => setZipcode(e.target.value.replace(/\D/g, "").slice(0, 8))}
                     maxLength={8}
                   />
-                  <Button type="submit" variant="outline" disabled={isCalculatingZip || zipcode.length < 8}>
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    disabled={isCalculatingZip || zipcode.length < 8}
+                  >
                     {isCalculatingZip ? "..." : "OK"}
                   </Button>
                 </form>
 
                 {shippingRates.length > 0 && (
                   <div className="mt-3 p-3 bg-background rounded-md border text-sm">
-                    <RadioGroup 
-                      value={selectedRateId || ""} 
-                      onValueChange={handleSelectRate}
-                    >
-                      {shippingRates.map(rate => (
+                    <RadioGroup value={selectedRateId || ""} onValueChange={handleSelectRate}>
+                      {shippingRates.map((rate) => (
                         <div key={rate.id} className="flex items-center space-x-2 py-1">
                           <RadioGroupItem value={rate.id} id={`rate-${rate.id}`} />
                           <Label htmlFor={`rate-${rate.id}`} className="flex-1 cursor-pointer">
                             <span className="font-medium">{rate.name}</span>
-                            {rate.estimated_days && <span className="text-muted-foreground ml-1">({rate.estimated_days} dias)</span>}
+                            {rate.estimated_days && (
+                              <span className="text-muted-foreground ml-1">
+                                ({rate.estimated_days} dias)
+                              </span>
+                            )}
                           </Label>
-                          <span className="font-semibold">{rate.price_cents === 0 ? 'Grátis' : formatMoney(rate.price_cents)}</span>
+                          <span className="font-semibold">
+                            {rate.price_cents === 0 ? "Grátis" : formatMoney(rate.price_cents)}
+                          </span>
                         </div>
                       ))}
                     </RadioGroup>

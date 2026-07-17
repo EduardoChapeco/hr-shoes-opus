@@ -35,7 +35,6 @@ export const Route = createFileRoute("/api/auth/confirm")({
           return new Response(null);
         }
 
-
         const supabase = getSSRClient();
         const { error } = await supabase.auth.verifyOtp({
           token_hash,

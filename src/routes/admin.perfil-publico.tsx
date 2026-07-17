@@ -91,7 +91,7 @@ function PerfilPublicoPage() {
             )}
             <div>
               <p className="font-bold text-lg">{(store as any).name}</p>
-              <p className="text-xs text-muted-foreground">/{ (store as any).slug }</p>
+              <p className="text-xs text-muted-foreground">/{(store as any).slug}</p>
             </div>
           </div>
           <div className="space-y-2 text-sm text-muted-foreground">
@@ -111,7 +111,9 @@ function PerfilPublicoPage() {
               </p>
               <p className="flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" />
-                {form.business_hours || <span className="text-destructive/80">Horário não definido</span>}
+                {form.business_hours || (
+                  <span className="text-destructive/80">Horário não definido</span>
+                )}
               </p>
             </div>
           </div>

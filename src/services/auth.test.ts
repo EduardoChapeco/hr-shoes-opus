@@ -40,7 +40,9 @@ describe("Auth Profile Functions", () => {
     it("should throw error if user is not authenticated", async () => {
       mockGetUser.mockResolvedValueOnce({ data: { user: null } });
 
-      await expect(updateProfileHandler({ fullName: "Test User" })).rejects.toThrow("Não autorizado");
+      await expect(updateProfileHandler({ fullName: "Test User" })).rejects.toThrow(
+        "Não autorizado",
+      );
     });
 
     it("should throw error if auth update fails", async () => {

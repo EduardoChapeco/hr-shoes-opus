@@ -189,9 +189,9 @@ export function AdminShell({ children, session }: { children: ReactNode; session
         className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur pb-safe md:hidden"
       >
         <ul className="flex items-stretch justify-around">
-          {ADMIN_BOTTOM_NAV.filter(item => {
-             const route = getRoute(item.path);
-             return route ? hasRoleAccess(session?.role, route.roles) : false;
+          {ADMIN_BOTTOM_NAV.filter((item) => {
+            const route = getRoute(item.path);
+            return route ? hasRoleAccess(session?.role, route.roles) : false;
           }).map(({ path, label, icon }) => {
             const Icon = resolveIcon(icon);
             return (

@@ -136,9 +136,9 @@ describe("Admin Team Functions", () => {
         organization_id: "org-789",
       });
 
-      await expect(
-        updateTeamMemberRoleHandler({ id: "user-123", role: "seller" }),
-      ).rejects.toThrow("O dono da loja não pode rebaixar a si mesmo.");
+      await expect(updateTeamMemberRoleHandler({ id: "user-123", role: "seller" })).rejects.toThrow(
+        "O dono da loja não pode rebaixar a si mesmo.",
+      );
     });
 
     it("should successfully update team member role", async () => {
@@ -169,7 +169,11 @@ describe("Admin Team Functions", () => {
       });
 
       await expect(
-        inviteTeamMemberHandler({ email: "test@loja.com", fullName: "Test Seller", role: "seller" }),
+        inviteTeamMemberHandler({
+          email: "test@loja.com",
+          fullName: "Test Seller",
+          role: "seller",
+        }),
       ).rejects.toThrow("Não autorizado");
     });
 
@@ -184,7 +188,11 @@ describe("Admin Team Functions", () => {
       mockCreateUser.mockResolvedValueOnce({ data: null, error: { message: "Auth failed" } });
 
       await expect(
-        inviteTeamMemberHandler({ email: "test@loja.com", fullName: "Test Seller", role: "seller" }),
+        inviteTeamMemberHandler({
+          email: "test@loja.com",
+          fullName: "Test Seller",
+          role: "seller",
+        }),
       ).rejects.toThrow("Erro ao criar conta Auth: Auth failed");
     });
 
@@ -200,7 +208,11 @@ describe("Admin Team Functions", () => {
       mockEq.mockResolvedValueOnce({ error: { message: "Profile update failed" } });
 
       await expect(
-        inviteTeamMemberHandler({ email: "test@loja.com", fullName: "Test Seller", role: "seller" }),
+        inviteTeamMemberHandler({
+          email: "test@loja.com",
+          fullName: "Test Seller",
+          role: "seller",
+        }),
       ).rejects.toThrow("Erro ao promover usuário a membro da equipe.");
     });
 

@@ -83,7 +83,11 @@ async function run() {
     .single();
 
   if (otherProfileError) {
-    console.log("✅ (Expected) Cross-user read denied:", otherProfileError.code, otherProfileError.message);
+    console.log(
+      "✅ (Expected) Cross-user read denied:",
+      otherProfileError.code,
+      otherProfileError.message,
+    );
   } else {
     console.error("❌ SECURITY VIOLATION: Cross-user read succeeded:", otherProfileData);
   }

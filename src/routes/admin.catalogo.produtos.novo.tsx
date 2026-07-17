@@ -20,7 +20,7 @@ import {
   listProductTypes,
   createProduct,
   uploadProductMedia,
-  listCategories
+  listCategories,
 } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/novo")({
@@ -128,13 +128,15 @@ function NewProductPage() {
       }
 
       const priceCents = parseInt(values.price_cents.replace(/\D/g, ""), 10) || 0;
-      
-      const payloadVariants = variants.filter(v => v.sku).map(v => ({
-         sku: v.sku,
-         attributes: v.size ? { size: v.size } : {},
-         price_cents: priceCents,
-         stock: v.stock
-      }));
+
+      const payloadVariants = variants
+        .filter((v) => v.sku)
+        .map((v) => ({
+          sku: v.sku,
+          attributes: v.size ? { size: v.size } : {},
+          price_cents: priceCents,
+          stock: v.stock,
+        }));
 
       const res = await createProduct({
         data: {
@@ -146,7 +148,7 @@ function NewProductPage() {
           attributes: values.attributes,
           media_urls,
           category_ids: selectedCategory ? [selectedCategory] : [],
-          variants: payloadVariants.length > 0 ? payloadVariants : undefined
+          variants: payloadVariants.length > 0 ? payloadVariants : undefined,
         },
       });
 
@@ -262,7 +264,7 @@ function NewProductPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Categoria Principal</Label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -335,40 +337,62 @@ function NewProductPage() {
             <CardTitle>Grade e Estoque Inicial</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-             {variants.map((variant, idx) => (
-               <div key={idx} className="flex gap-4 items-end mb-4">
-                 <div className="flex-1 space-y-2">
-                   <Label>SKU (Código)</Label>
-                   <Input value={variant.sku} onChange={(e) => {
-                     const newV = [...variants];
-                     newV[idx].sku = e.target.value;
-                     setVariants(newV);
-                   }} placeholder="Ex: TENIS-PRETO-38" />
-                 </div>
-                 <div className="w-32 space-y-2">
-                   <Label>Tamanho/Cor</Label>
-                   <Input value={variant.size} onChange={(e) => {
-                     const newV = [...variants];
-                     newV[idx].size = e.target.value;
-                     setVariants(newV);
-                   }} placeholder="Ex: 38" />
-                 </div>
-                 <div className="w-32 space-y-2">
-                   <Label>Estoque</Label>
-                   <Input type="number" value={variant.stock} onChange={(e) => {
-                     const newV = [...variants];
-                     newV[idx].stock = parseInt(e.target.value, 10) || 0;
-                     setVariants(newV);
-                   }} />
-                 </div>
-                 <Button type="button" variant="ghost" onClick={() => {
-                   setVariants(variants.filter((_, i) => i !== idx));
-                 }}><X className="w-4 h-4 text-destructive" /></Button>
-               </div>
-             ))}
-             <Button type="button" variant="outline" onClick={() => setVariants([...variants, { sku: "", size: "", stock: 0 }])}>
-               + Adicionar Variação
-             </Button>
+            {variants.map((variant, idx) => (
+              <div key={idx} className="flex gap-4 items-end mb-4">
+                <div className="flex-1 space-y-2">
+                  <Label>SKU (Código)</Label>
+                  <Input
+                    value={variant.sku}
+                    onChange={(e) => {
+                      const newV = [...variants];
+                      newV[idx].sku = e.target.value;
+                      setVariants(newV);
+                    }}
+                    placeholder="Ex: TENIS-PRETO-38"
+                  />
+                </div>
+                <div className="w-32 space-y-2">
+                  <Label>Tamanho/Cor</Label>
+                  <Input
+                    value={variant.size}
+                    onChange={(e) => {
+                      const newV = [...variants];
+                      newV[idx].size = e.target.value;
+                      setVariants(newV);
+                    }}
+                    placeholder="Ex: 38"
+                  />
+                </div>
+                <div className="w-32 space-y-2">
+                  <Label>Estoque</Label>
+                  <Input
+                    type="number"
+                    value={variant.stock}
+                    onChange={(e) => {
+                      const newV = [...variants];
+                      newV[idx].stock = parseInt(e.target.value, 10) || 0;
+                      setVariants(newV);
+                    }}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setVariants(variants.filter((_, i) => i !== idx));
+                  }}
+                >
+                  <X className="w-4 h-4 text-destructive" />
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setVariants([...variants, { sku: "", size: "", stock: 0 }])}
+            >
+              + Adicionar Variação
+            </Button>
           </CardContent>
         </Card>
 

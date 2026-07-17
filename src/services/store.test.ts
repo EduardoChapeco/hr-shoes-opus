@@ -54,7 +54,12 @@ describe("Store Settings Server Functions", () => {
 
   describe("getStoreSettings", () => {
     it("should successfully retrieve store settings for authorized user", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", organization_id: "org-789" };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        organization_id: "org-789",
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       const mockStoreData = { id: "store-456", name: "Hr Shoes" };
@@ -71,20 +76,32 @@ describe("Store Settings Server Functions", () => {
     });
 
     it("should throw error if database select fails", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", organization_id: "org-789" };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        organization_id: "org-789",
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       supabaseMock.from().select.mockReturnValue(supabaseMock.from());
       supabaseMock.from().eq.mockReturnValue(supabaseMock.from());
       supabaseMock.from().single.mockResolvedValue({ data: null, error: { message: "DB Error" } });
 
-      await expect(getStoreSettingsHandler()).rejects.toThrow("Loja não encontrada ou erro ao carregar configurações");
+      await expect(getStoreSettingsHandler()).rejects.toThrow(
+        "Loja não encontrada ou erro ao carregar configurações",
+      );
     });
   });
 
   describe("saveStoreSettings", () => {
     it("should successfully update store settings for authorized user", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", organization_id: "org-789" };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        organization_id: "org-789",
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       supabaseMock.from().update.mockReturnValue(supabaseMock.from());
@@ -102,7 +119,12 @@ describe("Store Settings Server Functions", () => {
 
   describe("getPolicies", () => {
     it("should successfully retrieve store policies for authorized user", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", organization_id: "org-789" };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        organization_id: "org-789",
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       const mockStoreData = { id: "store-456", policies: { terms: "terms content" } };
@@ -120,7 +142,12 @@ describe("Store Settings Server Functions", () => {
 
   describe("savePolicies", () => {
     it("should successfully update policies", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", organization_id: "org-789" };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        organization_id: "org-789",
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       supabaseMock.from().update.mockReturnValue(supabaseMock.from());
@@ -136,7 +163,12 @@ describe("Store Settings Server Functions", () => {
 
   describe("getStoreSeo", () => {
     it("should successfully retrieve SEO settings", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", organization_id: "org-789" };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        organization_id: "org-789",
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       const mockSeoData = { id: "store-456", seo_title: "title" };
@@ -152,7 +184,12 @@ describe("Store Settings Server Functions", () => {
 
   describe("saveStoreSeo", () => {
     it("should successfully update SEO", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", organization_id: "org-789" };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        organization_id: "org-789",
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       supabaseMock.from().update.mockReturnValue(supabaseMock.from());
@@ -168,7 +205,12 @@ describe("Store Settings Server Functions", () => {
 
   describe("getPublicProfile", () => {
     it("should successfully retrieve public profile", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", organization_id: "org-789" };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        organization_id: "org-789",
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       const mockStoreData = { id: "store-456", name: "Hr Shoes" };
@@ -184,13 +226,23 @@ describe("Store Settings Server Functions", () => {
 
   describe("savePublicProfile", () => {
     it("should successfully update public profile", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", organization_id: "org-789" };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        organization_id: "org-789",
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       supabaseMock.from().update.mockReturnValue(supabaseMock.from());
       supabaseMock.from().eq.mockResolvedValue({ error: null });
 
-      const mockProfile = { description: "desc", phone: "123", address: "addr", business_hours: "hours" };
+      const mockProfile = {
+        description: "desc",
+        phone: "123",
+        address: "addr",
+        business_hours: "hours",
+      };
       const result = await savePublicProfileHandler(mockProfile);
 
       expect(result).toEqual({ status: "success" });

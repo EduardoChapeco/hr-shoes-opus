@@ -30,13 +30,12 @@ export const initiatePaymentTransaction = createServerFn({ method: "POST" })
   .handler(async ({ data: { orderId, method, amountCents, publicToken } }) => {
     const supabase = getServerClient();
     const ssrClient = getSSRClient();
-    const { data: { user } } = await ssrClient.auth.getUser();
+    const {
+      data: { user },
+    } = await ssrClient.auth.getUser();
 
     // 1. Validate order state
-    let query = supabase
-      .from("orders")
-      .select("id, status, total_cents")
-      .eq("id", orderId);
+    let query = supabase.from("orders").select("id, status, total_cents").eq("id", orderId);
 
     if (user) {
       query = query.eq("customer_id", user.id);
@@ -49,11 +48,12 @@ export const initiatePaymentTransaction = createServerFn({ method: "POST" })
     const { data: order, error: orderError } = await query.single();
 
     if (orderError || !order) throw new Error("Pedido não encontrado ou acesso negado.");
-    if (order.status !== "awaiting_payment") throw new Error("Pedido não está aguardando pagamento.");
+    if (order.status !== "awaiting_payment")
+      throw new Error("Pedido não está aguardando pagamento.");
     if (order.total_cents !== amountCents) throw new Error("Divergência de valores no pagamento.");
 
     const txId = `manual_${crypto.randomBytes(4).toString("hex")}`;
-    
+
     // 3. Record the transaction strictly as pending
     const { error: txError } = await supabase.from("payment_transactions").insert({
       order_id: orderId,
@@ -62,7 +62,7 @@ export const initiatePaymentTransaction = createServerFn({ method: "POST" })
       amount_cents: amountCents,
       payment_method: method,
       status: "pending",
-      metadata: { note: "Aguardando negociação via WhatsApp" }
+      metadata: { note: "Aguardando negociação via WhatsApp" },
     });
 
     if (txError) throw new Error("Falha ao registrar transação.");
@@ -102,10 +102,13 @@ export const confirmPayment = createServerFn({ method: "POST" })
     const actualMethod = receivedMethod || existingTx?.payment_method || "cash";
 
     if (existingTx) {
-      await supabase.from("payment_transactions").update({ 
-        status: "paid", 
-        payment_method: actualMethod 
-      }).eq("id", existingTx.id);
+      await supabase
+        .from("payment_transactions")
+        .update({
+          status: "paid",
+          payment_method: actualMethod,
+        })
+        .eq("id", existingTx.id);
     } else {
       // If there's no transaction (legacy or bypass), create one
       await supabase.from("payment_transactions").insert({
@@ -163,10 +166,10 @@ export const approvePayment = createServerFn({ method: "POST" })
       if (confirmRes.status !== "success") {
         throw new Error("Erro ao confirmar transação financeira");
       }
-      
+
       const db = getServerClient();
       const { data } = await db.from("orders").select("*").eq("id", orderId).single();
-      
+
       return { status: "success" as const, data };
     } catch (e: any) {
       console.error("[payment] approvePayment error:", e);
@@ -179,11 +182,19 @@ export const rejectPayment = createServerFn({ method: "POST" })
   .handler(async ({ data: { orderId, reason } }) => {
     try {
       const db = getServerClient();
-      await db.from("payment_transactions").update({status: "failed", metadata: { reason }}).eq("order_id", orderId);
-      
-      const { data, error } = await db.from("orders").update({ status: "payment_failed" }).eq("id", orderId).select().single();
+      await db
+        .from("payment_transactions")
+        .update({ status: "failed", metadata: { reason } })
+        .eq("order_id", orderId);
+
+      const { data, error } = await db
+        .from("orders")
+        .update({ status: "payment_failed" })
+        .eq("id", orderId)
+        .select()
+        .single();
       if (error) throw error;
-      
+
       return { status: "success" as const, data };
     } catch (e: any) {
       console.error("[payment] rejectPayment error:", e);
@@ -191,15 +202,15 @@ export const rejectPayment = createServerFn({ method: "POST" })
     }
   });
 
-export const listPendingManualPayments = createServerFn({ method: "GET" })
-  .handler(async (): Promise<{ status: "success"; data: any[] } | { status: "error"; message: string }> => {
+export const listPendingManualPayments = createServerFn({ method: "GET" }).handler(
+  async (): Promise<{ status: "success"; data: any[] } | { status: "error"; message: string }> => {
     try {
       const db = getServerClient();
       const { data, error } = await db
         .from("payments")
         .select(
           `id, order_id, method, status, amount_cents, receipt_url, receipt_status, created_at,
-           orders ( id, public_token, customer_snapshot, status )`
+           orders ( id, public_token, customer_snapshot, status )`,
         )
         .eq("receipt_status", "pending_review")
         .order("created_at", { ascending: true });
@@ -208,100 +219,113 @@ export const listPendingManualPayments = createServerFn({ method: "GET" })
       return { status: "success" as const, data: data || [] };
     } catch (e: any) {
       console.error("[payment] listPendingManualPayments error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao buscar comprovantes pendentes." };
+      return {
+        status: "error" as const,
+        message: e.message || "Erro ao buscar comprovantes pendentes.",
+      };
     }
-  });
+  },
+);
 
 export const uploadPaymentReceipt = createServerFn({ method: "POST" })
-  .validator(z.object({
-    orderId: z.string().uuid(),
-    fileName: z.string().min(1).max(200),
-    fileBase64: z.string().min(1),
-  }))
-  .handler(async ({ data: { orderId, fileName, fileBase64 } }): Promise<{ status: "success" } | { status: "error"; message: string }> => {
-    try {
-      const ssrClient = getSSRClient();
-      const { data: { user } } = await ssrClient.auth.getUser();
-      if (!user) throw new Error("Autenticação obrigatória.");
+  .validator(
+    z.object({
+      orderId: z.string().uuid(),
+      fileName: z.string().min(1).max(200),
+      fileBase64: z.string().min(1),
+    }),
+  )
+  .handler(
+    async ({
+      data: { orderId, fileName, fileBase64 },
+    }): Promise<{ status: "success" } | { status: "error"; message: string }> => {
+      try {
+        const ssrClient = getSSRClient();
+        const {
+          data: { user },
+        } = await ssrClient.auth.getUser();
+        if (!user) throw new Error("Autenticação obrigatória.");
 
-      const db = getServerClient();
+        const db = getServerClient();
 
-      // 1. Verify order ownership — only the customer can upload their receipt
-      const { data: order, error: orderError } = await ssrClient
-        .from("orders")
-        .select("id, status, store_id")
-        .eq("id", orderId)
-        .eq("customer_id", user.id)
-        .single();
+        // 1. Verify order ownership — only the customer can upload their receipt
+        const { data: order, error: orderError } = await ssrClient
+          .from("orders")
+          .select("id, status, store_id")
+          .eq("id", orderId)
+          .eq("customer_id", user.id)
+          .single();
 
-      if (orderError || !order) throw new Error("Pedido não encontrado ou acesso negado.");
-      if (order.status !== "awaiting_payment") {
-        throw new Error("Este pedido não está aguardando pagamento.");
+        if (orderError || !order) throw new Error("Pedido não encontrado ou acesso negado.");
+        if (order.status !== "awaiting_payment") {
+          throw new Error("Este pedido não está aguardando pagamento.");
+        }
+
+        // 2. Upload to Supabase Storage: receipts/{userId}/{orderId}/{timestamp}_{filename}
+        const timestamp = Date.now();
+        const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const storagePath = `${user.id}/${orderId}/${timestamp}_${safeFileName}`;
+
+        // Convert base64 to Uint8Array for storage
+        const binaryStr = atob(fileBase64);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+
+        // Determine MIME type from file extension
+        const ext = safeFileName.split(".").pop()?.toLowerCase() || "";
+        const mimeMap: Record<string, string> = {
+          jpg: "image/jpeg",
+          jpeg: "image/jpeg",
+          png: "image/png",
+          webp: "image/webp",
+          pdf: "application/pdf",
+          heic: "image/heic",
+        };
+        const contentType = mimeMap[ext] || "application/octet-stream";
+
+        const { error: uploadError } = await db.storage
+          .from("receipts")
+          .upload(storagePath, bytes, { contentType, upsert: false });
+
+        if (uploadError) {
+          console.error("[payment] receipt upload error:", uploadError);
+          throw new Error("Falha ao enviar o arquivo. Tente novamente.");
+        }
+
+        // 3. Get a signed URL (valid 30 days) for admin review
+        const { data: signedUrlData } = await db.storage
+          .from("receipts")
+          .createSignedUrl(storagePath, 60 * 60 * 24 * 30); // 30 days
+
+        const receiptUrl = signedUrlData?.signedUrl || storagePath;
+
+        // 4. Update the payments record
+        const { error: paymentUpdateError } = await db
+          .from("payments")
+          .update({
+            receipt_url: receiptUrl,
+            receipt_status: "pending_review",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("order_id", orderId);
+
+        if (paymentUpdateError) {
+          console.error("[payment] payments update error:", paymentUpdateError);
+          // Non-fatal: file is uploaded; log and continue
+        }
+
+        // 5. Transition order status to payment_processing
+        await db.from("orders").update({ status: "payment_processing" }).eq("id", orderId);
+
+        return { status: "success" as const };
+      } catch (e: any) {
+        console.error("[payment] uploadPaymentReceipt error:", e);
+        return { status: "error" as const, message: e.message || "Erro ao enviar comprovante." };
       }
-
-      // 2. Upload to Supabase Storage: receipts/{userId}/{orderId}/{timestamp}_{filename}
-      const timestamp = Date.now();
-      const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const storagePath = `${user.id}/${orderId}/${timestamp}_${safeFileName}`;
-
-      // Convert base64 to Uint8Array for storage
-      const binaryStr = atob(fileBase64);
-      const bytes = new Uint8Array(binaryStr.length);
-      for (let i = 0; i < binaryStr.length; i++) {
-        bytes[i] = binaryStr.charCodeAt(i);
-      }
-
-      // Determine MIME type from file extension
-      const ext = safeFileName.split(".").pop()?.toLowerCase() || "";
-      const mimeMap: Record<string, string> = {
-        jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
-        webp: "image/webp", pdf: "application/pdf", heic: "image/heic",
-      };
-      const contentType = mimeMap[ext] || "application/octet-stream";
-
-      const { error: uploadError } = await db.storage
-        .from("receipts")
-        .upload(storagePath, bytes, { contentType, upsert: false });
-
-      if (uploadError) {
-        console.error("[payment] receipt upload error:", uploadError);
-        throw new Error("Falha ao enviar o arquivo. Tente novamente.");
-      }
-
-      // 3. Get a signed URL (valid 30 days) for admin review
-      const { data: signedUrlData } = await db.storage
-        .from("receipts")
-        .createSignedUrl(storagePath, 60 * 60 * 24 * 30); // 30 days
-
-      const receiptUrl = signedUrlData?.signedUrl || storagePath;
-
-      // 4. Update the payments record
-      const { error: paymentUpdateError } = await db
-        .from("payments")
-        .update({
-          receipt_url: receiptUrl,
-          receipt_status: "pending_review",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("order_id", orderId);
-
-      if (paymentUpdateError) {
-        console.error("[payment] payments update error:", paymentUpdateError);
-        // Non-fatal: file is uploaded; log and continue
-      }
-
-      // 5. Transition order status to payment_processing
-      await db
-        .from("orders")
-        .update({ status: "payment_processing" })
-        .eq("id", orderId);
-
-      return { status: "success" as const };
-    } catch (e: any) {
-      console.error("[payment] uploadPaymentReceipt error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao enviar comprovante." };
-    }
-  });
+    },
+  );
 
 // ---------------------------------------------------------------------------
 // Manual Payment Methods Configuration (Microfase 3E)
@@ -309,7 +333,9 @@ export const uploadPaymentReceipt = createServerFn({ method: "POST" })
 
 async function getAdminIdentity() {
   const ssrClient = getSSRClient();
-  const { data: { user } } = await ssrClient.auth.getUser();
+  const {
+    data: { user },
+  } = await ssrClient.auth.getUser();
   if (!user) throw new Error("Não autorizado");
 
   const db = getServerClient();
@@ -339,24 +365,26 @@ const DeleteManualPaymentMethodSchema = z.object({
   id: z.string().uuid(),
 });
 
-export const listManualPaymentMethods = createServerFn({ method: "GET" })
-  .handler(async () => {
-    try {
-      const identity = await getAdminIdentity();
-      const db = getServerClient();
-      const { data, error } = await db
-        .from("manual_payment_methods")
-        .select("*")
-        .eq("store_id", identity.store_id)
-        .order("created_at", { ascending: true });
+export const listManualPaymentMethods = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const identity = await getAdminIdentity();
+    const db = getServerClient();
+    const { data, error } = await db
+      .from("manual_payment_methods")
+      .select("*")
+      .eq("store_id", identity.store_id)
+      .order("created_at", { ascending: true });
 
-      if (error) throw error;
-      return { status: "success" as const, data: data || [] };
-    } catch (e: any) {
-      console.error("[payment] listManualPaymentMethods error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao listar métodos de pagamento manual." };
-    }
-  });
+    if (error) throw error;
+    return { status: "success" as const, data: data || [] };
+  } catch (e: any) {
+    console.error("[payment] listManualPaymentMethods error:", e);
+    return {
+      status: "error" as const,
+      message: e.message || "Erro ao listar métodos de pagamento manual.",
+    };
+  }
+});
 
 export const saveManualPaymentMethod = createServerFn({ method: "POST" })
   .validator(SaveManualPaymentMethodSchema)
@@ -383,9 +411,7 @@ export const saveManualPaymentMethod = createServerFn({ method: "POST" })
 
         if (error) throw error;
       } else {
-        const { error } = await db
-          .from("manual_payment_methods")
-          .insert(payload);
+        const { error } = await db.from("manual_payment_methods").insert(payload);
 
         if (error) throw error;
       }
@@ -393,7 +419,10 @@ export const saveManualPaymentMethod = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[payment] saveManualPaymentMethod error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao salvar método de pagamento." };
+      return {
+        status: "error" as const,
+        message: e.message || "Erro ao salvar método de pagamento.",
+      };
     }
   });
 
@@ -414,30 +443,33 @@ export const deleteManualPaymentMethod = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[payment] deleteManualPaymentMethod error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao excluir método de pagamento." };
+      return {
+        status: "error" as const,
+        message: e.message || "Erro ao excluir método de pagamento.",
+      };
     }
   });
 
-export const getPublicPaymentMethods = createServerFn({ method: "GET" })
-  .handler(async () => {
-    try {
-      const db = getServerClient();
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
-      if (!storeData) throw new Error("Loja não encontrada");
+export const getPublicPaymentMethods = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+    if (!storeData) throw new Error("Loja não encontrada");
 
-      const { data, error } = await db
-        .from("manual_payment_methods")
-        .select("id, name, instructions, surcharge_percentage, discount_percentage")
-        .eq("store_id", storeData.id)
-        .eq("is_active", true)
-        .order("created_at", { ascending: true });
+    const { data, error } = await db
+      .from("manual_payment_methods")
+      .select("id, name, instructions, surcharge_percentage, discount_percentage")
+      .eq("store_id", storeData.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: true });
 
-      if (error) throw error;
-      return { status: "success" as const, data: data || [] };
-    } catch (e: any) {
-      console.error("[payment] getPublicPaymentMethods error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao obter métodos de pagamento públicos." };
-    }
-  });
-
-
+    if (error) throw error;
+    return { status: "success" as const, data: data || [] };
+  } catch (e: any) {
+    console.error("[payment] getPublicPaymentMethods error:", e);
+    return {
+      status: "error" as const,
+      message: e.message || "Erro ao obter métodos de pagamento públicos.",
+    };
+  }
+});

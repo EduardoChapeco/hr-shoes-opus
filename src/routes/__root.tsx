@@ -76,22 +76,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     // Busca dados de forma otimista, se falhar, retorna nulo.
     const [themeRes, storeRes] = await Promise.all([
       getThemeSettings().catch(() => ({ status: "error", data: null })),
-      getPublicStoreSettings().catch(() => ({ status: "error", data: null }))
+      getPublicStoreSettings().catch(() => ({ status: "error", data: null })),
     ]);
     return {
       theme: themeRes.status === "ok" ? themeRes.data : null,
-      store: storeRes.status === "ok" ? storeRes.data : null
+      store: storeRes.status === "ok" ? storeRes.data : null,
     };
   },
   head: ({ loaderData }) => {
     const store = (loaderData as any)?.store;
     const theme = (loaderData as any)?.theme;
     const storeName = store?.name || "Hr Shoes";
-    
+
     const seoTitle = store?.seo_title || `${storeName} — Conforto e Estilo`;
-    const seoDesc = store?.seo_description || store?.description || "Moda feminina contemporânea com conforto e estilo. Descubra a curadoria da Hr Shoes.";
+    const seoDesc =
+      store?.seo_description ||
+      store?.description ||
+      "Moda feminina contemporânea com conforto e estilo. Descubra a curadoria da Hr Shoes.";
     const seoKeywords = store?.seo_keywords || "";
-    
+
     const metaTags = [
       { charSet: "utf-8" },
       {
@@ -117,7 +120,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     if (seoKeywords) {
       metaTags.push({ name: "keywords", content: seoKeywords });
     }
-    
+
     return {
       meta: metaTags,
       links: [
@@ -134,7 +137,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           href: `https://fonts.googleapis.com/css2?family=${(theme?.font_body || "Manrope").replace(/ /g, "+")}:wght@400;500;600;700;800&family=${(theme?.font_heading || "Fraunces").replace(/ /g, "+")}:wght@400;500;600&display=swap`,
         },
       ],
-    }
+    };
   },
   shellComponent: RootShell,
   component: RootComponent,
@@ -144,11 +147,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   const { theme } = Route.useLoaderData() as any;
-  
+
   // Converte a cor hexadecimal para variáveis CSS amigáveis se houver tema configurado
   // (Usa uma versão simplificada ou injeta a cor bruta dependendo da implementação)
-  
-  const customStyles = theme ? `
+
+  const customStyles = theme
+    ? `
     :root {
       --primary: ${theme.primary_color || "#FF4FB8"};
       --background: ${theme.background_color || "#F3F1EC"};
@@ -157,7 +161,8 @@ function RootShell({ children }: { children: ReactNode }) {
       --font-sans: "${theme.font_body || "Manrope"}", sans-serif;
       --font-serif: "${theme.font_heading || "Fraunces"}", serif;
     }
-  ` : "";
+  `
+    : "";
 
   return (
     <html lang="pt-BR">

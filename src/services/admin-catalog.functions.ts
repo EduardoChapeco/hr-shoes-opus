@@ -165,9 +165,9 @@ export async function createProductHandler(input: {
 
   // Create Categories Mapping
   if (category_ids && category_ids.length > 0) {
-    const catRecords = category_ids.map(cid => ({
+    const catRecords = category_ids.map((cid) => ({
       product_id: data.id,
-      category_id: cid
+      category_id: cid,
     }));
     await db.from("product_categories").insert(catRecords);
   }
@@ -182,34 +182,32 @@ export async function createProductHandler(input: {
           sku: v.sku,
           price_override_cents: v.price_cents,
           attributes: v.attributes,
-          stock_on_hand: v.stock // Allow initial stock bypass for creation
+          stock_on_hand: v.stock, // Allow initial stock bypass for creation
         })
         .select()
         .single();
 
       if (variantError) throw variantError;
-      
+
       if (v.stock > 0) {
-         await db.from("stock_movements").insert({
-           variant_id: variantData.id,
-           store_id: storeData.id,
-           movement_type: "adjustment",
-           qty: v.stock,
-           note: "Estoque Inicial (Criação)"
-         });
+        await db.from("stock_movements").insert({
+          variant_id: variantData.id,
+          store_id: storeData.id,
+          movement_type: "adjustment",
+          qty: v.stock,
+          note: "Estoque Inicial (Criação)",
+        });
       }
     }
   } else {
     // Create a default variant if none provided
-    const { error: variantError } = await db
-      .from("product_variants")
-      .insert({
-        product_id: data.id,
-        sku: `${input.slug}-01`,
-        price_override_cents: input.price_cents,
-        attributes: input.attributes,
-        stock_on_hand: 0
-      });
+    const { error: variantError } = await db.from("product_variants").insert({
+      product_id: data.id,
+      sku: `${input.slug}-01`,
+      price_override_cents: input.price_cents,
+      attributes: input.attributes,
+      stock_on_hand: 0,
+    });
 
     if (variantError) throw variantError;
   }
@@ -243,12 +241,16 @@ export const createProduct = createServerFn({ method: "POST" })
       weight_grams: z.number().int().min(0).optional().nullable(),
       media_urls: z.array(z.string().url()).optional(),
       category_ids: z.array(z.string().uuid()).optional(),
-      variants: z.array(z.object({
-        sku: z.string().min(1),
-        attributes: z.record(z.any()).default({}),
-        price_cents: z.number().int().min(0).optional(),
-        stock: z.number().int().min(0).default(0)
-      })).optional(),
+      variants: z
+        .array(
+          z.object({
+            sku: z.string().min(1),
+            attributes: z.record(z.any()).default({}),
+            price_cents: z.number().int().min(0).optional(),
+            stock: z.number().int().min(0).default(0),
+          }),
+        )
+        .optional(),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -462,21 +464,16 @@ export async function updateProductHandler(input: {
   const db = getServerClient();
   const { id, category_ids, ...updates } = input;
 
-  const { data, error } = await db
-    .from("products")
-    .update(updates)
-    .eq("id", id)
-    .select()
-    .single();
+  const { data, error } = await db.from("products").update(updates).eq("id", id).select().single();
 
   if (error) throw error;
 
   if (category_ids !== undefined) {
     await db.from("product_categories").delete().eq("product_id", id);
     if (category_ids.length > 0) {
-      const catRecords = category_ids.map(cid => ({
+      const catRecords = category_ids.map((cid) => ({
         product_id: id,
-        category_id: cid
+        category_id: cid,
       }));
       await db.from("product_categories").insert(catRecords);
     }
@@ -643,9 +640,7 @@ export async function getOnboardingProgressHandler() {
   const paymentsDone = (paymentCount ?? 0) > 0;
 
   // Step 6: CMS pages
-  const { count: pagesCount } = await db
-    .from("pages")
-    .select("*", { count: "exact", head: true });
+  const { count: pagesCount } = await db.from("pages").select("*", { count: "exact", head: true });
   const cmsDone = (pagesCount ?? 0) > 0;
 
   return {
@@ -686,9 +681,7 @@ export async function deleteProductMediaHandler(input: { id: string; url: string
 
   const pathMatches = url.match(/product-media\/(.*)$/);
   if (pathMatches && pathMatches[1]) {
-    const { error: storageError } = await db.storage
-      .from("product-media")
-      .remove([pathMatches[1]]);
+    const { error: storageError } = await db.storage.from("product-media").remove([pathMatches[1]]);
     if (storageError) console.error("Storage delete error:", storageError);
   }
 
@@ -735,7 +728,14 @@ export const addProductMediaLink = createServerFn({ method: "POST" })
   });
 
 export const toggleProductCollection = createServerFn({ method: "POST" })
-  .validator(z.object({ productId: z.string().uuid(), collectionId: z.string().uuid().optional(), collectionSlug: z.string().optional(), add: z.boolean().optional() }))
+  .validator(
+    z.object({
+      productId: z.string().uuid(),
+      collectionId: z.string().uuid().optional(),
+      collectionSlug: z.string().optional(),
+      add: z.boolean().optional(),
+    }),
+  )
   .handler(async (): Promise<{ status: "success" } | { status: "error"; message: string }> => {
     return { status: "success" as const };
   });

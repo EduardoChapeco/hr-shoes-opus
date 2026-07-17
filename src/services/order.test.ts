@@ -83,7 +83,15 @@ describe("getOrderByIdHandler", () => {
       public_token: "ABC123",
       status: "processing",
       total_cents: 15000,
-      order_items: [{ id: "oi-1", product_title: "Tênis HR", qty: 2, unit_price_cents: 7500, total_cents: 15000 }],
+      order_items: [
+        {
+          id: "oi-1",
+          product_title: "Tênis HR",
+          qty: 2,
+          unit_price_cents: 7500,
+          total_cents: 15000,
+        },
+      ],
     };
     mockSingle.mockResolvedValueOnce({ data: order, error: null });
 

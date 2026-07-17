@@ -83,7 +83,7 @@ function RegisterPage() {
       if (!result.sessionActive) {
         toast.success(
           "Conta criada! Verifique seu e-mail e clique no link de confirmação para ativar seu acesso.",
-          { duration: 8000 }
+          { duration: 8000 },
         );
         // User must confirm email before logging in. Redirect to /entrar.
         navigate({ to: "/entrar", search: { returnUrl } });
@@ -96,7 +96,7 @@ function RegisterPage() {
     } catch (e: any) {
       const correlationId = Math.random().toString(36).substring(2, 10).toUpperCase();
       console.error(`[cadastro] Error ID: ${correlationId}`, e);
-      toast.error(`Erro no cadastro. Código: ${e?.code || 'ERR_SIGNUP'} | ID: ${correlationId}`);
+      toast.error(`Erro no cadastro. Código: ${e?.code || "ERR_SIGNUP"} | ID: ${correlationId}`);
     }
   };
 
@@ -188,7 +188,11 @@ function RegisterPage() {
             </div>
           </div>
 
-          <Button variant="outline" className="w-full font-normal" onClick={() => handleOAuth("google")}>
+          <Button
+            variant="outline"
+            className="w-full font-normal"
+            onClick={() => handleOAuth("google")}
+          >
             <span className="mr-2 h-4 w-4 text-lg font-bold">G</span>
             Google
           </Button>

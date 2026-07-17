@@ -48,7 +48,8 @@ export class SupabaseUnconfiguredError extends Error {
       debugInfo += ` [__env__: ${gEnv ? Object.keys(gEnv).join(",") : "null"}]`;
     } catch {}
     try {
-      const keysInProcess = typeof process !== "undefined" && process.env ? Object.keys(process.env) : [];
+      const keysInProcess =
+        typeof process !== "undefined" && process.env ? Object.keys(process.env) : [];
       debugInfo += ` [process.env keys: ${keysInProcess.length}]`;
     } catch {}
     super(`Supabase not configured: ${reason}${debugInfo}`);

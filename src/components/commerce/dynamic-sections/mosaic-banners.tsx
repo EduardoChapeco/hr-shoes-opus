@@ -8,7 +8,9 @@ export function MosaicBanners({ content }: { content: Record<string, unknown> })
 
   return (
     <section className="mx-auto max-w-screen-xl px-4 py-8 md:px-6">
-      <div className={`grid gap-4 ${banners.length === 1 ? "grid-cols-1" : banners.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
+      <div
+        className={`grid gap-4 ${banners.length === 1 ? "grid-cols-1" : banners.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}`}
+      >
         {banners.slice(0, 3).map((banner, index) => {
           const title = String(banner.title || "");
           const bg_url = String(banner.image_url || "");

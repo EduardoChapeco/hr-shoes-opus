@@ -59,4 +59,3 @@ Este documento resume as investigações, refatorações e os procedimentos de d
 - **Substituição de Confirm/Prompt Dialogs**: Removidos os prompts nativos do navegador (`confirm`, `prompt`) e instalados diálogos baseados em Radix/shadcn em `/admin/comprovantes` e `/admin/configuracoes/pagamentos` para manter fidelidade visual e consistência na plataforma.
 - **Deploy**: Deploy atualizado em produção no Cloudflare Pages:
   👉 **https://bd2c7d5b.hrshoes.pages.dev**
-

@@ -15,8 +15,12 @@ export const Route = createFileRoute("/api/webhooks/pagarme")({
           const pagarmeWebhookKey = getEnvVar("PAGARME_WEBHOOK_KEY");
 
           if (!pagarmeWebhookKey) {
-            console.error("[Webhook] Pagar.me webhook received but integration is not configured (missing PAGARME_WEBHOOK_KEY).");
-            return new Response(JSON.stringify({ error: "Integration not configured" }), { status: 501 });
+            console.error(
+              "[Webhook] Pagar.me webhook received but integration is not configured (missing PAGARME_WEBHOOK_KEY).",
+            );
+            return new Response(JSON.stringify({ error: "Integration not configured" }), {
+              status: 501,
+            });
           }
 
           // 1. Validate signature for security (Prevent spoofing)

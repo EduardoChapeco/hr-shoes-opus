@@ -129,8 +129,8 @@ function ReceiptsPage() {
                         params={{ id: orderId }}
                         className="flex items-center gap-1.5 hover:underline text-primary font-mono text-sm"
                       >
-                        <FileText className="h-3.5 w-3.5" />
-                        #{order.public_token || orderId.split("-")[0]}
+                        <FileText className="h-3.5 w-3.5" />#
+                        {order.public_token || orderId.split("-")[0]}
                       </Link>
                     </TableCell>
                     <TableCell>{customerName}</TableCell>

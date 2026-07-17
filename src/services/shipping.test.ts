@@ -76,7 +76,10 @@ describe("Shipping Functions", () => {
       const builder = createMockQueryBuilder({ data: mockZones, error: null });
       mockFrom.mockImplementation((table) => {
         if (table === "profiles") {
-          return createMockQueryBuilder({ data: { role: "owner", store_id: storeId }, error: null });
+          return createMockQueryBuilder({
+            data: { role: "owner", store_id: storeId },
+            error: null,
+          });
         }
         return builder;
       });
@@ -91,7 +94,10 @@ describe("Shipping Functions", () => {
       const builder = createMockQueryBuilder({ data: null, error: new Error("DB Error") });
       mockFrom.mockImplementation((table) => {
         if (table === "profiles") {
-          return createMockQueryBuilder({ data: { role: "owner", store_id: storeId }, error: null });
+          return createMockQueryBuilder({
+            data: { role: "owner", store_id: storeId },
+            error: null,
+          });
         }
         return builder;
       });
@@ -106,7 +112,10 @@ describe("Shipping Functions", () => {
       const builder = createMockQueryBuilder({ data: createdZone, error: null });
       mockFrom.mockImplementation((table) => {
         if (table === "profiles") {
-          return createMockQueryBuilder({ data: { role: "owner", store_id: storeId }, error: null });
+          return createMockQueryBuilder({
+            data: { role: "owner", store_id: storeId },
+            error: null,
+          });
         }
         return builder;
       });
@@ -117,12 +126,20 @@ describe("Shipping Functions", () => {
     });
 
     it("should update an existing zone", async () => {
-      const zoneToUpdate = { id: "zone-2", name: "Sudeste Editado", regions: ["11"], is_active: true };
+      const zoneToUpdate = {
+        id: "zone-2",
+        name: "Sudeste Editado",
+        regions: ["11"],
+        is_active: true,
+      };
       const updatedZone = { ...zoneToUpdate, store_id: storeId };
       const builder = createMockQueryBuilder({ data: updatedZone, error: null });
       mockFrom.mockImplementation((table) => {
         if (table === "profiles") {
-          return createMockQueryBuilder({ data: { role: "owner", store_id: storeId }, error: null });
+          return createMockQueryBuilder({
+            data: { role: "owner", store_id: storeId },
+            error: null,
+          });
         }
         return builder;
       });
@@ -144,7 +161,10 @@ describe("Shipping Functions", () => {
       const builder = createMockQueryBuilder({ error: null });
       mockFrom.mockImplementation((table) => {
         if (table === "profiles") {
-          return createMockQueryBuilder({ data: { role: "owner", store_id: storeId }, error: null });
+          return createMockQueryBuilder({
+            data: { role: "owner", store_id: storeId },
+            error: null,
+          });
         }
         return builder;
       });
@@ -159,7 +179,10 @@ describe("Shipping Functions", () => {
       const builder = createMockQueryBuilder({ error: new Error("Fail to delete") });
       mockFrom.mockImplementation((table) => {
         if (table === "profiles") {
-          return createMockQueryBuilder({ data: { role: "owner", store_id: storeId }, error: null });
+          return createMockQueryBuilder({
+            data: { role: "owner", store_id: storeId },
+            error: null,
+          });
         }
         return builder;
       });
@@ -175,7 +198,10 @@ describe("Shipping Functions", () => {
       const builder = createMockQueryBuilder({ data: createdRate, error: null });
       mockFrom.mockImplementation((table) => {
         if (table === "profiles") {
-          return createMockQueryBuilder({ data: { role: "owner", store_id: storeId }, error: null });
+          return createMockQueryBuilder({
+            data: { role: "owner", store_id: storeId },
+            error: null,
+          });
         }
         return builder;
       });
@@ -195,7 +221,10 @@ describe("Shipping Functions", () => {
       const builder = createMockQueryBuilder({ error: null });
       mockFrom.mockImplementation((table) => {
         if (table === "profiles") {
-          return createMockQueryBuilder({ data: { role: "owner", store_id: storeId }, error: null });
+          return createMockQueryBuilder({
+            data: { role: "owner", store_id: storeId },
+            error: null,
+          });
         }
         return builder;
       });
@@ -212,16 +241,12 @@ describe("Shipping Functions", () => {
         {
           id: "zone-1",
           regions: ["80", "81"],
-          rates: [
-            { id: "rate-1", name: "PAC Sul", price_cents: 1000, is_active: true },
-          ],
+          rates: [{ id: "rate-1", name: "PAC Sul", price_cents: 1000, is_active: true }],
         },
         {
           id: "zone-2",
           regions: ["*"],
-          rates: [
-            { id: "rate-2", name: "PAC Nacional", price_cents: 2500, is_active: true },
-          ],
+          rates: [{ id: "rate-2", name: "PAC Nacional", price_cents: 2500, is_active: true }],
         },
       ];
 

@@ -31,7 +31,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { listTeamMembers, updateTeamMemberRole, inviteTeamMember } from "@/services/admin-team.functions";
+import {
+  listTeamMembers,
+  updateTeamMemberRole,
+  inviteTeamMember,
+} from "@/services/admin-team.functions";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/admin/equipe")({
@@ -48,7 +52,7 @@ function TeamPage() {
   const team = Route.useLoaderData() || [];
   const router = useRouter();
   const { session } = Route.useRouteContext() as any;
-  
+
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteData, setInviteData] = useState({ fullName: "", email: "", role: "seller" });
   const [isInviting, setIsInviting] = useState(false);
@@ -80,7 +84,7 @@ function TeamPage() {
       } else {
         toast.error(res.message);
       }
-    } catch(e: any) {
+    } catch (e: any) {
       toast.error("Erro inesperado ao criar acesso.");
     } finally {
       setIsInviting(false);
@@ -105,7 +109,9 @@ function TeamPage() {
         />
         <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="w-4 h-4 mr-2"/> Cadastrar Vendedora/Membro</Button>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" /> Cadastrar Vendedora/Membro
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -117,22 +123,38 @@ function TeamPage() {
             <form onSubmit={handleInvite} className="space-y-4 pt-4">
               <div className="space-y-2">
                 <Label>Nome Completo</Label>
-                <Input required value={inviteData.fullName} onChange={e => setInviteData({...inviteData, fullName: e.target.value})} placeholder="Ex: Maria Vendedora"/>
+                <Input
+                  required
+                  value={inviteData.fullName}
+                  onChange={(e) => setInviteData({ ...inviteData, fullName: e.target.value })}
+                  placeholder="Ex: Maria Vendedora"
+                />
               </div>
               <div className="space-y-2">
                 <Label>E-mail</Label>
-                <Input type="email" required value={inviteData.email} onChange={e => setInviteData({...inviteData, email: e.target.value})} placeholder="maria@loja.com"/>
+                <Input
+                  type="email"
+                  required
+                  value={inviteData.email}
+                  onChange={(e) => setInviteData({ ...inviteData, email: e.target.value })}
+                  placeholder="maria@loja.com"
+                />
               </div>
               <div className="space-y-2">
                 <Label>Cargo / Permissão</Label>
-                <Select value={inviteData.role} onValueChange={v => setInviteData({...inviteData, role: v})}>
-                  <SelectTrigger><SelectValue/></SelectTrigger>
+                <Select
+                  value={inviteData.role}
+                  onValueChange={(v) => setInviteData({ ...inviteData, role: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                     <SelectItem value="seller">Vendedor(a)</SelectItem>
-                     <SelectItem value="manager">Gerente</SelectItem>
-                     <SelectItem value="admin">Administrador</SelectItem>
-                     <SelectItem value="finance">Financeiro</SelectItem>
-                     <SelectItem value="content">Marketing</SelectItem>
+                    <SelectItem value="seller">Vendedor(a)</SelectItem>
+                    <SelectItem value="manager">Gerente</SelectItem>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                    <SelectItem value="finance">Financeiro</SelectItem>
+                    <SelectItem value="content">Marketing</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -180,7 +202,7 @@ function TeamPage() {
                       defaultValue={member.role}
                       onValueChange={(val) => handleRoleChange(member.id, val)}
                       disabled={
-                        member.role === "owner" || 
+                        member.role === "owner" ||
                         (session?.role !== "owner" && member.role === "admin") ||
                         member.id === session?.id
                       }

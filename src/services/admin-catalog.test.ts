@@ -128,7 +128,9 @@ describe("Admin Catalog Functions", () => {
         .mockReturnValueOnce(mockQueryBuilder) // integration_credentials
         .mockResolvedValueOnce({ count: 3 }); // pages
 
-      mockMaybeSingle.mockResolvedValueOnce({ data: { id: "store-123", settings: { some: "config" } } });
+      mockMaybeSingle.mockResolvedValueOnce({
+        data: { id: "store-123", settings: { some: "config" } },
+      });
       mockIn.mockResolvedValueOnce({ count: 2 });
 
       const res = await getOnboardingProgressHandler();
@@ -167,7 +169,10 @@ describe("Admin Catalog Functions", () => {
       // 2nd single (category query): returns new category
       mockSingle
         .mockResolvedValueOnce({ data: { id: "store-123" } })
-        .mockResolvedValueOnce({ data: { id: "cat-1", name: "Novidades", slug: "novidades" }, error: null });
+        .mockResolvedValueOnce({
+          data: { id: "cat-1", name: "Novidades", slug: "novidades" },
+          error: null,
+        });
 
       const input = { name: "Novidades", slug: "novidades", status: "active" as const };
       const res = await createCategoryHandler(input);
@@ -225,9 +230,16 @@ describe("Admin Catalog Functions", () => {
     it("should successfully insert a product type linked to store and organization", async () => {
       mockSingle
         .mockResolvedValueOnce({ data: { id: "store-123", organization_id: "org-456" } })
-        .mockResolvedValueOnce({ data: { id: "type-1", name: "Tênis", slug: "tenis" }, error: null });
+        .mockResolvedValueOnce({
+          data: { id: "type-1", name: "Tênis", slug: "tenis" },
+          error: null,
+        });
 
-      const input = { name: "Tênis", slug: "tenis", field_schema: [{ name: "Tamanho", kind: "text", required: true }] };
+      const input = {
+        name: "Tênis",
+        slug: "tenis",
+        field_schema: [{ name: "Tamanho", kind: "text", required: true }],
+      };
       const res = await createProductTypeHandler(input);
 
       expect(res).toEqual({ id: "type-1", name: "Tênis", slug: "tenis" });
@@ -295,7 +307,9 @@ describe("Admin Catalog Functions", () => {
         attributes: {},
         category_ids: ["cat-123"],
         media_urls: ["https://media.com/img1.png"],
-        variants: [{ sku: "TENIS-P-38", attributes: { size: "38" }, price_cents: 19900, stock: 10 }],
+        variants: [
+          { sku: "TENIS-P-38", attributes: { size: "38" }, price_cents: 19900, stock: 10 },
+        ],
       };
 
       const res = await createProductHandler(input);
@@ -312,7 +326,13 @@ describe("Admin Catalog Functions", () => {
       mockSingle.mockResolvedValueOnce({ data: null });
 
       await expect(
-        createProductHandler({ title: "T", slug: "t", status: "draft", price_cents: 10, attributes: {} }),
+        createProductHandler({
+          title: "T",
+          slug: "t",
+          status: "draft",
+          price_cents: 10,
+          attributes: {},
+        }),
       ).rejects.toThrow("No store found");
     });
 
@@ -321,7 +341,13 @@ describe("Admin Catalog Functions", () => {
       mockSingle.mockResolvedValueOnce({ data: null, error: { message: "Insert error" } });
 
       await expect(
-        createProductHandler({ title: "T", slug: "t", status: "draft", price_cents: 10, attributes: {} }),
+        createProductHandler({
+          title: "T",
+          slug: "t",
+          status: "draft",
+          price_cents: 10,
+          attributes: {},
+        }),
       ).rejects.toThrow("Insert error");
     });
   });
@@ -365,7 +391,9 @@ describe("Admin Catalog Functions", () => {
     it("should propagate update database error", async () => {
       mockSingle.mockResolvedValueOnce({ data: null, error: { message: "Update fail" } });
 
-      await expect(updateProductHandler({ id: "prod-1", title: "Error" })).rejects.toThrow("Update fail");
+      await expect(updateProductHandler({ id: "prod-1", title: "Error" })).rejects.toThrow(
+        "Update fail",
+      );
     });
   });
 
@@ -437,7 +465,10 @@ describe("Admin Catalog Functions", () => {
       mockEq.mockResolvedValueOnce({ error: { message: "Link delete fail" } });
 
       await expect(
-        deleteProductMediaHandler({ id: "media-1", url: "https://foo.com/product-media/img-123.png" }),
+        deleteProductMediaHandler({
+          id: "media-1",
+          url: "https://foo.com/product-media/img-123.png",
+        }),
       ).rejects.toThrow("Link delete fail");
     });
   });
@@ -482,7 +513,10 @@ describe("Admin Catalog Functions", () => {
     });
 
     it("should propagate select database error", async () => {
-      mockOrder.mockResolvedValueOnce({ data: null, error: { message: "DB collections select fail" } });
+      mockOrder.mockResolvedValueOnce({
+        data: null,
+        error: { message: "DB collections select fail" },
+      });
 
       await expect(listCollectionsHandler()).rejects.toThrow("DB collections select fail");
     });
@@ -492,7 +526,10 @@ describe("Admin Catalog Functions", () => {
     it("should successfully insert collection linked to store", async () => {
       mockSingle
         .mockResolvedValueOnce({ data: { id: "store-123" } })
-        .mockResolvedValueOnce({ data: { id: "col-1", name: "Verão", slug: "verao" }, error: null });
+        .mockResolvedValueOnce({
+          data: { id: "col-1", name: "Verão", slug: "verao" },
+          error: null,
+        });
 
       const input = { name: "Verão", slug: "verao", status: "active" as const };
       const res = await createCollectionHandler(input);

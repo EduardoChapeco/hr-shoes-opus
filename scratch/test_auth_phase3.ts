@@ -21,9 +21,7 @@ async function run() {
 
   // 1. Check if setup_status is set correctly
   console.log("1. Checking system_flags...");
-  const { data: flags } = await adminClient
-    .from("system_flags")
-    .select("*");
+  const { data: flags } = await adminClient.from("system_flags").select("*");
   console.log("   system_flags:", JSON.stringify(flags, null, 2));
 
   // 2. Check how many profiles exist and their roles
@@ -36,9 +34,11 @@ async function run() {
   } else {
     console.log(`   Total profiles: ${profiles?.length}`);
     const roleCounts: Record<string, number> = {};
-    profiles?.forEach(p => { roleCounts[p.role] = (roleCounts[p.role] || 0) + 1; });
+    profiles?.forEach((p) => {
+      roleCounts[p.role] = (roleCounts[p.role] || 0) + 1;
+    });
     console.log("   Role distribution:", roleCounts);
-    const owners = profiles?.filter(p => p.role === "owner");
+    const owners = profiles?.filter((p) => p.role === "owner");
     console.log("   Owners:", owners);
   }
 
@@ -47,8 +47,10 @@ async function run() {
   const { data: users } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 10 });
   if (users?.users) {
     console.log(`   Total users: ${users.users.length}`);
-    users.users.slice(0, 5).forEach(u => {
-      console.log(`   - ${u.email} | confirmed: ${!!u.email_confirmed_at} | created: ${u.created_at}`);
+    users.users.slice(0, 5).forEach((u) => {
+      console.log(
+        `   - ${u.email} | confirmed: ${!!u.email_confirmed_at} | created: ${u.created_at}`,
+      );
     });
   }
 
@@ -116,7 +118,9 @@ async function run() {
 
   console.log("\n=== CONCLUSIONS ===");
   console.log("If all steps above passed, the DATABASE and RLS layer is WORKING CORRECTLY.");
-  console.log("The remaining question is: does the FRONTEND correctly handle the 'email confirmation required' flow?");
+  console.log(
+    "The remaining question is: does the FRONTEND correctly handle the 'email confirmation required' flow?",
+  );
   console.log("In Supabase, when email confirmation is required:");
   console.log("  - signUp returns user but NO session");
   console.log("  - User must confirm email to get a session");

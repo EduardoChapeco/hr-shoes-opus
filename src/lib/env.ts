@@ -36,10 +36,7 @@ export function getEnvVar(key: string): string | undefined {
   }
 
   // 3. Fallback to Vite build-time env injection (VITE_* public variables only)
-  if (
-    typeof import.meta !== "undefined" &&
-    (import.meta as any).env?.[key]
-  ) {
+  if (typeof import.meta !== "undefined" && (import.meta as any).env?.[key]) {
     return (import.meta as any).env[key];
   }
 

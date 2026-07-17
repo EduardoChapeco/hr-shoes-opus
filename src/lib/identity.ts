@@ -58,7 +58,16 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
  */
 export function assertStoreAccess(
   identity: ServerIdentity,
-  allowedRoles: string[] = ["owner", "admin", "manager", "seller", "finance", "content", "support", "stock"],
+  allowedRoles: string[] = [
+    "owner",
+    "admin",
+    "manager",
+    "seller",
+    "finance",
+    "content",
+    "support",
+    "stock",
+  ],
 ): asserts identity is ServerIdentity & { id: string; store_id: string } {
   if (!identity.id || !identity.store_id || !allowedRoles.includes(identity.role)) {
     throw new Error("Não autorizado");

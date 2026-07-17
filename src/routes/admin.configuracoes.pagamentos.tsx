@@ -67,7 +67,9 @@ function ManualPaymentsPage() {
 
   // PIX config state
   const [pixKey, setPixKey] = useState(pixSettings?.pix_key || "");
-  const [paymentInstructions, setPaymentInstructions] = useState(pixSettings?.payment_instructions || "");
+  const [paymentInstructions, setPaymentInstructions] = useState(
+    pixSettings?.payment_instructions || "",
+  );
   const [isSavingPix, setIsSavingPix] = useState(false);
 
   // Method dialog state
@@ -100,7 +102,9 @@ function ManualPaymentsPage() {
         },
       });
       if (res.status === "success") {
-        toast.success("Configurações de PIX salvas! Os clientes verão estas informações nos pedidos.");
+        toast.success(
+          "Configurações de PIX salvas! Os clientes verão estas informações nos pedidos.",
+        );
         router.invalidate();
       } else {
         toast.error("Erro ao salvar configurações PIX.");
@@ -114,7 +118,13 @@ function ManualPaymentsPage() {
 
   const openCreate = () => {
     setEditingMethod(null);
-    reset({ name: "", instructions: "", surcharge_percentage: 0, discount_percentage: 0, is_active: true });
+    reset({
+      name: "",
+      instructions: "",
+      surcharge_percentage: 0,
+      discount_percentage: 0,
+      is_active: true,
+    });
     setOpen(true);
   };
 
@@ -191,7 +201,8 @@ function ManualPaymentsPage() {
           <div>
             <h3 className="font-semibold text-foreground">Chave PIX e Instruções de Pagamento</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Estas informações aparecem automaticamente nos pedidos dos clientes quando aguardam pagamento.
+              Estas informações aparecem automaticamente nos pedidos dos clientes quando aguardam
+              pagamento.
             </p>
           </div>
         </div>
@@ -206,7 +217,8 @@ function ManualPaymentsPage() {
               onChange={(e) => setPixKey(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Esta chave será exibida ao cliente no detalhes do pedido quando o pagamento for via PIX.
+              Esta chave será exibida ao cliente no detalhes do pedido quando o pagamento for via
+              PIX.
             </p>
           </div>
 
@@ -272,10 +284,14 @@ function ManualPaymentsPage() {
                       {method.instructions || "-"}
                     </TableCell>
                     <TableCell className="text-destructive font-medium">
-                      {Number(method.surcharge_percentage) > 0 ? `+${method.surcharge_percentage}%` : "-"}
+                      {Number(method.surcharge_percentage) > 0
+                        ? `+${method.surcharge_percentage}%`
+                        : "-"}
                     </TableCell>
                     <TableCell className="text-green-600 font-medium">
-                      {Number(method.discount_percentage) > 0 ? `-${method.discount_percentage}%` : "-"}
+                      {Number(method.discount_percentage) > 0
+                        ? `-${method.discount_percentage}%`
+                        : "-"}
                     </TableCell>
                     <TableCell>
                       <span
@@ -290,7 +306,12 @@ function ManualPaymentsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(method)}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8"
+                          onClick={() => openEdit(method)}
+                        >
                           <Edit2 className="size-3.5" />
                         </Button>
                         <Button
@@ -315,7 +336,9 @@ function ManualPaymentsPage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingMethod ? "Editar Método" : "Novo Método de Pagamento"}</DialogTitle>
+            <DialogTitle>
+              {editingMethod ? "Editar Método" : "Novo Método de Pagamento"}
+            </DialogTitle>
             <DialogDescription>
               Preencha os dados e taxas para exibição no checkout dos clientes.
             </DialogDescription>
@@ -323,7 +346,10 @@ function ManualPaymentsPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label>Nome do Método *</Label>
-              <Input {...register("name", { required: true })} placeholder="Ex: Pix Direto, Ficha da Casa, Carnê" />
+              <Input
+                {...register("name", { required: true })}
+                placeholder="Ex: Pix Direto, Ficha da Casa, Carnê"
+              />
             </div>
             <div className="space-y-2">
               <Label>Instruções para o Cliente</Label>
@@ -336,11 +362,21 @@ function ManualPaymentsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Taxa de Acréscimo (%)</Label>
-                <Input type="number" step="0.01" min="0" {...register("surcharge_percentage", { valueAsNumber: true })} />
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  {...register("surcharge_percentage", { valueAsNumber: true })}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Desconto (%)</Label>
-                <Input type="number" step="0.01" min="0" {...register("discount_percentage", { valueAsNumber: true })} />
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  {...register("discount_percentage", { valueAsNumber: true })}
+                />
               </div>
             </div>
             <div className="flex items-center justify-between border-t pt-4">
@@ -351,7 +387,9 @@ function ManualPaymentsPage() {
               <Switch checked={isActiveValue} onCheckedChange={(c) => setValue("is_active", c)} />
             </div>
             <DialogFooter className="border-t pt-4">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Cancelar
+              </Button>
               <Button type="submit" disabled={isSubmitting}>
                 <Save className="mr-2 size-4" />
                 {isSubmitting ? "Salvando..." : "Salvar Método"}
@@ -370,12 +408,17 @@ function ManualPaymentsPage() {
               Excluir método de pagamento?
             </DialogTitle>
             <DialogDescription>
-              O método <strong>"{deleteTarget?.name}"</strong> não aparecerá mais como opção no checkout. Esta ação não pode ser desfeita.
+              O método <strong>"{deleteTarget?.name}"</strong> não aparecerá mais como opção no
+              checkout. Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancelar</Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm}>Confirmar Exclusão</Button>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              Confirmar Exclusão
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

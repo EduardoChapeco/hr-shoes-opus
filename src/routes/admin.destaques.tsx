@@ -22,13 +22,15 @@ const getDestaques = createServerFn({ method: "GET" }).handler(async () => {
     // Get all published products and also their product_collections to see if they are in 'destaques'
     const { data, error } = await db
       .from("products")
-      .select(`
+      .select(
+        `
         id, title, slug, price_cents, status,
         product_media(url, alt),
         product_collections(
           collections!inner(slug)
         )
-      `)
+      `,
+      )
       .eq("store_id", store.id)
       .eq("status", "published")
       .order("created_at", { ascending: false });
@@ -82,7 +84,7 @@ function DestaquesPage() {
         loading: "Atualizando destaque...",
         success: "Destaque atualizado!",
         error: "Erro ao atualizar",
-      }
+      },
     );
   };
 
@@ -111,7 +113,7 @@ function DestaquesPage() {
           {products.map((p: any) => {
             const cover = p.product_media?.[0]?.url;
             const isFeatured = p.product_collections?.some(
-              (pc: any) => pc.collections?.slug === "destaques"
+              (pc: any) => pc.collections?.slug === "destaques",
             );
             return (
               <div
@@ -136,11 +138,17 @@ function DestaquesPage() {
                 </Link>
                 <div className="p-3 flex-1 flex flex-col justify-between">
                   <div>
-                    <p className="text-sm font-medium truncate" title={p.title}>{p.title}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{formatMoney(p.price_cents)}</p>
+                    <p className="text-sm font-medium truncate" title={p.title}>
+                      {p.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {formatMoney(p.price_cents)}
+                    </p>
                   </div>
                   <div className="flex items-center justify-between mt-4 pt-3 border-t">
-                    <span className="text-xs font-medium text-muted-foreground">Destacar na Home</span>
+                    <span className="text-xs font-medium text-muted-foreground">
+                      Destacar na Home
+                    </span>
                     <Switch
                       checked={isFeatured}
                       onCheckedChange={() => handleToggle(p.id, isFeatured)}

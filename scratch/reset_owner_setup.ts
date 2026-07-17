@@ -28,7 +28,9 @@ async function run() {
   console.log("1. Current auth.users:");
   const { data: users } = await adminClient.auth.admin.listUsers();
   users?.users.forEach((u) => {
-    console.log(`   [${u.id}] ${u.email} | confirmed: ${!!u.email_confirmed_at} | created: ${u.created_at}`);
+    console.log(
+      `   [${u.id}] ${u.email} | confirmed: ${!!u.email_confirmed_at} | created: ${u.created_at}`,
+    );
   });
 
   // 2. List all profiles
@@ -45,9 +47,9 @@ async function run() {
 
   // 4. Identify test users to delete (fake emails used during forensic testing)
   const testEmailPatterns = ["forensic_", "phase", "test_"];
-  const testUsers = users?.users.filter((u) =>
-    testEmailPatterns.some((pattern) => u.email?.includes(pattern))
-  ) || [];
+  const testUsers =
+    users?.users.filter((u) => testEmailPatterns.some((pattern) => u.email?.includes(pattern))) ||
+    [];
 
   console.log(`\n4. Test users to delete (${testUsers.length}):`);
   testUsers.forEach((u) => console.log(`   - ${u.email}`));
@@ -57,38 +59,41 @@ async function run() {
   } else {
     const readline = await import("readline");
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    
+
     await new Promise<void>((resolve) => {
-      rl.question("\nDelete these test users and reset setup_status? (yes/no): ", async (answer) => {
-        if (answer.toLowerCase() === "yes") {
-          // Delete test users
-          for (const u of testUsers) {
-            const { error } = await adminClient.auth.admin.deleteUser(u.id);
-            if (error) {
-              console.error(`   ❌ Failed to delete ${u.email}:`, error.message);
-            } else {
-              console.log(`   ✅ Deleted: ${u.email}`);
+      rl.question(
+        "\nDelete these test users and reset setup_status? (yes/no): ",
+        async (answer) => {
+          if (answer.toLowerCase() === "yes") {
+            // Delete test users
+            for (const u of testUsers) {
+              const { error } = await adminClient.auth.admin.deleteUser(u.id);
+              if (error) {
+                console.error(`   ❌ Failed to delete ${u.email}:`, error.message);
+              } else {
+                console.log(`   ✅ Deleted: ${u.email}`);
+              }
             }
-          }
 
-          // Reset setup_status to false
-          const { error: flagError } = await adminClient
-            .from("system_flags")
-            .update({ value: { is_completed: false }, updated_at: new Date().toISOString() })
-            .eq("key", "setup_status");
+            // Reset setup_status to false
+            const { error: flagError } = await adminClient
+              .from("system_flags")
+              .update({ value: { is_completed: false }, updated_at: new Date().toISOString() })
+              .eq("key", "setup_status");
 
-          if (flagError) {
-            console.error("   ❌ Failed to reset setup_status:", flagError.message);
+            if (flagError) {
+              console.error("   ❌ Failed to reset setup_status:", flagError.message);
+            } else {
+              console.log("\n   ✅ system_flags.setup_status reset to { is_completed: false }");
+              console.log("   The next user to sign up via the form will become the owner.");
+            }
           } else {
-            console.log("\n   ✅ system_flags.setup_status reset to { is_completed: false }");
-            console.log("   The next user to sign up via the form will become the owner.");
+            console.log("   Aborted. No changes made.");
           }
-        } else {
-          console.log("   Aborted. No changes made.");
-        }
-        rl.close();
-        resolve();
-      });
+          rl.close();
+          resolve();
+        },
+      );
     });
   }
 

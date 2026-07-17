@@ -1,14 +1,15 @@
 /**
  * Run AFTER applying migration 0040 in the Supabase SQL Editor.
  * URL: https://supabase.com/dashboard/project/hfgnageqkeryxsnwobjc/sql/new
- * 
+ *
  * Seeds the home page with initial sections.
  */
 
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = "https://hfgnageqkeryxsnwobjc.supabase.co";
-const SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmZ25hZ2Vxa2VyeXhzbndvYmpjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Mzk5MzEwNSwiZXhwIjoyMDk5NTY5MTA1fQ.Ni-B1dwwZ3ZNJslcBI68xRulOr23m-iWDKPCQIqwH-k";
+const SERVICE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhmZ25hZ2Vxa2VyeXhzbndvYmpjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Mzk5MzEwNSwiZXhwIjoyMDk5NTY5MTA1fQ.Ni-B1dwwZ3ZNJslcBI68xRulOr23m-iWDKPCQIqwH-k";
 const STORE_ID = "79f31227-80a1-483c-ba3e-a30f215db679";
 
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
@@ -78,7 +79,9 @@ async function main() {
   if (error) {
     console.error("Error seeding sections:", error.message);
     if (error.code === "23514") {
-      console.log("\n⚠️  Migration 0040 still not applied! Run the SQL in Supabase SQL Editor first.");
+      console.log(
+        "\n⚠️  Migration 0040 still not applied! Run the SQL in Supabase SQL Editor first.",
+      );
     }
   } else {
     console.log("✅ Home page seeded with 2 sections:");

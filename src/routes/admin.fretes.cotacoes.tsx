@@ -16,7 +16,10 @@ import {
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/state/states";
 import { listShippingZones, calculateShipping } from "@/services/shipping.functions";
-import { listOrdersAwaitingShippingQuote, updateOrderShippingQuote } from "@/services/order.functions";
+import {
+  listOrdersAwaitingShippingQuote,
+  updateOrderShippingQuote,
+} from "@/services/order.functions";
 import { formatMoney } from "@/lib/money";
 import { toast } from "sonner";
 
@@ -120,7 +123,9 @@ function FretesCotacoesPage() {
 
         {pendingOrders.length === 0 ? (
           <div className="py-8 text-center border border-dashed rounded-lg bg-muted/10">
-            <p className="text-sm text-muted-foreground">Nenhum pedido aguardando cotação de frete no momento.</p>
+            <p className="text-sm text-muted-foreground">
+              Nenhum pedido aguardando cotação de frete no momento.
+            </p>
           </div>
         ) : (
           <div className="rounded-md border bg-card overflow-hidden">
@@ -139,7 +144,7 @@ function FretesCotacoesPage() {
                 {pendingOrders.map((order: any) => {
                   const client = order.customer_snapshot || {};
                   const addr = order.shipping_address || {};
-                  
+
                   return (
                     <TableRow key={order.id}>
                       <TableCell className="font-medium">
@@ -306,8 +311,13 @@ function FretesCotacoesPage() {
                 className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm bg-muted/15"
               >
                 <span className="font-medium">{z.name}</span>
-                <span className="text-muted-foreground font-normal">({(z.regions || []).join(", ")})</span>
-                <Badge variant={z.is_active ? "secondary" : "outline"} className="text-xs font-normal">
+                <span className="text-muted-foreground font-normal">
+                  ({(z.regions || []).join(", ")})
+                </span>
+                <Badge
+                  variant={z.is_active ? "secondary" : "outline"}
+                  className="text-xs font-normal"
+                >
                   {z.rates?.length || 0} taxa(s)
                 </Badge>
               </div>

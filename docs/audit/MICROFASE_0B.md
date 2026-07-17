@@ -7,18 +7,21 @@ COMMIT-BASE: `c665980`
 COMMIT-FINAL: `87d75a3`
 
 ARQUIVOS ANALISADOS:
+
 - `src/routes/_store.conta.enderecos.tsx`
 - `src/routes/_store.conta.perfil.tsx`
 - `src/services/auth.functions.ts`
 - `src/services/customer.functions.ts`
 
 CONSUMIDORES LOCALIZADOS:
+
 - `updateProfile`: `handleSubmit` em `_store.conta.perfil.tsx`
 - `addCustomerAddress`: `handleSubmit` em `_store.conta.enderecos.tsx`
 - `deleteCustomerAddress`: `handleDelete` em `_store.conta.enderecos.tsx`
 - `setDefaultAddress`: `handleSetDefault` em `_store.conta.enderecos.tsx`
 
 DECLARAÇÕES ANTERIORES AUDITADAS:
+
 - **"Falsos sucessos restantes nas funções de perfil e endereço devido a await sem verificação de retorno na UI"**: Refutado parcialmente. A acusação de falso sucesso da UI não confere, pois `createServerFn` faz o throw de erros internamente quando a Promise do handler rejeita. A UI estava capturando a exceção corretamente. No entanto, as ServerFns correspondentes continham **silenciamento de falhas de banco de dados** (esquecimento do `throwOnError`), gerando o falso sucesso real na origem do back-end.
 
 ---
@@ -38,6 +41,7 @@ REPRODUÇÃO:
 NÃO REPRODUZIDO.
 
 TESTE CRIADO:
+
 - `src/services/auth.test.ts`: Valida que o `updateProfileHandler` propaga erros de banco corretamente e lança exceções quando a atualização da tabela profiles falha.
 
 RESULTADO:
@@ -65,6 +69,7 @@ CONSUMIDORES:
 `_store.conta.enderecos.tsx`
 
 TESTE:
+
 - `src/services/customer.test.ts`: Valida que o `setDefaultAddressHandler` propaga erros de banco corretamentee lança exceções se a desmarcação ou marcação do endereço default falhar.
 
 RESULTADO:
@@ -78,7 +83,7 @@ STATUS: CORRIGIDO LOCALMENTE
 ---
 
 REGRESSÕES NOVAS ENCONTRADAS:
-Nenhuma regressão nova encontrada nesta microfase. 
+Nenhuma regressão nova encontrada nesta microfase.
 
 CÓDIGO MORTO ENCONTRADO:
 Não aplicável para este escopo.
@@ -87,6 +92,7 @@ DOCUMENTAÇÃO ATUALIZADA:
 Nenhuma matriz alterada, registro focado na execução atual.
 
 CAMINHOS DOS ARTIFACTS NO REPOSITÓRIO:
+
 - `docs/audit/MICROFASE_0B.md`
 
 TESTES EXECUTADOS:

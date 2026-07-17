@@ -301,16 +301,22 @@ function FretesTabelasPage() {
                           <Input
                             id="edit-zone-name"
                             value={editZoneForm.name}
-                            onChange={(e) => setEditZoneForm((f) => ({ ...f, name: e.target.value }))}
+                            onChange={(e) =>
+                              setEditZoneForm((f) => ({ ...f, name: e.target.value }))
+                            }
                             required
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="edit-zone-regions">Prefixos de CEP (separados por vírgula)</Label>
+                          <Label htmlFor="edit-zone-regions">
+                            Prefixos de CEP (separados por vírgula)
+                          </Label>
                           <Input
                             id="edit-zone-regions"
                             value={editZoneForm.regions}
-                            onChange={(e) => setEditZoneForm((f) => ({ ...f, regions: e.target.value }))}
+                            onChange={(e) =>
+                              setEditZoneForm((f) => ({ ...f, regions: e.target.value }))
+                            }
                             required
                           />
                           <p className="text-xs text-muted-foreground">
@@ -326,7 +332,12 @@ function FretesTabelasPage() {
                     </DialogContent>
                   </Dialog>
 
-                  <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={() => handleDeleteZone(zone.id)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive hover:bg-destructive/10"
+                    onClick={() => handleDeleteZone(zone.id)}
+                  >
                     <Trash2 className="mr-1 h-3.5 w-3.5" />
                     Excluir
                   </Button>
@@ -341,73 +352,77 @@ function FretesTabelasPage() {
                         Adicionar Taxa
                       </Button>
                     </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Nova Taxa — {zone.name}</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={(e) => handleAddRate(e, zone.id)} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="rate-name">Nome</Label>
-                        <Input
-                          id="rate-name"
-                          placeholder="Ex: PAC, SEDEX, Retirada"
-                          value={rateForm.name}
-                          onChange={(e) => setRateForm((f) => ({ ...f, name: e.target.value }))}
-                          required
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Nova Taxa — {zone.name}</DialogTitle>
+                      </DialogHeader>
+                      <form onSubmit={(e) => handleAddRate(e, zone.id)} className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="rate-price">Valor (R$)</Label>
+                          <Label htmlFor="rate-name">Nome</Label>
                           <Input
-                            id="rate-price"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="0,00"
-                            value={rateForm.price}
-                            onChange={(e) => setRateForm((f) => ({ ...f, price: e.target.value }))}
+                            id="rate-name"
+                            placeholder="Ex: PAC, SEDEX, Retirada"
+                            value={rateForm.name}
+                            onChange={(e) => setRateForm((f) => ({ ...f, name: e.target.value }))}
                             required
                           />
                         </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="rate-price">Valor (R$)</Label>
+                            <Input
+                              id="rate-price"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="0,00"
+                              value={rateForm.price}
+                              onChange={(e) =>
+                                setRateForm((f) => ({ ...f, price: e.target.value }))
+                              }
+                              required
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="rate-days">Prazo (dias)</Label>
+                            <Input
+                              id="rate-days"
+                              type="number"
+                              min="1"
+                              placeholder="7"
+                              value={rateForm.estimatedDays}
+                              onChange={(e) =>
+                                setRateForm((f) => ({ ...f, estimatedDays: e.target.value }))
+                              }
+                            />
+                          </div>
+                        </div>
                         <div className="space-y-2">
-                          <Label htmlFor="rate-days">Prazo (dias)</Label>
+                          <Label htmlFor="rate-minorder">
+                            Pedido mínimo para frete grátis (R$)
+                          </Label>
                           <Input
-                            id="rate-days"
+                            id="rate-minorder"
                             type="number"
-                            min="1"
-                            placeholder="7"
-                            value={rateForm.estimatedDays}
+                            min="0"
+                            step="0.01"
+                            placeholder="Deixe em branco para sem mínimo"
+                            value={rateForm.minOrderCents}
                             onChange={(e) =>
-                              setRateForm((f) => ({ ...f, estimatedDays: e.target.value }))
+                              setRateForm((f) => ({ ...f, minOrderCents: e.target.value }))
                             }
                           />
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="rate-minorder">Pedido mínimo para frete grátis (R$)</Label>
-                        <Input
-                          id="rate-minorder"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="Deixe em branco para sem mínimo"
-                          value={rateForm.minOrderCents}
-                          onChange={(e) =>
-                            setRateForm((f) => ({ ...f, minOrderCents: e.target.value }))
-                          }
-                        />
-                      </div>
-                      <DialogFooter>
-                        <Button type="submit" disabled={isSaving}>
-                          {isSaving ? "Salvando..." : "Adicionar Taxa"}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+                        <DialogFooter>
+                          <Button type="submit" disabled={isSaving}>
+                            {isSaving ? "Salvando..." : "Adicionar Taxa"}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
-            </div>
 
               {zone.rates && zone.rates.length > 0 ? (
                 <Table>

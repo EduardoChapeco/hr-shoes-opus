@@ -127,12 +127,14 @@ export const claimGiftCard = createServerFn({ method: "POST" })
   .validator(
     z.object({
       code: z.string().min(5),
-    })
+    }),
   )
   .handler(async ({ data: { code } }) => {
     const supabase = getServerClient();
     const ssrClient = getSSRClient();
-    const { data: { user } } = await ssrClient.auth.getUser();
+    const {
+      data: { user },
+    } = await ssrClient.auth.getUser();
 
     if (!user) throw new Error("Você precisa estar logado para resgatar um vale-presente.");
 
@@ -143,7 +145,8 @@ export const claimGiftCard = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (findError || !card) throw new Error("Vale-presente inválido ou não encontrado.");
-    if (card.status !== "active") throw new Error("Este vale-presente já foi utilizado ou está inativo.");
+    if (card.status !== "active")
+      throw new Error("Este vale-presente já foi utilizado ou está inativo.");
     if (card.current_balance_cents <= 0) throw new Error("Este vale-presente não possui saldo.");
 
     const { error: updateError } = await supabase
@@ -156,23 +159,26 @@ export const claimGiftCard = createServerFn({ method: "POST" })
     return { status: "success" as const };
   });
 
-export const listCustomerGiftCards = createServerFn({ method: "GET" })
-  .handler(async () => {
-    const ssrClient = getSSRClient();
-    const { data: { user } } = await ssrClient.auth.getUser();
-    if (!user) return { status: "unauthenticated" as const, data: [] };
+export const listCustomerGiftCards = createServerFn({ method: "GET" }).handler(async () => {
+  const ssrClient = getSSRClient();
+  const {
+    data: { user },
+  } = await ssrClient.auth.getUser();
+  if (!user) return { status: "unauthenticated" as const, data: [] };
 
-    const supabase = getServerClient();
-    const { data: cards, error } = await supabase
-      .from("gift_cards")
-      .select("id, code, initial_balance_cents, current_balance_cents, status, expires_at, created_at")
-      .eq("purchaser_id", user.id)
-      .order("created_at", { ascending: false });
+  const supabase = getServerClient();
+  const { data: cards, error } = await supabase
+    .from("gift_cards")
+    .select(
+      "id, code, initial_balance_cents, current_balance_cents, status, expires_at, created_at",
+    )
+    .eq("purchaser_id", user.id)
+    .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("[giftcard.functions] listCustomerGiftCards error:", error);
-      return { status: "error" as const, data: [] };
-    }
+  if (error) {
+    console.error("[giftcard.functions] listCustomerGiftCards error:", error);
+    return { status: "error" as const, data: [] };
+  }
 
-    return { status: "success" as const, data: cards || [] };
-  });
+  return { status: "success" as const, data: cards || [] };
+});

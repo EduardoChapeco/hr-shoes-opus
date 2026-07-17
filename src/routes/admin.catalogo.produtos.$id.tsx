@@ -230,7 +230,7 @@ function GeneralForm({ product, categories }: { product: any; categories: any[] 
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Categoria Principal</Label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>

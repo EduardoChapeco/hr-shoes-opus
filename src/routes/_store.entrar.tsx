@@ -61,8 +61,8 @@ function LoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      const result = await signInWithPassword({ 
-        data: { ...data, redirectTo: returnUrl } 
+      const result = await signInWithPassword({
+        data: { ...data, redirectTo: returnUrl },
       });
 
       if (result.status === "error") {
@@ -159,7 +159,11 @@ function LoginPage() {
             </div>
           </div>
 
-          <Button variant="outline" className="w-full font-normal" onClick={() => handleOAuth("google")}>
+          <Button
+            variant="outline"
+            className="w-full font-normal"
+            onClick={() => handleOAuth("google")}
+          >
             <span className="mr-2 h-4 w-4 text-lg font-bold">G</span>
             Google
           </Button>

@@ -42,10 +42,7 @@ export async function saveStoreSettingsHandler(data: z.infer<typeof saveStoreSet
   assertStoreAccess(identity, ["owner", "admin"]);
 
   const db = getServerClient();
-  const { error } = await db
-    .from("stores")
-    .update(data)
-    .eq("id", identity.store_id);
+  const { error } = await db.from("stores").update(data).eq("id", identity.store_id);
 
   if (error) {
     throw new Error("Erro ao salvar dados da loja: " + error.message);
@@ -57,7 +54,6 @@ export async function saveStoreSettingsHandler(data: z.infer<typeof saveStoreSet
 export const saveStoreSettings = createServerFn({ method: "POST" })
   .validator(saveStoreSettingsSchema)
   .handler(async ({ data }) => saveStoreSettingsHandler(data));
-
 
 // --- POLÍTICAS DA LOJA ---
 
@@ -92,10 +88,7 @@ export async function savePoliciesHandler(data: z.infer<typeof savePoliciesSchem
   assertStoreAccess(identity, ["owner", "admin"]);
 
   const db = getServerClient();
-  const { error } = await db
-    .from("stores")
-    .update({ policies: data })
-    .eq("id", identity.store_id);
+  const { error } = await db.from("stores").update({ policies: data }).eq("id", identity.store_id);
 
   if (error) {
     throw new Error("Erro ao salvar políticas: " + error.message);
@@ -107,7 +100,6 @@ export async function savePoliciesHandler(data: z.infer<typeof savePoliciesSchem
 export const savePolicies = createServerFn({ method: "POST" })
   .validator(savePoliciesSchema)
   .handler(async ({ data }) => savePoliciesHandler(data));
-
 
 // --- SEO DA LOJA ---
 
@@ -142,10 +134,7 @@ export async function saveStoreSeoHandler(data: z.infer<typeof saveStoreSeoSchem
   assertStoreAccess(identity, ["owner", "admin"]);
 
   const db = getServerClient();
-  const { error } = await db
-    .from("stores")
-    .update(data)
-    .eq("id", identity.store_id);
+  const { error } = await db.from("stores").update(data).eq("id", identity.store_id);
 
   if (error) {
     throw new Error("Erro ao salvar SEO: " + error.message);
@@ -157,7 +146,6 @@ export async function saveStoreSeoHandler(data: z.infer<typeof saveStoreSeoSchem
 export const saveStoreSeo = createServerFn({ method: "POST" })
   .validator(saveStoreSeoSchema)
   .handler(async ({ data }) => saveStoreSeoHandler(data));
-
 
 // --- PERFIL PÚBLICO DA LOJA ---
 
@@ -194,10 +182,7 @@ export async function savePublicProfileHandler(data: z.infer<typeof savePublicPr
   assertStoreAccess(identity, ["owner", "admin"]);
 
   const db = getServerClient();
-  const { error } = await db
-    .from("stores")
-    .update(data)
-    .eq("id", identity.store_id);
+  const { error } = await db.from("stores").update(data).eq("id", identity.store_id);
 
   if (error) {
     throw new Error("Erro ao salvar perfil público: " + error.message);
@@ -206,11 +191,9 @@ export async function savePublicProfileHandler(data: z.infer<typeof savePublicPr
   return { status: "success" };
 }
 
-
 export const savePublicProfile = createServerFn({ method: "POST" })
   .validator(savePublicProfileSchema)
   .handler(async ({ data }) => savePublicProfileHandler(data));
-
 
 // --- CONFIGURAÇÕES DE PAGAMENTO ---
 
@@ -232,8 +215,9 @@ export async function getPaymentSettingsHandler() {
   return { status: "ok" as const, data: store };
 }
 
-export const getPaymentSettings = createServerFn({ method: "GET" })
-  .handler(getPaymentSettingsHandler);
+export const getPaymentSettings = createServerFn({ method: "GET" }).handler(
+  getPaymentSettingsHandler,
+);
 
 export const savePaymentSettingsSchema = z.object({
   pix_key: z.string().max(255).optional().or(z.literal("")),
@@ -247,10 +231,7 @@ export const savePaymentSettings = createServerFn({ method: "POST" })
     assertStoreAccess(identity, ["owner", "admin"]);
 
     const db = getServerClient();
-    const { error } = await db
-      .from("stores")
-      .update(data)
-      .eq("id", identity.store_id);
+    const { error } = await db.from("stores").update(data).eq("id", identity.store_id);
 
     if (error) throw new Error("Erro ao salvar configurações de pagamento: " + error.message);
 
@@ -266,11 +247,7 @@ export async function getStorePaymentInfoByOrderId(orderId: string) {
   const db = getServerClient();
 
   // Get the store_id from the order (service role bypasses RLS safely)
-  const { data: order } = await db
-    .from("orders")
-    .select("store_id")
-    .eq("id", orderId)
-    .single();
+  const { data: order } = await db.from("orders").select("store_id").eq("id", orderId).single();
 
   if (!order?.store_id) return null;
 

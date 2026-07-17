@@ -35,10 +35,12 @@ export async function listShippingZonesHandler() {
 
   const { data, error } = await db
     .from("shipping_zones")
-    .select(`
+    .select(
+      `
       *,
       rates:shipping_rates(*)
-    `)
+    `,
+    )
     .eq("store_id", identity.store_id)
     .order("created_at", { ascending: true });
 
@@ -64,12 +66,7 @@ export async function upsertShippingZoneHandler(input: {
 
   let result;
   if (input.id) {
-    result = await db
-      .from("shipping_zones")
-      .update(payload)
-      .eq("id", input.id)
-      .select()
-      .single();
+    result = await db.from("shipping_zones").update(payload).eq("id", input.id).select().single();
   } else {
     result = await db.from("shipping_zones").insert(payload).select().single();
   }
@@ -114,12 +111,7 @@ export async function upsertShippingRateHandler(input: {
 
   let result;
   if (input.id) {
-    result = await db
-      .from("shipping_rates")
-      .update(payload)
-      .eq("id", input.id)
-      .select()
-      .single();
+    result = await db.from("shipping_rates").update(payload).eq("id", input.id).select().single();
   } else {
     result = await db.from("shipping_rates").insert(payload).select().single();
   }
@@ -144,10 +136,12 @@ export async function calculateShippingHandler(zipcode: string) {
   // Fetch all active zones and their active rates
   const { data: zones } = await db
     .from("shipping_zones")
-    .select(`
+    .select(
+      `
       id, regions,
       rates:shipping_rates(id, name, price_cents, min_order_cents, estimated_days)
-    `)
+    `,
+    )
     .eq("store_id", storeData.id)
     .eq("is_active", true)
     .eq("rates.is_active", true);
@@ -191,7 +185,9 @@ export const upsertShippingZone = createServerFn({ method: "POST" })
     z.object({
       id: z.string().uuid().optional(),
       name: z.string().min(2),
-      regions: z.array(z.string().regex(/^(\d+|\*)$/, "Prefixos de CEP devem conter apenas números ou '*'")),
+      regions: z.array(
+        z.string().regex(/^(\d+|\*)$/, "Prefixos de CEP devem conter apenas números ou '*'"),
+      ),
       is_active: z.boolean(),
     }),
   )

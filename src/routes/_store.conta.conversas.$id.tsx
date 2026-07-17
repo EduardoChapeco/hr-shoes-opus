@@ -61,7 +61,14 @@ function Page() {
             createdAt: payload.new.created_at,
           };
           setMessages((prev: any[]) => {
-            if (prev.find((m: any) => m.id === newMsg.id || m.message === newMsg.message && m.createdAt === newMsg.createdAt)) return prev;
+            if (
+              prev.find(
+                (m: any) =>
+                  m.id === newMsg.id ||
+                  (m.message === newMsg.message && m.createdAt === newMsg.createdAt),
+              )
+            )
+              return prev;
             return [...prev, newMsg];
           });
         },

@@ -9,8 +9,8 @@ export function AnnouncementBar({ content }: { content: Record<string, unknown> 
   if (!text) return null;
 
   return (
-    <div 
-      className="py-2 text-center text-xs font-medium" 
+    <div
+      className="py-2 text-center text-xs font-medium"
       style={{ backgroundColor: bgColor, color: textColor }}
     >
       {link ? (

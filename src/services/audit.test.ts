@@ -42,7 +42,12 @@ describe("Audit Server Functions", () => {
 
   describe("getAuditLog", () => {
     it("should successfully retrieve audit log for authorized user", async () => {
-      const mockIdentity = { id: "user-123", store_id: "store-456", role: "owner", organization_id: "org-789" };
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        organization_id: "org-789",
+      };
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       const mockLogs = [{ id: "log-1", action: "update" }];

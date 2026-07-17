@@ -19,10 +19,9 @@ export function ProductRail({
   const title = String(content.title || "Destaques");
   const slug = content.collection_slug ? String(content.collection_slug) : null;
   const layout = String(content.layout || "carousel");
-  
-  const productsToDisplay = slug && collectionsData && collectionsData[slug] 
-    ? collectionsData[slug] 
-    : publishedProducts;
+
+  const productsToDisplay =
+    slug && collectionsData && collectionsData[slug] ? collectionsData[slug] : publishedProducts;
 
   if (productsToDisplay.length === 0) return null;
 
@@ -116,7 +115,10 @@ export function ProductRail({
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex -ml-4">
           {productsToDisplay.slice(0, 12).map((product) => (
-            <div key={product.id} className="pl-4 min-w-0 flex-[0_0_80%] sm:flex-[0_0_40%] md:flex-[0_0_33.33%] lg:flex-[0_0_25%]">
+            <div
+              key={product.id}
+              className="pl-4 min-w-0 flex-[0_0_80%] sm:flex-[0_0_40%] md:flex-[0_0_33.33%] lg:flex-[0_0_25%]"
+            >
               <ProductCard product={product} />
             </div>
           ))}

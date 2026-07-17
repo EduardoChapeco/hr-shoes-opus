@@ -49,7 +49,13 @@ describe("Stock Functions", () => {
   describe("getStockLevelsHandler", () => {
     it("should retrieve all stock variants ordered by sku", async () => {
       const mockVariants = [
-        { id: "v-1", sku: "TENIS-39", stock_on_hand: 10, stock_reserved: 2, products: { title: "Tênis" } },
+        {
+          id: "v-1",
+          sku: "TENIS-39",
+          stock_on_hand: 10,
+          stock_reserved: 2,
+          products: { title: "Tênis" },
+        },
       ];
       mockOrder.mockResolvedValueOnce({ data: mockVariants, error: null });
 

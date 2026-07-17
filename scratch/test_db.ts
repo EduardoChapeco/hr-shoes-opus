@@ -4,7 +4,7 @@ async function run() {
   console.log("Testing Supabase connection...");
   try {
     const db = getServerClient();
-    
+
     // Test basic connection by fetching stores
     console.log("Fetching stores...");
     const { data: stores, error: storeErr } = await db.from("stores").select("*");
@@ -72,7 +72,6 @@ async function run() {
         console.log(`- ID: ${u.id}, Email: ${u.email}, Confirmed: ${u.email_confirmed_at}`);
       });
     }
-
   } catch (err) {
     console.error("Unexpected error:", err);
   }

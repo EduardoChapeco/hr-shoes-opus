@@ -8,7 +8,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 async function main() {
   const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: { persistSession: false }
+    auth: { persistSession: false },
   });
 
   console.log("Listing auth.users...");

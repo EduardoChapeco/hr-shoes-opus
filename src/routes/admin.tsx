@@ -39,7 +39,7 @@ function AdminLayout() {
   const navigate = Route.useNavigate();
 
   const { session } = Route.useRouteContext();
-  
+
   useEffect(() => {
     if (search.error === "unauthorized") {
       toast.error("Acesso Negado: Você não tem permissão para acessar aquela página.");

@@ -34,10 +34,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Hr Shoes" }] }),
   loader: async () => {
-    const [cart, paymentMethodsRes] = await Promise.all([
-      getCart(),
-      getPublicPaymentMethods(),
-    ]);
+    const [cart, paymentMethodsRes] = await Promise.all([getCart(), getPublicPaymentMethods()]);
 
     return {
       cart: cart || {
@@ -84,7 +81,10 @@ function CheckoutPage() {
   // Promo & Gift Card code states
   const [promoCode, setPromoCode] = useState("");
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
-  const [appliedGiftCard, setAppliedGiftCard] = useState<{ code: string; balanceCents: number } | null>(null);
+  const [appliedGiftCard, setAppliedGiftCard] = useState<{
+    code: string;
+    balanceCents: number;
+  } | null>(null);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -163,14 +163,14 @@ function CheckoutPage() {
   const handleSelectRate = async (rate: any) => {
     setSelectedRateId(rate.id);
     setFormData((prev) => ({ ...prev, shippingMethod: "manual_table" }));
-    
+
     try {
       await updateCartShipping({
         data: {
           zipcode: formData.shippingAddress.zipcode,
           method: rate.name,
           cents: rate.price_cents,
-        }
+        },
       });
       // Invalidate router cache to pull updated cart totals
       router.invalidate();
@@ -190,7 +190,7 @@ function CheckoutPage() {
           zipcode: formData.shippingAddress.zipcode,
           method: "manual_quote",
           cents: 0,
-        }
+        },
       });
       router.invalidate();
       toast.success("Cotação de frete personalizada selecionada!");
@@ -203,14 +203,14 @@ function CheckoutPage() {
   const handleSelectPickup = async () => {
     setSelectedRateId("pickup");
     setFormData((prev) => ({ ...prev, shippingMethod: "pickup" }));
-    
+
     try {
       await updateCartShipping({
         data: {
           zipcode: "89800000",
           method: "pickup",
           cents: 0,
-        }
+        },
       });
       router.invalidate();
     } catch (e) {
@@ -233,9 +233,13 @@ function CheckoutPage() {
 
   if (paymentInfo) {
     if (Number(paymentInfo.discount_percentage) > 0) {
-      paymentDiscountCents = Math.floor(cart.subtotalCents * (Number(paymentInfo.discount_percentage) / 100));
+      paymentDiscountCents = Math.floor(
+        cart.subtotalCents * (Number(paymentInfo.discount_percentage) / 100),
+      );
     } else if (Number(paymentInfo.surcharge_percentage) > 0) {
-      paymentSurchargeCents = Math.floor(cart.subtotalCents * (Number(paymentInfo.surcharge_percentage) / 100));
+      paymentSurchargeCents = Math.floor(
+        cart.subtotalCents * (Number(paymentInfo.surcharge_percentage) / 100),
+      );
     }
   }
 
@@ -317,9 +321,11 @@ function CheckoutPage() {
           customerPhone: formData.customerPhone,
           customerDocument: formData.customerDocument,
           shippingMethod: formData.shippingMethod,
-          shippingAddress: formData.shippingMethod === "pickup" ? undefined : formData.shippingAddress,
+          shippingAddress:
+            formData.shippingMethod === "pickup" ? undefined : formData.shippingAddress,
           paymentMethod: formData.paymentMethod,
-          paymentMethodId: formData.paymentMethod === "manual" ? formData.paymentMethodId : undefined,
+          paymentMethodId:
+            formData.paymentMethod === "manual" ? formData.paymentMethodId : undefined,
           giftCardCode: appliedGiftCard?.code || undefined,
         },
       });
@@ -365,15 +371,16 @@ function CheckoutPage() {
         <div className="bg-muted/30 p-6 rounded-xl border border-border inline-block mb-8 max-w-md text-left">
           <MessageCircle className="w-8 h-8 text-primary mx-auto mb-4" />
           <h3 className="font-semibold text-lg mb-2 text-center">Próximos Passos</h3>
-          
+
           {formData.shippingMethod === "manual_quote" ? (
             <p className="text-sm text-muted-foreground mb-4 font-normal">
-              Nossa equipe calculará a taxa de frete para o seu bairro e atualizará seu pedido.
-              Você receberá o link atualizado pelo WhatsApp para realizar o pagamento.
+              Nossa equipe calculará a taxa de frete para o seu bairro e atualizará seu pedido. Você
+              receberá o link atualizado pelo WhatsApp para realizar o pagamento.
             </p>
           ) : (
             <p className="text-sm text-muted-foreground mb-4 font-normal">
-              Sua vendedora entrará em contato pelo WhatsApp com o link ou chave de pagamento para finalizar sua compra.
+              Sua vendedora entrará em contato pelo WhatsApp com o link ou chave de pagamento para
+              finalizar sua compra.
             </p>
           )}
 
@@ -382,13 +389,17 @@ function CheckoutPage() {
               <span className="text-xs font-semibold text-foreground uppercase tracking-wider block mb-1">
                 Instruções do Pagamento
               </span>
-              <p className="text-sm text-muted-foreground whitespace-pre-line">{paymentInfo.instructions}</p>
+              <p className="text-sm text-muted-foreground whitespace-pre-line">
+                {paymentInfo.instructions}
+              </p>
             </div>
           )}
         </div>
 
         <div>
-          <Button onClick={() => navigate({ to: "/conta/pedidos" })}>Acompanhar Meus Pedidos</Button>
+          <Button onClick={() => navigate({ to: "/conta/pedidos" })}>
+            Acompanhar Meus Pedidos
+          </Button>
         </div>
       </div>
     );
@@ -401,7 +412,6 @@ function CheckoutPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Accordion Steps Layout */}
         <div className="lg:col-span-2 space-y-4">
-          
           {/* Passo 1: Seus Dados */}
           <div className="border rounded-xl bg-card overflow-hidden">
             <button
@@ -409,14 +419,18 @@ function CheckoutPage() {
               className="w-full flex items-center justify-between p-4 bg-muted/20 border-b font-medium"
             >
               <span className="flex items-center gap-2.5">
-                <span className={`size-6 rounded-full flex items-center justify-center text-xs ${activeStep > 1 ? "bg-green-600 text-white" : "bg-primary text-primary-foreground font-semibold"}`}>
+                <span
+                  className={`size-6 rounded-full flex items-center justify-center text-xs ${activeStep > 1 ? "bg-green-600 text-white" : "bg-primary text-primary-foreground font-semibold"}`}
+                >
                   1
                 </span>
                 Identificação
               </span>
-              {activeStep > 1 && <span className="text-xs text-muted-foreground font-normal">Editar</span>}
+              {activeStep > 1 && (
+                <span className="text-xs text-muted-foreground font-normal">Editar</span>
+              )}
             </button>
-            
+
             {activeStep === 1 && (
               <div className="p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -454,13 +468,17 @@ function CheckoutPage() {
                     <Input
                       placeholder="000.000.000-00"
                       value={formData.customerDocument}
-                      onChange={(e) => setFormData({ ...formData, customerDocument: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, customerDocument: e.target.value })
+                      }
                     />
                   </div>
                 </div>
                 <div className="flex justify-end pt-2">
                   <Button
-                    disabled={!formData.customerName || !formData.customerEmail || !formData.customerPhone}
+                    disabled={
+                      !formData.customerName || !formData.customerEmail || !formData.customerPhone
+                    }
                     onClick={() => setActiveStep(2)}
                   >
                     Continuar para Entrega
@@ -478,12 +496,16 @@ function CheckoutPage() {
               className="w-full flex items-center justify-between p-4 bg-muted/20 border-b font-medium disabled:opacity-50"
             >
               <span className="flex items-center gap-2.5">
-                <span className={`size-6 rounded-full flex items-center justify-center text-xs ${activeStep > 2 ? "bg-green-600 text-white" : "bg-primary text-primary-foreground font-semibold"}`}>
+                <span
+                  className={`size-6 rounded-full flex items-center justify-center text-xs ${activeStep > 2 ? "bg-green-600 text-white" : "bg-primary text-primary-foreground font-semibold"}`}
+                >
                   2
                 </span>
                 Entrega ou Retirada
               </span>
-              {activeStep > 2 && <span className="text-xs text-muted-foreground font-normal">Editar</span>}
+              {activeStep > 2 && (
+                <span className="text-xs text-muted-foreground font-normal">Editar</span>
+              )}
             </button>
 
             {activeStep === 2 && (
@@ -535,7 +557,10 @@ function CheckoutPage() {
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              shippingAddress: { ...formData.shippingAddress, street: e.target.value },
+                              shippingAddress: {
+                                ...formData.shippingAddress,
+                                street: e.target.value,
+                              },
                             })
                           }
                         />
@@ -551,7 +576,10 @@ function CheckoutPage() {
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              shippingAddress: { ...formData.shippingAddress, number: e.target.value },
+                              shippingAddress: {
+                                ...formData.shippingAddress,
+                                number: e.target.value,
+                              },
                             })
                           }
                         />
@@ -564,7 +592,10 @@ function CheckoutPage() {
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              shippingAddress: { ...formData.shippingAddress, complement: e.target.value },
+                              shippingAddress: {
+                                ...formData.shippingAddress,
+                                complement: e.target.value,
+                              },
                             })
                           }
                         />
@@ -580,7 +611,10 @@ function CheckoutPage() {
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              shippingAddress: { ...formData.shippingAddress, neighborhood: e.target.value },
+                              shippingAddress: {
+                                ...formData.shippingAddress,
+                                neighborhood: e.target.value,
+                              },
                             })
                           }
                         />
@@ -592,7 +626,10 @@ function CheckoutPage() {
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              shippingAddress: { ...formData.shippingAddress, city: e.target.value },
+                              shippingAddress: {
+                                ...formData.shippingAddress,
+                                city: e.target.value,
+                              },
                             })
                           }
                         />
@@ -612,9 +649,13 @@ function CheckoutPage() {
                             <SelectValue placeholder="UF" />
                           </SelectTrigger>
                           <SelectContent>
-                            {["SP", "RJ", "MG", "RS", "PR", "SC", "BA", "DF", "GO", "PE", "CE"].map((uf) => (
-                              <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                            ))}
+                            {["SP", "RJ", "MG", "RS", "PR", "SC", "BA", "DF", "GO", "PE", "CE"].map(
+                              (uf) => (
+                                <SelectItem key={uf} value={uf}>
+                                  {uf}
+                                </SelectItem>
+                              ),
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
@@ -644,7 +685,9 @@ function CheckoutPage() {
                               <div>
                                 <p className="font-semibold text-sm">{rate.name}</p>
                                 {rate.estimated_days && (
-                                  <p className="text-xs text-muted-foreground font-normal">Prazo: {rate.estimated_days} dias úteis</p>
+                                  <p className="text-xs text-muted-foreground font-normal">
+                                    Prazo: {rate.estimated_days} dias úteis
+                                  </p>
                                 )}
                               </div>
                               <p className="font-bold text-sm">{formatMoney(rate.price_cents)}</p>
@@ -656,8 +699,13 @@ function CheckoutPage() {
                           <div className="flex gap-2">
                             <AlertCircle className="size-5 text-amber-600 dark:text-amber-500 shrink-0" />
                             <div className="text-sm text-amber-800 dark:text-amber-300 font-normal">
-                              <p className="font-semibold">Nenhum frete automático cadastrado para este bairro.</p>
-                              <p className="text-xs">Você pode solicitar uma cotação de frete personalizada. Nossa vendedora informará o valor do frete antes de solicitar o pagamento.</p>
+                              <p className="font-semibold">
+                                Nenhum frete automático cadastrado para este bairro.
+                              </p>
+                              <p className="text-xs">
+                                Você pode solicitar uma cotação de frete personalizada. Nossa
+                                vendedora informará o valor do frete antes de solicitar o pagamento.
+                              </p>
                             </div>
                           </div>
                           <Button
@@ -670,23 +718,31 @@ function CheckoutPage() {
                           </Button>
                         </div>
                       ) : (
-                        <p className="text-xs text-muted-foreground font-normal">Digite o CEP para ver as opções de entrega.</p>
+                        <p className="text-xs text-muted-foreground font-normal">
+                          Digite o CEP para ver as opções de entrega.
+                        </p>
                       )}
                     </div>
                   </div>
                 ) : (
                   <div className="p-4 bg-muted/30 rounded-xl border space-y-1">
                     <p className="font-semibold text-sm">Retirada na Hr Shoes</p>
-                    <p className="text-xs text-muted-foreground font-normal">Rua Principal, Chapecó - SC. Horário: Seg a Sex 09h às 18h.</p>
+                    <p className="text-xs text-muted-foreground font-normal">
+                      Rua Principal, Chapecó - SC. Horário: Seg a Sex 09h às 18h.
+                    </p>
                   </div>
                 )}
 
                 <div className="flex justify-end pt-4 border-t gap-2">
-                  <Button variant="outline" onClick={() => setActiveStep(1)}>Voltar</Button>
+                  <Button variant="outline" onClick={() => setActiveStep(1)}>
+                    Voltar
+                  </Button>
                   <Button
                     disabled={
                       formData.shippingMethod !== "pickup" &&
-                      (!formData.shippingAddress.zipcode || !formData.shippingAddress.street || !selectedRateId)
+                      (!formData.shippingAddress.zipcode ||
+                        !formData.shippingAddress.street ||
+                        !selectedRateId)
                     }
                     onClick={() => setActiveStep(3)}
                   >
@@ -705,12 +761,16 @@ function CheckoutPage() {
               className="w-full flex items-center justify-between p-4 bg-muted/20 border-b font-medium disabled:opacity-50"
             >
               <span className="flex items-center gap-2.5">
-                <span className={`size-6 rounded-full flex items-center justify-center text-xs ${activeStep > 3 ? "bg-green-600 text-white" : "bg-primary text-primary-foreground font-semibold"}`}>
+                <span
+                  className={`size-6 rounded-full flex items-center justify-center text-xs ${activeStep > 3 ? "bg-green-600 text-white" : "bg-primary text-primary-foreground font-semibold"}`}
+                >
                   3
                 </span>
                 Forma de Pagamento
               </span>
-              {activeStep > 3 && <span className="text-xs text-muted-foreground font-normal">Editar</span>}
+              {activeStep > 3 && (
+                <span className="text-xs text-muted-foreground font-normal">Editar</span>
+              )}
             </button>
 
             {activeStep === 3 && (
@@ -720,7 +780,9 @@ function CheckoutPage() {
                   <div className="grid grid-cols-2 gap-3 mb-6">
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, paymentMethod: "pix", paymentMethodId: "" })}
+                      onClick={() =>
+                        setFormData({ ...formData, paymentMethod: "pix", paymentMethodId: "" })
+                      }
                       className={`flex items-center justify-center p-3 border rounded-xl gap-2 font-medium transition-all ${
                         formData.paymentMethod === "pix"
                           ? "border-primary bg-primary/5 ring-1 ring-primary"
@@ -731,7 +793,13 @@ function CheckoutPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, paymentMethod: "credit_card", paymentMethodId: "" })}
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          paymentMethod: "credit_card",
+                          paymentMethodId: "",
+                        })
+                      }
                       className={`flex items-center justify-center p-3 border rounded-xl gap-2 font-medium transition-all ${
                         formData.paymentMethod === "credit_card"
                           ? "border-primary bg-primary/5 ring-1 ring-primary"
@@ -744,7 +812,9 @@ function CheckoutPage() {
 
                   {paymentMethods.length > 0 && (
                     <>
-                      <Label className="text-sm font-semibold mb-3 block">Opções Manuais da Loja</Label>
+                      <Label className="text-sm font-semibold mb-3 block">
+                        Opções Manuais da Loja
+                      </Label>
                       <div className="grid gap-2">
                         {paymentMethods.map((method: any) => (
                           <button
@@ -758,7 +828,8 @@ function CheckoutPage() {
                               })
                             }
                             className={`flex items-center justify-between p-4 border rounded-xl text-left transition-all ${
-                              formData.paymentMethod === "manual" && formData.paymentMethodId === method.id
+                              formData.paymentMethod === "manual" &&
+                              formData.paymentMethodId === method.id
                                 ? "border-primary bg-primary/5 ring-1 ring-primary"
                                 : "hover:bg-muted/50"
                             }`}
@@ -788,7 +859,9 @@ function CheckoutPage() {
                 </div>
 
                 <div className="flex justify-end pt-4 border-t gap-2">
-                  <Button variant="outline" onClick={() => setActiveStep(2)}>Voltar</Button>
+                  <Button variant="outline" onClick={() => setActiveStep(2)}>
+                    Voltar
+                  </Button>
                   <Button onClick={() => setActiveStep(4)}>Continuar para Resumo</Button>
                 </div>
               </div>
@@ -810,28 +883,42 @@ function CheckoutPage() {
               <div className="p-6 space-y-6">
                 <div className="grid md:grid-cols-2 gap-6 text-sm">
                   <div className="space-y-2">
-                    <p className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">Destinatário</p>
+                    <p className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">
+                      Destinatário
+                    </p>
                     <p className="font-medium text-foreground">{formData.customerName}</p>
-                    <p className="text-muted-foreground font-normal">{formData.customerEmail} | {formData.customerPhone}</p>
+                    <p className="text-muted-foreground font-normal">
+                      {formData.customerEmail} | {formData.customerPhone}
+                    </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">Entrega</p>
+                    <p className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">
+                      Entrega
+                    </p>
                     {formData.shippingMethod === "pickup" ? (
                       <p className="font-medium text-foreground">Retirada em Loja (Grátis)</p>
                     ) : (
                       <>
-                        <p className="font-medium text-foreground">Entrega: {cart.shippingMethod === "manual_quote" ? "Cotação de Frete" : cart.shippingMethod || "Entrega Normal"}</p>
+                        <p className="font-medium text-foreground">
+                          Entrega:{" "}
+                          {cart.shippingMethod === "manual_quote"
+                            ? "Cotação de Frete"
+                            : cart.shippingMethod || "Entrega Normal"}
+                        </p>
                         <p className="text-muted-foreground font-normal">
                           {formData.shippingAddress.street}, {formData.shippingAddress.number}{" "}
-                          {formData.shippingAddress.complement && `(${formData.shippingAddress.complement})`} -{" "}
-                          {formData.shippingAddress.neighborhood}, {formData.shippingAddress.city} -{" "}
-                          {formData.shippingAddress.state}
+                          {formData.shippingAddress.complement &&
+                            `(${formData.shippingAddress.complement})`}{" "}
+                          - {formData.shippingAddress.neighborhood}, {formData.shippingAddress.city}{" "}
+                          - {formData.shippingAddress.state}
                         </p>
                       </>
                     )}
                   </div>
                   <div className="space-y-2 md:col-span-2 border-t pt-4">
-                    <p className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">Forma de Pagamento</p>
+                    <p className="font-semibold text-muted-foreground uppercase text-xs tracking-wider">
+                      Forma de Pagamento
+                    </p>
                     <p className="font-medium text-foreground">
                       {formData.paymentMethod === "pix" && "PIX"}
                       {formData.paymentMethod === "credit_card" && "Cartão de Crédito"}
@@ -841,8 +928,14 @@ function CheckoutPage() {
                 </div>
 
                 <div className="flex justify-end pt-4 border-t gap-2">
-                  <Button variant="outline" onClick={() => setActiveStep(3)}>Voltar</Button>
-                  <Button disabled={isSubmitting} onClick={handleSubmitOrder} className="px-6 font-semibold">
+                  <Button variant="outline" onClick={() => setActiveStep(3)}>
+                    Voltar
+                  </Button>
+                  <Button
+                    disabled={isSubmitting}
+                    onClick={handleSubmitOrder}
+                    className="px-6 font-semibold"
+                  >
                     {isSubmitting ? "Finalizando..." : "Confirmar e Pagar"}
                   </Button>
                 </div>
@@ -859,7 +952,10 @@ function CheckoutPage() {
           </h2>
           <div className="space-y-4 mb-6">
             {cart.items.map((item: any) => (
-              <div key={item.id} className="flex flex-col text-sm border-b pb-3 last:border-0 last:pb-0">
+              <div
+                key={item.id}
+                className="flex flex-col text-sm border-b pb-3 last:border-0 last:pb-0"
+              >
                 <div className="flex justify-between font-medium">
                   <span>
                     {item.qty}x {item.productTitle}
@@ -929,7 +1025,9 @@ function CheckoutPage() {
 
           {/* Promo code apply input */}
           <div className="border-t pt-4 mb-4">
-            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">Cupom ou Vale-Presente</Label>
+            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">
+              Cupom ou Vale-Presente
+            </Label>
             <div className="flex gap-2">
               <Input
                 placeholder="Código"

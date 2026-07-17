@@ -122,7 +122,10 @@ function PagesPage() {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2 ml-3">
-                  <Badge variant={page.status === "published" ? "default" : "secondary"} className="text-xs">
+                  <Badge
+                    variant={page.status === "published" ? "default" : "secondary"}
+                    className="text-xs"
+                  >
                     {page.status === "published" ? "Publicado" : "Rascunho"}
                   </Badge>
                   <Button variant="ghost" size="sm" asChild>
@@ -133,11 +136,7 @@ function PagesPage() {
                   </Button>
                   {page.status === "published" && page.slug !== "home" && (
                     <Button variant="ghost" size="sm" asChild>
-                      <a
-                        href={`/paginas/${page.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a href={`/paginas/${page.slug}`} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="h-3.5 w-3.5" />
                       </a>
                     </Button>

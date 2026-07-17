@@ -14,14 +14,14 @@ async function run() {
         email,
         password: "Password123!",
         fullName: "Forensic SSR Test",
-      }
+      },
     });
 
     console.log("Signup Result:", result);
 
     if (result.status === "success") {
       console.log("Signup succeeded! sessionActive:", result.sessionActive);
-      
+
       // Try to fetch profile using getProfile
       // Note: getProfile expects getSSRClient which relies on cookies.
       // Running it in a Node script might not work out of the box because there are no cookies in this context,
@@ -30,7 +30,10 @@ async function run() {
         const profile = await getProfile();
         console.log("Profile Result:", profile);
       } catch (err: any) {
-        console.log("getProfile predictably failed because we are not in a browser context (no cookies):", err.message);
+        console.log(
+          "getProfile predictably failed because we are not in a browser context (no cookies):",
+          err.message,
+        );
       }
     }
   } catch (err: any) {

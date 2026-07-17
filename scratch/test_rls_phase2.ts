@@ -53,7 +53,11 @@ async function run() {
     .single();
 
   if (profileAdminError) {
-    console.error("❌ PROFILE NOT CREATED by trigger:", profileAdminError.code, profileAdminError.message);
+    console.error(
+      "❌ PROFILE NOT CREATED by trigger:",
+      profileAdminError.code,
+      profileAdminError.message,
+    );
     console.error("   This means the trigger failed silently during user creation.");
   } else {
     console.log("✅ Profile created by trigger:", profileAdmin);
@@ -62,7 +66,10 @@ async function run() {
   // Step 3: Sign in as this user to get JWT
   console.log("\n3. Signing in to get user JWT...");
   const anonClient = createClient(supabaseUrl, supabaseAnonKey);
-  const { data: signInData, error: signInError } = await anonClient.auth.signInWithPassword({ email, password });
+  const { data: signInData, error: signInError } = await anonClient.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (signInError || !signInData.session) {
     console.error("❌ Sign in FAILED:", signInError);

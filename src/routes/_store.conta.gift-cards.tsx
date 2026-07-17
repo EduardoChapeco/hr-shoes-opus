@@ -27,7 +27,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { listCustomerGiftCards, claimGiftCard, checkGiftCardBalance } from "@/services/giftcard.functions";
+import {
+  listCustomerGiftCards,
+  claimGiftCard,
+  checkGiftCardBalance,
+} from "@/services/giftcard.functions";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/_store/conta/gift-cards")({
@@ -84,7 +88,6 @@ function CustomerGiftCardsPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        
         {/* Adicionar / Resgatar Card */}
         <div className="md:col-span-1 space-y-6">
           <Card className="h-fit">
@@ -94,7 +97,8 @@ function CustomerGiftCardsPage() {
                 Resgatar Código
               </CardTitle>
               <CardDescription className="text-xs">
-                Ganhou um presente? Digite o código de 12 dígitos abaixo para salvá-lo na sua conta e usá-lo nas compras.
+                Ganhou um presente? Digite o código de 12 dígitos abaixo para salvá-lo na sua conta
+                e usá-lo nas compras.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -107,7 +111,11 @@ function CustomerGiftCardsPage() {
                       <FormItem>
                         <FormLabel className="text-xs font-semibold">Código do Cartão</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ex: ABCD-1234-WXYZ" className="font-mono uppercase h-10" {...field} />
+                          <Input
+                            placeholder="Ex: ABCD-1234-WXYZ"
+                            className="font-mono uppercase h-10"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -137,7 +145,8 @@ function CustomerGiftCardsPage() {
               <div className="space-y-1">
                 <p className="font-semibold text-sm">Nenhum vale-presente vinculado</p>
                 <p className="text-xs text-muted-foreground max-w-sm mx-auto font-normal">
-                  Os vales vinculados aparecem automaticamente como saldo disponível na tela de pagamento do Checkout.
+                  Os vales vinculados aparecem automaticamente como saldo disponível na tela de
+                  pagamento do Checkout.
                 </p>
               </div>
             </div>
@@ -146,7 +155,7 @@ function CustomerGiftCardsPage() {
               {giftCards.map((card: any) => {
                 const isUsed = card.status === "used" || card.current_balance_cents === 0;
                 const isExpired = card.expires_at && new Date(card.expires_at) < new Date();
-                
+
                 return (
                   <div
                     key={card.id}
@@ -158,7 +167,9 @@ function CustomerGiftCardsPage() {
                   >
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold tracking-wider text-sm">{card.code}</span>
+                        <span className="font-mono font-bold tracking-wider text-sm">
+                          {card.code}
+                        </span>
                         <button
                           onClick={() => handleCopyCode(card.code)}
                           className="size-6 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground transition-all"
@@ -180,21 +191,34 @@ function CustomerGiftCardsPage() {
 
                     <div className="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-0 pt-3 sm:pt-0">
                       <div className="text-right">
-                        <span className="text-xs text-muted-foreground block font-normal">Saldo Atual</span>
-                        <span className={`text-lg font-bold ${isUsed ? "text-muted-foreground" : "text-primary"}`}>
+                        <span className="text-xs text-muted-foreground block font-normal">
+                          Saldo Atual
+                        </span>
+                        <span
+                          className={`text-lg font-bold ${isUsed ? "text-muted-foreground" : "text-primary"}`}
+                        >
                           {formatMoney(card.current_balance_cents)}
                         </span>
                       </div>
 
                       <div>
                         {card.status === "cancelled" ? (
-                          <Badge variant="destructive" className="font-normal text-xs">Cancelado</Badge>
+                          <Badge variant="destructive" className="font-normal text-xs">
+                            Cancelado
+                          </Badge>
                         ) : isExpired ? (
-                          <Badge variant="outline" className="font-normal text-xs">Expirado</Badge>
+                          <Badge variant="outline" className="font-normal text-xs">
+                            Expirado
+                          </Badge>
                         ) : isUsed ? (
-                          <Badge variant="secondary" className="font-normal text-xs">Utilizado</Badge>
+                          <Badge variant="secondary" className="font-normal text-xs">
+                            Utilizado
+                          </Badge>
                         ) : (
-                          <Badge variant="default" className="bg-green-600 text-white font-normal text-xs hover:bg-green-700">
+                          <Badge
+                            variant="default"
+                            className="bg-green-600 text-white font-normal text-xs hover:bg-green-700"
+                          >
                             Ativo
                           </Badge>
                         )}
@@ -206,7 +230,6 @@ function CustomerGiftCardsPage() {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

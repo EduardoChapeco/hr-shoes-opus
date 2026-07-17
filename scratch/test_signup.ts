@@ -36,14 +36,14 @@ async function run() {
   } else {
     console.log("\n✅ CREATE USER SUCCESS:");
     console.log(data.user?.id, data.user?.email);
-    
+
     // Check if profile was created
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", data.user?.id)
       .single();
-      
+
     if (profileError) {
       console.error("\n❌ PROFILE QUERY FAILED:");
       console.error(profileError);

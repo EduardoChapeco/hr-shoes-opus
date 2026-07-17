@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
+import { createClient } from "@supabase/supabase-js";
+import * as dotenv from "dotenv";
 dotenv.config();
 
 const url = process.env.VITE_SUPABASE_URL!;
@@ -11,8 +11,8 @@ async function testSignupViaAdmin() {
   const supabase = createClient(url, anonKey);
 
   const testEmail = `hrshoes_forense_${Date.now()}@test.com`;
-  const testPassword = 'TestPass123!';
-  const testName = 'Usuário Teste Forense';
+  const testPassword = "TestPass123!";
+  const testName = "Usuário Teste Forense";
 
   console.log("=== TESTE DE CADASTRO VIA ADMIN API (bypass rate limit) ===");
   console.log("Email:", testEmail);
@@ -37,14 +37,14 @@ async function testSignupViaAdmin() {
 
   // Step 2: Wait for trigger
   console.log("PASSO 2: Aguardando 2s para trigger handle_new_user...");
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Step 3: Check profile (service role bypasses RLS)
   console.log("PASSO 3: Verificando profile...");
   const { data: profile, error: profileErr } = await admin
-    .from('profiles')
-    .select('*')
-    .eq('id', userData.user.id)
+    .from("profiles")
+    .select("*")
+    .eq("id", userData.user.id)
     .single();
 
   if (profileErr) {
@@ -56,8 +56,8 @@ async function testSignupViaAdmin() {
     console.log("  full_name:", profile.full_name);
     console.log("  organization_id:", profile.organization_id);
     console.log("  store_id:", profile.store_id);
-    
-    const expectedRole = 'owner'; // First user should be owner
+
+    const expectedRole = "owner"; // First user should be owner
     if (profile.role === expectedRole) {
       console.log(`  ✅ Role correta: ${profile.role} (primeiro usuário = owner)`);
     } else {
@@ -76,7 +76,12 @@ async function testSignupViaAdmin() {
     console.error("❌ Login falhou:", loginErr.message);
   } else {
     console.log("✅ Login OK");
-    console.log("  access_token:", loginData.session?.access_token ? "PRESENTE (" + loginData.session.access_token.substring(0, 20) + "...)" : "AUSENTE");
+    console.log(
+      "  access_token:",
+      loginData.session?.access_token
+        ? "PRESENTE (" + loginData.session.access_token.substring(0, 20) + "...)"
+        : "AUSENTE",
+    );
   }
 
   // Step 5: RLS test — read own profile
@@ -86,9 +91,9 @@ async function testSignupViaAdmin() {
       global: { headers: { Authorization: `Bearer ${loginData.session.access_token}` } },
     });
     const { data: myProfile, error: rlsErr } = await authClient
-      .from('profiles')
-      .select('*')
-      .eq('id', loginData.user!.id)
+      .from("profiles")
+      .select("*")
+      .eq("id", loginData.user!.id)
       .single();
 
     if (rlsErr) {
@@ -101,7 +106,7 @@ async function testSignupViaAdmin() {
 
     // Step 6: RLS negative test — try to read all profiles
     console.log("\nPASSO 6: RLS NEGATIVO — tentando ler TODOS os profiles...");
-    const { data: allProfiles } = await authClient.from('profiles').select('*');
+    const { data: allProfiles } = await authClient.from("profiles").select("*");
     console.log(`  Profiles visíveis: ${allProfiles?.length ?? 0}`);
     if ((allProfiles?.length ?? 0) <= 1) {
       console.log("  ✅ RLS OK — usuário só vê o próprio perfil");
@@ -112,7 +117,7 @@ async function testSignupViaAdmin() {
 
   // Cleanup
   console.log("\nPASSO 7: Limpando...");
-  await admin.from('profiles').delete().eq('id', userData.user.id);
+  await admin.from("profiles").delete().eq("id", userData.user.id);
   await admin.auth.admin.deleteUser(userData.user.id);
   console.log("✅ Teste limpo");
 

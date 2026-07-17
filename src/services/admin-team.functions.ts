@@ -92,20 +92,20 @@ export async function inviteTeamMemberHandler(input: {
     password: "HrShoes123!", // Temp password
     email_confirm: true,
     user_metadata: {
-       full_name: input.fullName
-    }
+      full_name: input.fullName,
+    },
   });
 
   if (authError) throw new Error(`Erro ao criar conta Auth: ${authError.message}`);
 
-  // 2. The trigger `on_auth_user_created` in Postgres automatically creates a `profiles` row 
+  // 2. The trigger `on_auth_user_created` in Postgres automatically creates a `profiles` row
   // with role 'customer'. We need to update it to the desired team role and link to store.
   const { error: profileError } = await db
     .from("profiles")
-    .update({ 
-       role: input.role,
-       store_id: identity.store_id,
-       full_name: input.fullName
+    .update({
+      role: input.role,
+      store_id: identity.store_id,
+      full_name: input.fullName,
     })
     .eq("id", authData.user.id);
 

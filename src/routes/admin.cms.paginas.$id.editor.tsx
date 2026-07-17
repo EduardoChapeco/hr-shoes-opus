@@ -12,7 +12,7 @@ import {
   Smartphone,
   Monitor,
   Eye,
-  Settings2
+  Settings2,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -50,9 +50,10 @@ const MOCK_PRODUCTS: ProductCardDTO[] = [
     brand: "Hr Shoes",
     priceCents: 19990,
     compareAtCents: null,
-    coverUrl: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=500&auto=format&fit=crop&q=60",
+    coverUrl:
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=500&auto=format&fit=crop&q=60",
     coverAlt: "Scarpin Nude Verniz",
-    isOutOfStock: false
+    isOutOfStock: false,
   },
   {
     id: "2",
@@ -61,9 +62,10 @@ const MOCK_PRODUCTS: ProductCardDTO[] = [
     brand: "Hr Shoes",
     priceCents: 17990,
     compareAtCents: 24990,
-    coverUrl: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&auto=format&fit=crop&q=60",
+    coverUrl:
+      "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&auto=format&fit=crop&q=60",
     coverAlt: "Sandália Salto Bloco Couro",
-    isOutOfStock: false
+    isOutOfStock: false,
   },
   {
     id: "3",
@@ -72,9 +74,10 @@ const MOCK_PRODUCTS: ProductCardDTO[] = [
     brand: "Hr Shoes",
     priceCents: 12990,
     compareAtCents: null,
-    coverUrl: "https://images.unsplash.com/photo-1539185441755-769473a23570?w=500&auto=format&fit=crop&q=60",
+    coverUrl:
+      "https://images.unsplash.com/photo-1539185441755-769473a23570?w=500&auto=format&fit=crop&q=60",
     coverAlt: "Sapatilha Bico Fino Confort",
-    isOutOfStock: false
+    isOutOfStock: false,
   },
   {
     id: "4",
@@ -83,10 +86,11 @@ const MOCK_PRODUCTS: ProductCardDTO[] = [
     brand: "Hr Shoes",
     priceCents: 15990,
     compareAtCents: null,
-    coverUrl: "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=500&auto=format&fit=crop&q=60",
+    coverUrl:
+      "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=500&auto=format&fit=crop&q=60",
     coverAlt: "Mule Tassel Camurça Preto",
-    isOutOfStock: false
-  }
+    isOutOfStock: false,
+  },
 ];
 
 export const Route = createFileRoute("/admin/cms/paginas/$id/editor")({
@@ -94,7 +98,7 @@ export const Route = createFileRoute("/admin/cms/paginas/$id/editor")({
   loader: async ({ params }) => {
     const [res, colRes] = await Promise.all([
       getAdminPageDetails({ data: { id: params.id } }),
-      listCollections()
+      listCollections(),
     ]);
     if (res.status === "error") throw new Error(res.message);
     if (res.status === "unconfigured") throw new Error("Supabase não configurado");
@@ -247,7 +251,10 @@ function PageEditor() {
             </Button>
           </div>
           {items.map((item, itemIdx) => (
-            <div key={itemIdx} className="relative space-y-4 border p-4 rounded bg-background shadow-sm">
+            <div
+              key={itemIdx}
+              className="relative space-y-4 border p-4 rounded bg-background shadow-sm"
+            >
               <Button
                 variant="ghost"
                 size="icon"
@@ -261,7 +268,10 @@ function PageEditor() {
               </Button>
               <div className="grid gap-4 md:grid-cols-1 pr-8">
                 {field.subFields!.map((subField) => {
-                  const subValue = item[subField.name] !== undefined ? item[subField.name] : (subField.defaultValue ?? "");
+                  const subValue =
+                    item[subField.name] !== undefined
+                      ? item[subField.name]
+                      : (subField.defaultValue ?? "");
                   return (
                     <div key={subField.name} className="space-y-2">
                       <Label>{subField.label}</Label>
@@ -288,13 +298,22 @@ function PageEditor() {
                         />
                       ) : (
                         <Input
-                          type={subField.type === "color" ? "color" : subField.type === "number" ? "number" : "text"}
+                          type={
+                            subField.type === "color"
+                              ? "color"
+                              : subField.type === "number"
+                                ? "number"
+                                : "text"
+                          }
                           value={subValue}
                           onChange={(e) => {
                             const newItems = [...items];
                             newItems[itemIdx] = {
                               ...newItems[itemIdx],
-                              [subField.name]: subField.type === "number" ? Number(e.target.value) : e.target.value,
+                              [subField.name]:
+                                subField.type === "number"
+                                  ? Number(e.target.value)
+                                  : e.target.value,
                             };
                             updateSectionContent(index, field.name, newItems);
                           }}
@@ -386,7 +405,8 @@ function PageEditor() {
       );
     }
 
-    const inputType = field.type === "color" ? "color" : field.type === "number" ? "number" : "text";
+    const inputType =
+      field.type === "color" ? "color" : field.type === "number" ? "number" : "text";
 
     return (
       <div key={field.name} className="space-y-2">
@@ -439,7 +459,9 @@ function PageEditor() {
             </Link>
           </Button>
           <span className="font-semibold text-sm">Visual Builder: {page.title}</span>
-          <span className="text-xs text-muted-foreground font-mono hidden sm:inline">/{page.slug}</span>
+          <span className="text-xs text-muted-foreground font-mono hidden sm:inline">
+            /{page.slug}
+          </span>
         </div>
 
         {/* Device Switcher */}
@@ -474,14 +496,13 @@ function PageEditor() {
 
       {/* Editor Split-Screen Layout */}
       <div className="flex-1 flex overflow-hidden">
-        
         {/* Left Side: Realtime high-fidelity live preview */}
         <div className="flex-1 h-full overflow-y-auto bg-muted/30 p-6 flex justify-center items-start">
-          <div className={`w-full transition-all duration-300 ${previewDevice === "mobile" ? "max-w-sm border-8 border-slate-900 rounded-[36px] shadow-2xl bg-background overflow-hidden min-h-[680px] my-4" : "max-w-screen-lg bg-background rounded-lg border shadow-md min-h-screen"}`}>
-            
+          <div
+            className={`w-full transition-all duration-300 ${previewDevice === "mobile" ? "max-w-sm border-8 border-slate-900 rounded-[36px] shadow-2xl bg-background overflow-hidden min-h-[680px] my-4" : "max-w-screen-lg bg-background rounded-lg border shadow-md min-h-screen"}`}
+          >
             {/* Device frame content wrapper */}
             <div className="relative w-full h-full flex flex-col gap-6 pb-20">
-              
               {/* Simulated header inside iframe */}
               <div className="border-b px-4 py-3 flex items-center justify-between text-xs font-semibold select-none bg-background text-muted-foreground shrink-0 border-dashed">
                 <span>Hr Shoes Vitrine</span>
@@ -505,7 +526,9 @@ function PageEditor() {
                       className={`relative group border-2 transition-all ${isActive ? "border-primary ring-4 ring-primary/10" : "border-transparent hover:border-primary/40"} cursor-pointer`}
                     >
                       {/* Interactive Section Cover Details */}
-                      <div className={`absolute top-2 left-2 z-10 bg-primary text-primary-foreground text-[10px] uppercase font-bold px-2 py-0.5 rounded shadow ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100 transition-opacity"}`}>
+                      <div
+                        className={`absolute top-2 left-2 z-10 bg-primary text-primary-foreground text-[10px] uppercase font-bold px-2 py-0.5 rounded shadow ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100 transition-opacity"}`}
+                      >
                         {cmsRegistry[section.section_type]?.label || section.section_type}
                       </div>
 
@@ -523,7 +546,6 @@ function PageEditor() {
 
         {/* Right Side: Properties / Block Settings Sidebar */}
         <div className="w-[420px] shrink-0 border-l bg-card flex flex-col h-full overflow-hidden">
-          
           {/* Sidebar Editor Toolbar */}
           <div className="h-12 border-b flex items-center justify-between px-4 bg-muted/10 shrink-0">
             {activeSectionIndex !== null ? (
@@ -583,7 +605,7 @@ function PageEditor() {
 
                 <div className="border-t pt-4 space-y-4">
                   {cmsRegistry[sections[activeSectionIndex].section_type]?.fields.map((field) =>
-                    renderDynamicField(activeSectionIndex, field, sections[activeSectionIndex])
+                    renderDynamicField(activeSectionIndex, field, sections[activeSectionIndex]),
                   )}
                 </div>
 
@@ -633,9 +655,12 @@ function PageEditor() {
                               {blockDef?.label || section.section_type}
                             </span>
                           </div>
-                          
+
                           {/* Reordering and deleting toolbar on row */}
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                          <div
+                            className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <Button
                               variant="ghost"
                               size="icon"
@@ -679,9 +704,7 @@ function PageEditor() {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );
 }
-

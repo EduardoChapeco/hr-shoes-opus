@@ -1,6 +1,7 @@
 MICROFASE: 0A.1
 
 ### CORREÇÕES DO RELATÓRIO ANTERIOR
+
 - **Hash informado incorretamente**: Declarei `502b03e` como commit-base, mas esse era o próprio commit que eu criei no final da fase. O verdadeiro commit-base era `fd7316a`.
 - **Status incorretamente classificado**: Utilizei "COMPROVADO LOCALMENTE" para análises puramente estáticas de schema, o que é conceitualmente errado, pois não executou runtime.
 - **Hipóteses não comprovadas**: Afirmei cegamente que ServerFn não poderia retornar `{ status: "error" }` sem provar a estrutura inteira das branches do Supabase RPC.
@@ -20,7 +21,7 @@ HASH REMOTO: `fd7316a` (Ainda não foi feito o push das correções de auditoria
 
 DIFF: As alterações feitas (remoção de `res.status === "error"`) estavam unicamente no commit `502b03e`. O diff contra `fd7316a` mostra apenas as deleções corretas.
 
-CONTRADIÇÃO ANTERIOR EXPLICADA: A divergência de hash originou-se do fato de que o relatório markdown foi escrito simultaneamente ou logo antes do commit. Inseri o hash gerado (`502b03e`) equivocadamente tanto na origem quanto no final da documentação. O working tree ficou limpo depois da operação. 
+CONTRADIÇÃO ANTERIOR EXPLICADA: A divergência de hash originou-se do fato de que o relatório markdown foi escrito simultaneamente ou logo antes do commit. Inseri o hash gerado (`502b03e`) equivocadamente tanto na origem quanto no final da documentação. O working tree ficou limpo depois da operação.
 
 STATUS DO GIT: EVIDÊNCIA DE GIT COMPROVADA
 
@@ -28,13 +29,13 @@ STATUS DO GIT: EVIDÊNCIA DE GIT COMPROVADA
 
 ### CREATE SERVER FUNCTION
 
-COMPORTAMENTO REAL DO FRAMEWORK: 
+COMPORTAMENTO REAL DO FRAMEWORK:
 O TanStack Start `createServerFn` cria um endpoint RPC isomorfo. Se o bloco `.handler()` jogar uma exceção (via `throw new Error()`), o servidor captura essa exceção e envia ao cliente uma resposta de erro HTTP com o payload interno (geralmente um `ServerFnError` customizado). A camada cliente (`await fetcher()`) automaticamente rejeita a Promise, transferindo o fluxo da UI imediatamente para o bloco `catch (e)`. Portanto, a atribuição em variável de sucesso (`const res = await ...`) nunca conterá um objeto de erro do backend caso a exceção seja lançada. Se a função não lançar `throw` e simplesmente fizer um `return { status: "error" }`, aí sim o catch não seria acionado.
 
-EVIDÊNCIA: 
+EVIDÊNCIA:
 Análise de todas as ServerFns listadas (`closeRegister`, `addRegisterEntry`, `createGiftCard`, `cancelGiftCard`) demonstra que ELAS POSSUEM `if (error) throw new Error(...)`. Em nenhuma branch elas fazem `return { status: "error" }`. Portanto, o fluxo de erro real sempre cairá no `catch` da UI.
 
-LIMITAÇÕES: 
+LIMITAÇÕES:
 Uma análise estática prova que a exceção é lançada pelo handler. Porém, sem runtime, não é possível provar 100% que middlewares da stack não estejam interceptando o erro e engolindo-o antes de chegar à UI, embora isso fosse contra o design do TanStack Start.
 
 ---
@@ -45,6 +46,7 @@ CONTRATO:
 Retorna `{ status: "success", expected: number, counted: number, discrepancy: boolean }` em sucesso. Lança `Error` em caso de erro no Supabase.
 
 BRANCHES:
+
 - `existing === null`: Lança erro (Caixa não encontrado).
 - `status !== "open"`: Lança erro (Caixa não aberto).
 - Erro no RPC `close_cash_register`: Lança erro (Sem resposta / falha).
@@ -76,7 +78,7 @@ CONTRATO:
 Recebe `{ registerId, amountCents, method, description }`. Retorna `{ status: "success" }` ou lança `Error`.
 
 REGRA DO METHOD:
-A regra de hardcode `method: "cash"` na UI de *Lançamento Avulso / Sangria* é funcionalmente correta porque esse dialog destina-se a manuseios de dinheiro físico da gaveta.
+A regra de hardcode `method: "cash"` na UI de _Lançamento Avulso / Sangria_ é funcionalmente correta porque esse dialog destina-se a manuseios de dinheiro físico da gaveta.
 
 FONTE DA REGRA:
 Comprovado pelas opções textuais da UI (`Sangria / Saída` e `Entrada / Reforço`), que são operações puramente de cofre/gaveta em varejo físico. A tabela `cash_register_entries` (criada na migration `0007`) aceita outros enums (`credit`, `pix`), mas estes são populados pelo sistema de vendas (`payment.functions.ts` / checkout), não pela adição manual do operador ao reforçar o caixa. Portanto, para a feature de Lançamento Avulso da UI, `method: "cash"` é uma regra de negócio validada e coerente.
@@ -121,6 +123,7 @@ STATUS: CONTRATO ANALISADO ESTATICAMENTE, RUNTIME NÃO COMPROVADO
 ### CANCEL GIFT CARD
 
 CONTRATO:
+
 - Arquivo: `src/services/giftcard.functions.ts`
 - Símbolo: `cancelGiftCard`
 - Schema de entrada: `{ id: string (uuid) }`
@@ -154,6 +157,7 @@ DOCUMENTAÇÃO:
 COMMIT FINAL: Nenhum novo commit gerado unicamente pela revisão documental. (O hash real da alteração de código da 0A permanece `502b03e`).
 
 GATES APROVADOS:
+
 - A contradição do hash está resolvida.
 - Os quatro contratos (closeRegister, addRegisterEntry, createGiftCard, cancelGiftCard) estão mapeados.
 - cancelGiftCard foi auditada isoladamente.
@@ -161,6 +165,7 @@ GATES APROVADOS:
 - Artifact atualizado.
 
 GATES REPROVADOS:
+
 - Testes de contrato foram executados? NÃO (RUNTIME NÃO EXECUTADO)
 - Testes de consumidores? NÃO
 - Teste de runtime? NÃO
@@ -169,8 +174,8 @@ GATES REPROVADOS:
 STATUS FINAL:
 MICROFASE 0A.1 BLOQUEADA
 
-
 ---
+
 <details>
 <summary>VERSÃO ANTERIOR (OBSOLETA)</summary>
 
@@ -181,6 +186,7 @@ ESCOPO: `admin.caixa.index.tsx`, `closeRegister`, `addRegisterEntry`, `admin.mar
 COMMIT-BASE: Atual do working tree (após correções de import SSR)
 
 ARQUIVOS ANALISADOS:
+
 - `src/routes/admin.caixa.index.tsx`
 - `src/services/cash.functions.ts`
 - `src/routes/admin.marketing.gift-cards.tsx`
@@ -188,11 +194,13 @@ ARQUIVOS ANALISADOS:
 - `supabase/migrations/0034_cash_transactional_close.sql`
 
 CONSUMIDORES LOCALIZADOS:
+
 - `closeRegister`: `handleClose` em `admin.caixa.index.tsx`
 - `addRegisterEntry`: `handleEntry` em `admin.caixa.index.tsx`
 - `createGiftCard`: `handleCreate` em `admin.marketing.gift-cards.tsx`
 
 DECLARAÇÕES ANTERIORES AUDITADAS:
+
 - "As três regressões foram corrigidas." (Parcialmente verdade, o wrapper `.data` não estava mais lá, mas sobrou o falso tratamento de erro).
 - "Não existem falhas silenciosas detectáveis." (Falso: Havia um bloqueio de exceção silencioso porque o frontend presumia `res.status === "error"`, enquanto `createServerFn` joga `Error`. O catch global estava capturando mas o dead code permanecia).
 
@@ -303,6 +311,7 @@ DOCUMENTAÇÃO ATUALIZADA:
 Nenhuma matriz alterada, registro focado na execução atual.
 
 CAMINHOS DOS ARTIFACTS NO REPOSITÓRIO:
+
 - `docs/audit/MICROFASE_0A.md`
 
 TESTES EXECUTADOS:

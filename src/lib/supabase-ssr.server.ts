@@ -37,10 +37,13 @@ export function getSSRClient() {
         // Extract { name, value } from the raw cookie header string using regex/split or supabase's parser if imported.
         // Actually, we can use `getCookie` from @tanstack/react-start/server in a loop, but `getAll` expects all of them.
         // Let's implement a simple parser for getAll since it's just `name=value; ...`
-        return cookieHeader.split(';').map(c => {
-          const [name, ...rest] = c.split('=');
-          return { name: name?.trim() || "", value: rest.join('=').trim() };
-        }).filter(c => c.name);
+        return cookieHeader
+          .split(";")
+          .map((c) => {
+            const [name, ...rest] = c.split("=");
+            return { name: name?.trim() || "", value: rest.join("=").trim() };
+          })
+          .filter((c) => c.name);
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {

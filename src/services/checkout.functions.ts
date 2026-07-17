@@ -110,11 +110,15 @@ export const processCheckout = createServerFn({ method: "POST" })
           if (methodData) {
             providerName = methodData.name;
             if (Number(methodData.discount_percentage) > 0) {
-              const appliedDiscount = Math.floor(order.subtotal_cents * (Number(methodData.discount_percentage) / 100));
+              const appliedDiscount = Math.floor(
+                order.subtotal_cents * (Number(methodData.discount_percentage) / 100),
+              );
               finalDiscount += appliedDiscount;
               finalCents -= appliedDiscount;
             } else if (Number(methodData.surcharge_percentage) > 0) {
-              const appliedSurcharge = Math.floor(order.subtotal_cents * (Number(methodData.surcharge_percentage) / 100));
+              const appliedSurcharge = Math.floor(
+                order.subtotal_cents * (Number(methodData.surcharge_percentage) / 100),
+              );
               finalCents += appliedSurcharge;
             }
           }

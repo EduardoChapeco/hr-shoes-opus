@@ -27,7 +27,6 @@ import type {
   CatalogResult,
 } from "@/types/catalog";
 
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -457,7 +456,11 @@ export const getProductDetail = createServerFn({ method: "GET" })
   .handler(async ({ data: { slug } }): Promise<import("@/types/catalog").ProductDetailResult> => {
     try {
       const db = getAnonServerClient();
-      const { data: store, error: storeError } = await db.from("stores").select("id").limit(1).single();
+      const { data: store, error: storeError } = await db
+        .from("stores")
+        .select("id")
+        .limit(1)
+        .single();
 
       if (storeError || !store) {
         return {
@@ -469,7 +472,8 @@ export const getProductDetail = createServerFn({ method: "GET" })
       // Consulta o produto, mídia e variantes em uma única query
       const { data, error } = await db
         .from("products")
-        .select(`
+        .select(
+          `
           id, slug, title, description, brand, price_cents, compare_at_cents,
           status, seo_title, seo_description,
           product_media(id, url, alt, media_type, sort_order),
@@ -477,7 +481,8 @@ export const getProductDetail = createServerFn({ method: "GET" })
             id, sku, price_override_cents, stock_on_hand, stock_reserved, attributes,
             product_media(id, url, alt, media_type, sort_order)
           )
-        `)
+        `,
+        )
         .eq("store_id", store.id)
         .eq("slug", slug)
         .eq("status", "published")
@@ -608,8 +613,7 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
         logoUrl: typeof settings.logoUrl === "string" ? settings.logoUrl : null,
         instagramHandle:
           typeof settings.instagramHandle === "string" ? settings.instagramHandle : null,
-        businessHours:
-          typeof settings.businessHours === "string" ? settings.businessHours : null,
+        businessHours: typeof settings.businessHours === "string" ? settings.businessHours : null,
       };
 
       return { status: "ok", data: profile };

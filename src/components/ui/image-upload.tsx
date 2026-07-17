@@ -93,11 +93,7 @@ export function ImageUpload({
             onClick={() => inputRef.current?.click()}
             disabled={isUploading}
           >
-            {isUploading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              "Selecionar arquivo"
-            )}
+            {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Selecionar arquivo"}
           </Button>
         </div>
       )}

@@ -8,11 +8,15 @@ const errorMiddleware = createMiddleware().server(async ({ next, handlerType }) 
     if (error instanceof Response) {
       throw error;
     }
-    if (error != null && typeof error === "object" && ("isRedirect" in error || "isNotFound" in error || "statusCode" in error)) {
+    if (
+      error != null &&
+      typeof error === "object" &&
+      ("isRedirect" in error || "isNotFound" in error || "statusCode" in error)
+    ) {
       throw error;
     }
     console.error(error);
-    
+
     // Do not return HTML for server functions
     if (handlerType === "serverFn") {
       return new Response(JSON.stringify({ error: "Internal Server Error" }), {
