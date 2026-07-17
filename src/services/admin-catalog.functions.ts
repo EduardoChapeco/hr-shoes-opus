@@ -739,3 +739,172 @@ export const toggleProductCollection = createServerFn({ method: "POST" })
   .handler(async (): Promise<{ status: "success" } | { status: "error"; message: string }> => {
     return { status: "success" as const };
   });
+
+// ---------------------------------------------------------------------------
+// Ações de Gestão em Lote e Duplicação de Produtos
+// ---------------------------------------------------------------------------
+
+export async function duplicateProductHandler(productId: string) {
+  const db = getServerClient();
+
+  const { data: original, error } = await db
+    .from("products")
+    .select(
+      `
+        *,
+        product_variants (*),
+        product_media (*),
+        product_categories (category_id)
+      `,
+    )
+    .eq("id", productId)
+    .single();
+
+  if (error || !original) throw new Error("Produto original não encontrado para duplicação");
+
+  const timestamp = Date.now();
+  const newTitle = `${original.title} (Cópia)`;
+  const newSlug = `${original.slug}-copia-${timestamp}`;
+
+  const { id: _, created_at: __, updated_at: ___, product_variants, product_media, product_categories, ...restProduct } = original;
+
+  const { data: duplicate, error: dupError } = await db
+    .from("products")
+    .insert({
+      ...restProduct,
+      title: newTitle,
+      slug: newSlug,
+      status: "draft",
+    })
+    .select()
+    .single();
+
+  if (dupError) throw dupError;
+
+  if (original.product_categories && original.product_categories.length > 0) {
+    const catRecords = original.product_categories.map((c: any) => ({
+      product_id: duplicate.id,
+      category_id: c.category_id,
+    }));
+    await db.from("product_categories").insert(catRecords);
+  }
+
+  if (original.product_media && original.product_media.length > 0) {
+    const mediaRecords = original.product_media.map((m: any) => ({
+      product_id: duplicate.id,
+      url: m.url,
+      alt: m.alt,
+      sort_order: m.sort_order,
+    }));
+    await db.from("product_media").insert(mediaRecords);
+  }
+
+  if (original.product_variants && original.product_variants.length > 0) {
+    for (const v of original.product_variants) {
+      await db.from("product_variants").insert({
+        product_id: duplicate.id,
+        sku: `${v.sku}-CP${timestamp.toString().slice(-4)}`,
+        price_override_cents: v.price_override_cents,
+        attributes: v.attributes,
+        stock_on_hand: v.stock_on_hand ?? 0,
+      });
+    }
+  }
+
+  return duplicate;
+}
+
+export const duplicateProduct = createServerFn({ method: "POST" })
+  .validator(z.object({ productId: z.string().uuid() }))
+  .handler(async ({ data: { productId } }) => {
+    try {
+      const data = await duplicateProductHandler(productId);
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] duplicateProduct error:", e);
+      return {
+        status: "error" as const,
+        message: e instanceof Error ? e.message : "Erro ao duplicar produto.",
+      };
+    }
+  });
+
+export async function toggleProductStatusHandler(input: {
+  productId: string;
+  status: "draft" | "published" | "archived";
+}) {
+  const db = getServerClient();
+  const { data, error } = await db
+    .from("products")
+    .update({ status: input.status })
+    .eq("id", input.productId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export const toggleProductStatus = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      productId: z.string().uuid(),
+      status: z.enum(["draft", "published", "archived"]),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const data = await toggleProductStatusHandler(input);
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] toggleProductStatus error:", e);
+      return {
+        status: "error" as const,
+        message: e instanceof Error ? e.message : "Erro ao alterar status.",
+      };
+    }
+  });
+
+export async function bulkUpdateProductStatusHandler(input: {
+  productIds: string[];
+  action: "draft" | "published" | "archived" | "delete";
+}) {
+  const db = getServerClient();
+  if (!input.productIds || input.productIds.length === 0) {
+    return { count: 0 };
+  }
+
+  if (input.action === "delete") {
+    const { error } = await db.from("products").delete().in("id", input.productIds);
+    if (error) throw error;
+    return { count: input.productIds.length };
+  }
+
+  const { error } = await db
+    .from("products")
+    .update({ status: input.action })
+    .in("id", input.productIds);
+
+  if (error) throw error;
+  return { count: input.productIds.length };
+}
+
+export const bulkUpdateProductStatus = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      productIds: z.array(z.string().uuid()),
+      action: z.enum(["draft", "published", "archived", "delete"]),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const res = await bulkUpdateProductStatusHandler(input);
+      return { status: "success" as const, data: res };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] bulkUpdateProductStatus error:", e);
+      return {
+        status: "error" as const,
+        message: e instanceof Error ? e.message : "Erro ao executar ação em lote.",
+      };
+    }
+  });

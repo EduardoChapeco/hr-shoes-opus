@@ -14,6 +14,9 @@ import {
   addProductMediaLinkHandler,
   listCollectionsHandler,
   createCollectionHandler,
+  duplicateProductHandler,
+  toggleProductStatusHandler,
+  bulkUpdateProductStatusHandler,
 } from "./admin-catalog.functions";
 import { getServerClient } from "@/lib/supabase";
 
@@ -559,6 +562,77 @@ describe("Admin Catalog Functions", () => {
       await expect(
         createCollectionHandler({ name: "Verão", slug: "verao", status: "active" }),
       ).rejects.toThrow("DB collections insert fail");
+    });
+  });
+
+  describe("duplicateProductHandler", () => {
+    it("should duplicate product and its variants and media", async () => {
+      const mockOriginal = {
+        id: "p-1",
+        title: "Tênis Runner",
+        slug: "tenis-runner",
+        price_cents: 19990,
+        status: "published",
+        product_variants: [{ sku: "RUN-39", price_override_cents: null, stock_on_hand: 10 }],
+        product_media: [{ url: "https://img.com/1.jpg", sort_order: 0 }],
+        product_categories: [{ category_id: "cat-1" }],
+      };
+
+      const mockDupCreated = {
+        id: "p-dup-1",
+        title: "Tênis Runner (Cópia)",
+        slug: "tenis-runner-copia-123",
+        status: "draft",
+      };
+
+      mockSingle
+        .mockResolvedValueOnce({ data: mockOriginal, error: null })
+        .mockResolvedValueOnce({ data: mockDupCreated, error: null });
+
+      const res = await duplicateProductHandler("p-1");
+
+      expect(res.title).toBe("Tênis Runner (Cópia)");
+      expect(res.status).toBe("draft");
+      expect(mockFrom).toHaveBeenCalledWith("products");
+    });
+  });
+
+  describe("toggleProductStatusHandler", () => {
+    it("should update product status", async () => {
+      mockSingle.mockResolvedValueOnce({
+        data: { id: "p-1", status: "published" },
+        error: null,
+      });
+
+      const res = await toggleProductStatusHandler({ productId: "p-1", status: "published" });
+      expect(res.status).toBe("published");
+      expect(mockUpdate).toHaveBeenCalledWith({ status: "published" });
+    });
+  });
+
+  describe("bulkUpdateProductStatusHandler", () => {
+    it("should update status for multiple products", async () => {
+      mockIn.mockResolvedValueOnce({ error: null });
+
+      const res = await bulkUpdateProductStatusHandler({
+        productIds: ["p-1", "p-2"],
+        action: "archived",
+      });
+
+      expect(res.count).toBe(2);
+      expect(mockIn).toHaveBeenCalledWith("id", ["p-1", "p-2"]);
+    });
+
+    it("should delete multiple products when action is delete", async () => {
+      mockIn.mockResolvedValueOnce({ error: null });
+
+      const res = await bulkUpdateProductStatusHandler({
+        productIds: ["p-1", "p-2"],
+        action: "delete",
+      });
+
+      expect(res.count).toBe(2);
+      expect(mockDelete).toHaveBeenCalled();
     });
   });
 });
