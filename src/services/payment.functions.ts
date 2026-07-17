@@ -316,3 +316,26 @@ export const deleteManualPaymentMethod = createServerFn({ method: "POST" })
     }
   });
 
+export const getPublicPaymentMethods = createServerFn({ method: "GET" })
+  .handler(async () => {
+    try {
+      const db = getServerClient();
+      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      if (!storeData) throw new Error("Loja não encontrada");
+
+      const { data, error } = await db
+        .from("manual_payment_methods")
+        .select("id, name, instructions, surcharge_percentage, discount_percentage")
+        .eq("store_id", storeData.id)
+        .eq("is_active", true)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return { status: "success" as const, data: data || [] };
+    } catch (e: any) {
+      console.error("[payment] getPublicPaymentMethods error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao obter métodos de pagamento públicos." };
+    }
+  });
+
+

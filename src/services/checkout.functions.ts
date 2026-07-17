@@ -34,6 +34,7 @@ const CheckoutSchema = z.object({
     })
     .optional(),
   paymentMethod: z.enum(["pix", "manual", "credit_card", "receipt"]),
+  paymentMethodId: z.string().uuid().optional(),
 });
 
 export const getOrderByToken = createServerFn({ method: "GET" })
@@ -57,7 +58,7 @@ export const processCheckout = createServerFn({ method: "POST" })
       const db = await getServerClient();
 
       // Idempotency key prevents double-processing
-      const idempotencyKey = `checkout-${params.cartId}-${params.paymentMethod}`;
+      const idempotencyKey = `checkout-${params.cartId}-${params.paymentMethod}-${params.paymentMethodId || ""}`;
 
       // Ensure anti-hijacking by extracting the actual current identity
       const identity = await getCurrentIdentity();
@@ -85,11 +86,66 @@ export const processCheckout = createServerFn({ method: "POST" })
         throw new Error("Checkout falhou.");
       }
 
+      // Apply discount or surcharge if a manual payment method is selected
+      if (params.paymentMethodId) {
+        const { data: methodData } = await db
+          .from("manual_payment_methods")
+          .select("name, surcharge_percentage, discount_percentage")
+          .eq("id", params.paymentMethodId)
+          .single();
+
+        if (methodData) {
+          const { data: order } = await db
+            .from("orders")
+            .select("id, subtotal_cents, shipping_cents, discount_cents")
+            .eq("public_token", result.orderToken)
+            .single();
+
+          if (order) {
+            let finalCents = order.subtotal_cents + order.shipping_cents - order.discount_cents;
+            let appliedDiscount = 0;
+
+            if (Number(methodData.discount_percentage) > 0) {
+              appliedDiscount = Math.floor(order.subtotal_cents * (Number(methodData.discount_percentage) / 100));
+              finalCents -= appliedDiscount;
+
+              await db
+                .from("orders")
+                .update({
+                  discount_cents: order.discount_cents + appliedDiscount,
+                  total_cents: finalCents,
+                })
+                .eq("id", order.id);
+            } else if (Number(methodData.surcharge_percentage) > 0) {
+              const appliedSurcharge = Math.floor(order.subtotal_cents * (Number(methodData.surcharge_percentage) / 100));
+              finalCents += appliedSurcharge;
+
+              await db
+                .from("orders")
+                .update({
+                  total_cents: finalCents,
+                })
+                .eq("id", order.id);
+            }
+
+            // Update payment amount and record specific manual name
+            await db
+              .from("payments")
+              .update({
+                provider_name: methodData.name,
+                amount_cents: finalCents,
+              })
+              .eq("order_id", order.id);
+          }
+        }
+      }
+
       return { status: "success" as const, orderToken: result.orderToken };
     } catch (e: any) {
       console.error("[checkout.functions] processCheckout:", e.message);
       return { status: "error" as const, message: e.message || "Erro no checkout" };
     }
   });
+
 
 

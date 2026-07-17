@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { Search, Package } from "lucide-react";
+import { Search, Package, Phone, Calendar, MapPin, User, Check, Loader2 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Input } from "@/components/ui/input";
@@ -16,24 +16,41 @@ import {
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/state/states";
 import { listShippingZones, calculateShipping } from "@/services/shipping.functions";
+import { listOrdersAwaitingShippingQuote, updateOrderShippingQuote } from "@/services/order.functions";
 import { formatMoney } from "@/lib/money";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/fretes/cotacoes")({
   head: () => ({ meta: [{ title: "Cotações de Frete — Hr Shoes" }] }),
   loader: async () => {
-    const res = await listShippingZones();
-    if (res.status === "error") throw new Error(res.message);
-    return res.status === "ok" ? res.data : [];
+    const [zonesRes, pendingRes] = await Promise.all([
+      listShippingZones(),
+      listOrdersAwaitingShippingQuote(),
+    ]);
+
+    if (zonesRes.status === "error") throw new Error(zonesRes.message);
+    if (pendingRes.status === "error") throw new Error(pendingRes.message);
+
+    return {
+      zones: zonesRes.status === "ok" ? zonesRes.data : [],
+      pendingOrders: pendingRes.status === "ok" ? pendingRes.data : [],
+    };
   },
-  component: FretesCotatoesPage,
+  component: FretesCotacoesPage,
 });
 
-function FretesCotatoesPage() {
-  const zones = Route.useLoaderData() as any[];
+function FretesCotacoesPage() {
+  const { zones, pendingOrders } = Route.useLoaderData();
+  const router = useRouter();
+
+  // Simulating states
   const [zipcode, setZipcode] = useState("");
   const [results, setResults] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Manual quotes inputs
+  const [quoteValues, setQuoteValues] = useState<Record<string, string>>({});
+  const [savingOrderId, setSavingOrderId] = useState<string | null>(null);
 
   const handleSimulate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,15 +70,166 @@ function FretesCotatoesPage() {
     }
   };
 
+  const handleApplyQuote = async (orderId: string) => {
+    const rawVal = quoteValues[orderId];
+    if (!rawVal || isNaN(Number(rawVal)) || Number(rawVal) < 0) {
+      toast.error("Por favor, digite um valor de frete válido (R$) maior ou igual a zero.");
+      return;
+    }
+
+    const shippingCents = Math.round(parseFloat(rawVal) * 100);
+    setSavingOrderId(orderId);
+    try {
+      const res = await updateOrderShippingQuote({
+        data: {
+          orderId,
+          shippingCents,
+        },
+      });
+
+      if (res.status === "success") {
+        toast.success("Frete adicionado! Pedido liberado para pagamento.");
+        router.invalidate();
+      } else {
+        toast.error(res.message || "Erro ao salvar cotação.");
+      }
+    } catch (err) {
+      toast.error("Erro inesperado");
+    } finally {
+      setSavingOrderId(null);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Simulador de Cotações"
-        description="Teste o cálculo de frete para um CEP usando as zonas configuradas."
+        title="Cotações de Frete"
+        description="Aprove solicitações de frete pendentes e simule cálculos por CEP."
       />
 
+      {/* Solicitações Pendentes */}
       <div className="rounded-lg border bg-card p-6">
-        <h3 className="font-semibold mb-4">Simular Frete por CEP</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            Solicitações Pendentes
+            <Badge variant="destructive" className="ml-1 text-xs">
+              {pendingOrders.length}
+            </Badge>
+          </h3>
+        </div>
+
+        {pendingOrders.length === 0 ? (
+          <div className="py-8 text-center border border-dashed rounded-lg bg-muted/10">
+            <p className="text-sm text-muted-foreground">Nenhum pedido aguardando cotação de frete no momento.</p>
+          </div>
+        ) : (
+          <div className="rounded-md border bg-card overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Pedido</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Endereço de Entrega</TableHead>
+                  <TableHead>Subtotal</TableHead>
+                  <TableHead className="w-[180px]">Valor do Frete (R$)</TableHead>
+                  <TableHead className="w-[120px] text-right">Ação</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingOrders.map((order: any) => {
+                  const client = order.customer_snapshot || {};
+                  const addr = order.shipping_address || {};
+                  
+                  return (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex flex-col">
+                          <span>#{order.public_token}</span>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5 font-normal">
+                            <Calendar className="size-3" />
+                            {new Date(order.created_at).toLocaleDateString("pt-BR")}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col text-sm">
+                          <span className="font-medium flex items-center gap-1">
+                            <User className="size-3 text-muted-foreground" />
+                            {client.name || "Cliente"}
+                          </span>
+                          {client.phone && (
+                            <a
+                              href={`https://wa.me/55${client.phone.replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline flex items-center gap-1 mt-0.5"
+                            >
+                              <Phone className="size-3" />
+                              {client.phone}
+                            </a>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[280px]">
+                        <div className="flex flex-col text-xs font-normal text-muted-foreground">
+                          <span className="font-medium text-foreground">
+                            {addr.neighborhood || "-"}, {addr.city || "-"} - {addr.state || "-"}
+                          </span>
+                          <span>
+                            {addr.street || "-"}, {addr.number || "-"}
+                            {addr.complement && ` (${addr.complement})`}
+                          </span>
+                          <span>CEP: {addr.zipcode || "-"}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-semibold text-sm">
+                        {formatMoney(order.subtotal_cents - order.discount_cents)}
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="R$ 0,00"
+                          value={quoteValues[order.id] || ""}
+                          onChange={(e) =>
+                            setQuoteValues({
+                              ...quoteValues,
+                              [order.id]: e.target.value,
+                            })
+                          }
+                          disabled={savingOrderId === order.id}
+                          className="h-9"
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          onClick={() => handleApplyQuote(order.id)}
+                          disabled={savingOrderId === order.id || !quoteValues[order.id]}
+                        >
+                          {savingOrderId === order.id ? (
+                            <Loader2 className="animate-spin size-4" />
+                          ) : (
+                            <>
+                              <Check className="mr-1 size-3.5" />
+                              Liberar
+                            </>
+                          )}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
+
+      {/* Simulador de Cotações */}
+      <div className="rounded-lg border bg-card p-6">
+        <h3 className="font-semibold mb-4 text-lg">Simular Frete por CEP</h3>
         <form onSubmit={handleSimulate} className="flex gap-3 max-w-sm">
           <Input
             placeholder="00000-000"
@@ -77,26 +245,26 @@ function FretesCotatoesPage() {
         {results !== null && (
           <div className="mt-6">
             {results.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground font-normal">
                 Nenhuma opção de frete encontrada para o CEP informado. Verifique as zonas
                 configuradas.
               </p>
             ) : (
               <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground mb-3">
+                <p className="text-sm font-medium text-muted-foreground mb-3 font-normal">
                   {results.length} opção(ões) disponível(is) para {zipcode}:
                 </p>
                 {results.map((r: any) => (
                   <div
                     key={r.id}
-                    className="flex items-center justify-between rounded-md border px-4 py-3"
+                    className="flex items-center justify-between rounded-xl border px-4 py-3 bg-muted/10"
                   >
                     <div className="flex items-center gap-3">
-                      <Package className="h-5 w-5 text-muted-foreground" />
+                      <Package className="h-5 w-5 text-muted-foreground animate-pulse" />
                       <div>
-                        <p className="font-medium">{r.name}</p>
+                        <p className="font-medium text-sm">{r.name}</p>
                         {r.estimated_days && (
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground font-normal">
                             Prazo estimado: {r.estimated_days} dias
                           </p>
                         )}
@@ -106,10 +274,10 @@ function FretesCotatoesPage() {
                       {r.price_cents === 0 ? (
                         <Badge variant="secondary">Grátis</Badge>
                       ) : (
-                        <p className="font-semibold">{formatMoney(r.price_cents)}</p>
+                        <p className="font-semibold text-sm">{formatMoney(r.price_cents)}</p>
                       )}
                       {r.min_order_cents && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground font-normal">
                           Mín: {formatMoney(r.min_order_cents)}
                         </p>
                       )}
@@ -122,8 +290,9 @@ function FretesCotatoesPage() {
         )}
       </div>
 
+      {/* Zonas Ativas */}
       <div className="rounded-lg border bg-card p-6">
-        <h3 className="font-semibold mb-4">Zonas Ativas ({zones.length})</h3>
+        <h3 className="font-semibold mb-4 text-lg">Zonas Ativas ({zones.length})</h3>
         {zones.length === 0 ? (
           <EmptyState
             title="Nenhuma zona configurada"
@@ -134,11 +303,11 @@ function FretesCotatoesPage() {
             {zones.map((z: any) => (
               <div
                 key={z.id}
-                className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm"
+                className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm bg-muted/15"
               >
                 <span className="font-medium">{z.name}</span>
-                <span className="text-muted-foreground">({(z.regions || []).join(", ")})</span>
-                <Badge variant={z.is_active ? "secondary" : "outline"} className="text-xs">
+                <span className="text-muted-foreground font-normal">({(z.regions || []).join(", ")})</span>
+                <Badge variant={z.is_active ? "secondary" : "outline"} className="text-xs font-normal">
                   {z.rates?.length || 0} taxa(s)
                 </Badge>
               </div>

@@ -211,3 +211,78 @@ export const getCustomerOrder = createServerFn({ method: "GET" })
       };
     }
   });
+
+export const listOrdersAwaitingShippingQuote = createServerFn({ method: "GET" })
+  .handler(async () => {
+    try {
+      const db = getServerClient();
+      const { data, error } = await db
+        .from("orders")
+        .select(
+          `
+            id, public_token, status, subtotal_cents, discount_cents, total_cents,
+            customer_snapshot, shipping_address, created_at, shipping_method
+          `
+        )
+        .eq("status", "awaiting_shipping_quote")
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      return { status: "ok" as const, data: data || [] };
+    } catch (e: any) {
+      console.error("[order.functions] listOrdersAwaitingShippingQuote error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao buscar solicitações de frete." };
+    }
+  });
+
+export const updateOrderShippingQuote = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      orderId: z.string().uuid(),
+      shippingCents: z.number().int().min(0),
+    })
+  )
+  .handler(async ({ data: { orderId, shippingCents } }) => {
+    try {
+      const db = getServerClient();
+
+      // Load current order
+      const { data: order, error: orderError } = await db
+        .from("orders")
+        .select("id, subtotal_cents, discount_cents")
+        .eq("id", orderId)
+        .single();
+
+      if (orderError || !order) throw new Error("Pedido não encontrado");
+
+      // Recalculate total
+      const newTotal = order.subtotal_cents + shippingCents - order.discount_cents;
+
+      // Update order status to awaiting_payment, set shipping_cents and total_cents
+      const { error: updateError } = await db
+        .from("orders")
+        .update({
+          shipping_cents: shippingCents,
+          total_cents: newTotal >= 0 ? newTotal : 0,
+          status: "awaiting_payment"
+        })
+        .eq("id", orderId);
+
+      if (updateError) throw updateError;
+
+      // Update associated payment amount
+      const { error: payError } = await db
+        .from("payments")
+        .update({
+          amount_cents: newTotal >= 0 ? newTotal : 0
+        })
+        .eq("order_id", orderId);
+
+      if (payError) throw payError;
+
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[order.functions] updateOrderShippingQuote error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao atualizar frete do pedido." };
+    }
+  });
