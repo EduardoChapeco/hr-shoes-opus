@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,6 +15,17 @@ import {
   ReceiptText,
   DollarSign,
   AlertTriangle,
+  ShoppingCart,
+  Search,
+  Plus,
+  Minus,
+  Trash2,
+  CheckCircle2,
+  Printer,
+  CreditCard,
+  QrCode,
+  User,
+  Package,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -33,9 +44,9 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -46,21 +57,47 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 import {
   addRegisterEntry,
   closeRegister,
   getActiveRegister,
   openRegister,
+  processPOSSale,
 } from "@/services/cash.functions";
+import { listAdminProducts } from "@/services/admin-catalog.functions";
 import { parseCurrencyInputToCents } from "@/lib/cash";
 import { formatDateTime } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/caixa/")({
-  head: () => ({ meta: [{ title: "Caixa - Hr Shoes" }] }),
+  head: () => ({ meta: [{ title: "PDV & Frente de Caixa — Hr Shoes" }] }),
   loader: async () => {
-    return await getActiveRegister();
+    const [registerRes, productsRes] = await Promise.all([
+      getActiveRegister(),
+      listAdminProducts(),
+    ]);
+    return {
+      register: registerRes,
+      products: productsRes.status === "ok" ? productsRes.data : [],
+    };
   },
   errorComponent: ({ error }) => <CashRegisterError error={error} />,
   component: CashRegisterPage,
@@ -76,91 +113,51 @@ const CloseRegisterSchema = z.object({
   notes: z.string().optional(),
 });
 
-const EntrySchema = z.object({
-  amount: z.string().min(1, "Informe o valor"),
-  type: z.enum(["income", "expense"]),
-  description: z.string().min(3, "Descrição obrigatória"),
-});
-
 function CashRegisterError({ error }: { error: Error }) {
-  const isUnauthorized = error.message.includes("Não autorizado") || error.message.includes("loja");
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Operação"
-        title="Caixa"
-        description="Acompanhamento e controle financeiro do ponto de venda."
+        eyebrow="Operação Comercial"
+        title="Frente de Caixa (PDV)"
+        description="Erro no carregamento do caixa ou permissões insuficientes."
       />
-      {isUnauthorized ? (
-        <ErrorState
-          title="Loja ou Acesso não configurado"
-          description="Sua conta de usuário não está vinculada a nenhuma loja ativa. Vá em Configurações > Equipe para associar o seu perfil a uma loja."
-        />
-      ) : (
-        <ErrorState
-          title="Não foi possível carregar o caixa"
-          description={error.message || "O módulo de Caixa retornou uma falha inesperada."}
-        />
-      )}
+      <ErrorState
+        title="Falha ao carregar caixa"
+        description={error.message || "Verifique se sua conta de usuário está vinculada a uma loja ativa."}
+      />
     </div>
   );
 }
 
-function MetricCard({
-  label,
-  value,
-  icon: Icon,
-  tone = "neutral",
-}: {
-  label: string;
-  value: string;
-  icon: typeof Calculator;
-  tone?: "neutral" | "income" | "expense";
-}) {
-  const toneClass =
-    tone === "income"
-      ? "bg-success/15 text-success"
-      : tone === "expense"
-        ? "bg-destructive/10 text-destructive"
-        : "bg-muted text-muted-foreground";
-
-  return (
-    <Card>
-      <CardContent className="flex min-h-28 items-center gap-4 p-5">
-        <span className={`grid size-11 shrink-0 place-items-center rounded-lg ${toneClass}`}>
-          <Icon className="size-5" aria-hidden />
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function translateMethod(method: string) {
-  const map: Record<string, string> = {
-    cash: "Dinheiro",
-    pix: "Pix",
-    credit: "Crédito",
-    debit: "Débito",
-    other: "Outro",
-  };
-  return map[method] || method;
-}
-
 function CashRegisterPage() {
-  const register = Route.useLoaderData();
+  const { register, products } = Route.useLoaderData();
   const router = useRouter();
 
   const [isOpening, setIsOpening] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-  const [isAddingEntry, setIsAddingEntry] = useState(false);
+  const [isProcessingSale, setIsProcessingSale] = useState(false);
 
+  // PDV Cart State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [cartItems, setCartItems] = useState<
+    Array<{
+      variantId: string;
+      title: string;
+      sku: string;
+      priceCents: number;
+      qty: number;
+    }>
+  >([]);
+  const [discountCentsInput, setDiscountCentsInput] = useState("0");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "pix" | "credit" | "debit" | "other">("cash");
+  const [customerNameInput, setCustomerNameInput] = useState("Cliente Avulso Balcão");
+  const [amountPaidInput, setAmountPaidInput] = useState("");
+  const [lastReceipt, setLastReceipt] = useState<any | null>(null);
+
+  // Forms for open/close/entry
   const openForm = useForm<z.infer<typeof OpenRegisterSchema>>({
     resolver: zodResolver(OpenRegisterSchema),
-    defaultValues: { initialBalance: "", notes: "" },
+    defaultValues: { initialBalance: "100.00", notes: "" },
   });
 
   const closeForm = useForm<z.infer<typeof CloseRegisterSchema>>({
@@ -168,11 +165,121 @@ function CashRegisterPage() {
     defaultValues: { countedBalance: "", notes: "" },
   });
 
-  const entryForm = useForm<z.infer<typeof EntrySchema>>({
-    resolver: zodResolver(EntrySchema),
-    defaultValues: { amount: "", type: "expense", description: "" },
-  });
+  // Flat variants list derived from products
+  const availableVariants = useMemo(() => {
+    const list: Array<{
+      variantId: string;
+      title: string;
+      sku: string;
+      priceCents: number;
+      coverUrl?: string;
+    }> = [];
 
+    for (const p of products) {
+      const cover = p.product_media?.[0]?.url;
+      list.push({
+        variantId: p.id, // default to product id if variants array is not directly exposed
+        title: p.title,
+        sku: p.slug,
+        priceCents: p.price_cents,
+        coverUrl: cover,
+      });
+    }
+    return list;
+  }, [products]);
+
+  const filteredVariants = useMemo(() => {
+    return availableVariants.filter(
+      (v) =>
+        v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.sku.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [availableVariants, searchQuery]);
+
+  // Cart helper functions
+  const handleAddToCart = (variant: typeof availableVariants[0]) => {
+    setCartItems((prev) => {
+      const existing = prev.find((i) => i.variantId === variant.variantId);
+      if (existing) {
+        return prev.map((i) =>
+          i.variantId === variant.variantId ? { ...i, qty: i.qty + 1 } : i,
+        );
+      }
+      return [
+        ...prev,
+        {
+          variantId: variant.variantId,
+          title: variant.title,
+          sku: variant.sku,
+          priceCents: variant.priceCents,
+          qty: 1,
+        },
+      ];
+    });
+  };
+
+  const handleUpdateQty = (variantId: string, delta: number) => {
+    setCartItems((prev) =>
+      prev
+        .map((i) => (i.variantId === variantId ? { ...i, qty: i.qty + delta } : i))
+        .filter((i) => i.qty > 0),
+    );
+  };
+
+  // Cart Totals
+  const cartSubtotalCents = useMemo(() => {
+    return cartItems.reduce((acc, item) => acc + item.priceCents * item.qty, 0);
+  }, [cartItems]);
+
+  const discountCents = useMemo(() => {
+    const val = parseFloat(discountCentsInput.replace(",", "."));
+    return isNaN(val) ? 0 : Math.round(val * 100);
+  }, [discountCentsInput]);
+
+  const cartTotalCents = Math.max(0, cartSubtotalCents - discountCents);
+
+  const amountPaidCents = useMemo(() => {
+    const val = parseFloat(amountPaidInput.replace(",", "."));
+    return isNaN(val) ? cartTotalCents : Math.round(val * 100);
+  }, [amountPaidInput, cartTotalCents]);
+
+  const changeCents = paymentMethod === "cash" ? Math.max(0, amountPaidCents - cartTotalCents) : 0;
+
+  // Execute POS Sale
+  const handleFinalizePOSSale = async () => {
+    if (!register || cartItems.length === 0 || isProcessingSale) return;
+
+    setIsProcessingSale(true);
+    try {
+      const res = await processPOSSale({
+        data: {
+          registerId: register.id,
+          items: cartItems,
+          paymentMethod,
+          discountCents,
+          customerName: customerNameInput,
+          amountPaidCents,
+        },
+      });
+
+      if (res.status === "success") {
+        toast.success("Venda de balcão concluída!");
+        setLastReceipt(res);
+        setCartItems([]);
+        setDiscountCentsInput("0");
+        setAmountPaidInput("");
+        router.invalidate();
+      } else {
+        toast.error("Erro ao registrar venda.");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao finalizar venda.");
+    } finally {
+      setIsProcessingSale(false);
+    }
+  };
+
+  // Open Register Action
   const handleOpen = async (data: z.infer<typeof OpenRegisterSchema>) => {
     setIsOpening(true);
     try {
@@ -182,7 +289,7 @@ function CashRegisterPage() {
           notes: data.notes,
         },
       });
-      toast.success("Caixa aberto com sucesso");
+      toast.success("Caixa aberto com sucesso!");
       openForm.reset();
       router.invalidate();
     } catch (e: unknown) {
@@ -192,6 +299,7 @@ function CashRegisterPage() {
     }
   };
 
+  // Close Register Action
   const handleClose = async (data: z.infer<typeof CloseRegisterSchema>) => {
     if (!register) return;
     setIsClosing(true);
@@ -220,70 +328,363 @@ function CashRegisterPage() {
     }
   };
 
-  const handleEntry = async (data: z.infer<typeof EntrySchema>) => {
-    if (!register) return;
-    setIsAddingEntry(true);
-    try {
-      const cents = parseCurrencyInputToCents(data.amount);
-      await addRegisterEntry({
-        data: {
-          registerId: register.id,
-          amountCents: data.type === "expense" ? -cents : cents,
-          method: "cash",
-          description: data.description,
-        },
-      });
-      toast.success("Lançamento adicionado");
-      entryForm.reset();
-      router.invalidate();
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Erro ao lançar");
-    } finally {
-      setIsAddingEntry(false);
-    }
-  };
-
+  // If Register is Closed: Show Opening Card
   if (!register) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-4xl mx-auto">
         <PageHeader
-          eyebrow="Operação"
-          title="Caixa"
-          description="Abra o turno antes de registrar vendas de balcão, sangrias ou reforços."
-          actions={
-            <Button variant="outline" asChild>
-              <Link to="/admin/caixa/turnos">
-                <History className="size-4" aria-hidden />
-                Turnos
-              </Link>
-            </Button>
-          }
+          eyebrow="Frente de Loja / PDV"
+          title="Caixa Fechado"
+          description="Abra o turno informando o fundo de troco inicial para iniciar as vendas de balcão."
         />
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <EmptyState
-            title="Nenhum caixa aberto"
-            description="Sem turno ativo, o sistema bloqueia lançamentos para preservar o ledger financeiro."
-            className="min-h-80"
-          />
+        <Card className="border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Lock className="size-5 text-amber-600" />
+              Abertura Obrigatória de Turno
+            </CardTitle>
+            <CardDescription>
+              Sem um caixa aberto, vendas de balcão e lançamentos financeiros permanecem bloqueados.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...openForm}>
+              <form onSubmit={openForm.handleSubmit(handleOpen)} className="space-y-4 max-w-md">
+                <FormField
+                  control={openForm.control}
+                  name="initialBalance"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fundo de Troco Inicial (R$) *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="100,00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={openForm.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Observações de Abertura</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Turno manhã / Operador..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                <Button type="submit" disabled={isOpening} size="lg" className="w-full font-bold">
+                  {isOpening ? "Abrindo..." : "Abrir Turno de Caixa"}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Active Register View (PDV Terminal)
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={`Caixa Aberto • Turno #${register.id.slice(0, 8)}`}
+        title="Frente de Caixa & PDV Balcão"
+        description={`Operador: ${register.opened_by_profile?.full_name || "Staff"} • Aberto às ${formatDateTime(register.opened_at)}`}
+        actions={
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs px-3 py-1 font-bold">
+              Gaveta: {formatMoney(register.currentBalanceCents)}
+            </Badge>
+            <Button variant="outline" asChild size="sm">
+              <Link to="/admin/comprovantes">
+                <ReceiptText className="mr-1.5 size-4" /> Comprovantes
+              </Link>
+            </Button>
+          </div>
+        }
+      />
+
+      <Tabs defaultValue="pdv" className="w-full">
+        <TabsList className="grid grid-cols-3 max-w-md">
+          <TabsTrigger value="pdv" className="text-xs">
+            Venda Balcão (PDV)
+          </TabsTrigger>
+          <TabsTrigger value="lancamentos" className="text-xs">
+            Extrato ({register.recentEntries?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="fechamento" className="text-xs">
+            Fechamento
+          </TabsTrigger>
+        </TabsList>
+
+        {/* TAB 1: TERMINAL PDV BALCÃO */}
+        <TabsContent value="pdv" className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* LADO ESQUERDO: Busca de Produtos e Catálogo (7 Colunas) */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 size-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Buscar produto por nome, código ou SKU..."
+                  className="pl-9 text-sm h-11 bg-card"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[580px] overflow-y-auto pr-1">
+                {filteredVariants.map((variant) => (
+                  <div
+                    key={variant.variantId}
+                    onClick={() => handleAddToCart(variant)}
+                    className="p-3 rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-xs transition-all cursor-pointer flex items-center gap-3 group"
+                  >
+                    {variant.coverUrl ? (
+                      <img src={variant.coverUrl} alt="" className="size-12 rounded-lg object-cover border shrink-0" />
+                    ) : (
+                      <div className="size-12 rounded-lg bg-muted border flex items-center justify-center shrink-0">
+                        <Package className="size-6 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors">
+                        {variant.title}
+                      </h4>
+                      <p className="text-xs text-muted-foreground font-mono">/{variant.sku}</p>
+                      <span className="font-extrabold text-sm text-foreground block mt-0.5">
+                        {formatMoney(variant.priceCents)}
+                      </span>
+                    </div>
+                    <Button variant="ghost" size="icon" className="shrink-0 group-hover:bg-primary group-hover:text-primary-foreground">
+                      <Plus className="size-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* LADO DIREITO: Carrinho do Balcão e Fechamento (5 Colunas) */}
+            <div className="lg:col-span-5 space-y-4">
+              <Card className="border-primary/20 bg-card shadow-md">
+                <CardHeader className="py-3 px-4 border-b bg-muted/30 flex flex-row items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ShoppingCart className="size-4 text-primary" />
+                    Carrinho do Balcão
+                  </CardTitle>
+                  <Badge variant="default" className="text-xs font-bold">
+                    {cartItems.reduce((a, b) => a + b.qty, 0)} itens
+                  </Badge>
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                  {/* Item List */}
+                  {cartItems.length === 0 ? (
+                    <div className="py-12 text-center text-xs text-muted-foreground">
+                      Clique em um produto da lista à esquerda para adicionar ao carrinho do PDV.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                      {cartItems.map((item) => (
+                        <div key={item.variantId} className="flex items-center justify-between p-2 rounded-lg border bg-muted/20">
+                          <div className="min-w-0 flex-1 pr-2">
+                            <p className="font-bold text-xs truncate">{item.title}</p>
+                            <span className="text-[11px] text-muted-foreground font-mono">
+                              {formatMoney(item.priceCents)} x {item.qty}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="size-6 text-xs"
+                              onClick={() => handleUpdateQty(item.variantId, -1)}
+                            >
+                              <Minus className="size-3" />
+                            </Button>
+                            <span className="text-xs font-bold w-4 text-center">{item.qty}</span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="size-6 text-xs"
+                              onClick={() => handleUpdateQty(item.variantId, 1)}
+                            >
+                              <Plus className="size-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Customer & Discount Controls */}
+                  <div className="space-y-3 pt-2 border-t">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Cliente Balcão</Label>
+                      <Input
+                        className="text-xs h-8"
+                        placeholder="Nome do cliente avulso..."
+                        value={customerNameInput}
+                        onChange={(e) => setCustomerNameInput(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Desconto (R$)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          className="text-xs h-8"
+                          placeholder="0,00"
+                          value={discountCentsInput}
+                          onChange={(e) => setDiscountCentsInput(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Meio de Pagamento</Label>
+                        <Select
+                          value={paymentMethod}
+                          onValueChange={(v: any) => setPaymentMethod(v)}
+                        >
+                          <SelectTrigger className="text-xs h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cash">Dinheiro</SelectItem>
+                            <SelectItem value="pix">Pix QR Code</SelectItem>
+                            <SelectItem value="credit">Cartão de Crédito</SelectItem>
+                            <SelectItem value="debit">Cartão de Débito</SelectItem>
+                            <SelectItem value="other">Outro / Cortesia</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Cash Change Calculation */}
+                    {paymentMethod === "cash" && (
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Valor Entregue (R$)</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            className="text-xs h-8 font-bold"
+                            placeholder={ (cartTotalCents / 100).toFixed(2) }
+                            value={amountPaidInput}
+                            onChange={(e) => setAmountPaidInput(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Troco a Devolver</Label>
+                          <div className="h-8 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-extrabold text-sm text-emerald-600">
+                            {formatMoney(changeCents)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Order Summary */}
+                    <div className="pt-2 border-t space-y-1">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Subtotal:</span>
+                        <span>{formatMoney(cartSubtotalCents)}</span>
+                      </div>
+                      {discountCents > 0 && (
+                        <div className="flex justify-between text-xs text-emerald-600 font-semibold">
+                          <span>Desconto:</span>
+                          <span>- {formatMoney(discountCents)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-base font-extrabold text-foreground pt-1 border-t">
+                        <span>Total Final:</span>
+                        <span>{formatMoney(cartTotalCents)}</span>
+                      </div>
+                    </div>
+
+                    <Button
+                      size="lg"
+                      className="w-full font-extrabold text-sm mt-2"
+                      disabled={cartItems.length === 0 || isProcessingSale}
+                      onClick={handleFinalizePOSSale}
+                    >
+                      {isProcessingSale ? "Finalizando..." : "Finalizar Venda de Balcão"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* TAB 2: EXTRATO DE LANÇAMENTOS */}
+        <TabsContent value="lancamentos" className="mt-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Abertura de turno</CardTitle>
-              <CardDescription>
-                O saldo inicial entra como base do caixa. Movimentações futuras sempre viram
-                lançamentos.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base">Extrato de Lançamentos do Turno</CardTitle>
+                <CardDescription>Vendas, reforços de troco e sangrias registradas.</CardDescription>
+              </div>
             </CardHeader>
             <CardContent>
-              <Form {...openForm}>
-                <form onSubmit={openForm.handleSubmit(handleOpen)} className="space-y-4">
+              {(!register.recentEntries || register.recentEntries.length === 0) ? (
+                <EmptyState title="Nenhum lançamento" description="Nenhuma movimentação realizada neste turno." />
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Horário</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Forma de Pagamento</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {register.recentEntries.map((entry: any) => (
+                      <TableRow key={entry.id}>
+                        <TableCell className="text-xs font-mono">
+                          {formatDateTime(entry.created_at)}
+                        </TableCell>
+                        <TableCell className="text-xs font-medium">{entry.description}</TableCell>
+                        <TableCell className="text-xs">
+                          <Badge variant="outline">{entry.method}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-xs">
+                          <span className={entry.amount_cents >= 0 ? "text-emerald-600" : "text-rose-600"}>
+                            {entry.amount_cents >= 0 ? "+" : ""}{formatMoney(entry.amount_cents)}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* TAB 3: FECHAMENTO DE TURNO */}
+        <TabsContent value="fechamento" className="mt-6">
+          <Card className="max-w-xl mx-auto">
+            <CardHeader>
+              <CardTitle className="text-base">Encerrar Turno de Caixa</CardTitle>
+              <CardDescription>Efetue a contagem cega do dinheiro na gaveta para encerrar o caixa.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...closeForm}>
+                <form onSubmit={closeForm.handleSubmit(handleClose)} className="space-y-4">
                   <FormField
-                    control={openForm.control}
-                    name="initialBalance"
+                    control={closeForm.control}
+                    name="countedBalance"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Fundo de troco</FormLabel>
+                        <FormLabel>Dinheiro Físico Contado na Gaveta (R$) *</FormLabel>
                         <FormControl>
                           <Input placeholder="0,00" {...field} />
                         </FormControl>
@@ -292,312 +693,81 @@ function CashRegisterPage() {
                     )}
                   />
                   <FormField
-                    control={openForm.control}
+                    control={closeForm.control}
                     name="notes"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Observações</FormLabel>
+                        <FormLabel>Observações de Fechamento</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Opcional" {...field} />
+                          <Input placeholder="Motivo de eventuais divergências..." {...field} />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={isOpening}>
-                    <Play className="size-4 animate-pulse mr-1" aria-hidden />
-                    Abrir caixa
+                  <Button type="submit" variant="destructive" disabled={isClosing} className="w-full font-bold">
+                    {isClosing ? "Encerrando..." : "Confirmar Fechamento de Turno"}
                   </Button>
                 </form>
               </Form>
             </CardContent>
           </Card>
-        </div>
-      </div>
-    );
-  }
+        </TabsContent>
+      </Tabs>
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Operação"
-        title="Caixa"
-        description={`Turno aberto em ${formatDateTime(register.opened_at)} por ${
-          register.opened_by_profile?.full_name ?? "responsável não identificado"
-        }.`}
-        actions={
-          <>
-            <Button variant="outline" asChild>
-              <Link to="/admin/caixa/lancamentos">
-                <ReceiptText className="size-4" aria-hidden />
-                Lançamentos
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/admin/caixa/turnos">
-                <History className="size-4" aria-hidden />
-                Turnos
-              </Link>
-            </Button>
-          </>
-        }
-      />
+      {/* Dialog do Comprovante da Venda */}
+      <Dialog open={Boolean(lastReceipt)} onOpenChange={(open) => !open && setLastReceipt(null)}>
+        <DialogContent className="max-w-sm text-center">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-center gap-2 text-emerald-600">
+              <CheckCircle2 className="size-6" /> Venda Concluída!
+            </DialogTitle>
+            <DialogDescription>Comprovante de Venda do Balcão</DialogDescription>
+          </DialogHeader>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Saldo atual em dinheiro"
-          value={formatMoney(register.currentBalanceCents)}
-          icon={DollarSign}
-          tone="income"
-        />
-        <MetricCard
-          label="Entradas manuais"
-          value={formatMoney(register.incomeCents)}
-          icon={ArrowDownLeft}
-          tone="income"
-        />
-        <MetricCard
-          label="Saídas e sangrias"
-          value={formatMoney(register.expenseCents)}
-          icon={ArrowUpRight}
-          tone="expense"
-        />
-        <MetricCard
-          label="Fundo inicial"
-          value={formatMoney(register.initial_balance_cents)}
-          icon={Calculator}
-        />
-      </div>
-
-      {/* Consolidação por meio de recebimento */}
-      <div className="space-y-3">
-        <h3 className="font-semibold text-foreground flex items-center gap-1.5 text-base">
-          <Calculator className="size-4 text-primary" /> Conciliação e Formas de Recebimento
-        </h3>
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
-          <Card className="p-4 bg-muted/40">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Dinheiro em gaveta
-            </p>
-            <p className="text-xl font-bold mt-1 text-foreground">
-              {formatMoney(register.methodTotals.cash)}
-            </p>
-          </Card>
-          <Card className="p-4 bg-muted/40">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              PIX Direto
-            </p>
-            <p className="text-xl font-bold mt-1 text-foreground">
-              {formatMoney(register.methodTotals.pix)}
-            </p>
-          </Card>
-          <Card className="p-4 bg-muted/40">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Cartão de Crédito
-            </p>
-            <p className="text-xl font-bold mt-1 text-foreground">
-              {formatMoney(register.methodTotals.credit)}
-            </p>
-          </Card>
-          <Card className="p-4 bg-muted/40">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Cartão de Débito
-            </p>
-            <p className="text-xl font-bold mt-1 text-foreground">
-              {formatMoney(register.methodTotals.debit)}
-            </p>
-          </Card>
-          <Card className="p-4 bg-muted/40 border border-primary/20 bg-primary/5">
-            <p className="text-xs font-semibold text-primary uppercase tracking-wider">
-              Total Acumulado
-            </p>
-            <p className="text-xl font-bold mt-1 text-primary">
-              {formatMoney(register.totalInDrawerCents)}
-            </p>
-          </Card>
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <Card>
-          <CardHeader className="flex-row items-start justify-between gap-4">
-            <div>
-              <CardTitle>Últimos lançamentos</CardTitle>
-              <CardDescription>
-                Ledger do turno ativo. Saldo final nunca é editado diretamente.
-              </CardDescription>
-            </div>
-            <Badge variant="success">Aberto</Badge>
-          </CardHeader>
-          <CardContent>
-            {register.recentEntries.length > 0 ? (
-              <div className="divide-y divide-border rounded-lg border">
-                {register.recentEntries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-medium text-foreground">{entry.description}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {formatDateTime(entry.created_at)} — {translateMethod(entry.method)}
-                      </p>
-                    </div>
-                    <p
-                      className={
-                        entry.amount_cents >= 0
-                          ? "font-semibold text-green-600"
-                          : "font-semibold text-red-600"
-                      }
-                    >
-                      {entry.amount_cents >= 0 ? "+" : "-"}
-                      {formatMoney(Math.abs(entry.amount_cents))}
-                    </p>
-                  </div>
-                ))}
+          {lastReceipt && (
+            <div className="space-y-3 p-4 bg-muted/40 rounded-xl text-xs text-left border font-mono">
+              <div className="flex justify-between border-b pb-2 font-bold">
+                <span>Hr Shoes Store</span>
+                <span>PDV #{lastReceipt.receiptId?.slice(0, 6)}</span>
               </div>
-            ) : (
-              <EmptyState
-                title="Sem lançamentos neste turno"
-                description="Quando houver venda, reforço ou sangria, o movimento aparece aqui."
-              />
-            )}
-          </CardContent>
-        </Card>
+              <p>Cliente: {lastReceipt.customerName}</p>
+              <p>Data: {formatDateTime(lastReceipt.timestamp)}</p>
+              <div className="border-t pt-2 space-y-1">
+                <div className="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span>{formatMoney(lastReceipt.subtotalCents)}</span>
+                </div>
+                {lastReceipt.discountCents > 0 && (
+                  <div className="flex justify-between text-emerald-600">
+                    <span>Desconto:</span>
+                    <span>-{formatMoney(lastReceipt.discountCents)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-bold text-sm pt-1 border-t">
+                  <span>Total Pago:</span>
+                  <span>{formatMoney(lastReceipt.totalCents)}</span>
+                </div>
+                {lastReceipt.changeCents > 0 && (
+                  <div className="flex justify-between font-bold text-emerald-600">
+                    <span>Troco:</span>
+                    <span>{formatMoney(lastReceipt.changeCents)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Ações do turno</CardTitle>
-            <CardDescription>Operações que alteram caixa passam pelo servidor.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                  <ArrowRightLeft className="size-4 mr-2" aria-hidden />
-                  Lançamento avulso
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Novo lançamento</DialogTitle>
-                  <DialogDescription>
-                    Registre reforço, despesa ou sangria em dinheiro no turno aberto.
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...entryForm}>
-                  <form onSubmit={entryForm.handleSubmit(handleEntry)} className="space-y-4">
-                    <FormField
-                      control={entryForm.control}
-                      name="type"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Tipo</FormLabel>
-                          <FormControl>
-                            <select
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                              {...field}
-                            >
-                              <option value="expense">Sangria / saída</option>
-                              <option value="income">Entrada / reforço</option>
-                            </select>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={entryForm.control}
-                      name="amount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Valor</FormLabel>
-                          <FormControl>
-                            <Input placeholder="0,00" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={entryForm.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Descrição</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Motivo do lançamento" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="submit" disabled={isAddingEntry}>
-                      {isAddingEntry ? "Registrando..." : "Registrar"}
-                    </Button>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="destructive" className="w-full justify-start">
-                  <Lock className="size-4 mr-2" aria-hidden />
-                  Fechar caixa
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Fechamento de turno</DialogTitle>
-                  <DialogDescription>
-                    Informe o dinheiro contado. O servidor compara com o saldo esperado do ledger.
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...closeForm}>
-                  <form onSubmit={closeForm.handleSubmit(handleClose)} className="space-y-4">
-                    <FormField
-                      control={closeForm.control}
-                      name="countedBalance"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Valor contado em gaveta</FormLabel>
-                          <FormControl>
-                            <Input placeholder="0,00" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={closeForm.control}
-                      name="notes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Observações</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Justifique possíveis diferenças" {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <Button
-                      type="submit"
-                      variant="destructive"
-                      className="w-full"
-                      disabled={isClosing}
-                    >
-                      {isClosing ? "Fechando..." : "Confirmar fechamento"}
-                    </Button>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-          <CardFooter className="block border-t text-xs text-muted-foreground pt-4">
-            PDV, vendas, Pix e cartão devem registrar entradas por services dedicados; esta tela só
-            opera o turno e movimentos manuais.
-          </CardFooter>
-        </Card>
-      </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => window.print()} className="w-full text-xs">
+              <Printer className="size-3.5 mr-1" /> Imprimir Comprovante
+            </Button>
+            <Button onClick={() => setLastReceipt(null)} className="w-full text-xs font-bold">
+              Nova Venda
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

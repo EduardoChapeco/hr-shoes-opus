@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { openRegisterHandler, addRegisterEntryHandler } from "./cash.functions";
+import { openRegisterHandler, addRegisterEntryHandler, processPOSSaleHandler } from "./cash.functions";
 import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity } from "@/lib/identity";
 
@@ -206,6 +206,76 @@ describe("Cash Functions", () => {
 
       expect(res).toEqual({ status: "success" });
       expect(mInsert).toHaveBeenCalled();
+    });
+  });
+
+  describe("processPOSSaleHandler", () => {
+    it("should process sale, deduct stock and add entry to open register", async () => {
+      const mockIdentity = {
+        id: "user-123",
+        store_id: "store-456",
+        role: "owner",
+        organization_id: "org-789",
+      };
+      vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
+
+      const mSingleReg = vi.fn().mockResolvedValue({
+        data: { id: "reg-111", status: "open" },
+        error: null,
+      });
+
+      const mSingleEntry = vi.fn().mockResolvedValue({
+        data: { id: "entry-999" },
+        error: null,
+      });
+
+      supabaseMock.from.mockImplementation((table: string) => {
+        if (table === "cash_registers") {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            single: mSingleReg,
+          };
+        }
+        if (table === "cash_register_entries") {
+          return {
+            insert: vi.fn().mockReturnThis(),
+            select: vi.fn().mockReturnThis(),
+            single: mSingleEntry,
+          };
+        }
+        return {};
+      });
+
+      supabaseMock.rpc.mockResolvedValue({ error: null });
+
+      const res = await processPOSSaleHandler({
+        registerId: "reg-111",
+        items: [
+          {
+            variantId: "var-1",
+            qty: 2,
+            priceCents: 15000,
+            title: "Scarpin Couro",
+            sku: "SC-36",
+          },
+        ],
+        paymentMethod: "cash",
+        discountCents: 1000,
+        amountPaidCents: 30000,
+        customerName: "Maria Silva",
+      });
+
+      expect(res.status).toBe("success");
+      expect(res.subtotalCents).toBe(30000);
+      expect(res.totalCents).toBe(29000);
+      expect(res.changeCents).toBe(1000);
+      expect(supabaseMock.rpc).toHaveBeenCalledWith("adjust_stock", {
+        p_variant_id: "var-1",
+        p_qty: -2,
+        p_movement_type: "sale",
+        p_note: "Venda PDV Balcão - SKU: SC-36",
+      });
     });
   });
 });

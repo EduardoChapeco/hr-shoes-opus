@@ -314,6 +314,111 @@ export const addRegisterEntry = createServerFn({ method: "POST" })
     return await addRegisterEntryHandler(registerId, amountCents, method, description);
   });
 
+export async function processPOSSaleHandler(input: {
+  registerId: string;
+  items: Array<{
+    variantId: string;
+    qty: number;
+    priceCents: number;
+    title: string;
+    sku: string;
+  }>;
+  paymentMethod: "cash" | "pix" | "credit" | "debit" | "other";
+  discountCents?: number;
+  customerName?: string;
+  amountPaidCents?: number;
+}) {
+  const supabase = getServerClient();
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance"]);
+
+  // 1. Validate open register
+  const { data: register, error: regErr } = await supabase
+    .from("cash_registers")
+    .select("id, status")
+    .eq("id", input.registerId)
+    .single();
+
+  if (regErr || !register || register.status !== "open") {
+    throw new Error("É necessário ter um caixa aberto para realizar vendas de balcão.");
+  }
+
+  if (!input.items || input.items.length === 0) {
+    throw new Error("O carrinho do PDV não possui itens.");
+  }
+
+  // 2. Compute totals
+  const subtotalCents = input.items.reduce(
+    (acc, item) => acc + item.priceCents * item.qty,
+    0,
+  );
+  const discountCents = Math.max(0, input.discountCents || 0);
+  const totalCents = Math.max(0, subtotalCents - discountCents);
+
+  const amountPaid = input.amountPaidCents || totalCents;
+  const changeCents = input.paymentMethod === "cash" ? Math.max(0, amountPaid - totalCents) : 0;
+
+  // 3. Deduct stock for each item
+  for (const item of input.items) {
+    await supabase.rpc("adjust_stock", {
+      p_variant_id: item.variantId,
+      p_qty: -Math.abs(item.qty),
+      p_movement_type: "sale",
+      p_note: `Venda PDV Balcão - SKU: ${item.sku}`,
+    });
+  }
+
+  // 4. Add cash register entry
+  const { data: entry, error: entryErr } = await supabase
+    .from("cash_register_entries")
+    .insert({
+      register_id: input.registerId,
+      amount_cents: totalCents,
+      method: input.paymentMethod,
+      description: `Venda PDV Balcão (${input.customerName || "Cliente Avulso"}) - ${input.items.length} item(ns)`,
+    })
+    .select("id")
+    .single();
+
+  if (entryErr) {
+    throw new Error("Erro ao registrar venda no caixa: " + entryErr.message);
+  }
+
+  return {
+    status: "success" as const,
+    receiptId: entry.id,
+    subtotalCents,
+    discountCents,
+    totalCents,
+    changeCents,
+    customerName: input.customerName || "Cliente Avulso",
+    timestamp: new Date().toISOString(),
+  };
+}
+
+export const processPOSSale = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      registerId: z.string().uuid(),
+      items: z.array(
+        z.object({
+          variantId: z.string().uuid(),
+          qty: z.number().int().min(1),
+          priceCents: z.number().int().min(0),
+          title: z.string(),
+          sku: z.string(),
+        }),
+      ),
+      paymentMethod: z.enum(["cash", "pix", "credit", "debit", "other"]),
+      discountCents: z.number().int().min(0).optional(),
+      customerName: z.string().optional(),
+      amountPaidCents: z.number().int().min(0).optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    return await processPOSSaleHandler(data);
+  });
+
 export const listRegisterHistory = createServerFn({ method: "GET" }).handler(async () => {
   return await listRegisterHistoryHandler();
 });
