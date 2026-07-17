@@ -71,6 +71,7 @@ describe("Dashboard Services", () => {
       id: "user-123",
       role: "owner",
       store_id: "store-123",
+      organization_id: null,
     });
   });
 
@@ -163,6 +164,7 @@ describe("Dashboard Services", () => {
       id: "user-999",
       role: "visitor",
       store_id: null as any,
+      organization_id: null,
     });
 
     await expect(getDashboardDataHandler()).rejects.toThrow("Não autorizado");
