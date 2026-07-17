@@ -91,6 +91,51 @@ export const createProductType = createServerFn({ method: "POST" })
     }
   });
 
+export async function updateProductTypeHandler(input: {
+  id: string;
+  name: string;
+  slug: string;
+  field_schema: any[];
+}) {
+  const db = getServerClient();
+
+  const { data, error } = await db
+    .from("product_types")
+    .update({
+      name: input.name,
+      slug: input.slug,
+      field_schema: input.field_schema,
+    })
+    .eq("id", input.id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export const updateProductType = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+      name: z.string().min(1).max(100),
+      slug: z.string().regex(/^[a-z0-9-]+$/),
+      field_schema: z.array(z.any()),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const data = await updateProductTypeHandler(input);
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] updateProductType error:", e);
+      return {
+        status: "error" as const,
+        message: e instanceof Error ? e.message : "Erro ao atualizar tipo de produto.",
+      };
+    }
+  });
+
 // ---------------------------------------------------------------------------
 // Products
 // ---------------------------------------------------------------------------
