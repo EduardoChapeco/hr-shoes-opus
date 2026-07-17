@@ -13,15 +13,20 @@ import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 // Admin CRUD
 // ---------------------------------------------------------------------------
 
+export async function listAdminPagesHandler() {
+  const db = getServerClient();
+  const { data, error } = await db
+    .from("pages")
+    .select("id, title, slug, status, created_at, updated_at")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
 export const listAdminPages = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const db = getServerClient();
-    const { data, error } = await db
-      .from("pages")
-      .select("id, title, slug, status, created_at, updated_at")
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
+    const data = await listAdminPagesHandler();
     return { status: "ok" as const, data };
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
@@ -95,6 +100,26 @@ export const createPage = createServerFn({ method: "POST" })
     } catch (e: unknown) {
       console.error("[cms.functions] createPage error:", e);
       return { status: "error" as const, message: e instanceof Error ? e.message : "Erro." };
+    }
+  });
+
+export const deletePage = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+
+      // First delete associated sections
+      await db.from("page_sections").delete().eq("page_id", input.id);
+
+      // Then delete page
+      const { error } = await db.from("pages").delete().eq("id", input.id);
+      if (error) throw error;
+
+      return { status: "success" as const };
+    } catch (e: unknown) {
+      console.error("[cms.functions] deletePage error:", e);
+      return { status: "error" as const, message: "Erro ao excluir página." };
     }
   });
 

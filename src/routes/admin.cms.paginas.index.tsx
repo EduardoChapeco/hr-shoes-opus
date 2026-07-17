@@ -1,11 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, Pencil, ExternalLink, LayoutTemplate, Globe } from "lucide-react";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { Plus, Pencil, ExternalLink, LayoutTemplate, Globe, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
-import { listAdminPages } from "@/services/cms.functions";
+import { listAdminPages, deletePage } from "@/services/cms.functions";
 
 export const Route = createFileRoute("/admin/cms/paginas/")({
   head: () => ({ meta: [{ title: "Páginas CMS — Hr Shoes" }] }),
@@ -25,17 +26,32 @@ type PageItem = {
 
 function PagesPage() {
   const pages = Route.useLoaderData() as PageItem[];
+  const router = useRouter();
   const homePage = pages.find((p) => p.slug === "home");
+
+  const handleDelete = async (pageId: string, pageTitle: string) => {
+    if (!confirm(`Deseja realmente excluir a página "${pageTitle}"?`)) return;
+
+    try {
+      const res = await deletePage({ data: { id: pageId } });
+      if (res.status === "error") throw new Error(res.message);
+      toast.success("Página excluída com sucesso!");
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao excluir página.");
+    }
+  };
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Páginas"
-        description="Gerencie as páginas dinâmicas e o conteúdo institucional da loja."
+        eyebrow="CMS & Conteúdo"
+        title="Gestão de Páginas"
+        description="Gerencie as páginas institucionais e o construtor visual da homepage da vitrine."
         actions={
-          <Button asChild>
+          <Button asChild size="sm">
             <Link to="/admin/cms/paginas/novo">
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-1.5 h-4 w-4" />
               Nova página
             </Link>
           </Button>
@@ -50,10 +66,10 @@ function PagesPage() {
               <Globe className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="font-semibold text-sm">Página Inicial da Loja</p>
+              <p className="font-semibold text-sm">Página Inicial da Loja (Homepage)</p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {homePage
-                  ? "Edite os blocos de conteúdo que aparecem na homepage da vitrine."
+                  ? "Edite os blocos visuais de conteúdo que aparecem na homepage da vitrine."
                   : "Crie a página com slug 'home' para editar a homepage da vitrine."}
               </p>
             </div>
@@ -68,9 +84,9 @@ function PagesPage() {
                   </a>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/admin/cms/paginas/$id/editor" params={{ id: homePage.id }}>
+                  <Link to={`/admin/cms/paginas/${homePage.id}/editor` as never}>
                     <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                    Editar Homepage
+                    Editar Construtor Visual
                   </Link>
                 </Button>
               </>
@@ -89,7 +105,7 @@ function PagesPage() {
       {pages.length === 0 ? (
         <EmptyState
           title="Nenhuma página criada"
-          description="Crie páginas para exibir conteúdo dinâmico na vitrine."
+          description="Crie páginas institucionais para exibir conteúdo dinâmico na vitrine."
           action={
             <Button asChild>
               <Link to="/admin/cms/paginas/novo">
@@ -100,7 +116,7 @@ function PagesPage() {
           }
         />
       ) : (
-        <div className="rounded-lg border overflow-hidden">
+        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
           <div className="grid divide-y">
             {pages.map((page) => (
               <div
@@ -110,35 +126,49 @@ function PagesPage() {
                 <div className="flex items-center gap-3 min-w-0">
                   <LayoutTemplate className="h-4 w-4 text-muted-foreground shrink-0" />
                   <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">
+                    <p className="font-semibold text-sm truncate">
                       {page.title}
                       {page.slug === "home" && (
-                        <Badge variant="secondary" className="ml-2 text-[10px] py-0">
+                        <Badge variant="secondary" className="ml-2 text-[10px] py-0 font-bold">
                           Homepage
                         </Badge>
                       )}
                     </p>
-                    <p className="text-xs text-muted-foreground">/{page.slug}</p>
+                    <p className="text-xs text-muted-foreground font-mono">/{page.slug}</p>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2 ml-3">
                   <Badge
                     variant={page.status === "published" ? "default" : "secondary"}
-                    className="text-xs"
+                    className="text-xs px-2 py-0.5"
                   >
                     {page.status === "published" ? "Publicado" : "Rascunho"}
                   </Badge>
                   <Button variant="ghost" size="sm" asChild>
-                    <Link to="/admin/cms/paginas/$id/editor" params={{ id: page.id }}>
+                    <Link to={`/admin/cms/paginas/${page.id}/editor` as never}>
                       <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                      Editar
+                      Construtor
                     </Link>
                   </Button>
-                  {page.status === "published" && page.slug !== "home" && (
+                  {page.status === "published" && (
                     <Button variant="ghost" size="sm" asChild>
-                      <a href={`/paginas/${page.slug}`} target="_blank" rel="noopener noreferrer">
+                      <a
+                        href={page.slug === "home" ? "/" : `/paginas/${page.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         <ExternalLink className="h-3.5 w-3.5" />
                       </a>
+                    </Button>
+                  )}
+                  {page.slug !== "home" && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDelete(page.id, page.title)}
+                    >
+                      <Trash2 className="size-3.5" />
                     </Button>
                   )}
                 </div>
