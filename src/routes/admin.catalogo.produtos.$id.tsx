@@ -115,7 +115,7 @@ function EditProductPage() {
               </Link>
             </Button>
             <Button variant="outline" asChild size="sm">
-              <Link to={`/produto/${product.slug}`} target="_blank">
+              <Link to={`/produto/${product.slug}` as never} target="_blank">
                 <Eye className="mr-1.5 size-4" />
                 Ver na Vitrine
               </Link>
@@ -707,9 +707,9 @@ function MediaManager({ product }: { product: any }) {
     }
   };
 
-  const handleDelete = async (mediaId: string) => {
+  const handleDelete = async (mediaId: string, mediaUrl: string) => {
     try {
-      const res = await deleteProductMedia({ data: { mediaId } });
+      const res = await deleteProductMedia({ data: { id: mediaId, url: mediaUrl } });
       if (res.status === "success") {
         toast.success("Mídia removida.");
         router.invalidate();
@@ -752,7 +752,7 @@ function MediaManager({ product }: { product: any }) {
                 variant="destructive"
                 size="icon"
                 className="absolute top-2 right-2 size-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => handleDelete(m.id)}
+                onClick={() => handleDelete(m.id, m.url)}
               >
                 <Trash2 className="size-3.5" />
               </Button>

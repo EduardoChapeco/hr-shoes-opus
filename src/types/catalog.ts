@@ -187,8 +187,11 @@ export interface AdminProductRow {
   title: string;
   slug: string;
   status: "draft" | "published" | "archived";
+  brand?: string | null;
   /** Integer cents. Format via formatMoney() — never divide inline. */
   price_cents: number;
+  compare_at_cents?: number | null;
+  cost_cents?: number | null;
   product_types: { name: string }[] | null;
   product_media: { url: string; alt?: string | null }[];
 }

@@ -352,7 +352,7 @@ function AdminProductsPage() {
                         )}
                         <div className="min-w-0 flex-1">
                           <Link
-                            to={`/admin/catalogo/produtos/${product.id}`}
+                            to={`/admin/catalogo/produtos/${product.id}` as never}
                             className="font-semibold text-sm text-foreground hover:underline truncate block"
                           >
                             {product.title}
@@ -413,13 +413,13 @@ function AdminProductsPage() {
                         <DropdownMenuContent align="end" className="w-48">
                           <DropdownMenuLabel className="text-xs">Ações Comerciais</DropdownMenuLabel>
                           <DropdownMenuItem asChild>
-                            <Link to={`/admin/catalogo/produtos/${product.id}`}>
+                            <Link to={`/admin/catalogo/produtos/${product.id}` as never}>
                               <Edit3 className="size-3.5 mr-2" />
                               Editar Produto
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link to={`/produto/${product.slug}`} target="_blank">
+                            <Link to={`/produto/${product.slug}` as never} target="_blank">
                               <Eye className="size-3.5 mr-2" />
                               Ver na Loja
                             </Link>
