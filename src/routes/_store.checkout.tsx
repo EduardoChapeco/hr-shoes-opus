@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/money";
-import { getCart, updateCartShipping } from "@/services/cart.functions";
+import { getCart, updateCartShipping, applyCouponToCart } from "@/services/cart.functions";
+import { checkGiftCardBalance } from "@/services/giftcard.functions";
 import { processCheckout } from "@/services/checkout.functions";
 import { initiatePaymentTransaction, getPublicPaymentMethods } from "@/services/payment.functions";
 import { calculateShipping } from "@/services/shipping.functions";
@@ -19,6 +20,7 @@ import {
   AlertCircle,
   MapPin,
   Loader2,
+  Gift,
 } from "lucide-react";
 import {
   Select,
@@ -78,6 +80,11 @@ function CheckoutPage() {
   const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
   const [noShippingRatesFound, setNoShippingRatesFound] = useState(false);
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
+
+  // Promo & Gift Card code states
+  const [promoCode, setPromoCode] = useState("");
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [appliedGiftCard, setAppliedGiftCard] = useState<{ code: string; balanceCents: number } | null>(null);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -232,12 +239,55 @@ function CheckoutPage() {
     }
   }
 
-  const finalTotalCents =
+  // Calculate totals before applying Gift Card
+  const preGiftTotalCents =
     cart.subtotalCents +
     (formData.shippingMethod === "pickup" ? 0 : cart.shippingCents) -
     cart.discountCents -
     paymentDiscountCents +
     paymentSurchargeCents;
+
+  // Deduct Gift Card value
+  const giftCardDeductionCents = appliedGiftCard
+    ? Math.min(appliedGiftCard.balanceCents, preGiftTotalCents)
+    : 0;
+
+  const finalTotalCents = preGiftTotalCents - giftCardDeductionCents;
+
+  const handleApplyPromo = async () => {
+    if (!promoCode) return;
+    setIsApplyingPromo(true);
+    try {
+      // 1. Try coupon first
+      const codeUpper = promoCode.toUpperCase().trim();
+      const res = await applyCouponToCart({ data: { code: codeUpper } });
+      if (res.status === "success") {
+        toast.success(res.message || "Cupom aplicado!");
+        setPromoCode("");
+        setAppliedGiftCard(null); // Clear gift card if coupon works
+        router.invalidate();
+        return;
+      }
+
+      // 2. Try gift card lookup
+      const gcRes = await checkGiftCardBalance({ data: { code: promoCode.trim() } });
+      if (gcRes && gcRes.balanceCents > 0) {
+        setAppliedGiftCard({
+          code: promoCode.trim(),
+          balanceCents: gcRes.balanceCents,
+        });
+        toast.success(`Vale-presente de ${formatMoney(gcRes.balanceCents)} aplicado!`);
+        setPromoCode("");
+        return;
+      }
+
+      toast.error("Cupom ou Vale-presente inválido ou expirado.");
+    } catch (err: any) {
+      toast.error(err.message || "Código inválido ou expirado.");
+    } finally {
+      setIsApplyingPromo(false);
+    }
+  };
 
   // Process checkout submission
   const handleSubmitOrder = async () => {
@@ -270,11 +320,12 @@ function CheckoutPage() {
           shippingAddress: formData.shippingMethod === "pickup" ? undefined : formData.shippingAddress,
           paymentMethod: formData.paymentMethod,
           paymentMethodId: formData.paymentMethod === "manual" ? formData.paymentMethodId : undefined,
+          giftCardCode: appliedGiftCard?.code || undefined,
         },
       });
 
       if (res.status === "success") {
-        if (formData.shippingMethod !== "manual_quote") {
+        if (formData.shippingMethod !== "manual_quote" && finalTotalCents > 0) {
           try {
             await initiatePaymentTransaction({
               data: {
@@ -865,6 +916,38 @@ function CheckoutPage() {
                 <span>+{formatMoney(paymentSurchargeCents)}</span>
               </div>
             )}
+
+            {appliedGiftCard && giftCardDeductionCents > 0 && (
+              <div className="flex justify-between text-green-600 font-medium">
+                <span className="flex items-center gap-1">
+                  <Gift className="h-4 w-4" /> Vale-Presente ({appliedGiftCard.code})
+                </span>
+                <span>-{formatMoney(giftCardDeductionCents)}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Promo code apply input */}
+          <div className="border-t pt-4 mb-4">
+            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-2">Cupom ou Vale-Presente</Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Código"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value)}
+                disabled={isApplyingPromo}
+                className="h-9 font-mono uppercase text-sm"
+              />
+              <Button
+                size="sm"
+                type="button"
+                onClick={handleApplyPromo}
+                disabled={isApplyingPromo || !promoCode}
+                className="h-9 font-semibold"
+              >
+                {isApplyingPromo ? "..." : "Aplicar"}
+              </Button>
+            </div>
           </div>
 
           <div className="flex justify-between items-end border-t pt-4 mb-4">

@@ -35,6 +35,7 @@ const CheckoutSchema = z.object({
     .optional(),
   paymentMethod: z.enum(["pix", "manual", "credit_card", "receipt"]),
   paymentMethodId: z.string().uuid().optional(),
+  giftCardCode: z.string().optional(),
 });
 
 export const getOrderByToken = createServerFn({ method: "GET" })
@@ -58,7 +59,7 @@ export const processCheckout = createServerFn({ method: "POST" })
       const db = await getServerClient();
 
       // Idempotency key prevents double-processing
-      const idempotencyKey = `checkout-${params.cartId}-${params.paymentMethod}-${params.paymentMethodId || ""}`;
+      const idempotencyKey = `checkout-${params.cartId}-${params.paymentMethod}-${params.paymentMethodId || ""}-${params.giftCardCode || ""}`;
 
       // Ensure anti-hijacking by extracting the actual current identity
       const identity = await getCurrentIdentity();
@@ -86,58 +87,85 @@ export const processCheckout = createServerFn({ method: "POST" })
         throw new Error("Checkout falhou.");
       }
 
-      // Apply discount or surcharge if a manual payment method is selected
-      if (params.paymentMethodId) {
-        const { data: methodData } = await db
-          .from("manual_payment_methods")
-          .select("name, surcharge_percentage, discount_percentage")
-          .eq("id", params.paymentMethodId)
-          .single();
+      // Fetch the created order to apply payments adjustments
+      const { data: order } = await db
+        .from("orders")
+        .select("id, subtotal_cents, shipping_cents, discount_cents, total_cents")
+        .eq("public_token", result.orderToken)
+        .single();
 
-        if (methodData) {
-          const { data: order } = await db
-            .from("orders")
-            .select("id, subtotal_cents, shipping_cents, discount_cents")
-            .eq("public_token", result.orderToken)
+      if (order) {
+        let finalCents = order.total_cents;
+        let finalDiscount = order.discount_cents;
+        let providerName = undefined;
+
+        // 1. Apply discount or surcharge if a manual payment method is selected
+        if (params.paymentMethodId) {
+          const { data: methodData } = await db
+            .from("manual_payment_methods")
+            .select("name, surcharge_percentage, discount_percentage")
+            .eq("id", params.paymentMethodId)
             .single();
 
-          if (order) {
-            let finalCents = order.subtotal_cents + order.shipping_cents - order.discount_cents;
-            let appliedDiscount = 0;
-
+          if (methodData) {
+            providerName = methodData.name;
             if (Number(methodData.discount_percentage) > 0) {
-              appliedDiscount = Math.floor(order.subtotal_cents * (Number(methodData.discount_percentage) / 100));
+              const appliedDiscount = Math.floor(order.subtotal_cents * (Number(methodData.discount_percentage) / 100));
+              finalDiscount += appliedDiscount;
               finalCents -= appliedDiscount;
-
-              await db
-                .from("orders")
-                .update({
-                  discount_cents: order.discount_cents + appliedDiscount,
-                  total_cents: finalCents,
-                })
-                .eq("id", order.id);
             } else if (Number(methodData.surcharge_percentage) > 0) {
               const appliedSurcharge = Math.floor(order.subtotal_cents * (Number(methodData.surcharge_percentage) / 100));
               finalCents += appliedSurcharge;
-
-              await db
-                .from("orders")
-                .update({
-                  total_cents: finalCents,
-                })
-                .eq("id", order.id);
             }
-
-            // Update payment amount and record specific manual name
-            await db
-              .from("payments")
-              .update({
-                provider_name: methodData.name,
-                amount_cents: finalCents,
-              })
-              .eq("order_id", order.id);
           }
         }
+
+        // 2. Apply Gift Card if code is provided
+        if (params.giftCardCode) {
+          const { data: card } = await db
+            .from("gift_cards")
+            .select("id, current_balance_cents, status, expires_at")
+            .eq("code", params.giftCardCode)
+            .maybeSingle();
+
+          if (card && card.status === "active" && card.current_balance_cents > 0) {
+            const isExpired = card.expires_at && new Date(card.expires_at) < new Date();
+            if (!isExpired) {
+              const deduct = Math.min(finalCents, card.current_balance_cents);
+              const newCardBalance = card.current_balance_cents - deduct;
+
+              // Deduct balance from gift card record
+              await db
+                .from("gift_cards")
+                .update({
+                  current_balance_cents: newCardBalance,
+                  status: newCardBalance === 0 ? "used" : "active",
+                })
+                .eq("id", card.id);
+
+              finalDiscount += deduct;
+              finalCents -= deduct;
+            }
+          }
+        }
+
+        // Apply final calculations back to order
+        await db
+          .from("orders")
+          .update({
+            discount_cents: finalDiscount,
+            total_cents: finalCents >= 0 ? finalCents : 0,
+          })
+          .eq("id", order.id);
+
+        // Update payment transaction amount and provider name
+        await db
+          .from("payments")
+          .update({
+            provider_name: providerName || null,
+            amount_cents: finalCents >= 0 ? finalCents : 0,
+          })
+          .eq("order_id", order.id);
       }
 
       return { status: "success" as const, orderToken: result.orderToken };
@@ -146,6 +174,3 @@ export const processCheckout = createServerFn({ method: "POST" })
       return { status: "error" as const, message: e.message || "Erro no checkout" };
     }
   });
-
-
-

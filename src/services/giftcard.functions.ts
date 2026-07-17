@@ -2,13 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { randomBytes } from "node:crypto";
 import { getServerClient } from "@/lib/supabase";
-
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
-
 // Generate a random 12-char code like ABCD-1234-WXYZ using cryptographically secure randomness
+// Exclude ambiguous characters (I, O, 0, 1) to prevent user typing mistakes
 function generateGiftCardCode() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const bytes = randomBytes(12);
   let code = "";
   for (let i = 0; i < 12; i++) {
@@ -37,7 +37,7 @@ export const createGiftCard = createServerFn({ method: "POST" })
       code,
       initial_balance_cents: initialBalanceCents,
       current_balance_cents: initialBalanceCents,
-      purchaser_id: identity.id, // For this case, the admin creates it
+      purchaser_id: identity.id, // Admin created
       recipient_email: recipientEmail || null,
       status: "active",
     });
@@ -82,13 +82,6 @@ export const checkGiftCardBalance = createServerFn({ method: "POST" })
   .handler(async ({ data: { code } }) => {
     const supabase = getServerClient();
 
-    // We do NOT use identity here to restrict by store,
-    // because a user might not be logged in or might be a customer checking balance.
-    // However, the cart logic should ideally scope to a store.
-    // For now, find the card globally or by an injected store_id in context.
-    // We'll assume the client is only connected to their tenant's store in a real multi-tenant scenario,
-    // but here we just find it by code (assuming codes are globally unique enough, though schema says UNIQUE(store_id, code)).
-
     const { data: card, error } = await supabase
       .from("gift_cards")
       .select("id, current_balance_cents, status, expires_at")
@@ -96,7 +89,6 @@ export const checkGiftCardBalance = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (error || !card) throw new Error("Cartão não encontrado");
-
     if (card.status !== "active") throw new Error("Cartão inativo ou exaurido");
 
     if (card.expires_at && new Date(card.expires_at) < new Date()) {
@@ -129,4 +121,58 @@ export const cancelGiftCard = createServerFn({ method: "POST" })
     if (error) throw new Error("Erro ao cancelar cartão presente");
 
     return { status: "success" };
+  });
+
+export const claimGiftCard = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      code: z.string().min(5),
+    })
+  )
+  .handler(async ({ data: { code } }) => {
+    const supabase = getServerClient();
+    const ssrClient = getSSRClient();
+    const { data: { user } } = await ssrClient.auth.getUser();
+
+    if (!user) throw new Error("Você precisa estar logado para resgatar um vale-presente.");
+
+    const { data: card, error: findError } = await supabase
+      .from("gift_cards")
+      .select("id, purchaser_id, status, current_balance_cents")
+      .eq("code", code)
+      .maybeSingle();
+
+    if (findError || !card) throw new Error("Vale-presente inválido ou não encontrado.");
+    if (card.status !== "active") throw new Error("Este vale-presente já foi utilizado ou está inativo.");
+    if (card.current_balance_cents <= 0) throw new Error("Este vale-presente não possui saldo.");
+
+    const { error: updateError } = await supabase
+      .from("gift_cards")
+      .update({ purchaser_id: user.id })
+      .eq("id", card.id);
+
+    if (updateError) throw new Error("Erro ao vincular vale-presente à sua conta.");
+
+    return { status: "success" as const };
+  });
+
+export const listCustomerGiftCards = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const ssrClient = getSSRClient();
+    const { data: { user } } = await ssrClient.auth.getUser();
+    if (!user) return { status: "unauthenticated" as const, data: [] };
+
+    const supabase = getServerClient();
+    const { data: cards, error } = await supabase
+      .from("gift_cards")
+      .select("id, code, initial_balance_cents, current_balance_cents, status, expires_at, created_at")
+      .eq("purchaser_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[giftcard.functions] listCustomerGiftCards error:", error);
+      return { status: "error" as const, data: [] };
+    }
+
+    return { status: "success" as const, data: cards || [] };
   });
