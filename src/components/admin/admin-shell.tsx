@@ -19,6 +19,7 @@ import {
   PanelLeft,
   Menu,
   Store,
+  CheckSquare,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -50,6 +51,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   BarChart3,
   Settings,
   Store,
+  CheckSquare,
 };
 
 function resolveIcon(name: string): LucideIcon {

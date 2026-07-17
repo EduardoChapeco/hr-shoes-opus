@@ -797,6 +797,16 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     roles: ["owner", "admin", "content"],
     phase: 3,
   },
+  {
+    path: "/admin/configuracoes/etapas",
+    label: "Etapas da Loja",
+    description: "Etapas para uma loja de sucesso",
+    audience: "admin",
+    roles: ["owner", "admin", "manager"],
+    phase: 0,
+    navGroup: "Operação",
+    navIcon: "CheckSquare",
+  },
 ];
 
 export const ALL_ROUTES: RouteEntry[] = [...PUBLIC_ROUTES, ...CUSTOMER_ROUTES, ...ADMIN_ROUTES];
@@ -850,7 +860,6 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     title: "Geral",
     items: [
       { path: "/admin", label: "Visão geral", icon: "LayoutDashboard" },
-      { path: "/admin/onboarding", label: "Onboarding", icon: "Store" },
     ],
   },
   {
@@ -888,6 +897,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     items: [
       { path: "/admin/caixa", label: "Caixa", icon: "Wallet" },
       { path: "/admin/relatorios", label: "Relatórios", icon: "BarChart3" },
+      { path: "/admin/configuracoes/etapas", label: "Etapas da Loja", icon: "CheckSquare" },
       { path: "/admin/configuracoes/loja", label: "Configurações", icon: "Settings" },
     ],
   },
