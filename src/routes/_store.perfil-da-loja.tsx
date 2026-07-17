@@ -129,6 +129,12 @@ function PerfilView({ store }: { store: PublicStoreProfileDTO }) {
                     </a>
                   </Button>
                 )}
+                <Button variant="ghost" size="sm" asChild className="border border-border/60">
+                  <Link to="/admin/perfil-publico">
+                    <ExternalLink className="mr-1.5 h-4 w-4" />
+                    Editar no Painel Admin
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>

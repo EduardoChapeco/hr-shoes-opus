@@ -866,6 +866,8 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     title: "Catálogo",
     items: [
       { path: "/admin/catalogo/produtos", label: "Produtos", icon: "Package" },
+      { path: "/admin/catalogo/atributos", label: "Atributos Globais", icon: "Boxes" },
+      { path: "/admin/catalogo/tipos", label: "Tipos de Produto", icon: "Settings" },
       { path: "/admin/estoque", label: "Estoque", icon: "Boxes" },
       { path: "/admin/midias", label: "Mídias", icon: "Images" },
     ],
@@ -874,7 +876,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     title: "Vendas",
     items: [
       { path: "/admin/pedidos", label: "Pedidos", icon: "ShoppingCart" },
-      { path: "/admin/fretes/tabelas", label: "Fretes", icon: "Truck" },
+      { path: "/admin/fretes/tabelas", label: "Fretes & Logística", icon: "Truck" },
       { path: "/admin/pagamentos", label: "Pagamentos", icon: "CreditCard" },
     ],
   },
@@ -886,16 +888,18 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     ],
   },
   {
-    title: "Conteúdo",
+    title: "Conteúdo & Vitrine",
     items: [
-      { path: "/admin/cms/paginas", label: "Páginas", icon: "FileText" },
-      { path: "/admin/marketing/cupons", label: "Marketing", icon: "Megaphone" },
+      { path: "/admin/perfil-publico", label: "Perfil da Loja", icon: "Store" },
+      { path: "/admin/cms/paginas", label: "Páginas & Construtor", icon: "FileText" },
+      { path: "/admin/marketing/cupons", label: "Marketing & Cupons", icon: "Megaphone" },
     ],
   },
   {
     title: "Operação",
     items: [
-      { path: "/admin/caixa", label: "Caixa", icon: "Wallet" },
+      { path: "/admin/caixa", label: "Caixa Balcão / PDV", icon: "Wallet" },
+      { path: "/admin/equipe", label: "Gestão de Equipe", icon: "Users" },
       { path: "/admin/relatorios", label: "Relatórios", icon: "BarChart3" },
       { path: "/admin/configuracoes/etapas", label: "Etapas da Loja", icon: "CheckSquare" },
       { path: "/admin/configuracoes/loja", label: "Configurações", icon: "Settings" },
