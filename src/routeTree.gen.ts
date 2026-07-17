@@ -75,6 +75,7 @@ import { Route as AdminConfiguracoesPoliticasRouteImport } from './routes/admin.
 import { Route as AdminConfiguracoesPagamentosRouteImport } from './routes/admin.configuracoes.pagamentos'
 import { Route as AdminConfiguracoesLojaRouteImport } from './routes/admin.configuracoes.loja'
 import { Route as AdminConfiguracoesLgpdRouteImport } from './routes/admin.configuracoes.lgpd'
+import { Route as AdminConfiguracoesEtapasRouteImport } from './routes/admin.configuracoes.etapas'
 import { Route as AdminConfiguracoesAuditoriaRouteImport } from './routes/admin.configuracoes.auditoria'
 import { Route as AdminCmsTemaRouteImport } from './routes/admin.cms.tema'
 import { Route as AdminCmsNavegacaoRouteImport } from './routes/admin.cms.navegacao'
@@ -446,6 +447,12 @@ const AdminConfiguracoesLgpdRoute = AdminConfiguracoesLgpdRouteImport.update({
   path: '/configuracoes/lgpd',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminConfiguracoesEtapasRoute =
+  AdminConfiguracoesEtapasRouteImport.update({
+    id: '/configuracoes/etapas',
+    path: '/configuracoes/etapas',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminConfiguracoesAuditoriaRoute =
   AdminConfiguracoesAuditoriaRouteImport.update({
     id: '/configuracoes/auditoria',
@@ -709,6 +716,7 @@ export interface FileRoutesByFullPath {
   '/admin/cms/navegacao': typeof AdminCmsNavegacaoRoute
   '/admin/cms/tema': typeof AdminCmsTemaRoute
   '/admin/configuracoes/auditoria': typeof AdminConfiguracoesAuditoriaRoute
+  '/admin/configuracoes/etapas': typeof AdminConfiguracoesEtapasRoute
   '/admin/configuracoes/lgpd': typeof AdminConfiguracoesLgpdRoute
   '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
   '/admin/configuracoes/pagamentos': typeof AdminConfiguracoesPagamentosRoute
@@ -812,6 +820,7 @@ export interface FileRoutesByTo {
   '/admin/cms/navegacao': typeof AdminCmsNavegacaoRoute
   '/admin/cms/tema': typeof AdminCmsTemaRoute
   '/admin/configuracoes/auditoria': typeof AdminConfiguracoesAuditoriaRoute
+  '/admin/configuracoes/etapas': typeof AdminConfiguracoesEtapasRoute
   '/admin/configuracoes/lgpd': typeof AdminConfiguracoesLgpdRoute
   '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
   '/admin/configuracoes/pagamentos': typeof AdminConfiguracoesPagamentosRoute
@@ -919,6 +928,7 @@ export interface FileRoutesById {
   '/admin/cms/navegacao': typeof AdminCmsNavegacaoRoute
   '/admin/cms/tema': typeof AdminCmsTemaRoute
   '/admin/configuracoes/auditoria': typeof AdminConfiguracoesAuditoriaRoute
+  '/admin/configuracoes/etapas': typeof AdminConfiguracoesEtapasRoute
   '/admin/configuracoes/lgpd': typeof AdminConfiguracoesLgpdRoute
   '/admin/configuracoes/loja': typeof AdminConfiguracoesLojaRoute
   '/admin/configuracoes/pagamentos': typeof AdminConfiguracoesPagamentosRoute
@@ -1026,6 +1036,7 @@ export interface FileRouteTypes {
     | '/admin/cms/navegacao'
     | '/admin/cms/tema'
     | '/admin/configuracoes/auditoria'
+    | '/admin/configuracoes/etapas'
     | '/admin/configuracoes/lgpd'
     | '/admin/configuracoes/loja'
     | '/admin/configuracoes/pagamentos'
@@ -1129,6 +1140,7 @@ export interface FileRouteTypes {
     | '/admin/cms/navegacao'
     | '/admin/cms/tema'
     | '/admin/configuracoes/auditoria'
+    | '/admin/configuracoes/etapas'
     | '/admin/configuracoes/lgpd'
     | '/admin/configuracoes/loja'
     | '/admin/configuracoes/pagamentos'
@@ -1235,6 +1247,7 @@ export interface FileRouteTypes {
     | '/admin/cms/navegacao'
     | '/admin/cms/tema'
     | '/admin/configuracoes/auditoria'
+    | '/admin/configuracoes/etapas'
     | '/admin/configuracoes/lgpd'
     | '/admin/configuracoes/loja'
     | '/admin/configuracoes/pagamentos'
@@ -1751,6 +1764,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminConfiguracoesLgpdRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/configuracoes/etapas': {
+      id: '/admin/configuracoes/etapas'
+      path: '/configuracoes/etapas'
+      fullPath: '/admin/configuracoes/etapas'
+      preLoaderRoute: typeof AdminConfiguracoesEtapasRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/configuracoes/auditoria': {
       id: '/admin/configuracoes/auditoria'
       path: '/configuracoes/auditoria'
@@ -2146,6 +2166,7 @@ interface AdminRouteChildren {
   AdminCmsNavegacaoRoute: typeof AdminCmsNavegacaoRoute
   AdminCmsTemaRoute: typeof AdminCmsTemaRoute
   AdminConfiguracoesAuditoriaRoute: typeof AdminConfiguracoesAuditoriaRoute
+  AdminConfiguracoesEtapasRoute: typeof AdminConfiguracoesEtapasRoute
   AdminConfiguracoesLgpdRoute: typeof AdminConfiguracoesLgpdRoute
   AdminConfiguracoesLojaRoute: typeof AdminConfiguracoesLojaRoute
   AdminConfiguracoesPagamentosRoute: typeof AdminConfiguracoesPagamentosRoute
@@ -2206,6 +2227,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCmsNavegacaoRoute: AdminCmsNavegacaoRoute,
   AdminCmsTemaRoute: AdminCmsTemaRoute,
   AdminConfiguracoesAuditoriaRoute: AdminConfiguracoesAuditoriaRoute,
+  AdminConfiguracoesEtapasRoute: AdminConfiguracoesEtapasRoute,
   AdminConfiguracoesLgpdRoute: AdminConfiguracoesLgpdRoute,
   AdminConfiguracoesLojaRoute: AdminConfiguracoesLojaRoute,
   AdminConfiguracoesPagamentosRoute: AdminConfiguracoesPagamentosRoute,
