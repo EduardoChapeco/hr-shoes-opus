@@ -95,6 +95,27 @@ export const upsertCoupon = createServerFn({ method: "POST" })
     }
   });
 
+export const deleteCoupon = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    try {
+      const identity = await getAdminIdentity();
+      const db = getServerClient();
+
+      const { error } = await db
+        .from("coupons")
+        .delete()
+        .eq("id", id)
+        .eq("store_id", identity.store_id);
+
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[growth] deleteCoupon error:", e);
+      return { status: "error" as const, message: "Erro ao excluir cupom." };
+    }
+  });
+
 // ---------------------------------------------------------------------------
 // Integrations
 // ---------------------------------------------------------------------------
