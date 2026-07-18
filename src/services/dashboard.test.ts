@@ -87,7 +87,7 @@ describe("Dashboard Services", () => {
       { id: "v-1", sku: "SAP-38", stock_on_hand: 2, products: { title: "Sapato Fem" } },
     ];
 
-    const mockStore = { name: "Hr Shoes Central", phone: "4999999999", address: "Rua Central" };
+    const mockStore = { name: "Hr Shoes Central", phone: "4999999999", address: "Rua Central", pix_key: "chave-pix" };
 
     mockFrom.mockImplementation((table: string) => {
       if (table === "orders") {
@@ -136,9 +136,6 @@ describe("Dashboard Services", () => {
       }
       if (table === "categories") {
         return { select: () => Promise.resolve({ count: 3, error: null }) };
-      }
-      if (table === "store_payment_settings") {
-        return { select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { pix_manual_enabled: true }, error: null }) }) }) };
       }
       if (table === "shipping_rates") {
         return { select: () => Promise.resolve({ count: 2, error: null }) };

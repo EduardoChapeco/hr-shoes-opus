@@ -53,7 +53,7 @@ const couponSchema = z.object({
   id: z.string().uuid().optional(),
   code: z.string().min(3).toUpperCase(),
   discount_type: z.enum(["percentage", "fixed_amount", "free_shipping"]),
-  discount_value: z.number().positive(),
+  discount_value: z.number().nonnegative(),
   min_order_cents: z.number().nullable().optional(),
   max_uses: z.number().nullable().optional(),
   expires_at: z.string().nullable().optional(),

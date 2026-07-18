@@ -170,11 +170,10 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
   }
 
   // 6. Setup Checklist
-  const [storeRes, productsRes, categoriesRes, paymentRes, shippingRes] = await Promise.all([
-    db.from("stores").select("name, phone, address").eq("id", storeId).single(),
+  const [storeRes, productsRes, categoriesRes, shippingRes] = await Promise.all([
+    db.from("stores").select("name, phone, address, pix_key").eq("id", storeId).single(),
     db.from("products").select("id", { count: "exact", head: true }),
     db.from("categories").select("id", { count: "exact", head: true }),
-    db.from("store_payment_settings").select("pix_manual_enabled").eq("store_id", storeId).maybeSingle(),
     db.from("shipping_rates").select("id", { count: "exact", head: true }),
   ]);
 
@@ -182,7 +181,7 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
   const hasStoreProfile = Boolean(storeInfo?.name && (storeInfo?.phone || storeInfo?.address));
   const hasProducts = (productsRes.count ?? 0) > 0;
   const hasCategories = (categoriesRes.count ?? 0) > 0;
-  const hasPayment = Boolean(paymentRes.data?.pix_manual_enabled);
+  const hasPayment = Boolean(storeInfo?.pix_key);
   const hasShipping = (shippingRes.count ?? 0) > 0;
 
   const setupChecklist = [
