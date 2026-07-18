@@ -5,6 +5,14 @@
 -- Hables Row Level Security (RLS) with public insertions allowed.
 -- ============================================================================
 
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
 CREATE TABLE IF NOT EXISTS public.leads_crm (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   store_id     UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,

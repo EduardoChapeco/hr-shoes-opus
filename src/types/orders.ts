@@ -89,6 +89,7 @@ export interface CartItemDTO {
   variantSku: string;
   variantAttributes: Record<string, string>;
   coverUrl?: string | null;
+  isOutOfStock?: boolean;
 }
 
 export interface CartDTO {

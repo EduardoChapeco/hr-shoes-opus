@@ -83,6 +83,8 @@ export const getCart = createServerFn({ method: "GET" }).handler(
             id,
             price_override_cents,
             compare_at_cents,
+            stock_on_hand,
+            stock_reserved,
             sku,
             attributes,
             product:products (
@@ -113,6 +115,8 @@ export const getCart = createServerFn({ method: "GET" }).handler(
         sku: string;
         price_override_cents: number | null;
         compare_at_cents: number | null;
+        stock_on_hand: number;
+        stock_reserved: number;
         attributes: Record<string, string>;
         product: {
           id: string;
@@ -134,6 +138,9 @@ export const getCart = createServerFn({ method: "GET" }).handler(
       const price = variant.price_override_cents ?? product.price_cents;
       const lineTotal = price * item.qty;
       totalCents += lineTotal;
+      
+      const availableStock = (variant.stock_on_hand || 0) - (variant.stock_reserved || 0);
+      const isOutOfStock = availableStock < item.qty;
 
       return {
         id: item.id,
@@ -145,6 +152,7 @@ export const getCart = createServerFn({ method: "GET" }).handler(
         variantSku: variant.sku,
         variantAttributes: variant.attributes || {},
         coverUrl: image,
+        isOutOfStock,
       };
     });
 

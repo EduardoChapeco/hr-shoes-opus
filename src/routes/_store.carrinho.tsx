@@ -16,6 +16,7 @@ import { EmptyState } from "@/components/state/states";
 import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/carrinho")({
   head: () => ({ meta: [{ title: "Meu Carrinho — Hr Shoes" }] }),
@@ -159,13 +160,22 @@ function StoreCartPage() {
                 <div className="flex flex-1 flex-col justify-between">
                   <div className="flex justify-between">
                     <div>
-                      <h3 className="font-semibold text-base">{item.productTitle}</h3>
+                      <h3 className={cn("font-semibold text-base", item.isOutOfStock && "text-destructive line-through")}>
+                        {item.productTitle}
+                      </h3>
                       <p className="text-sm text-muted-foreground mt-1">
                         Cor: {item.variantAttributes?.color || "Padrão"} | Tam:{" "}
                         {item.variantAttributes?.size || "Único"}
                       </p>
+                      {item.isOutOfStock && (
+                        <p className="text-xs font-bold text-destructive mt-1 bg-destructive/10 inline-block px-2 py-0.5 rounded-full">
+                          Sem estoque disponível
+                        </p>
+                      )}
                     </div>
-                    <p className="font-medium text-base">{formatMoney(item.priceCents)}</p>
+                    <p className={cn("font-medium text-base", item.isOutOfStock && "opacity-50 line-through")}>
+                      {formatMoney(item.priceCents)}
+                    </p>
                   </div>
                   <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center border rounded-md">
@@ -289,12 +299,18 @@ function StoreCartPage() {
               </span>
             </div>
 
-            <Link to="/checkout" className="w-full">
-              <Button size="lg" className="w-full font-semibold rounded-full shadow-md">
-                Finalizar Compra
-                <ArrowRight className="ml-2 h-5 w-5" />
+            {cart.items.some((i: any) => i.isOutOfStock) ? (
+              <Button size="lg" className="w-full font-semibold rounded-full" disabled>
+                Remova itens sem estoque
               </Button>
-            </Link>
+            ) : (
+              <Link to="/checkout" className="w-full">
+                <Button size="lg" className="w-full font-semibold rounded-full shadow-md">
+                  Finalizar Compra
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            )}
             <div className="mt-4 text-center">
               <Link
                 to="/catalogo"
