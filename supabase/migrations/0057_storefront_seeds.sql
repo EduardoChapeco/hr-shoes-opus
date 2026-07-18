@@ -14,33 +14,27 @@ DECLARE
   v_product2_id UUID;
   v_product3_id UUID;
 BEGIN
-  -- Verificar se já existe uma loja. Se não, criar uma loja padrão.
-  SELECT id INTO v_store_id FROM public.stores LIMIT 1;
+  -- Usar a loja padrão já injetada pela migration 0022
+  SELECT id INTO v_store_id FROM public.stores WHERE slug = 'hr-shoes' LIMIT 1;
   
   IF v_store_id IS NULL THEN
-    INSERT INTO public.stores (name, slug, domain, is_active, theme_config)
-    VALUES (
-      'Hr Shoes', 
-      'hr-shoes', 
-      'hrshoes.com.br', 
-      true, 
-      '{"primaryColor": "#000000", "secondaryColor": "#ffffff", "fontFamily": "Inter"}'::jsonb
-    ) RETURNING id INTO v_store_id;
+    RAISE NOTICE 'Loja padrão não encontrada. Pulando seeds.';
+    RETURN;
   END IF;
 
   -- Criar Categoria se não existir
   SELECT id INTO v_category_id FROM public.categories WHERE slug = 'tenis-esportivos' LIMIT 1;
   IF v_category_id IS NULL THEN
-    INSERT INTO public.categories (store_id, name, slug, description, is_active)
-    VALUES (v_store_id, 'Tênis Esportivos', 'tenis-esportivos', 'Tênis de alta performance', true)
+    INSERT INTO public.categories (store_id, name, slug, description, status)
+    VALUES (v_store_id, 'Tênis Esportivos', 'tenis-esportivos', 'Tênis de alta performance', 'active')
     RETURNING id INTO v_category_id;
   END IF;
 
   -- Criar Coleção se não existir
   SELECT id INTO v_collection_id FROM public.collections WHERE slug = 'lancamentos-verao' LIMIT 1;
   IF v_collection_id IS NULL THEN
-    INSERT INTO public.collections (store_id, name, slug, description, is_active)
-    VALUES (v_store_id, 'Lançamentos de Verão', 'lancamentos-verao', 'Novidades quentes para o verão', true)
+    INSERT INTO public.collections (store_id, name, slug, description, status)
+    VALUES (v_store_id, 'Lançamentos de Verão', 'lancamentos-verao', 'Novidades quentes para o verão', 'active')
     RETURNING id INTO v_collection_id;
   END IF;
 
@@ -51,13 +45,13 @@ BEGIN
   END IF;
 
   -- Produto 1: Tênis Runner Pro
-  INSERT INTO public.products (store_id, category_id, name, slug, description, price_cents, compare_at_cents, status)
+  INSERT INTO public.products (store_id, title, slug, description, price_cents, compare_at_cents, status)
   VALUES (
-    v_store_id, v_category_id, 
+    v_store_id, 
     'Tênis HR Runner Pro 2.0', 
     'hr-runner-pro-2', 
     'Tênis esportivo com tecnologia de absorção de impacto máxima. Ideal para maratonas e treinos de alta intensidade. Malha respirável e solado de borracha.', 
-    49990, 59990, 'active'
+    49990, 59990, 'published'
   ) RETURNING id INTO v_product1_id;
 
   INSERT INTO public.product_variants (product_id, sku, price_override_cents, stock_on_hand, attributes)
@@ -70,13 +64,13 @@ BEGIN
   VALUES (v_product1_id, 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800', 0);
 
   -- Produto 2: Sneaker Casual
-  INSERT INTO public.products (store_id, category_id, name, slug, description, price_cents, compare_at_cents, status)
+  INSERT INTO public.products (store_id, title, slug, description, price_cents, compare_at_cents, status)
   VALUES (
-    v_store_id, v_category_id, 
+    v_store_id, 
     'Sneaker Casual Urban', 
     'sneaker-casual-urban', 
     'Estilo e conforto para o dia a dia. Design minimalista com detalhes em couro sintético e palmilha ortopédica.', 
-    29990, NULL, 'active'
+    29990, NULL, 'published'
   ) RETURNING id INTO v_product2_id;
 
   INSERT INTO public.product_variants (product_id, sku, price_override_cents, stock_on_hand, attributes)
@@ -88,13 +82,13 @@ BEGIN
   VALUES (v_product2_id, 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&q=80&w=800', 0);
 
   -- Produto 3: Chuteira Campo
-  INSERT INTO public.products (store_id, category_id, name, slug, description, price_cents, compare_at_cents, status)
+  INSERT INTO public.products (store_id, title, slug, description, price_cents, compare_at_cents, status)
   VALUES (
-    v_store_id, v_category_id, 
+    v_store_id, 
     'Chuteira Campo Predator', 
     'chuteira-campo-predator', 
     'Domine o jogo com a nova chuteira Predator. Travas de alumínio e cabedal texturizado para maior aderência com a bola.', 
-    34990, 42090, 'active'
+    34990, 42090, 'published'
   ) RETURNING id INTO v_product3_id;
 
   INSERT INTO public.product_variants (product_id, sku, price_override_cents, stock_on_hand, attributes)
@@ -104,6 +98,13 @@ BEGIN
 
   INSERT INTO public.product_media (product_id, url, sort_order)
   VALUES (v_product3_id, 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?auto=format&fit=crop&q=80&w=800', 0);
+
+  -- Ligar produtos à Categoria
+  INSERT INTO public.product_categories (product_id, category_id)
+  VALUES 
+    (v_product1_id, v_category_id),
+    (v_product2_id, v_category_id),
+    (v_product3_id, v_category_id);
 
   -- Ligar produtos à Coleção
   INSERT INTO public.product_collections (product_id, collection_id)
