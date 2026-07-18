@@ -244,6 +244,21 @@ describe("Cash Functions", () => {
             single: mSingleEntry,
           };
         }
+        if (table === "orders") {
+          return {
+            insert: vi.fn().mockReturnThis(),
+            select: vi.fn().mockReturnThis(),
+            single: vi.fn().mockResolvedValue({
+              data: { id: "order-555", public_token: "tok-555" },
+              error: null,
+            }),
+          };
+        }
+        if (table === "order_items" || table === "payments") {
+          return {
+            insert: vi.fn().mockResolvedValue({ error: null }),
+          };
+        }
         return {};
       });
 
