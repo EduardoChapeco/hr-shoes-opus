@@ -8,7 +8,7 @@
  * the current user visiting the store.
  */
 
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { getRequestHeader, setCookie } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { SupabaseUnconfiguredError } from "./supabase";
@@ -34,16 +34,10 @@ export function getSSRClient() {
       getAll() {
         const cookieHeader = getRequestHeader("cookie");
         if (!cookieHeader) return [];
-        // Extract { name, value } from the raw cookie header string using regex/split or supabase's parser if imported.
-        // Actually, we can use `getCookie` from @tanstack/react-start/server in a loop, but `getAll` expects all of them.
-        // Let's implement a simple parser for getAll since it's just `name=value; ...`
-        return cookieHeader
-          .split(";")
-          .map((c) => {
-            const [name, ...rest] = c.split("=");
-            return { name: name?.trim() || "", value: rest.join("=").trim() };
-          })
-          .filter((c) => c.name);
+        return parseCookieHeader(cookieHeader).map((c) => ({
+          name: c.name,
+          value: c.value ?? "",
+        }));
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {

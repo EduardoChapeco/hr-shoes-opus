@@ -6,6 +6,12 @@ import { HeroCarousel } from "@/components/commerce/dynamic-sections/hero-carous
 import { MosaicBanners } from "@/components/commerce/dynamic-sections/mosaic-banners";
 import { ProductRail } from "@/components/commerce/dynamic-sections/product-rail";
 import { RichText } from "@/components/commerce/dynamic-sections/rich-text";
+import { BentoGrid } from "@/components/commerce/dynamic-sections/bento-grid";
+import { GalleryGrid } from "@/components/commerce/dynamic-sections/gallery-grid";
+import { InfoCards } from "@/components/commerce/dynamic-sections/info-cards";
+import { SocialGrid } from "@/components/commerce/dynamic-sections/social-grid";
+import { ContactForm } from "@/components/commerce/dynamic-sections/contact-form";
+import { VideoSection } from "@/components/commerce/dynamic-sections/video-section";
 import { listPublishedProducts, getProductsByCollection } from "@/services/catalog.functions";
 import type { ProductCardDTO } from "@/types/catalog";
 
@@ -95,6 +101,18 @@ function PublicPage() {
             return <CMSAnnouncementBar key={section.id} content={section.content} />;
           case "mosaic_banners":
             return <MosaicBanners key={section.id} content={section.content} />;
+          case "bento_grid":
+            return <BentoGrid key={section.id} content={section.content as any} />;
+          case "gallery_grid":
+            return <GalleryGrid key={section.id} content={section.content as any} />;
+          case "info_cards":
+            return <InfoCards key={section.id} content={section.content as any} />;
+          case "social_grid":
+            return <SocialGrid key={section.id} content={section.content as any} />;
+          case "contact_form":
+            return <ContactForm key={section.id} storeId={page.store_id} content={section.content as any} />;
+          case "video_section":
+            return <VideoSection key={section.id} content={section.content as any} />;
           default:
             return null;
         }

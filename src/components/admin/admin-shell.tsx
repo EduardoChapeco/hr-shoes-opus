@@ -34,6 +34,9 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ADMIN_SIDEBAR_NAV, ADMIN_BOTTOM_NAV, getRoute, hasRoleAccess } from "@/lib/routes";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { toast } from "sonner";
+import { signOut } from "@/services/auth.functions";
 
 // ---------------------------------------------------------------------------
 // Icon registry
@@ -170,6 +173,25 @@ export function AdminShell({ children, session }: { children: ReactNode; session
   const [collapsed, setCollapsed] = useState(true);
   const router = useRouter();
   const pathname = router.state.location.pathname;
+
+  const handleLogout = async () => {
+    try {
+      const res = await signOut();
+      if (res.status === "success") {
+        toast.success("Sessão encerrada.");
+        router.navigate({ to: "/entrar", replace: true });
+      } else {
+        toast.error(res.message || "Erro ao sair");
+      }
+    } catch {
+      toast.error("Erro inesperado ao encerrar sessão.");
+    }
+  };
+
+  const getInitials = (email: string) => {
+    const name = email.split("@")[0] || "U";
+    return name.slice(0, 2).toUpperCase();
+  };
 
   const activeGroup = getActiveGroup(pathname);
 
@@ -320,6 +342,39 @@ export function AdminShell({ children, session }: { children: ReactNode; session
           <Button variant="ghost" size="sm" asChild className="w-full text-xs hover:bg-sidebar-accent">
             <Link to="/">{collapsed ? <Store className="size-4" /> : "Ver loja pública"}</Link>
           </Button>
+
+          {/* User profile & Logout footer */}
+          <div className="mt-2 pt-2 border-t border-sidebar-border/60 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <Avatar className="size-8 border border-border">
+                <AvatarFallback className="bg-primary/10 text-primary font-bold text-[10px]">
+                  {getInitials(session?.email || "Admin")}
+                </AvatarFallback>
+              </Avatar>
+              {!collapsed && (
+                <div className="flex flex-col min-w-0 text-left">
+                  <span className="font-semibold text-xs text-foreground truncate max-w-[120px]" title={session?.email}>
+                    {session?.email || "Colaborador"}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground capitalize">
+                    {session?.role || "Acesso"}
+                  </span>
+                </div>
+              )}
+            </div>
+            {!collapsed && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                onClick={handleLogout}
+                type="button"
+                title="Sair do painel"
+              >
+                <LogOut className="size-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </aside>
 

@@ -31,6 +31,7 @@ import { getAdminPageDetails, savePageSections, getPublicStoreSettings, getNavig
 import { listCollections } from "@/services/admin-catalog.functions";
 import { EmptyState } from "@/components/state/states";
 import { cmsRegistry, cmsBlocksList, type CmsFieldDef } from "@/lib/cms-registry";
+import { cmsTemplates } from "@/lib/cms-templates";
 import { ImageUpload } from "@/components/ui/image-upload";
 import type { ProductCardDTO } from "@/types/catalog";
 import { listPublishedProducts, getProductsByCollection } from "@/services/catalog.functions";
@@ -42,6 +43,12 @@ import { HeroCarousel } from "@/components/commerce/dynamic-sections/hero-carous
 import { MosaicBanners } from "@/components/commerce/dynamic-sections/mosaic-banners";
 import { ProductRail } from "@/components/commerce/dynamic-sections/product-rail";
 import { RichText } from "@/components/commerce/dynamic-sections/rich-text";
+import { BentoGrid } from "@/components/commerce/dynamic-sections/bento-grid";
+import { GalleryGrid } from "@/components/commerce/dynamic-sections/gallery-grid";
+import { InfoCards } from "@/components/commerce/dynamic-sections/info-cards";
+import { SocialGrid } from "@/components/commerce/dynamic-sections/social-grid";
+import { ContactForm } from "@/components/commerce/dynamic-sections/contact-form";
+import { VideoSection } from "@/components/commerce/dynamic-sections/video-section";
 
 export const Route = createFileRoute("/admin/cms/paginas/$id/editor")({
   head: () => ({ meta: [{ title: "Editor de Página — Hr Shoes" }] }),
@@ -440,6 +447,18 @@ function PageEditor() {
         );
       case "mosaic_banners":
         return <MosaicBanners content={section.content} />;
+      case "bento_grid":
+        return <BentoGrid content={section.content as any} />;
+      case "gallery_grid":
+        return <GalleryGrid content={section.content as any} />;
+      case "info_cards":
+        return <InfoCards content={section.content as any} />;
+      case "social_grid":
+        return <SocialGrid content={section.content as any} />;
+      case "contact_form":
+        return <ContactForm storeId={page.store_id} content={section.content as any} />;
+      case "video_section":
+        return <VideoSection content={section.content as any} />;
       default:
         return (
           <div className="p-10 border border-dashed text-center rounded bg-slate-50 text-muted-foreground">
@@ -487,7 +506,34 @@ function PageEditor() {
           </Button>
         </div>
 
-        <div>
+        <div className="flex items-center gap-2">
+          <Select
+            onValueChange={(templateKey) => {
+              const template = cmsTemplates[templateKey];
+              if (template) {
+                const newSecs = template.sections.map((s, idx) => ({
+                  id: undefined,
+                  section_type: s.section_type,
+                  content: s.content,
+                  sort_order: idx,
+                }));
+                setSections(newSecs);
+                toast.success(`Template "${template.name}" carregado!`);
+              }
+            }}
+          >
+            <SelectTrigger className="h-9 text-xs w-[200px]">
+              <SelectValue placeholder="Carregar Template..." />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(cmsTemplates).map(([key, t]) => (
+                <SelectItem key={key} value={key} className="text-xs">
+                  {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Button size="sm" onClick={handleSave} disabled={isSaving} className="h-9">
             <Save className="mr-2 h-4 w-4" />
             {isSaving ? "Salvando..." : "Salvar"}

@@ -189,3 +189,129 @@ export const createCustomer = createServerFn({ method: "POST" })
     }
   });
 
+// ---------------------------------------------------------------------------
+// CRM Leads and Pipeline Handlers
+// ---------------------------------------------------------------------------
+
+const SubmitContactSchema = z.object({
+  storeId: z.string().uuid(),
+  fullName: z.string().min(2),
+  email: z.string().email(),
+  phone: z.string().optional(),
+  message: z.string().min(2),
+});
+
+export const submitContactForm = createServerFn({ method: "POST" })
+  .validator(SubmitContactSchema)
+  .handler(async ({ data: input }) => {
+    try {
+      const supabase = getServerClient();
+      const { error } = await supabase.from("leads_crm").insert({
+        store_id: input.storeId,
+        full_name: input.fullName,
+        email: input.email,
+        phone: input.phone || null,
+        message: input.message,
+        status: "new",
+      });
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[crm] submitContactForm error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao enviar mensagem" };
+    }
+  });
+
+export const listLeads = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
+
+    const { data, error } = await supabase
+      .from("leads_crm")
+      .select("*")
+      .eq("store_id", identity.store_id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return { status: "ok" as const, data: data || [] };
+  } catch (e: any) {
+    console.error("[crm] listLeads error:", e);
+    return { status: "error" as const, data: [], message: e.message };
+  }
+});
+
+export const updateLeadStatus = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      leadId: z.string().uuid(),
+      status: z.enum(["new", "contacted", "converted", "lost"]),
+    }),
+  )
+  .handler(async ({ data: { leadId, status } }) => {
+    try {
+      const supabase = getServerClient();
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+      const { error } = await supabase
+        .from("leads_crm")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", leadId)
+        .eq("store_id", identity.store_id);
+
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[crm] updateLeadStatus error:", e);
+      return { status: "error" as const, message: e.message };
+    }
+  });
+
+export const promoteLeadToCustomer = createServerFn({ method: "POST" })
+  .validator(z.object({ leadId: z.string().uuid() }))
+  .handler(async ({ data: { leadId } }) => {
+    try {
+      const supabase = getServerClient();
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+      // Fetch lead details
+      const { data: lead, error: fetchError } = await supabase
+        .from("leads_crm")
+        .select("*")
+        .eq("id", leadId)
+        .eq("store_id", identity.store_id)
+        .single();
+
+      if (fetchError || !lead) throw new Error("Lead não encontrado");
+
+      // Call our existing createCustomer logic
+      const promoteRes = await createCustomer({
+        data: {
+          fullName: lead.full_name,
+          email: lead.email,
+          phone: lead.phone || "",
+          tags: ["Lead Convertido"],
+          notes: lead.message ? `Mensagem original: ${lead.message}` : undefined,
+        },
+      });
+
+      if (promoteRes.status === "error") {
+        throw new Error(promoteRes.message);
+      }
+
+      // Update lead status
+      await supabase
+        .from("leads_crm")
+        .update({ status: "converted", updated_at: new Date().toISOString() })
+        .eq("id", leadId);
+
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[crm] promoteLeadToCustomer error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao converter lead." };
+    }
+  });
+
