@@ -45,6 +45,60 @@ async function resolveDefaultStoreId(): Promise<string | null> {
   return data.id as string;
 }
 
+/** 
+ * Helper to map Supabase joined row into ProductCardDTO, 
+ * applying business rules for out-of-stock and effective price.
+ */
+function mapProductCardDTO(row: any): ProductCardDTO {
+  const mediaList = Array.isArray(row.product_media || row.media)
+    ? [...(row.product_media || row.media)].sort((a, b) => a.sort_order - b.sort_order)
+    : [];
+  const cover = mediaList[0] ?? null;
+
+  const basePrice = row.price_cents ?? row.priceCents;
+  const compareAt = row.compare_at_cents ?? row.compareAtCents ?? null;
+
+  const variants = Array.isArray(row.product_variants || row.variants)
+    ? (row.product_variants || row.variants)
+    : [];
+  
+  const activeVariants = variants.filter((v: any) => v.status === "active");
+  
+  let isOutOfStock = true;
+  let displayPrice = basePrice;
+
+  if (activeVariants.length > 0) {
+    const totalAvailable = activeVariants.reduce(
+      (sum: number, v: any) => sum + Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0)),
+      0
+    );
+    isOutOfStock = totalAvailable <= 0;
+
+    const variantsForPrice = totalAvailable > 0 
+      ? activeVariants.filter((v: any) => Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0)) > 0) 
+      : activeVariants;
+    
+    if (variantsForPrice.length > 0) {
+      const minPrice = Math.min(...variantsForPrice.map((v: any) => v.price_override_cents ?? basePrice));
+      if (minPrice < displayPrice) {
+        displayPrice = minPrice;
+      }
+    }
+  }
+
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    brand: row.brand ?? null,
+    priceCents: displayPrice,
+    compareAtCents: compareAt,
+    coverUrl: cover?.url ?? null,
+    coverAlt: cover?.alt ?? null,
+    isOutOfStock,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // listPublishedProducts
 // ---------------------------------------------------------------------------
@@ -74,9 +128,11 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       const selectQuery = params.categorySlug
         ? `id, slug, title, brand, price_cents, compare_at_cents,
            product_media(url, alt, sort_order),
-           product_categories!inner(categories!inner(slug))`
+           product_categories!inner(categories!inner(slug)),
+           product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`
         : `id, slug, title, brand, price_cents, compare_at_cents,
-           product_media(url, alt, sort_order)`;
+           product_media(url, alt, sort_order),
+           product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`;
 
       let query = db
         .from("products")
@@ -105,24 +161,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         return { status: "empty" };
       }
 
-      const products: ProductCardDTO[] = data.map((row: any) => {
-        // Pick the first media item sorted by sort_order (cover image)
-        const media = Array.isArray(row.product_media)
-          ? [...row.product_media].sort((a, b) => a.sort_order - b.sort_order)
-          : [];
-        const cover = media[0] ?? null;
-
-        return {
-          id: row.id as string,
-          slug: row.slug as string,
-          title: row.title as string,
-          brand: (row.brand as string | null) ?? null,
-          priceCents: row.price_cents as number,
-          compareAtCents: (row.compare_at_cents as number | null) ?? null,
-          coverUrl: cover?.url ?? null,
-          coverAlt: cover?.alt ?? null,
-        };
-      });
+      const products: ProductCardDTO[] = data.map(mapProductCardDTO);
 
       return { status: "ok", data: products };
     } catch (e) {
@@ -280,7 +319,8 @@ export const searchProducts = createServerFn({ method: "GET" })
           status,
           priceCents:price_cents,
           compareAtCents:compare_at_cents,
-          media:product_media(id, url, alt, sort_order)
+          media:product_media(id, url, alt, sort_order),
+          variants:product_variants(status, price_override_cents, stock_on_hand, stock_reserved)
         `,
         )
         .eq("store_id", store.id)
@@ -296,31 +336,7 @@ export const searchProducts = createServerFn({ method: "GET" })
         return { status: "ok", data: [] };
       }
 
-      // Map to DTO
-      const mapped: ProductCardDTO[] = data.map((item: any) => {
-        const sortedMedia = item.media.sort(
-          (a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0),
-        );
-        return {
-          id: item.id,
-          title: item.title,
-          slug: item.slug,
-          priceCents: item.priceCents,
-          compareAtCents: item.compareAtCents,
-          coverImage: sortedMedia[0]
-            ? {
-                url: sortedMedia[0].url,
-                alt: sortedMedia[0].alt,
-              }
-            : null,
-          hoverImage: sortedMedia[1]
-            ? {
-                url: sortedMedia[1].url,
-                alt: sortedMedia[1].alt,
-              }
-            : null,
-        };
-      });
+      const mapped: ProductCardDTO[] = data.map(mapProductCardDTO);
 
       return { status: "ok", data: mapped };
     } catch (e: any) {
@@ -364,7 +380,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
       const { data, error } = await db
         .from("products")
         .select(
-          `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order)`,
+          `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order), variants:product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`,
         )
         .eq("store_id", store.id)
         .eq("status", "published")
@@ -374,20 +390,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
       if (error) return { status: "error", message: error.message };
       if (!data || data.length === 0) return { status: "empty" };
 
-      const mapped: ProductCardDTO[] = data.map((item: any) => {
-        const sortedMedia =
-          item.media?.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)) || [];
-        return {
-          id: item.id,
-          title: item.title,
-          slug: item.slug,
-          brand: item.brand,
-          priceCents: item.priceCents,
-          compareAtCents: item.compareAtCents,
-          coverUrl: sortedMedia[0]?.url || null,
-          coverAlt: sortedMedia[0]?.alt || null,
-        };
-      });
+      const mapped: ProductCardDTO[] = data.map(mapProductCardDTO);
 
       return { status: "ok", data: mapped };
     } catch (e: any) {
@@ -408,7 +411,7 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
       const { data, error } = await db
         .from("products")
         .select(
-          `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order)`,
+          `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order), variants:product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`,
         )
         .eq("store_id", store.id)
         .eq("status", "published")
@@ -425,20 +428,7 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
       );
       if (discountedData.length === 0) return { status: "empty" };
 
-      const mapped: ProductCardDTO[] = discountedData.map((item: any) => {
-        const sortedMedia =
-          item.media?.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0)) || [];
-        return {
-          id: item.id,
-          title: item.title,
-          slug: item.slug,
-          brand: item.brand,
-          priceCents: item.priceCents,
-          compareAtCents: item.compareAtCents,
-          coverUrl: sortedMedia[0]?.url || null,
-          coverAlt: sortedMedia[0]?.alt || null,
-        };
-      });
+      const mapped: ProductCardDTO[] = discountedData.map(mapProductCardDTO);
 
       return { status: "ok", data: mapped };
     } catch (e: any) {
