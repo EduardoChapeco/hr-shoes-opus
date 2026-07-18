@@ -70,6 +70,9 @@ vi.mock("@/lib/identity", () => {
 describe("Admin Team Functions", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    mockSchema.mockImplementation(() => ({
+      from: mockFrom,
+    }));
     mockFrom.mockReturnValue(mockQueryBuilder);
     mockSelect.mockReturnValue(mockQueryBuilder);
     mockEq.mockReturnValue(mockQueryBuilder);
@@ -108,6 +111,31 @@ describe("Admin Team Functions", () => {
       expect(res).toEqual(expectedData);
       expect(mockFrom).toHaveBeenCalledWith("profiles");
       expect(mockEq).toHaveBeenCalledWith("store_id", "store-456");
+    });
+
+    it("should return team members with emails when authorized and auth data matches", async () => {
+      vi.mocked(getServerIdentity).mockResolvedValueOnce({
+        id: "user-123",
+        role: "owner",
+        store_id: "store-456",
+        organization_id: "org-789",
+      });
+
+      const mockData = [{ id: "user-123", full_name: "Owner", role: "owner" }];
+      const expectedData = [{ id: "user-123", full_name: "Owner", role: "owner", email: "owner@example.com" }];
+      mockOrder.mockResolvedValueOnce({ data: mockData, error: null });
+
+      // Mock mockIn conditionally based on field to resolve both profiles query and auth query
+      mockIn.mockImplementation((field: string) => {
+        if (field === "role") return mockQueryBuilder;
+        return Promise.resolve({
+          data: [{ id: "user-123", email: "owner@example.com" }],
+          error: null,
+        });
+      });
+
+      const res = await listTeamMembersHandler();
+      expect(res).toEqual(expectedData);
     });
 
     it("should throw database error if retrieval fails", async () => {
