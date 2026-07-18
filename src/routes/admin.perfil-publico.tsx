@@ -283,157 +283,172 @@ function PerfilPublicoPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-12 items-start">
-        {/* Preview Card (4 columns) */}
-        <div className="lg:col-span-4 rounded-lg border bg-card p-5 space-y-4 shadow-sm sticky top-6">
-          <h3 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
-            Prévia do Perfil Público
-          </h3>
-          
-          {/* Cover image preview in card top */}
-          {coverUrl ? (
-            <div className="h-24 w-full rounded-xl overflow-hidden relative border">
-              <img src={coverUrl} alt="Capa" className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-black/20" />
-            </div>
-          ) : (
-            <div className="h-12 w-full rounded-xl bg-muted/40 border border-dashed flex items-center justify-center text-[10px] text-muted-foreground">
-              Sem imagem de capa
-            </div>
-          )}
+        {/* Preview Card (Mobile Frame) */}
+        <div className="lg:col-span-4 sticky top-6 flex justify-center">
+          <div className="relative w-full max-w-[340px] h-[700px] rounded-[2.5rem] border-[10px] border-muted/80 bg-background shadow-2xl overflow-hidden flex flex-col ring-1 ring-border/50">
+            {/* Notch */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-muted/80 rounded-b-2xl z-20"></div>
 
-          <div className="flex items-center gap-4">
-            {form.logo_url ? (
-              <img
-                src={form.logo_url}
-                alt={(store as any).name}
-                className="h-16 w-16 rounded-xl object-cover border"
-              />
-            ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
-                <Store className="h-8 w-8 text-primary" />
+            <div className="flex-1 overflow-y-auto scrollbar-none bg-accent/20 relative z-10">
+              {/* Cover Image */}
+              <div className="relative h-40 w-full bg-muted">
+                {coverUrl ? (
+                  <img src={coverUrl} alt="Capa" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5 text-[10px] text-muted-foreground italic">
+                    Capa
+                  </div>
+                )}
+                {/* Gradient overlay for text legibility if we wanted any on cover, or just depth */}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
               </div>
-            )}
-            <div>
-              <p className="font-bold text-base">{(store as any).name}</p>
-              <p className="text-xs text-muted-foreground">/{(store as any).slug}</p>
-            </div>
-          </div>
 
-          <div className="space-y-3 text-sm text-muted-foreground border-t pt-3">
-            {form.description ? (
-              <p className="italic text-xs font-medium">"{form.description}"</p>
-            ) : (
-              <p className="text-destructive/80 text-xs">Sem descrição definida.</p>
-            )}
-            <div className="space-y-2 text-xs pt-1">
-              {form.phone && (
-                <p className="flex items-center gap-1.5">
-                  <Phone className="h-3.5 w-3.5 text-primary" />
-                  {form.phone}
-                </p>
-              )}
-              {instagramHandle && (
-                <p className="flex items-center gap-1.5">
-                  <Instagram className="h-3.5 w-3.5 text-primary" />
-                  @{instagramHandle}
-                </p>
-              )}
-              {form.address && (
-                <p className="flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 text-primary" />
-                  {form.address}
-                </p>
-              )}
-              {form.business_hours && (
-                <p className="flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-primary" />
-                  {form.business_hours}
-                </p>
-              )}
-            </div>
+              {/* Profile Header (Overlap) */}
+              <div className="px-5 pb-5 -mt-12 relative z-10">
+                <div className="flex flex-col items-center text-center space-y-3">
+                  {form.logo_url ? (
+                    <img
+                      src={form.logo_url}
+                      alt={(store as any).name}
+                      className="size-24 rounded-full object-cover border-4 border-background shadow-sm bg-background"
+                    />
+                  ) : (
+                    <div className="flex size-24 items-center justify-center rounded-full bg-background border-4 border-background shadow-sm text-primary">
+                      <Store className="h-10 w-10" />
+                    </div>
+                  )}
 
-            {/* Dynamic Open Status calculations inside preview */}
-            {extendedHours && (
-              <div className="border-t pt-3 w-full flex justify-between items-center text-xs">
-                <span className="text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" /> status
-                </span>
-                {(() => {
-                  const status = getOpenStatus(extendedHours, holidayExceptions);
-                  return (
-                    <span
-                      className={cn(
-                        "font-semibold px-2 py-0.5 rounded-full text-[10px]",
-                        status.status === "open"
-                          ? "text-emerald-600 bg-emerald-500/10"
-                          : "text-destructive bg-destructive/10"
+                  <div>
+                    <h2 className="font-bold text-xl leading-tight text-foreground">
+                      {(store as any).name}
+                    </h2>
+                    <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                      @{(store as any).slug}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 space-y-4">
+                  {form.description && (
+                    <p className="text-[13px] leading-relaxed text-center text-muted-foreground px-2">
+                      {form.description}
+                    </p>
+                  )}
+
+                  {/* Quick Action Buttons */}
+                  {actionButtons.length > 0 && (
+                    <div className="flex gap-2 overflow-x-auto scrollbar-none snap-x py-1">
+                      {actionButtons.map((btn) => {
+                        const Icon = getButtonIcon(btn.icon);
+                        return (
+                          <a
+                            key={btn.id}
+                            href={btn.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="snap-start shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+                          >
+                            <Icon className="size-3.5" />
+                            {btn.label}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Info Blocks */}
+                  <div className="space-y-3 pt-2">
+                    {/* Status badge */}
+                    {extendedHours && (
+                      <div className="flex items-center justify-center">
+                        {(() => {
+                          const status = getOpenStatus(extendedHours, holidayExceptions);
+                          return (
+                            <span
+                              className={cn(
+                                "flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider",
+                                status.status === "open"
+                                  ? "bg-emerald-500/15 text-emerald-700"
+                                  : "bg-destructive/15 text-destructive"
+                              )}
+                            >
+                              <Clock className="size-3" />
+                              {status.text}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    )}
+
+                    <div className="rounded-2xl bg-card border shadow-sm p-4 space-y-3">
+                      {form.phone && (
+                        <div className="flex items-start gap-3">
+                          <Phone className="size-4 text-primary shrink-0 mt-0.5" />
+                          <span className="text-[13px] font-medium">{form.phone}</span>
+                        </div>
                       )}
-                    >
-                      {status.text}
-                    </span>
-                  );
-                })()}
-              </div>
-            )}
+                      {instagramHandle && (
+                        <div className="flex items-start gap-3">
+                          <Instagram className="size-4 text-primary shrink-0 mt-0.5" />
+                          <span className="text-[13px] font-medium">@{instagramHandle}</span>
+                        </div>
+                      )}
+                      {form.address && (
+                        <div className="flex items-start gap-3">
+                          <MapPin className="size-4 text-primary shrink-0 mt-0.5" />
+                          <span className="text-[13px] font-medium leading-tight text-muted-foreground">{form.address}</span>
+                        </div>
+                      )}
+                      {form.business_hours && (
+                        <div className="flex items-start gap-3">
+                          <Clock className="size-4 text-primary shrink-0 mt-0.5" />
+                          <span className="text-[13px] font-medium leading-tight text-muted-foreground">{form.business_hours}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-            {/* Action buttons preview inside preview */}
-            {actionButtons.length > 0 && (
-              <div className="border-t pt-3 space-y-1.5 w-full">
-                <span className="text-muted-foreground text-[10px] uppercase font-bold block">
-                  Botões de Ação ({actionButtons.length})
-                </span>
-                <div className="flex flex-wrap gap-1">
-                  {actionButtons.map((btn) => {
-                    const Icon = getButtonIcon(btn.icon);
-                    return (
-                      <span
-                        key={btn.id}
-                        className="inline-flex items-center gap-1 text-[10px] bg-secondary text-secondary-foreground px-2 py-0.5 rounded border"
-                      >
-                        <Icon className="size-2.5" /> {btn.label}
-                      </span>
-                    );
-                  })}
+                  {/* Custom Sections */}
+                  {profileSections.length > 0 && (
+                    <div className="space-y-3 pt-2">
+                      {profileSections.map((sec) => (
+                        <div key={sec.id} className="rounded-2xl bg-card border shadow-sm p-4">
+                          <h3 className="font-bold text-[13px] flex items-center gap-2 mb-2">
+                            <span className="text-primary">{renderIcon(sec.icon)}</span>
+                            {sec.title}
+                          </h3>
+                          <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                            {sec.content}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
-
-          {profileSections.length > 0 && (
-            <div className="border-t pt-3 space-y-2">
-              <h4 className="font-semibold text-xs text-muted-foreground">Seções Customizadas ({profileSections.length})</h4>
-              <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                {profileSections.map((sec) => (
-                  <div key={sec.id} className="p-2 border rounded bg-muted/30 text-xs">
-                    <p className="font-bold flex items-center gap-1">
-                      {renderIcon(sec.icon)}
-                      {sec.title}
-                    </p>
-                    <p className="text-muted-foreground truncate mt-0.5">{sec.content}</p>
-                  </div>
-                ))}
-              </div>
             </div>
-          )}
+            {/* Fake Home Indicator */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-24 h-1 bg-muted-foreground/30 rounded-full z-20"></div>
+          </div>
         </div>
 
         {/* Edit Form with Tabs (8 columns) */}
         <div className="lg:col-span-8">
           <form onSubmit={handleSave} className="space-y-6">
-            <Card className="shadow-xs border bg-card">
+            <Card className="shadow-lg border bg-card/60 backdrop-blur-xl overflow-hidden">
               <Tabs defaultValue="geral" className="w-full">
-                <div className="border-b px-4 pt-1 bg-muted/10">
-                  <TabsList className="bg-transparent border-none gap-2">
-                    <TabsTrigger value="geral" className="text-xs data-[state=active]:bg-background">
-                      Informações Gerais
+                <div className="border-b px-2 pt-2 bg-muted/10">
+                  <TabsList className="bg-transparent border-none gap-2 w-full justify-start overflow-x-auto scrollbar-none h-12">
+                    <TabsTrigger value="geral" className="text-[13px] font-semibold data-[state=active]:bg-background rounded-full px-4 h-8 data-[state=active]:shadow-sm">
+                      Geral
                     </TabsTrigger>
-                    <TabsTrigger value="horarios" className="text-xs data-[state=active]:bg-background">
-                      Horários (Google)
+                    <TabsTrigger value="horarios" className="text-[13px] font-semibold data-[state=active]:bg-background rounded-full px-4 h-8 data-[state=active]:shadow-sm">
+                      Horários & Google
                     </TabsTrigger>
-                    <TabsTrigger value="secoes" className="text-xs data-[state=active]:bg-background">
+                    <TabsTrigger value="secoes" className="text-[13px] font-semibold data-[state=active]:bg-background rounded-full px-4 h-8 data-[state=active]:shadow-sm">
                       Seções do Perfil
                     </TabsTrigger>
-                    <TabsTrigger value="botoes" className="text-xs data-[state=active]:bg-background">
+                    <TabsTrigger value="botoes" className="text-[13px] font-semibold data-[state=active]:bg-background rounded-full px-4 h-8 data-[state=active]:shadow-sm">
                       Botões de Ação
                     </TabsTrigger>
                   </TabsList>
