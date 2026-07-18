@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -25,6 +25,7 @@ import {
   CreditCard,
   QrCode,
   User,
+  UserPlus,
   Package,
 } from "lucide-react";
 
@@ -83,6 +84,7 @@ import {
   processPOSSale,
 } from "@/services/cash.functions";
 import { listAdminProducts } from "@/services/admin-catalog.functions";
+import { listCustomers, createCustomer } from "@/services/crm.functions";
 import { parseCurrencyInputToCents } from "@/lib/cash";
 import { formatDateTime } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
@@ -153,6 +155,66 @@ function CashRegisterPage() {
   const [customerNameInput, setCustomerNameInput] = useState("Cliente Avulso Balcão");
   const [amountPaidInput, setAmountPaidInput] = useState("");
   const [lastReceipt, setLastReceipt] = useState<any | null>(null);
+
+  // CRM Customer selector states
+  const [customersList, setCustomersList] = useState<any[]>([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [isNewCustomerOpen, setIsNewCustomerOpen] = useState(false);
+  const [newCustomerForm, setNewCustomerForm] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+  });
+  const [isSavingCustomer, setIsSavingCustomer] = useState(false);
+
+  const fetchCustomers = async () => {
+    try {
+      const list = await listCustomers();
+      setCustomersList(list || []);
+    } catch (e) {
+      console.error("Erro ao listar clientes para o caixa:", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  const handleCreateCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCustomerForm.fullName || !newCustomerForm.email) {
+      toast.error("Nome e E-mail são obrigatórios");
+      return;
+    }
+    setIsSavingCustomer(true);
+    try {
+      const res = await createCustomer({
+        data: {
+          fullName: newCustomerForm.fullName,
+          email: newCustomerForm.email,
+          phone: newCustomerForm.phone,
+          tags: ["PDV Balcão"],
+          notes: "Cadastrado via terminal de caixa",
+        },
+      });
+
+      if (res.status === "success") {
+        toast.success("Cliente cadastrado!");
+        setIsNewCustomerOpen(false);
+        setNewCustomerForm({ fullName: "", email: "", phone: "" });
+        
+        await fetchCustomers();
+        setSelectedCustomerId(res.customerId);
+        setCustomerNameInput(newCustomerForm.fullName);
+      } else {
+        toast.error(res.message || "Erro ao cadastrar cliente");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Erro inesperado");
+    } finally {
+      setIsSavingCustomer(false);
+    }
+  };
 
   // Forms for open/close/entry
   const openForm = useForm<z.infer<typeof OpenRegisterSchema>>({
@@ -258,6 +320,7 @@ function CashRegisterPage() {
           paymentMethod,
           discountCents,
           customerName: customerNameInput,
+          customerId: selectedCustomerId,
           amountPaidCents,
         },
       });
@@ -268,6 +331,8 @@ function CashRegisterPage() {
         setCartItems([]);
         setDiscountCentsInput("0");
         setAmountPaidInput("");
+        setSelectedCustomerId(null);
+        setCustomerNameInput("Cliente Avulso Balcão");
         router.invalidate();
       } else {
         toast.error("Erro ao registrar venda.");
@@ -525,14 +590,56 @@ function CashRegisterPage() {
 
                   {/* Customer & Discount Controls */}
                   <div className="space-y-3 pt-2 border-t">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Cliente Balcão</Label>
-                      <Input
-                        className="text-xs h-8"
-                        placeholder="Nome do cliente avulso..."
-                        value={customerNameInput}
-                        onChange={(e) => setCustomerNameInput(e.target.value)}
-                      />
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Cliente Balcão</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="h-5 text-[10px] px-1 text-primary gap-1 hover:bg-primary/5"
+                          onClick={() => setIsNewCustomerOpen(true)}
+                        >
+                          <UserPlus className="size-3" />
+                          + Novo Cliente
+                        </Button>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <Select
+                            value={selectedCustomerId || "guest"}
+                            onValueChange={(val) => {
+                              if (val === "guest") {
+                                setSelectedCustomerId(null);
+                                setCustomerNameInput("Cliente Avulso Balcão");
+                              } else {
+                                setSelectedCustomerId(val);
+                                const found = customersList.find((c) => c.id === val);
+                                setCustomerNameInput(found ? found.name : "Cliente Registrado");
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="text-xs h-8 bg-card">
+                              <SelectValue placeholder="Selecione o cliente" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="guest">Cliente Avulso (Não registrado)</SelectItem>
+                              {customersList.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>
+                                  {c.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {selectedCustomerId === null && (
+                          <Input
+                            className="text-xs h-8 max-w-[150px]"
+                            placeholder="Nome..."
+                            value={customerNameInput}
+                            onChange={(e) => setCustomerNameInput(e.target.value)}
+                          />
+                        )}
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
@@ -766,6 +873,62 @@ function CashRegisterPage() {
               Nova Venda
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog do Cadastro Rápido de Cliente no PDV */}
+      <Dialog open={isNewCustomerOpen} onOpenChange={setIsNewCustomerOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Cadastro Rápido de Cliente</DialogTitle>
+            <DialogDescription>
+              Insira as informações do cliente para registrá-lo no caixa e vinculá-lo a esta venda.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateCustomer} className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="pdv-cli-name">Nome Completo *</Label>
+              <Input
+                id="pdv-cli-name"
+                required
+                value={newCustomerForm.fullName}
+                onChange={(e) => setNewCustomerForm({ ...newCustomerForm, fullName: e.target.value })}
+                placeholder="Ex: Carlos Souza"
+                className="h-9"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pdv-cli-email">E-mail *</Label>
+              <Input
+                id="pdv-cli-email"
+                type="email"
+                required
+                value={newCustomerForm.email}
+                onChange={(e) => setNewCustomerForm({ ...newCustomerForm, email: e.target.value })}
+                placeholder="carlos@exemplo.com"
+                className="h-9"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pdv-cli-phone">Telefone / WhatsApp</Label>
+              <Input
+                id="pdv-cli-phone"
+                type="tel"
+                value={newCustomerForm.phone}
+                onChange={(e) => setNewCustomerForm({ ...newCustomerForm, phone: e.target.value })}
+                placeholder="(49) 99999-9999"
+                className="h-9"
+              />
+            </div>
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="ghost" onClick={() => setIsNewCustomerOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSavingCustomer} className="font-bold">
+                {isSavingCustomer ? "Salvando..." : "Confirmar e Vincular"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

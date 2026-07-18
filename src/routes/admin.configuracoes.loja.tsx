@@ -24,13 +24,10 @@ function StoreSettings() {
   const [form, setForm] = useState({
     name: (store as any)?.name || "",
     email: (store as any)?.email || "",
-    phone: (store as any)?.phone || "",
     cnpj: (store as any)?.cnpj || "",
-    address: (store as any)?.address || "",
     city: (store as any)?.city || "",
     state: (store as any)?.state || "",
     zip_code: (store as any)?.zip_code || "",
-    description: (store as any)?.description || "",
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -95,60 +92,28 @@ function StoreSettings() {
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="store-desc">Descrição da Loja</Label>
-            <Textarea
-              id="store-desc"
-              rows={3}
-              value={form.description}
-              onChange={update("description")}
-              placeholder="Uma breve descrição da sua loja..."
-              maxLength={500}
-            />
-          </div>
         </fieldset>
 
         <fieldset className="space-y-4">
           <legend className="text-sm font-semibold text-foreground border-b pb-2 w-full">
-            Contato
-          </legend>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="store-email">E-mail de contato</Label>
-              <Input
-                id="store-email"
-                type="email"
-                value={form.email}
-                onChange={update("email")}
-                placeholder="contato@hrshoes.com.br"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="store-phone">Telefone / WhatsApp</Label>
-              <Input
-                id="store-phone"
-                type="tel"
-                value={form.phone}
-                onChange={update("phone")}
-                placeholder="(49) 99999-9999"
-              />
-            </div>
-          </div>
-        </fieldset>
-
-        <fieldset className="space-y-4">
-          <legend className="text-sm font-semibold text-foreground border-b pb-2 w-full">
-            Endereço
+            Contato Comercial
           </legend>
           <div className="space-y-2">
-            <Label htmlFor="store-address">Logradouro</Label>
+            <Label htmlFor="store-email">E-mail administrativo de contato</Label>
             <Input
-              id="store-address"
-              value={form.address}
-              onChange={update("address")}
-              placeholder="Rua Exemplo, 123"
+              id="store-email"
+              type="email"
+              value={form.email}
+              onChange={update("email")}
+              placeholder="contato@hrshoes.com.br"
             />
           </div>
+        </fieldset>
+
+        <fieldset className="space-y-4">
+          <legend className="text-sm font-semibold text-foreground border-b pb-2 w-full">
+            Origem Logística (Faturamento)
+          </legend>
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2 md:col-span-1">
               <Label htmlFor="store-city">Cidade</Label>

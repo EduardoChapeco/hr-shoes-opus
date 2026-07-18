@@ -156,7 +156,7 @@ export async function getPublicProfileHandler() {
   const db = getServerClient();
   const { data: store, error } = await db
     .from("stores")
-    .select("id, name, description, logo_url, address, phone, business_hours, social_links")
+    .select("id, name, description, logo_url, address, phone, business_hours, social_links, settings")
     .eq("id", identity.store_id)
     .single();
 
@@ -175,6 +175,7 @@ export const savePublicProfileSchema = z.object({
   address: z.string().max(200).optional(),
   business_hours: z.string().max(200).optional(),
   logo_url: z.string().url().optional().or(z.literal("")),
+  settings: z.record(z.any()).optional(),
 });
 
 export async function savePublicProfileHandler(data: z.infer<typeof savePublicProfileSchema>) {

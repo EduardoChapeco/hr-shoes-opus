@@ -17,7 +17,6 @@ export const listChatThreads = createServerFn({ method: "GET" }).handler(async (
       .select(
         `
         id, status, subject, updated_at, guest_name, guest_email,
-        users:customer_id (id),
         chat_messages (id, message, created_at, is_staff_reply)
       `,
       )

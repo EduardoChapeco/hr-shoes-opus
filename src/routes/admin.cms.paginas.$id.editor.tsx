@@ -27,84 +27,57 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAdminPageDetails, savePageSections } from "@/services/cms.functions";
+import { getAdminPageDetails, savePageSections, getPublicStoreSettings, getNavigationMenus } from "@/services/cms.functions";
 import { listCollections } from "@/services/admin-catalog.functions";
 import { EmptyState } from "@/components/state/states";
 import { cmsRegistry, cmsBlocksList, type CmsFieldDef } from "@/lib/cms-registry";
 import { ImageUpload } from "@/components/ui/image-upload";
 import type { ProductCardDTO } from "@/types/catalog";
+import { listPublishedProducts, getProductsByCollection } from "@/services/catalog.functions";
+import { PublicHeader } from "@/components/commerce/public-header";
+import { PublicFooter } from "@/components/commerce/public-footer";
 
-// Storefront components for live preview
 import { AnnouncementBar as CMSAnnouncementBar } from "@/components/commerce/dynamic-sections/announcement-bar";
 import { HeroCarousel } from "@/components/commerce/dynamic-sections/hero-carousel";
 import { MosaicBanners } from "@/components/commerce/dynamic-sections/mosaic-banners";
 import { ProductRail } from "@/components/commerce/dynamic-sections/product-rail";
 import { RichText } from "@/components/commerce/dynamic-sections/rich-text";
 
-// Mock products to allow rendering preview rails visually
-const MOCK_PRODUCTS: ProductCardDTO[] = [
-  {
-    id: "1",
-    slug: "scarpin-nude",
-    title: "Scarpin Nude Verniz",
-    brand: "Hr Shoes",
-    priceCents: 19990,
-    compareAtCents: null,
-    coverUrl:
-      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=500&auto=format&fit=crop&q=60",
-    coverAlt: "Scarpin Nude Verniz",
-    isOutOfStock: false,
-  },
-  {
-    id: "2",
-    slug: "sandalia-salto-bloco",
-    title: "Sandália Salto Bloco Couro",
-    brand: "Hr Shoes",
-    priceCents: 17990,
-    compareAtCents: 24990,
-    coverUrl:
-      "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=500&auto=format&fit=crop&q=60",
-    coverAlt: "Sandália Salto Bloco Couro",
-    isOutOfStock: false,
-  },
-  {
-    id: "3",
-    slug: "sapatilha-bico-fino",
-    title: "Sapatilha Bico Fino Confort",
-    brand: "Hr Shoes",
-    priceCents: 12990,
-    compareAtCents: null,
-    coverUrl:
-      "https://images.unsplash.com/photo-1539185441755-769473a23570?w=500&auto=format&fit=crop&q=60",
-    coverAlt: "Sapatilha Bico Fino Confort",
-    isOutOfStock: false,
-  },
-  {
-    id: "4",
-    slug: "mule-tassel-preto",
-    title: "Mule Tassel Camurça Preto",
-    brand: "Hr Shoes",
-    priceCents: 15990,
-    compareAtCents: null,
-    coverUrl:
-      "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=500&auto=format&fit=crop&q=60",
-    coverAlt: "Mule Tassel Camurça Preto",
-    isOutOfStock: false,
-  },
-];
-
 export const Route = createFileRoute("/admin/cms/paginas/$id/editor")({
   head: () => ({ meta: [{ title: "Editor de Página — Hr Shoes" }] }),
   loader: async ({ params }) => {
-    const [res, colRes] = await Promise.all([
+    const [res, colRes, prodRes, storeRes, menusRes] = await Promise.all([
       getAdminPageDetails({ data: { id: params.id } }),
       listCollections(),
+      listPublishedProducts({ data: { limit: 12 } }).catch(() => ({ status: "error" as const, reason: "" })),
+      getPublicStoreSettings().catch(() => null),
+      getNavigationMenus().catch(() => null),
     ]);
+
     if (res.status === "error") throw new Error(res.message);
     if (res.status === "unconfigured") throw new Error("Supabase não configurado");
+
+    const collections = colRes.status === "ok" ? colRes.data : [];
+    const collectionsData: Record<string, ProductCardDTO[]> = {};
+    if (collections.length > 0) {
+      await Promise.all(
+        collections.map(async (col: any) => {
+          const res = await getProductsByCollection({ data: { slug: col.slug } }).catch(() => null);
+          collectionsData[col.slug] = res && res.status === "ok" ? res.data : [];
+        })
+      );
+    }
+
+    const menus = menusRes && menusRes.status === "ok" ? menusRes.data : [];
+    const storeConfig = storeRes && storeRes.status === "ok" ? storeRes.data : null;
+
     return {
       page: res.data,
-      collections: colRes.status === "ok" ? colRes.data : [],
+      collections,
+      products: prodRes.status === "ok" ? prodRes.data : [],
+      collectionsData,
+      menus,
+      storeConfig,
     };
   },
   component: PageEditor,
@@ -118,7 +91,7 @@ interface SectionData {
 }
 
 function PageEditor() {
-  const { page, collections } = Route.useLoaderData();
+  const { page, collections, products, collectionsData, menus, storeConfig } = Route.useLoaderData() as any;
   const navigate = useNavigate();
   const [sections, setSections] = useState<SectionData[]>(
     page.sections.map(
@@ -423,6 +396,28 @@ function PageEditor() {
     );
   };
 
+  const storeProp = storeConfig
+    ? {
+        name: storeConfig.name,
+        logoUrl: storeConfig.logoUrl || storeConfig.logo_url || null,
+        instagramHandle: storeConfig.instagramHandle || null,
+        description: storeConfig.description || null,
+        phone: storeConfig.phone || null,
+        email: storeConfig.email || null,
+        businessHours: storeConfig.businessHours || storeConfig.business_hours || null,
+        address: storeConfig.address || null,
+      }
+    : {
+        name: "Hr Shoes",
+        logoUrl: null,
+        instagramHandle: null,
+        description: null,
+        phone: null,
+        email: null,
+        businessHours: null,
+        address: null,
+      };
+
   const renderPreviewSection = (section: SectionData, index: number) => {
     switch (section.section_type) {
       case "announcement_bar":
@@ -436,7 +431,13 @@ function PageEditor() {
       case "featured_products":
       case "product_grid":
       case "product_rail":
-        return <ProductRail content={section.content} publishedProducts={MOCK_PRODUCTS} />;
+        return (
+          <ProductRail
+            content={section.content}
+            publishedProducts={products}
+            collectionsData={collectionsData}
+          />
+        );
       case "mosaic_banners":
         return <MosaicBanners content={section.content} />;
       default:
@@ -502,44 +503,51 @@ function PageEditor() {
             className={`w-full transition-all duration-300 ${previewDevice === "mobile" ? "max-w-sm border-8 border-slate-900 rounded-[36px] shadow-2xl bg-background overflow-hidden min-h-[680px] my-4" : "max-w-screen-lg bg-background rounded-lg border shadow-md min-h-screen"}`}
           >
             {/* Device frame content wrapper */}
-            <div className="relative w-full h-full flex flex-col gap-6 pb-20">
-              {/* Simulated header inside iframe */}
-              <div className="border-b px-4 py-3 flex items-center justify-between text-xs font-semibold select-none bg-background text-muted-foreground shrink-0 border-dashed">
-                <span>Hr Shoes Vitrine</span>
-                <span className="font-mono">preview mode</span>
+            <div className="relative w-full h-full flex flex-col min-h-screen">
+              {/* Actual Public Header */}
+              <div className="pointer-events-none select-none">
+                <PublicHeader storeName={storeProp.name} menuItems={menus} />
               </div>
 
-              {sections.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground">
-                  Nenhum bloco inserido. Adicione blocos para montar sua vitrine.
-                </div>
-              ) : (
-                sections.map((section, index) => {
-                  const isActive = activeSectionIndex === index;
-                  return (
-                    <div
-                      key={index}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveSectionIndex(index);
-                      }}
-                      className={`relative group border-2 transition-all ${isActive ? "border-primary ring-4 ring-primary/10" : "border-transparent hover:border-primary/40"} cursor-pointer`}
-                    >
-                      {/* Interactive Section Cover Details */}
+              {/* Page Sections Content Area */}
+              <div className="flex-1 flex flex-col gap-6 py-6 pb-20">
+                {sections.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    Nenhum bloco inserido. Adicione blocos para montar sua vitrine.
+                  </div>
+                ) : (
+                  sections.map((section, index) => {
+                    const isActive = activeSectionIndex === index;
+                    return (
                       <div
-                        className={`absolute top-2 left-2 z-10 bg-primary text-primary-foreground text-[10px] uppercase font-bold px-2 py-0.5 rounded shadow ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100 transition-opacity"}`}
+                        key={index}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveSectionIndex(index);
+                        }}
+                        className={`relative group border-2 transition-all ${isActive ? "border-primary ring-4 ring-primary/10" : "border-transparent hover:border-primary/40"} cursor-pointer`}
                       >
-                        {cmsRegistry[section.section_type]?.label || section.section_type}
-                      </div>
+                        {/* Interactive Section Cover Details */}
+                        <div
+                          className={`absolute top-2 left-2 z-10 bg-primary text-primary-foreground text-[10px] uppercase font-bold px-2 py-0.5 rounded shadow ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100 transition-opacity"}`}
+                        >
+                          {cmsRegistry[section.section_type]?.label || section.section_type}
+                        </div>
 
-                      {/* Render Visual Section component */}
-                      <div className="pointer-events-none select-none">
-                        {renderPreviewSection(section, index)}
+                        {/* Render Visual Section component */}
+                        <div className="pointer-events-none select-none">
+                          {renderPreviewSection(section, index)}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })
-              )}
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Actual Public Footer */}
+              <div className="pointer-events-none select-none">
+                <PublicFooter store={storeProp} menuItems={menus} />
+              </div>
             </div>
           </div>
         </div>

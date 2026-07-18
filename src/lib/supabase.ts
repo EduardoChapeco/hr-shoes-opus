@@ -16,6 +16,7 @@
  */
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 import { z } from "zod";
 import { getEnvVar } from "./env";
 
@@ -74,13 +75,10 @@ export function getBrowserClient(): SupabaseClient {
     throw new SupabaseUnconfiguredError(env.error.issues.map((i) => i.message).join("; "));
   }
 
-  _browserClient = createClient(env.data.VITE_SUPABASE_URL, env.data.VITE_SUPABASE_ANON_KEY, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-    },
-  });
+  _browserClient = createBrowserClient(
+    env.data.VITE_SUPABASE_URL,
+    env.data.VITE_SUPABASE_ANON_KEY
+  );
 
   return _browserClient;
 }

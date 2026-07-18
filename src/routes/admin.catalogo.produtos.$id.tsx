@@ -21,10 +21,12 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
+import { PriceDisplay } from "@/components/commerce/price-display";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Select,
   SelectContent,
@@ -61,6 +63,7 @@ import {
   listCategories,
 } from "@/services/admin-catalog.functions";
 import { formatMoney } from "@/lib/money";
+import { adjustStock } from "@/services/stock.functions";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/$id")({
   head: () => ({ meta: [{ title: "Editor Avançado de Produto — Hr Shoes" }] }),
@@ -89,6 +92,13 @@ function EditProductPage() {
   const [liveCompareCents, setLiveCompareCents] = useState(product.compare_at_cents || null);
   const [liveCostCents, setLiveCostCents] = useState(product.cost_cents || null);
   const [liveStatus, setLiveStatus] = useState(product.status || "draft");
+
+  // Collect unique attribute keys from actual variants
+  const attributeKeys: string[] = useMemo(() => {
+    return Array.from(
+      new Set((product.product_variants || []).flatMap((v: any) => Object.keys(v.attributes || {}))),
+    );
+  }, [product.product_variants]);
 
   // Main Cover Image for preview
   const coverImage = product.product_media?.[0]?.url;
@@ -163,22 +173,13 @@ function EditProductPage() {
                 </h3>
 
                 {/* Price Display */}
-                <div className="flex items-baseline gap-2 pt-1">
-                  <span className="text-xl font-extrabold text-foreground">
-                    {formatMoney(livePriceCents)}
-                  </span>
-                  {liveCompareCents && liveCompareCents > livePriceCents && (
-                    <span className="text-xs text-muted-foreground line-through">
-                      {formatMoney(liveCompareCents)}
-                    </span>
-                  )}
+                <div className="pt-1">
+                  <PriceDisplay
+                    amountCents={livePriceCents}
+                    compareAtCents={liveCompareCents ?? undefined}
+                    size="lg"
+                  />
                 </div>
-
-                {/* Installments Simulation */}
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <CreditCard className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                  ou 3x de {formatMoney(Math.round(livePriceCents / 3))} sem juros no Pix
-                </p>
 
                 {/* Profit Margin Badge if cost provided */}
                 {profitMarginPercent !== null && (
@@ -190,24 +191,46 @@ function EditProductPage() {
                 )}
               </div>
 
-              {/* Simulated Sizes */}
-              <div className="space-y-1.5 pt-2 border-t border-border/60">
-                <span className="text-xs text-muted-foreground font-medium">Selecione o Tamanho:</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {["34", "35", "36", "37", "38", "39"].map((size, idx) => (
-                    <span
-                      key={size}
-                      className={`text-xs px-2.5 py-1 rounded-md border text-center font-medium ${
-                        idx === 2
-                          ? "border-primary bg-primary text-primary-foreground font-bold"
-                          : "border-border bg-card text-foreground"
-                      }`}
-                    >
-                      {size}
-                    </span>
-                  ))}
+              {/* Real Product Variants / Attributes */}
+              {attributeKeys.length > 0 ? (
+                attributeKeys.map((key) => {
+                  const values = Array.from(
+                    new Set(
+                      (product.product_variants || [])
+                        .map((v: any) => v.attributes?.[key])
+                        .filter((val: any): val is string => typeof val === "string")
+                    )
+                  ) as string[];
+
+                  if (values.length === 0) return null;
+
+                  return (
+                    <div key={key} className="space-y-1.5 pt-2 border-t border-border/60">
+                      <span className="text-xs text-muted-foreground font-medium capitalize">
+                        Selecione o(a) {key}:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {values.map((val, idx) => (
+                          <span
+                            key={val}
+                            className={`text-xs px-2.5 py-1 rounded-md border text-center font-medium ${
+                              idx === 0
+                                ? "border-primary bg-primary text-primary-foreground font-bold"
+                                : "border-border bg-card text-foreground"
+                            }`}
+                          >
+                            {val}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-xs text-muted-foreground pt-2 border-t border-border/60">
+                  Nenhum atributo ou tamanho cadastrado.
                 </div>
-              </div>
+              )}
 
               {/* Simulated CTA Buttons */}
               <div className="space-y-2 pt-2">
@@ -503,6 +526,7 @@ function VariantsManager({ product }: { product: any }) {
     defaultValues: {
       sku: "",
       price_override_cents: "",
+      stock: "0",
     },
   });
 
@@ -512,6 +536,7 @@ function VariantsManager({ product }: { product: any }) {
     reset({
       sku: `${product.slug}-${(product.product_variants?.length || 0) + 1}`,
       price_override_cents: "",
+      stock: "0",
     });
     setOpen(true);
   };
@@ -524,6 +549,7 @@ function VariantsManager({ product }: { product: any }) {
     reset({
       sku: v.sku,
       price_override_cents: v.price_override_cents ? (v.price_override_cents / 100).toFixed(2) : "",
+      stock: String(v.stock_on_hand || 0),
     });
     setOpen(true);
   };
@@ -551,14 +577,35 @@ function VariantsManager({ product }: { product: any }) {
       });
 
       if (res.status === "success") {
-        toast.success(editingVariant ? "Variante atualizada!" : "Variante criada!");
+        // Adjust stock if value changed
+        const targetStock = parseInt(values.stock || "0", 10);
+        const currentStock = editingVariant ? (editingVariant.stock_on_hand || 0) : 0;
+        const diff = targetStock - currentStock;
+
+        if (diff !== 0) {
+          const adjRes = await adjustStock({
+            data: {
+              variantId: res.data.id,
+              qty: diff,
+              movementType: "adjustment",
+              note: editingVariant
+                ? `Ajuste manual via editor de produtos (anterior: ${currentStock}, novo: ${targetStock})`
+                : `Estoque inicial na criação da variante`,
+            },
+          });
+          if (adjRes.status === "error") {
+            toast.error("Variante salva, mas falhou ao ajustar estoque: " + adjRes.message);
+          }
+        }
+
+        toast.success(editingVariant ? "Variante atualizada!" : "Variante criada com estoque!");
         setOpen(false);
         router.invalidate();
       } else {
         toast.error(res.message || "Erro ao salvar variante");
       }
     } catch (e) {
-      toast.error("Erro inesperado");
+      toast.error("Erro inesperado ao salvar variante.");
     } finally {
       setIsSubmitting(false);
     }
@@ -644,6 +691,11 @@ function VariantsManager({ product }: { product: any }) {
               <Input step="0.01" type="number" placeholder="Deixe em branco para preço base" {...register("price_override_cents")} />
             </div>
 
+            <div className="space-y-2">
+              <Label>Quantidade em Estoque</Label>
+              <Input type="number" min="0" placeholder="Ex: 10" {...register("stock")} />
+            </div>
+
             <div className="space-y-2 pt-2">
               <Label>Atributos da Variante</Label>
               {attrFields.map((field, index) => (
@@ -687,21 +739,21 @@ function VariantsManager({ product }: { product: any }) {
 
 function MediaManager({ product }: { product: any }) {
   const router = useRouter();
-  const [newUrl, setNewUrl] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
-  const handleAddLink = async () => {
-    if (!newUrl.trim()) return;
+  const handleAddImage = async (url: string) => {
+    if (!url) return;
     setIsAdding(true);
     try {
-      const res = await addProductMediaLink({ data: { product_id: product.id, url: newUrl } });
+      const res = await addProductMediaLink({ data: { product_id: product.id, url } });
       if (res.status === "success") {
-        toast.success("Mídia vinculada!");
-        setNewUrl("");
+        toast.success("Imagem vinculada e salva na galeria!");
         router.invalidate();
       } else {
-        toast.error(res.message);
+        toast.error(res.message || "Erro ao salvar imagem.");
       }
+    } catch {
+      toast.error("Erro inesperado ao salvar imagem.");
     } finally {
       setIsAdding(false);
     }
@@ -728,18 +780,17 @@ function MediaManager({ product }: { product: any }) {
         <CardDescription>Fotos em alta qualidade aumentam a conversão de vendas.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex gap-2">
-          <Input
-            placeholder="Cole o URL da imagem (https://...)"
-            value={newUrl}
-            onChange={(e) => setNewUrl(e.target.value)}
-          />
-          <Button onClick={handleAddLink} disabled={isAdding || !newUrl.trim()} size="sm">
-            Adicionar Imagem
-          </Button>
+        <div className="space-y-2">
+          <Label>Fazer Upload de Imagem</Label>
+          <div className="max-w-md">
+            <ImageUpload
+              onChange={handleAddImage}
+              bucket="product-media"
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 border-t border-dashed">
           {product.product_media?.map((m: any, idx: number) => (
             <div key={m.id || idx} className="relative group aspect-square rounded-lg border bg-muted overflow-hidden">
               <img src={m.url} alt="" className="w-full h-full object-cover" />

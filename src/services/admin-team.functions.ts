@@ -13,7 +13,7 @@ export async function listTeamMembersHandler() {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager"]);
 
-  const { data, error } = await db
+  const { data: profiles, error } = await db
     .from("profiles")
     .select("id, full_name, avatar_url, role, created_at")
     .eq("store_id", identity.store_id)
@@ -21,7 +21,29 @@ export async function listTeamMembersHandler() {
     .order("created_at", { ascending: true });
 
   if (error) throw error;
-  return data;
+
+  if (!profiles || profiles.length === 0) return [];
+
+  try {
+    const userIds = profiles.map((p) => p.id);
+    const { data: authUsers, error: authError } = await db
+      .schema("auth")
+      .from("users")
+      .select("id, email")
+      .in("id", userIds);
+
+    if (!authError && authUsers) {
+      const emailMap = new Map<string, string>(authUsers.map((u: any) => [u.id, u.email]));
+      return profiles.map((p) => ({
+        ...p,
+        email: emailMap.get(p.id) || null,
+      }));
+    }
+  } catch (e) {
+    console.error("[admin-team] Error fetching auth emails:", e);
+  }
+
+  return profiles.map((p) => ({ ...p, email: null }));
 }
 
 export const listTeamMembers = createServerFn({ method: "GET" }).handler(async () => {
@@ -46,6 +68,28 @@ export async function updateTeamMemberRoleHandler(input: {
   // Prevent owner from demoting themselves
   if (input.id === identity.id && input.role !== "owner" && identity.role === "owner") {
     throw new Error("O dono da loja não pode rebaixar a si mesmo.");
+  }
+
+  // Fetch target user's current profile first to apply business rules
+  const { data: targetProfile, error: fetchError } = await db
+    .from("profiles")
+    .select("role")
+    .eq("id", input.id)
+    .eq("store_id", identity.store_id)
+    .single();
+
+  if (fetchError || !targetProfile) {
+    throw new Error("Membro da equipe não encontrado ou pertence a outra loja.");
+  }
+
+  // 1. Only owner can edit owner
+  if (targetProfile.role === "owner" && identity.role !== "owner") {
+    throw new Error("Apenas o proprietário pode alterar suas próprias permissões.");
+  }
+
+  // 2. Only owner can promote someone to owner
+  if (input.role === "owner" && identity.role !== "owner") {
+    throw new Error("Apenas o proprietário pode transferir a propriedade da loja.");
   }
 
   const { data, error } = await db
@@ -86,6 +130,11 @@ export async function inviteTeamMemberHandler(input: {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager"]);
 
+  // Prevent lower roles from creating higher privileged roles
+  if (identity.role === "manager" && input.role === "admin") {
+    throw new Error("Gerentes não podem convidar membros com cargo de Administrador.");
+  }
+
   // 1. Create Auth User (using admin api)
   const { data: authData, error: authError } = await db.auth.admin.createUser({
     email: input.email,
@@ -98,16 +147,15 @@ export async function inviteTeamMemberHandler(input: {
 
   if (authError) throw new Error(`Erro ao criar conta Auth: ${authError.message}`);
 
-  // 2. The trigger `on_auth_user_created` in Postgres automatically creates a `profiles` row
-  // with role 'customer'. We need to update it to the desired team role and link to store.
+  // 2. Upsert the profile to mitigate latency and ensure store mapping is linked correctly
   const { error: profileError } = await db
     .from("profiles")
-    .update({
+    .upsert({
+      id: authData.user.id,
       role: input.role,
       store_id: identity.store_id,
       full_name: input.fullName,
-    })
-    .eq("id", authData.user.id);
+    });
 
   if (profileError) throw new Error("Erro ao promover usuário a membro da equipe.");
 

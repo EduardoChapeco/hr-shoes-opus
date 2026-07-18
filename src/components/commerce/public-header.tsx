@@ -14,9 +14,11 @@ const FALLBACK_NAV = [
 export function PublicHeader({
   menuItems = [],
   storeName,
+  cart,
 }: {
   menuItems?: any[];
   storeName?: string;
+  cart?: any;
 }) {
   const navItems = menuItems.length > 0 ? menuItems : FALLBACK_NAV;
 
@@ -87,9 +89,14 @@ export function PublicHeader({
               <User className="size-5" aria-hidden />
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" asChild aria-label="Carrinho">
+          <Button variant="ghost" size="icon" asChild aria-label="Carrinho" className="relative">
             <Link to="/carrinho">
               <ShoppingBag className="size-5" aria-hidden />
+              {cart && cart.itemCount > 0 && (
+                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                  {cart.itemCount}
+                </span>
+              )}
             </Link>
           </Button>
         </div>

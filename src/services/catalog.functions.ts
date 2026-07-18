@@ -572,12 +572,10 @@ export interface PublicStoreProfileDTO {
   address: string | null;
   city: string | null;
   state: string | null;
-  /** Resolved from settings.logoUrl (JSONB column) */
   logoUrl: string | null;
-  /** Resolved from settings.instagramHandle */
   instagramHandle: string | null;
-  /** Resolved from settings.businessHours */
   businessHours: string | null;
+  settings: Record<string, any>;
 }
 
 export type PublicStoreProfileResult = CatalogResult<PublicStoreProfileDTO>;
@@ -589,7 +587,7 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
 
       const { data, error } = await db
         .from("stores")
-        .select("id, name, slug, description, phone, email, address, city, state, settings")
+        .select("id, name, slug, description, phone, email, address, city, state, logo_url, business_hours, social_links, settings")
         .order("created_at", { ascending: true })
         .limit(1)
         .single();
@@ -598,7 +596,7 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
         return { status: "unconfigured", reason: "Loja não encontrada." };
       }
 
-      const settings = (data.settings ?? {}) as Record<string, unknown>;
+      const settings = (data.settings ?? {}) as Record<string, any>;
 
       const profile: PublicStoreProfileDTO = {
         id: data.id as string,
@@ -610,10 +608,10 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
         address: (data.address as string | null) ?? null,
         city: (data.city as string | null) ?? null,
         state: (data.state as string | null) ?? null,
-        logoUrl: typeof settings.logoUrl === "string" ? settings.logoUrl : null,
-        instagramHandle:
-          typeof settings.instagramHandle === "string" ? settings.instagramHandle : null,
-        businessHours: typeof settings.businessHours === "string" ? settings.businessHours : null,
+        logoUrl: (data.logo_url as string | null) ?? (typeof settings.logoUrl === "string" ? settings.logoUrl : null),
+        instagramHandle: ((data.social_links as any)?.instagram as string | null) ?? (typeof settings.instagramHandle === "string" ? settings.instagramHandle : null),
+        businessHours: (data.business_hours as string | null) ?? (typeof settings.businessHours === "string" ? settings.businessHours : null),
+        settings,
       };
 
       return { status: "ok", data: profile };

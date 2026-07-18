@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { ImageOff, ShoppingBag, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -77,6 +77,8 @@ function ProductContent({ product }: { product: ProductDetailDTO }) {
   const allOutOfStock =
     product.variants.length > 0 && product.variants.every((v: VariantDTO) => v.availableQty <= 0);
 
+  const router = useRouter();
+
   // Initialize selected attributes with the first variant's attributes
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>(
     product.variants.length > 0 ? product.variants[0].attributes : {},
@@ -103,7 +105,7 @@ function ProductContent({ product }: { product: ProductDetailDTO }) {
     try {
       await addToCart({ data: { variantId: selectedVariant.id, quantity: 1 } });
       toast.success("Adicionado ao carrinho");
-      // Optional: open cart drawer here
+      router.invalidate();
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao adicionar ao carrinho.");
     } finally {

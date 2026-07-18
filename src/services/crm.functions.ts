@@ -121,3 +121,71 @@ export const updateCustomerCrm = createServerFn({ method: "POST" })
     if (error) throw new Error("Erro ao salvar CRM");
     return { status: "success" };
   });
+
+export const createCustomerSchema = z.object({
+  fullName: z.string().min(2).max(100),
+  email: z.string().email(),
+  phone: z.string().max(20).optional().or(z.literal("")),
+  tags: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+});
+
+export const createCustomer = createServerFn({ method: "POST" })
+  .validator(createCustomerSchema)
+  .handler(async ({ data: input }) => {
+    try {
+      const supabase = getServerClient();
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+      // 1. Criar o usuário no Supabase Auth usando o admin client
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: input.email,
+        password: "HrShoesCustomer123!",
+        email_confirm: true,
+        user_metadata: {
+          full_name: input.fullName,
+        },
+      });
+
+      if (authError) {
+        throw new Error(authError.message);
+      }
+
+      const userId = authData.user.id;
+
+      // 2. Atualizar o perfil associando a role 'customer' e o store_id
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          store_id: identity.store_id,
+          organization_id: identity.organization_id,
+          role: "customer",
+          full_name: input.fullName,
+        })
+        .eq("id", userId);
+
+      if (profileError) {
+        console.error("[crm] error updating profile:", profileError);
+      }
+
+      // 3. Cadastrar tags/anotações se existirem
+      if ((input.tags && input.tags.length > 0) || input.notes) {
+        const { error: crmError } = await supabase.from("customers_crm").upsert({
+          id: userId,
+          store_id: identity.store_id,
+          notes: input.notes || null,
+          tags: input.tags || [],
+        });
+        if (crmError) {
+          console.error("[crm] error saving customers_crm:", crmError);
+        }
+      }
+
+      return { status: "success" as const, customerId: userId };
+    } catch (e: any) {
+      console.error("[crm] createCustomer error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao cadastrar cliente." };
+    }
+  });
+

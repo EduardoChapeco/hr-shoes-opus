@@ -13,6 +13,7 @@ const mockEq = vi.fn();
 const mockIn = vi.fn();
 const mockOrder = vi.fn();
 const mockUpdate = vi.fn();
+const mockUpsert = vi.fn();
 const mockSingle = vi.fn();
 const mockCreateUser = vi.fn();
 
@@ -22,6 +23,7 @@ const mockQueryBuilder = {
   in: mockIn,
   order: mockOrder,
   update: mockUpdate,
+  upsert: mockUpsert,
   single: mockSingle,
 };
 
@@ -30,10 +32,16 @@ mockEq.mockReturnValue(mockQueryBuilder);
 mockIn.mockReturnValue(mockQueryBuilder);
 mockOrder.mockReturnValue(mockQueryBuilder);
 mockUpdate.mockReturnValue(mockQueryBuilder);
+mockUpsert.mockReturnValue(mockQueryBuilder);
 mockSingle.mockReturnValue(mockQueryBuilder);
+
+const mockSchema = vi.fn().mockImplementation(() => ({
+  from: mockFrom,
+}));
 
 const mockSupabase = {
   from: mockFrom,
+  schema: mockSchema,
   auth: {
     admin: {
       createUser: mockCreateUser,
@@ -68,6 +76,7 @@ describe("Admin Team Functions", () => {
     mockIn.mockReturnValue(mockQueryBuilder);
     mockOrder.mockReturnValue(mockQueryBuilder);
     mockUpdate.mockReturnValue(mockQueryBuilder);
+    mockUpsert.mockReturnValue(mockQueryBuilder);
     mockSingle.mockReturnValue(mockQueryBuilder);
   });
 
@@ -92,10 +101,11 @@ describe("Admin Team Functions", () => {
       });
 
       const mockData = [{ id: "user-123", full_name: "Owner", role: "owner" }];
+      const expectedData = [{ id: "user-123", full_name: "Owner", role: "owner", email: null }];
       mockOrder.mockResolvedValueOnce({ data: mockData, error: null });
 
       const res = await listTeamMembersHandler();
-      expect(res).toEqual(mockData);
+      expect(res).toEqual(expectedData);
       expect(mockFrom).toHaveBeenCalledWith("profiles");
       expect(mockEq).toHaveBeenCalledWith("store_id", "store-456");
     });
@@ -141,6 +151,53 @@ describe("Admin Team Functions", () => {
       );
     });
 
+    it("should throw if target user profile is not found", async () => {
+      vi.mocked(getServerIdentity).mockResolvedValueOnce({
+        id: "user-123",
+        role: "owner",
+        store_id: "store-456",
+        organization_id: "org-789",
+      });
+
+      mockSingle.mockResolvedValueOnce({ data: null, error: { message: "Not found" } });
+
+      await expect(
+        updateTeamMemberRoleHandler({ id: "user-456", role: "manager" })
+      ).rejects.toThrow("Membro da equipe não encontrado ou pertence a outra loja.");
+    });
+
+    it("should prevent admin from modifying owner role", async () => {
+      vi.mocked(getServerIdentity).mockResolvedValueOnce({
+        id: "user-123",
+        role: "admin",
+        store_id: "store-456",
+        organization_id: "org-789",
+      });
+
+      // Target user is owner
+      mockSingle.mockResolvedValueOnce({ data: { role: "owner" }, error: null });
+
+      await expect(
+        updateTeamMemberRoleHandler({ id: "user-owner-id", role: "seller" })
+      ).rejects.toThrow("Apenas o proprietário pode alterar suas próprias permissões.");
+    });
+
+    it("should prevent admin from promoting someone to owner", async () => {
+      vi.mocked(getServerIdentity).mockResolvedValueOnce({
+        id: "user-123",
+        role: "admin",
+        store_id: "store-456",
+        organization_id: "org-789",
+      });
+
+      // Target user is seller
+      mockSingle.mockResolvedValueOnce({ data: { role: "seller" }, error: null });
+
+      await expect(
+        updateTeamMemberRoleHandler({ id: "user-seller-id", role: "owner" })
+      ).rejects.toThrow("Apenas o proprietário pode transferir a propriedade da loja.");
+    });
+
     it("should successfully update team member role", async () => {
       vi.mocked(getServerIdentity).mockResolvedValueOnce({
         id: "user-123",
@@ -150,6 +207,9 @@ describe("Admin Team Functions", () => {
       });
 
       const mockUpdated = { id: "user-456", role: "manager" };
+      // 1. target lookup
+      mockSingle.mockResolvedValueOnce({ data: { role: "seller" }, error: null });
+      // 2. update query
       mockSingle.mockResolvedValueOnce({ data: mockUpdated, error: null });
 
       const res = await updateTeamMemberRoleHandler({ id: "user-456", role: "manager" });
@@ -175,6 +235,23 @@ describe("Admin Team Functions", () => {
           role: "seller",
         }),
       ).rejects.toThrow("Não autorizado");
+    });
+
+    it("should prevent manager from inviting admins", async () => {
+      vi.mocked(getServerIdentity).mockResolvedValueOnce({
+        id: "user-123",
+        role: "manager",
+        store_id: "store-456",
+        organization_id: "org-789",
+      });
+
+      await expect(
+        inviteTeamMemberHandler({
+          email: "test@loja.com",
+          fullName: "Test Admin",
+          role: "admin",
+        })
+      ).rejects.toThrow("Gerentes não podem convidar membros com cargo de Administrador.");
     });
 
     it("should throw if auth creation fails", async () => {
@@ -205,7 +282,7 @@ describe("Admin Team Functions", () => {
       });
 
       mockCreateUser.mockResolvedValueOnce({ data: { user: { id: "new-user-123" } }, error: null });
-      mockEq.mockResolvedValueOnce({ error: { message: "Profile update failed" } });
+      mockUpsert.mockResolvedValueOnce({ error: { message: "Profile upsert failed" } });
 
       await expect(
         inviteTeamMemberHandler({
@@ -216,7 +293,7 @@ describe("Admin Team Functions", () => {
       ).rejects.toThrow("Erro ao promover usuário a membro da equipe.");
     });
 
-    it("should successfully invite team member and promote profile", async () => {
+    it("should successfully invite team member and promote profile via upsert", async () => {
       vi.mocked(getServerIdentity).mockResolvedValueOnce({
         id: "user-123",
         role: "admin",
@@ -225,7 +302,7 @@ describe("Admin Team Functions", () => {
       });
 
       mockCreateUser.mockResolvedValueOnce({ data: { user: { id: "new-user-123" } }, error: null });
-      mockEq.mockResolvedValueOnce({ error: null });
+      mockUpsert.mockResolvedValueOnce({ error: null });
 
       const res = await inviteTeamMemberHandler({
         email: "test@loja.com",
@@ -242,7 +319,8 @@ describe("Admin Team Functions", () => {
         },
       });
       expect(mockFrom).toHaveBeenCalledWith("profiles");
-      expect(mockUpdate).toHaveBeenCalledWith({
+      expect(mockUpsert).toHaveBeenCalledWith({
+        id: "new-user-123",
         role: "seller",
         store_id: "store-456",
         full_name: "Test Seller",
