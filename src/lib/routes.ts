@@ -868,6 +868,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     title: "Geral",
     items: [
       { path: "/admin", label: "Visão geral", icon: "LayoutDashboard" },
+      { path: "/admin/avaliacoes", label: "Avaliações", icon: "Star" },
     ],
   },
   {
@@ -886,6 +887,8 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
       { path: "/admin/pedidos", label: "Pedidos", icon: "ShoppingCart" },
       { path: "/admin/fretes/tabelas", label: "Fretes & Logística", icon: "Truck" },
       { path: "/admin/pagamentos", label: "Pagamentos", icon: "CreditCard" },
+      { path: "/admin/comissoes", label: "Comissões", icon: "Percent" },
+      { path: "/admin/match-time", label: "Ofertas Relâmpago", icon: "Zap" },
     ],
   },
   {
@@ -893,14 +896,17 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     items: [
       { path: "/admin/clientes", label: "Clientes", icon: "Users" },
       { path: "/admin/conversas", label: "Conversas", icon: "MessagesSquare" },
+      { path: "/admin/suporte", label: "Suporte", icon: "LifeBuoy" },
     ],
   },
   {
     title: "Conteúdo & Vitrine",
     items: [
-      { path: "/admin/perfil-publico", label: "Perfil da Loja", icon: "Store" },
-      { path: "/admin/cms/paginas", label: "Páginas & Construtor", icon: "FileText" },
+      { path: "/admin/builder", label: "Construtor (Builder)", icon: "Paintbrush" },
+      { path: "/admin/perfil-publico", label: "Perfil Institucional", icon: "Store" },
       { path: "/admin/marketing/cupons", label: "Marketing & Cupons", icon: "Megaphone" },
+      { path: "/admin/cms/navegacao", label: "Menu & Navegação", icon: "Menu" },
+      { path: "/admin/criador", label: "Studio de Criação", icon: "Video" },
     ],
   },
   {
@@ -909,8 +915,8 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
       { path: "/admin/caixa", label: "Caixa Balcão / PDV", icon: "Wallet" },
       { path: "/admin/equipe", label: "Gestão de Equipe", icon: "Users" },
       { path: "/admin/relatorios", label: "Relatórios", icon: "BarChart3" },
-      { path: "/admin/configuracoes/etapas", label: "Etapas da Loja", icon: "CheckSquare" },
-      { path: "/admin/configuracoes/loja", label: "Configurações", icon: "Settings" },
+      { path: "/admin/integracoes", label: "Integrações", icon: "Plug" },
+      { path: "/admin/configuracoes/loja", label: "Configurações Globais", icon: "Settings" },
     ],
   },
 ];

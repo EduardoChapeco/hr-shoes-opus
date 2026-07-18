@@ -103,16 +103,16 @@ function getActiveGroup(pathname: string): string {
   if (pathname.startsWith("/admin/catalogo") || pathname.startsWith("/admin/estoque") || pathname.startsWith("/admin/midias")) {
     return "Catálogo";
   }
-  if (pathname.startsWith("/admin/pedidos") || pathname.startsWith("/admin/fretes") || pathname.startsWith("/admin/pagamentos") || pathname.startsWith("/admin/comprovantes")) {
+  if (pathname.startsWith("/admin/pedidos") || pathname.startsWith("/admin/fretes") || pathname.startsWith("/admin/pagamentos") || pathname.startsWith("/admin/comprovantes") || pathname.startsWith("/admin/comissoes") || pathname.startsWith("/admin/match-time")) {
     return "Vendas";
   }
-  if (pathname.startsWith("/admin/clientes") || pathname.startsWith("/admin/conversas") || pathname.startsWith("/admin/suporte") || pathname.startsWith("/admin/pedidos/trocas")) {
+  if (pathname.startsWith("/admin/clientes") || pathname.startsWith("/admin/conversas") || pathname.startsWith("/admin/suporte") || pathname.startsWith("/admin/avaliacoes")) {
     return "Relacionamento";
   }
-  if (pathname.startsWith("/admin/cms") || pathname.startsWith("/admin/perfil-publico") || pathname.startsWith("/admin/marketing") || pathname.startsWith("/admin/stories") || pathname.startsWith("/admin/destaques") || pathname.startsWith("/admin/link-da-bio")) {
+  if (pathname.startsWith("/admin/cms") || pathname.startsWith("/admin/builder") || pathname.startsWith("/admin/perfil-publico") || pathname.startsWith("/admin/marketing") || pathname.startsWith("/admin/stories") || pathname.startsWith("/admin/destaques") || pathname.startsWith("/admin/link-da-bio") || pathname.startsWith("/admin/criador")) {
     return "Conteúdo & Vitrine";
   }
-  if (pathname.startsWith("/admin/caixa") || pathname.startsWith("/admin/equipe") || pathname.startsWith("/admin/relatorios") || pathname.startsWith("/admin/configuracoes") || pathname.startsWith("/admin/comissoes")) {
+  if (pathname.startsWith("/admin/caixa") || pathname.startsWith("/admin/equipe") || pathname.startsWith("/admin/relatorios") || pathname.startsWith("/admin/configuracoes") || pathname.startsWith("/admin/integracoes")) {
     return "Operação";
   }
   return "Geral";
@@ -261,6 +261,16 @@ export function AdminShell({ children, session }: { children: ReactNode; session
               )}
             </div>
           )}
+          {viewMode === "subpages" && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="w-full text-xs font-semibold bg-primary/10 hover:bg-primary/20 text-primary border-transparent"
+              onClick={() => setViewMode("modules")}
+            >
+              {collapsed ? <Grid className="size-4" /> : "← Voltar aos Módulos"}
+            </Button>
+          )}
         </div>
 
         {/* Scrollable menu content */}
@@ -327,18 +337,8 @@ export function AdminShell({ children, session }: { children: ReactNode; session
           )}
         </ScrollArea>
 
-        {/* Bottom actions: Modules Back & Storefront */}
+        {/* Bottom actions: Storefront */}
         <div className="flex flex-col gap-2 border-t border-sidebar-border p-3">
-          {viewMode === "subpages" && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full text-xs font-semibold"
-              onClick={() => setViewMode("modules")}
-            >
-              {collapsed ? <Grid className="size-4" /> : "Menu de Módulos"}
-            </Button>
-          )}
           <Button variant="ghost" size="sm" asChild className="w-full text-xs hover:bg-sidebar-accent">
             <Link to="/">{collapsed ? <Store className="size-4" /> : "Ver loja pública"}</Link>
           </Button>
