@@ -32,17 +32,14 @@ export const Route = createFileRoute("/api/auth/callback")({
 
             setResponseHeader("Location", next);
             setResponseStatus(302);
-            return new Response(null);
+            return "";
           }
         }
 
         // Return the user to an error page with instructions
-        return new Response(null, {
-          status: 302,
-          headers: {
-            Location: "/entrar?error=auth-callback-failed",
-          },
-        });
+        setResponseHeader("Location", "/entrar?error=auth-callback-failed");
+        setResponseStatus(302);
+        return "";
       },
     },
   },

@@ -32,7 +32,7 @@ export const Route = createFileRoute("/api/auth/confirm")({
         if (!token_hash || !type) {
           setResponseHeader("Location", "/entrar?error=link-invalido");
           setResponseStatus(302);
-          return new Response(null);
+          return "";
         }
 
         const supabase = getSSRClient();
@@ -45,7 +45,7 @@ export const Route = createFileRoute("/api/auth/confirm")({
           console.error("[auth/confirm] verifyOtp error:", error.message);
           setResponseHeader("Location", `/entrar?error=${encodeURIComponent(error.message)}`);
           setResponseStatus(302);
-          return new Response(null);
+          return "";
         }
 
         // Success — get the newly created session and merge guest cart
@@ -65,7 +65,7 @@ export const Route = createFileRoute("/api/auth/confirm")({
         // Redirect the user to their intended destination.
         setResponseHeader("Location", next);
         setResponseStatus(302);
-        return new Response(null);
+        return "";
       },
     },
   },
