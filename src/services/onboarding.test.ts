@@ -75,14 +75,12 @@ describe("Onboarding Services", () => {
       policies: { returns: "30 dias" },
       seo_title: "Hr Shoes — Loja de Calçados",
       seo_description: "A melhor loja de calçados",
+      pix_key: "chave-pix",
     };
 
     mockFrom.mockImplementation((table: string) => {
       if (table === "stores") {
         return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: mockStore, error: null }) }) }) };
-      }
-      if (table === "store_payment_settings") {
-        return { select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { pix_manual_enabled: true }, error: null }) }) }) };
       }
       if (table === "shipping_rates" || table === "categories" || table === "products" || table === "orders" || table === "coupons") {
         return { select: () => Promise.resolve({ count: 2, error: null }) };
@@ -105,9 +103,6 @@ describe("Onboarding Services", () => {
       if (table === "stores") {
         return { select: () => ({ eq: () => ({ single: () => Promise.reject(new Error("Database connection timeout")) }) }) };
       }
-      if (table === "store_payment_settings") {
-        return { select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { pix_manual_enabled: true }, error: null }) }) }) };
-      }
       if (table === "shipping_rates" || table === "categories" || table === "products" || table === "orders" || table === "coupons") {
         return { select: () => Promise.resolve({ count: 1, error: null }) };
       }
@@ -120,10 +115,10 @@ describe("Onboarding Services", () => {
     const overview = await getOnboardingStatusHandler();
 
     const profileStep = overview.steps.find((s) => s.id === "profile");
-    const paymentStep = overview.steps.find((s) => s.id === "payment");
+    const shippingStep = overview.steps.find((s) => s.id === "shipping");
 
     expect(profileStep?.status).toBe("technical_error");
-    expect(paymentStep?.status).toBe("completed");
+    expect(shippingStep?.status).toBe("completed");
     expect(overview.completedSteps).toBeGreaterThan(0);
   });
 

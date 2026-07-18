@@ -40,27 +40,13 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
     try {
       const { data, error } = await db
         .from("stores")
-        .select("id, name, email, phone, cnpj, address, city, state, zip_code, logo_url, policies, seo_title, seo_description")
+        .select("id, name, email, phone, cnpj, address, city, state, zip_code, logo_url, policies, seo_title, seo_description, pix_key")
         .eq("id", storeId)
         .single();
       if (error) return { status: "error" as const, error: error.message };
       return { status: "ok" as const, data };
     } catch (e: any) {
       return { status: "error" as const, error: e.message || "Erro de banco" };
-    }
-  };
-
-  const fetchPayment = async () => {
-    try {
-      const { data, error } = await db
-        .from("store_payment_settings")
-        .select("pix_manual_enabled")
-        .eq("store_id", storeId)
-        .maybeSingle();
-      if (error) return { status: "error" as const, error: error.message };
-      return { status: "ok" as const, data };
-    } catch (e: any) {
-      return { status: "error" as const, error: e.message };
     }
   };
 
@@ -93,7 +79,6 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
 
   const [
     storeRes,
-    paymentRes,
     shippingRes,
     categoriesRes,
     productsRes,
@@ -102,7 +87,6 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
     couponsRes,
   ] = await Promise.all([
     fetchStore(),
-    fetchPayment(),
     fetchCount("shipping_rates"),
     fetchCount("categories"),
     fetchCount("products"),
@@ -198,7 +182,7 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
   }
 
   // 4. Pagamentos
-  if (paymentRes.status === "error") {
+  if (storeRes.status === "error") {
     steps.push({
       id: "payment",
       category: "fundamentos",
@@ -208,7 +192,7 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
       targetRoute: "/admin/configuracoes/pagamentos",
     });
   } else {
-    const isPixEnabled = Boolean(paymentRes.data?.pix_manual_enabled);
+    const isPixEnabled = Boolean(storeRes.data?.pix_key);
     steps.push({
       id: "payment",
       category: "fundamentos",
@@ -387,8 +371,8 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
     const isReadyToSell =
       productsRes.status === "ok" &&
       productsRes.count > 0 &&
-      paymentRes.status === "ok" &&
-      Boolean(paymentRes.data?.pix_manual_enabled);
+      storeRes.status === "ok" &&
+      Boolean(storeRes.data?.pix_key);
 
     let status: OnboardingStepStatus = "unconfigured";
     if (count > 0) status = "completed";
