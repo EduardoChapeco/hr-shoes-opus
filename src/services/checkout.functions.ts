@@ -14,6 +14,8 @@ import crypto from "node:crypto";
 import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { getCurrentIdentity } from "./cart-helpers";
+import { getRequest } from "@tanstack/react-start/server";
+import { readCookieFromRequest } from "@/lib/http-cookies";
 
 const CheckoutSchema = z.object({
   cartId: z.string().uuid(),
@@ -63,9 +65,12 @@ export const processCheckout = createServerFn({ method: "POST" })
 
       // Ensure anti-hijacking by extracting the actual current identity
       const identity = await getCurrentIdentity();
+      
+      const req = getRequest();
+      const affiliateId = req ? readCookieFromRequest(req, "hrshoes_affiliate_id") : null;
 
-      // Call the atomic RPC — all logic (coupon, stock, order creation) happens inside a single transaction
-      const { data, error } = await db.rpc("process_checkout_atomic", {
+      // Call the atomic RPC v2 — all logic (coupon, stock, order creation, gift cards, surcharges) happens inside a single PostgreSQL transaction
+      const { data, error } = await db.rpc("process_checkout_transaction_v2", {
         p_cart_id: params.cartId,
         p_idempotency_key: idempotencyKey,
         p_customer_name: params.customerName,
@@ -75,8 +80,9 @@ export const processCheckout = createServerFn({ method: "POST" })
         p_shipping_method: params.shippingMethod,
         p_shipping_address: params.shippingAddress || {},
         p_payment_method: params.paymentMethod,
-        p_customer_id: identity.customer_id,
-        p_session_token: identity.session_token,
+        p_gift_card_code: params.giftCardCode || null,
+        p_manual_payment_method_id: params.paymentMethodId || null,
+        p_affiliate_id: affiliateId || null,
       });
 
       if (error) throw new Error("Erro ao processar pedido: " + error.message);
@@ -85,91 +91,6 @@ export const processCheckout = createServerFn({ method: "POST" })
 
       if (result.status !== "success") {
         throw new Error("Checkout falhou.");
-      }
-
-      // Fetch the created order to apply payments adjustments
-      const { data: order } = await db
-        .from("orders")
-        .select("id, subtotal_cents, shipping_cents, discount_cents, total_cents")
-        .eq("public_token", result.orderToken)
-        .single();
-
-      if (order) {
-        let finalCents = order.total_cents;
-        let finalDiscount = order.discount_cents;
-        let providerName = undefined;
-
-        // 1. Apply discount or surcharge if a manual payment method is selected
-        if (params.paymentMethodId) {
-          const { data: methodData } = await db
-            .from("manual_payment_methods")
-            .select("name, surcharge_percentage, discount_percentage")
-            .eq("id", params.paymentMethodId)
-            .single();
-
-          if (methodData) {
-            providerName = methodData.name;
-            if (Number(methodData.discount_percentage) > 0) {
-              const appliedDiscount = Math.floor(
-                order.subtotal_cents * (Number(methodData.discount_percentage) / 100),
-              );
-              finalDiscount += appliedDiscount;
-              finalCents -= appliedDiscount;
-            } else if (Number(methodData.surcharge_percentage) > 0) {
-              const appliedSurcharge = Math.floor(
-                order.subtotal_cents * (Number(methodData.surcharge_percentage) / 100),
-              );
-              finalCents += appliedSurcharge;
-            }
-          }
-        }
-
-        // 2. Apply Gift Card if code is provided
-        if (params.giftCardCode) {
-          const { data: card } = await db
-            .from("gift_cards")
-            .select("id, current_balance_cents, status, expires_at")
-            .eq("code", params.giftCardCode)
-            .maybeSingle();
-
-          if (card && card.status === "active" && card.current_balance_cents > 0) {
-            const isExpired = card.expires_at && new Date(card.expires_at) < new Date();
-            if (!isExpired) {
-              const deduct = Math.min(finalCents, card.current_balance_cents);
-              const newCardBalance = card.current_balance_cents - deduct;
-
-              // Deduct balance from gift card record
-              await db
-                .from("gift_cards")
-                .update({
-                  current_balance_cents: newCardBalance,
-                  status: newCardBalance === 0 ? "used" : "active",
-                })
-                .eq("id", card.id);
-
-              finalDiscount += deduct;
-              finalCents -= deduct;
-            }
-          }
-        }
-
-        // Apply final calculations back to order
-        await db
-          .from("orders")
-          .update({
-            discount_cents: finalDiscount,
-            total_cents: finalCents >= 0 ? finalCents : 0,
-          })
-          .eq("id", order.id);
-
-        // Update payment transaction amount and provider name
-        await db
-          .from("payments")
-          .update({
-            provider_name: providerName || null,
-            amount_cents: finalCents >= 0 ? finalCents : 0,
-          })
-          .eq("order_id", order.id);
       }
 
       return { status: "success" as const, orderToken: result.orderToken };

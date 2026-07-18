@@ -1,20 +1,26 @@
 import { ArrowRight } from "lucide-react";
+import { useBuilderClickTracking } from "../analytics-provider";
+
+interface BentoItem {
+  title?: string;
+  subtitle?: string;
+  image_url: string;
+  link?: string;
+  size?: "small" | "wide" | "tall" | "large";
+}
 
 interface BentoGridProps {
+  node_id?: string;
+  block_type?: string;
   content: {
     title?: string;
-    items?: Array<{
-      title?: string;
-      subtitle?: string;
-      image_url: string;
-      link?: string;
-      size?: "small" | "wide" | "tall" | "large";
-    }>;
+    items?: BentoItem[];
   };
 }
 
-export function BentoGrid({ content }: BentoGridProps) {
+export function BentoGrid({ content, node_id, block_type }: BentoGridProps) {
   const items = content.items || [];
+  const trackClick = useBuilderClickTracking(node_id || "", block_type || "");
 
   const getSizeClasses = (size?: string) => {
     switch (size) {
@@ -53,6 +59,11 @@ export function BentoGrid({ content }: BentoGridProps) {
               <CardWrapper
                 key={idx}
                 {...wrapperProps}
+                onClick={() => {
+                  if (item.link) {
+                    trackClick({ index: idx, title: item.title, link: item.link });
+                  }
+                }}
                 className={`relative group rounded-2xl overflow-hidden border border-border bg-card flex flex-col justify-end ${sizeClass} transition-all duration-300 hover:shadow-lg hover:border-primary/30`}
               >
                 {/* Background Image */}

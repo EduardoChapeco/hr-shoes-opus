@@ -13,7 +13,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { getAnonServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
+import { getAnonServerClient, getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import type {
   ProductListResult,
   ProductCardDTO,

@@ -4,11 +4,13 @@ import useEmblaCarousel from "embla-carousel-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useBuilderClickTracking } from "../analytics-provider";
 
-export function HeroCarousel({ content }: { content: Record<string, unknown> }) {
+export function HeroCarousel({ content, node_id, block_type }: { content: Record<string, unknown>; node_id?: string; block_type?: string }) {
   const autoPlay = content.autoPlay !== false;
   const interval = Number(content.interval || 5) * 1000;
   const banners = (Array.isArray(content.banners) ? content.banners : []) as any[];
+  const trackClick = useBuilderClickTracking(node_id || "", block_type || "");
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -89,7 +91,10 @@ export function HeroCarousel({ content }: { content: Record<string, unknown> }) 
                   {button_link && button_text && (
                     <div className="mt-8">
                       <Button size="lg" className="bg-white text-black hover:bg-white/90" asChild>
-                        <Link to={button_link as never}>
+                        <Link 
+                          to={button_link as never}
+                          onClick={() => trackClick({ index, title, link: button_link })}
+                        >
                           {button_text}
                           <ChevronRight className="size-4" aria-hidden />
                         </Link>

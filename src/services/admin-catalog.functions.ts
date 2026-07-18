@@ -953,3 +953,62 @@ export const bulkUpdateProductStatus = createServerFn({ method: "POST" })
       };
     }
   });
+
+// ---------------------------------------------------------------------------
+// Variant Grid Generator
+// ---------------------------------------------------------------------------
+
+export const generateVariantGrid = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      productId: z.string().uuid(),
+      options: z.array(z.object({
+        name: z.string(),
+        values: z.array(z.string())
+      }))
+    })
+  )
+  .handler(async ({ data: { productId, options } }) => {
+    try {
+      const db = getServerClient();
+      
+      const { data: product } = await db.from("products").select("slug, store_id").eq("id", productId).single();
+      if (!product) throw new Error("Produto não encontrado");
+
+      // Generate cartesian product of options
+      const cartesian = (arrays: any[][]): any[][] => {
+        return arrays.reduce((a, b) =>
+          a.flatMap(d => b.map(e => [d, e].flat()))
+        );
+      };
+
+      const optionArrays = options.map(o => o.values.map(v => ({ [o.name]: v })));
+      const combinations = optionArrays.length > 1 
+        ? cartesian(optionArrays)
+        : (optionArrays[0] || []).map(o => [o]);
+
+      // Flatten array of objects into single objects
+      const variants = combinations.map((combo: any, i: number) => {
+        const attributes = Array.isArray(combo) 
+          ? combo.reduce((acc, curr) => ({ ...acc, ...curr }), {})
+          : combo;
+          
+        return {
+          product_id: productId,
+          sku: `${product.slug}-${Date.now().toString().slice(-6)}-${i+1}`,
+          attributes,
+          status: 'active'
+        };
+      });
+
+      if (variants.length === 0) return { status: "success", data: [] };
+
+      const { data, error } = await db.from("product_variants").insert(variants).select();
+      if (error) throw error;
+
+      return { status: "success", data };
+    } catch (e: any) {
+      console.error("[generateVariantGrid]", e);
+      return { status: "error", message: e.message || "Erro ao gerar grades" };
+    }
+  });

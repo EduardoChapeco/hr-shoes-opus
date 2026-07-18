@@ -359,117 +359,39 @@ export async function processPOSSaleHandler(input: {
   const amountPaid = input.amountPaidCents || totalCents;
   const changeCents = input.paymentMethod === "cash" ? Math.max(0, amountPaid - totalCents) : 0;
 
-  // 3. Deduct stock for each item
-  for (const item of input.items) {
-    await supabase.rpc("adjust_stock", {
-      p_variant_id: item.variantId,
-      p_qty: -Math.abs(item.qty),
-      p_movement_type: "sale",
-      p_note: `Venda PDV Balcão - SKU: ${item.sku}`,
-    });
-  }
+  // 3. Execute atomic POS sale transaction via RPC
+  const { data: rpcResult, error: rpcError } = await supabase.rpc("process_pos_sale_transaction", {
+    p_register_id: input.registerId,
+    p_store_id: identity.store_id,
+    p_seller_id: identity.id,
+    p_customer_name: input.customerName || "Cliente Avulso",
+    p_customer_id: input.customerId || null,
+    p_payment_method: input.paymentMethod,
+    p_discount_cents: discountCents,
+    p_items: input.items.map(item => ({
+      variantId: item.variantId,
+      qty: item.qty,
+      priceCents: item.priceCents,
+      title: item.title,
+      sku: item.sku
+    })),
+    p_idempotency_key: `pos-${identity.store_id}-${Date.now()}` // Ideally passed from client, but fallback here
+  });
 
-  // 4. Create the Order in the database
-  const { data: order, error: orderErr } = await supabase
-    .from("orders")
-    .insert({
-      store_id: identity.store_id,
-      customer_id: input.customerId || null,
-      status: "delivered", // Concluded on the spot
-      subtotal_cents: subtotalCents,
-      discount_cents: discountCents,
-      total_cents: totalCents,
-      shipping_method: "pickup",
-      shipping_cents: 0,
-      seller_id: identity.id,
-      paid_at: new Date().toISOString(),
-      delivered_at: new Date().toISOString(),
-      customer_snapshot: { name: input.customerName || "Cliente Avulso" },
-      items_snapshot: input.items.map(item => ({
-        variant_id: item.variantId,
-        qty: item.qty,
-        price_cents: item.priceCents,
-        title: item.title,
-        sku: item.sku
-      }))
-    })
-    .select("id, public_token")
-    .single();
-
-  if (orderErr) {
-    throw new Error("Erro ao gerar o pedido: " + orderErr.message);
-  }
-
-  // 5. Create Order Items (order_items table)
-  const orderItemsToInsert = input.items.map(item => ({
-    order_id: order.id,
-    variant_id: item.variantId,
-    product_title: item.title,
-    variant_sku: item.sku,
-    qty: item.qty,
-    unit_price_cents: item.priceCents,
-    total_cents: item.priceCents * item.qty,
-    variant_attributes: {}
-  }));
-
-  const { error: itemsErr } = await supabase
-    .from("order_items")
-    .insert(orderItemsToInsert);
-
-  if (itemsErr) {
-    throw new Error("Erro ao registrar itens do pedido: " + itemsErr.message);
-  }
-
-  // 6. Create the Payment record (payments table)
-  let paymentMethodDb: "pix" | "credit_card" | "manual" | "receipt" = "manual";
-  if (input.paymentMethod === "pix") paymentMethodDb = "pix";
-  else if (input.paymentMethod === "credit" || input.paymentMethod === "debit") {
-    paymentMethodDb = "credit_card";
-  }
-
-  const { error: paymentErr } = await supabase
-    .from("payments")
-    .insert({
-      order_id: order.id,
-      store_id: identity.store_id,
-      method: paymentMethodDb,
-      status: "paid",
-      amount_cents: totalCents,
-      idempotency_key: `pos-${order.id}-${Date.now()}`,
-      paid_at: new Date().toISOString(),
-      provider_name: "PDV Balcão"
-    });
-
-  if (paymentErr) {
-    throw new Error("Erro ao registrar pagamento: " + paymentErr.message);
-  }
-
-  // 7. Add cash register entry (linked to order_id)
-  const { data: entry, error: entryErr } = await supabase
-    .from("cash_register_entries")
-    .insert({
-      register_id: input.registerId,
-      order_id: order.id,
-      amount_cents: totalCents,
-      method: input.paymentMethod,
-      description: `Venda PDV Balcão (${input.customerName || "Cliente Avulso"}) - Pedido: ${order.public_token}`,
-    })
-    .select("id")
-    .single();
-
-  if (entryErr) {
-    throw new Error("Erro ao registrar venda no caixa: " + entryErr.message);
+  if (rpcError) {
+    throw new Error("Erro ao finalizar venda no PDV: " + rpcError.message);
   }
 
   return {
     status: "success" as const,
-    receiptId: entry.id,
-    orderId: order.id,
-    orderToken: order.public_token,
+    receiptId: rpcResult.receiptId,
+    orderId: rpcResult.orderId,
+    orderToken: rpcResult.orderToken,
     subtotalCents,
     discountCents,
     totalCents,
     changeCents,
+    hasNegativeStock: rpcResult.hasNegativeStock,
     customerName: input.customerName || "Cliente Avulso",
     timestamp: new Date().toISOString(),
   };

@@ -7,7 +7,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/state/states";
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, getBrowserClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr.server";
 
 const listMediaFiles = createServerFn({ method: "GET" }).handler(async () => {
@@ -88,13 +88,7 @@ function MidiasPage() {
 
     setUploading(true);
     try {
-      // Upload using supabase client on server is not possible from client side
-      // We need to use the SSR client from the browser
-      const { createClient } = await import("@supabase/supabase-js");
-      const supabase = createClient(
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_ANON_KEY,
-      );
+      const supabase = getBrowserClient();
       const path = `${storeId}/${Date.now()}_${file.name}`;
       const { error } = await supabase.storage.from("product-media").upload(path, file);
       if (error) throw error;

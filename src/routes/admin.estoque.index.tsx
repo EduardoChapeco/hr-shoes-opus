@@ -49,6 +49,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/state/states";
 import { getStockLevels, adjustStock } from "@/services/stock.functions";
+import { StockAuditDialog } from "@/components/admin/stock-audit-dialog";
 
 export const Route = createFileRoute("/admin/estoque/")({
   head: () => ({ meta: [{ title: "Estoque Operacional — Hr Shoes" }] }),
@@ -385,14 +386,7 @@ function AdminStockPage() {
                         >
                           <Minus className="size-3.5 mr-1" /> Avaria
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs h-8"
-                          onClick={() => handleOpenMovementModal(variant, "adjustment")}
-                        >
-                          Ajustar
-                        </Button>
+                        <StockAuditDialog variant={variant} />
                       </div>
                     </TableCell>
                   </TableRow>

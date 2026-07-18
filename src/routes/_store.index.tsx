@@ -231,8 +231,7 @@ function Home() {
         {publishedProducts.length > 0 && (
           <ProductRail
             content={{ title: "Novidades" }}
-            publishedProducts={publishedProducts}
-            collectionsData={collectionsData}
+            resolvedData={publishedProducts}
           />
         )}
 
@@ -265,8 +264,11 @@ function Home() {
               <ProductRail
                 key={section.id}
                 content={section.content}
-                publishedProducts={publishedProducts}
-                collectionsData={collectionsData}
+                resolvedData={
+                  (section.content.collection_slug && collectionsData && collectionsData[section.content.collection_slug as string]) 
+                    ? collectionsData[section.content.collection_slug as string] 
+                    : publishedProducts
+                }
               />
             );
           case "announcement_bar":

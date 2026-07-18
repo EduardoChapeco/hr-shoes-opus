@@ -55,6 +55,7 @@ import { Route as AdminFretesIndexRouteImport } from './routes/admin.fretes.inde
 import { Route as AdminEstoqueIndexRouteImport } from './routes/admin.estoque.index'
 import { Route as AdminClientesIndexRouteImport } from './routes/admin.clientes.index'
 import { Route as AdminCaixaIndexRouteImport } from './routes/admin.caixa.index'
+import { Route as AdminBuilderIndexRouteImport } from './routes/admin.builder.index'
 import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index'
 import { Route as ApiWebhooksPagarmeRouteImport } from './routes/api.webhooks.pagarme'
 import { Route as ApiAuthConfirmRouteImport } from './routes/api.auth.confirm'
@@ -84,6 +85,7 @@ import { Route as AdminCatalogoTiposRouteImport } from './routes/admin.catalogo.
 import { Route as AdminCatalogoAtributosRouteImport } from './routes/admin.catalogo.atributos'
 import { Route as AdminCaixaTurnosRouteImport } from './routes/admin.caixa.turnos'
 import { Route as AdminCaixaLancamentosRouteImport } from './routes/admin.caixa.lancamentos'
+import { Route as AdminBuilderAnalyticsRouteImport } from './routes/admin.builder.analytics'
 import { Route as StoreVendedoraSlugRouteImport } from './routes/_store.vendedora.$slug'
 import { Route as StoreProdutoSlugRouteImport } from './routes/_store.produto.$slug'
 import { Route as StorePoliticasSlugRouteImport } from './routes/_store.politicas.$slug'
@@ -99,21 +101,19 @@ import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.cr
 import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.avaliacoes'
 import { Route as StoreColecaoSlugRouteImport } from './routes/_store.colecao.$slug'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store.categoria.$slug'
-import { Route as AdminCmsPaginasIndexRouteImport } from './routes/admin.cms.paginas.index'
 import { Route as AdminCatalogoProdutosIndexRouteImport } from './routes/admin.catalogo.produtos.index'
 import { Route as AdminCatalogoColecoesIndexRouteImport } from './routes/admin.catalogo.colecoes.index'
 import { Route as AdminCatalogoCategoriasIndexRouteImport } from './routes/admin.catalogo.categorias.index'
 import { Route as StoreContaPedidosIndexRouteImport } from './routes/_store.conta.pedidos.index'
 import { Route as AdminPedidosIdReciboRouteImport } from './routes/admin_.pedidos.$id.recibo'
-import { Route as AdminCmsPaginasNovoRouteImport } from './routes/admin.cms.paginas.novo'
 import { Route as AdminCatalogoProdutosNovoRouteImport } from './routes/admin.catalogo.produtos.novo'
 import { Route as AdminCatalogoProdutosIdRouteImport } from './routes/admin.catalogo.produtos.$id'
 import { Route as AdminCatalogoColecoesNovoRouteImport } from './routes/admin.catalogo.colecoes.novo'
 import { Route as AdminCatalogoCategoriasNovoRouteImport } from './routes/admin.catalogo.categorias.novo'
+import { Route as AdminBuilderDocumentIdEditorRouteImport } from './routes/admin.builder.$documentId.editor'
 import { Route as StorePedidoPublicTokenConfirmacaoRouteImport } from './routes/_store.pedido.$publicToken.confirmacao'
 import { Route as StoreContaPedidosIdRouteImport } from './routes/_store.conta.pedidos.$id'
 import { Route as StoreContaConversasIdRouteImport } from './routes/_store.conta.conversas.$id'
-import { Route as AdminCmsPaginasIdEditorRouteImport } from './routes/admin.cms.paginas.$id.editor'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -344,6 +344,11 @@ const AdminCaixaIndexRoute = AdminCaixaIndexRouteImport.update({
   path: '/caixa/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBuilderIndexRoute = AdminBuilderIndexRouteImport.update({
+  id: '/builder/',
+  path: '/builder/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const StoreContaIndexRoute = StoreContaIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -494,6 +499,11 @@ const AdminCaixaLancamentosRoute = AdminCaixaLancamentosRouteImport.update({
   path: '/caixa/lancamentos',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBuilderAnalyticsRoute = AdminBuilderAnalyticsRouteImport.update({
+  id: '/builder/analytics',
+  path: '/builder/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
 const StoreVendedoraSlugRoute = StoreVendedoraSlugRouteImport.update({
   id: '/vendedora/$slug',
   path: '/vendedora/$slug',
@@ -569,11 +579,6 @@ const StoreCategoriaSlugRoute = StoreCategoriaSlugRouteImport.update({
   path: '/categoria/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
-const AdminCmsPaginasIndexRoute = AdminCmsPaginasIndexRouteImport.update({
-  id: '/cms/paginas/',
-  path: '/cms/paginas/',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminCatalogoProdutosIndexRoute =
   AdminCatalogoProdutosIndexRouteImport.update({
     id: '/catalogo/produtos/',
@@ -602,11 +607,6 @@ const AdminPedidosIdReciboRoute = AdminPedidosIdReciboRouteImport.update({
   path: '/admin/pedidos/$id/recibo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminCmsPaginasNovoRoute = AdminCmsPaginasNovoRouteImport.update({
-  id: '/cms/paginas/novo',
-  path: '/cms/paginas/novo',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminCatalogoProdutosNovoRoute =
   AdminCatalogoProdutosNovoRouteImport.update({
     id: '/catalogo/produtos/novo',
@@ -630,6 +630,12 @@ const AdminCatalogoCategoriasNovoRoute =
     path: '/catalogo/categorias/novo',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminBuilderDocumentIdEditorRoute =
+  AdminBuilderDocumentIdEditorRouteImport.update({
+    id: '/builder/$documentId/editor',
+    path: '/builder/$documentId/editor',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const StorePedidoPublicTokenConfirmacaoRoute =
   StorePedidoPublicTokenConfirmacaoRouteImport.update({
     id: '/pedido/$publicToken/confirmacao',
@@ -645,11 +651,6 @@ const StoreContaConversasIdRoute = StoreContaConversasIdRouteImport.update({
   id: '/conversas/$id',
   path: '/conversas/$id',
   getParentRoute: () => StoreContaRoute,
-} as any)
-const AdminCmsPaginasIdEditorRoute = AdminCmsPaginasIdEditorRouteImport.update({
-  id: '/cms/paginas/$id/editor',
-  path: '/cms/paginas/$id/editor',
-  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -708,6 +709,7 @@ export interface FileRoutesByFullPath {
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
   '/vendedora/$slug': typeof StoreVendedoraSlugRoute
+  '/admin/builder/analytics': typeof AdminBuilderAnalyticsRoute
   '/admin/caixa/lancamentos': typeof AdminCaixaLancamentosRoute
   '/admin/caixa/turnos': typeof AdminCaixaTurnosRoute
   '/admin/catalogo/atributos': typeof AdminCatalogoAtributosRoute
@@ -737,6 +739,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
   '/api/webhooks/pagarme': typeof ApiWebhooksPagarmeRoute
   '/conta/': typeof StoreContaIndexRoute
+  '/admin/builder/': typeof AdminBuilderIndexRoute
   '/admin/caixa/': typeof AdminCaixaIndexRoute
   '/admin/clientes/': typeof AdminClientesIndexRoute
   '/admin/estoque/': typeof AdminEstoqueIndexRoute
@@ -745,18 +748,16 @@ export interface FileRoutesByFullPath {
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
+  '/admin/builder/$documentId/editor': typeof AdminBuilderDocumentIdEditorRoute
   '/admin/catalogo/categorias/novo': typeof AdminCatalogoCategoriasNovoRoute
   '/admin/catalogo/colecoes/novo': typeof AdminCatalogoColecoesNovoRoute
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
-  '/admin/cms/paginas/novo': typeof AdminCmsPaginasNovoRoute
   '/admin/pedidos/$id/recibo': typeof AdminPedidosIdReciboRoute
   '/conta/pedidos/': typeof StoreContaPedidosIndexRoute
   '/admin/catalogo/categorias/': typeof AdminCatalogoCategoriasIndexRoute
   '/admin/catalogo/colecoes/': typeof AdminCatalogoColecoesIndexRoute
   '/admin/catalogo/produtos/': typeof AdminCatalogoProdutosIndexRoute
-  '/admin/cms/paginas/': typeof AdminCmsPaginasIndexRoute
-  '/admin/cms/paginas/$id/editor': typeof AdminCmsPaginasIdEditorRoute
 }
 export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -812,6 +813,7 @@ export interface FileRoutesByTo {
   '/politicas/$slug': typeof StorePoliticasSlugRoute
   '/produto/$slug': typeof StoreProdutoSlugRoute
   '/vendedora/$slug': typeof StoreVendedoraSlugRoute
+  '/admin/builder/analytics': typeof AdminBuilderAnalyticsRoute
   '/admin/caixa/lancamentos': typeof AdminCaixaLancamentosRoute
   '/admin/caixa/turnos': typeof AdminCaixaTurnosRoute
   '/admin/catalogo/atributos': typeof AdminCatalogoAtributosRoute
@@ -841,6 +843,7 @@ export interface FileRoutesByTo {
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
   '/api/webhooks/pagarme': typeof ApiWebhooksPagarmeRoute
   '/conta': typeof StoreContaIndexRoute
+  '/admin/builder': typeof AdminBuilderIndexRoute
   '/admin/caixa': typeof AdminCaixaIndexRoute
   '/admin/clientes': typeof AdminClientesIndexRoute
   '/admin/estoque': typeof AdminEstoqueIndexRoute
@@ -849,18 +852,16 @@ export interface FileRoutesByTo {
   '/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
+  '/admin/builder/$documentId/editor': typeof AdminBuilderDocumentIdEditorRoute
   '/admin/catalogo/categorias/novo': typeof AdminCatalogoCategoriasNovoRoute
   '/admin/catalogo/colecoes/novo': typeof AdminCatalogoColecoesNovoRoute
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
-  '/admin/cms/paginas/novo': typeof AdminCmsPaginasNovoRoute
   '/admin/pedidos/$id/recibo': typeof AdminPedidosIdReciboRoute
   '/conta/pedidos': typeof StoreContaPedidosIndexRoute
   '/admin/catalogo/categorias': typeof AdminCatalogoCategoriasIndexRoute
   '/admin/catalogo/colecoes': typeof AdminCatalogoColecoesIndexRoute
   '/admin/catalogo/produtos': typeof AdminCatalogoProdutosIndexRoute
-  '/admin/cms/paginas': typeof AdminCmsPaginasIndexRoute
-  '/admin/cms/paginas/$id/editor': typeof AdminCmsPaginasIdEditorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -920,6 +921,7 @@ export interface FileRoutesById {
   '/_store/politicas/$slug': typeof StorePoliticasSlugRoute
   '/_store/produto/$slug': typeof StoreProdutoSlugRoute
   '/_store/vendedora/$slug': typeof StoreVendedoraSlugRoute
+  '/admin/builder/analytics': typeof AdminBuilderAnalyticsRoute
   '/admin/caixa/lancamentos': typeof AdminCaixaLancamentosRoute
   '/admin/caixa/turnos': typeof AdminCaixaTurnosRoute
   '/admin/catalogo/atributos': typeof AdminCatalogoAtributosRoute
@@ -949,6 +951,7 @@ export interface FileRoutesById {
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
   '/api/webhooks/pagarme': typeof ApiWebhooksPagarmeRoute
   '/_store/conta/': typeof StoreContaIndexRoute
+  '/admin/builder/': typeof AdminBuilderIndexRoute
   '/admin/caixa/': typeof AdminCaixaIndexRoute
   '/admin/clientes/': typeof AdminClientesIndexRoute
   '/admin/estoque/': typeof AdminEstoqueIndexRoute
@@ -957,18 +960,16 @@ export interface FileRoutesById {
   '/_store/conta/conversas/$id': typeof StoreContaConversasIdRoute
   '/_store/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
   '/_store/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
+  '/admin/builder/$documentId/editor': typeof AdminBuilderDocumentIdEditorRoute
   '/admin/catalogo/categorias/novo': typeof AdminCatalogoCategoriasNovoRoute
   '/admin/catalogo/colecoes/novo': typeof AdminCatalogoColecoesNovoRoute
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
-  '/admin/cms/paginas/novo': typeof AdminCmsPaginasNovoRoute
   '/admin_/pedidos/$id/recibo': typeof AdminPedidosIdReciboRoute
   '/_store/conta/pedidos/': typeof StoreContaPedidosIndexRoute
   '/admin/catalogo/categorias/': typeof AdminCatalogoCategoriasIndexRoute
   '/admin/catalogo/colecoes/': typeof AdminCatalogoColecoesIndexRoute
   '/admin/catalogo/produtos/': typeof AdminCatalogoProdutosIndexRoute
-  '/admin/cms/paginas/': typeof AdminCmsPaginasIndexRoute
-  '/admin/cms/paginas/$id/editor': typeof AdminCmsPaginasIdEditorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1028,6 +1029,7 @@ export interface FileRouteTypes {
     | '/politicas/$slug'
     | '/produto/$slug'
     | '/vendedora/$slug'
+    | '/admin/builder/analytics'
     | '/admin/caixa/lancamentos'
     | '/admin/caixa/turnos'
     | '/admin/catalogo/atributos'
@@ -1057,6 +1059,7 @@ export interface FileRouteTypes {
     | '/api/auth/confirm'
     | '/api/webhooks/pagarme'
     | '/conta/'
+    | '/admin/builder/'
     | '/admin/caixa/'
     | '/admin/clientes/'
     | '/admin/estoque/'
@@ -1065,18 +1068,16 @@ export interface FileRouteTypes {
     | '/conta/conversas/$id'
     | '/conta/pedidos/$id'
     | '/pedido/$publicToken/confirmacao'
+    | '/admin/builder/$documentId/editor'
     | '/admin/catalogo/categorias/novo'
     | '/admin/catalogo/colecoes/novo'
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
-    | '/admin/cms/paginas/novo'
     | '/admin/pedidos/$id/recibo'
     | '/conta/pedidos/'
     | '/admin/catalogo/categorias/'
     | '/admin/catalogo/colecoes/'
     | '/admin/catalogo/produtos/'
-    | '/admin/cms/paginas/'
-    | '/admin/cms/paginas/$id/editor'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sitemap.xml'
@@ -1132,6 +1133,7 @@ export interface FileRouteTypes {
     | '/politicas/$slug'
     | '/produto/$slug'
     | '/vendedora/$slug'
+    | '/admin/builder/analytics'
     | '/admin/caixa/lancamentos'
     | '/admin/caixa/turnos'
     | '/admin/catalogo/atributos'
@@ -1161,6 +1163,7 @@ export interface FileRouteTypes {
     | '/api/auth/confirm'
     | '/api/webhooks/pagarme'
     | '/conta'
+    | '/admin/builder'
     | '/admin/caixa'
     | '/admin/clientes'
     | '/admin/estoque'
@@ -1169,18 +1172,16 @@ export interface FileRouteTypes {
     | '/conta/conversas/$id'
     | '/conta/pedidos/$id'
     | '/pedido/$publicToken/confirmacao'
+    | '/admin/builder/$documentId/editor'
     | '/admin/catalogo/categorias/novo'
     | '/admin/catalogo/colecoes/novo'
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
-    | '/admin/cms/paginas/novo'
     | '/admin/pedidos/$id/recibo'
     | '/conta/pedidos'
     | '/admin/catalogo/categorias'
     | '/admin/catalogo/colecoes'
     | '/admin/catalogo/produtos'
-    | '/admin/cms/paginas'
-    | '/admin/cms/paginas/$id/editor'
   id:
     | '__root__'
     | '/_store'
@@ -1239,6 +1240,7 @@ export interface FileRouteTypes {
     | '/_store/politicas/$slug'
     | '/_store/produto/$slug'
     | '/_store/vendedora/$slug'
+    | '/admin/builder/analytics'
     | '/admin/caixa/lancamentos'
     | '/admin/caixa/turnos'
     | '/admin/catalogo/atributos'
@@ -1268,6 +1270,7 @@ export interface FileRouteTypes {
     | '/api/auth/confirm'
     | '/api/webhooks/pagarme'
     | '/_store/conta/'
+    | '/admin/builder/'
     | '/admin/caixa/'
     | '/admin/clientes/'
     | '/admin/estoque/'
@@ -1276,18 +1279,16 @@ export interface FileRouteTypes {
     | '/_store/conta/conversas/$id'
     | '/_store/conta/pedidos/$id'
     | '/_store/pedido/$publicToken/confirmacao'
+    | '/admin/builder/$documentId/editor'
     | '/admin/catalogo/categorias/novo'
     | '/admin/catalogo/colecoes/novo'
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
-    | '/admin/cms/paginas/novo'
     | '/admin_/pedidos/$id/recibo'
     | '/_store/conta/pedidos/'
     | '/admin/catalogo/categorias/'
     | '/admin/catalogo/colecoes/'
     | '/admin/catalogo/produtos/'
-    | '/admin/cms/paginas/'
-    | '/admin/cms/paginas/$id/editor'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1624,6 +1625,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCaixaIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/builder/': {
+      id: '/admin/builder/'
+      path: '/builder'
+      fullPath: '/admin/builder/'
+      preLoaderRoute: typeof AdminBuilderIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_store/conta/': {
       id: '/_store/conta/'
       path: '/'
@@ -1827,6 +1835,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCaixaLancamentosRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/builder/analytics': {
+      id: '/admin/builder/analytics'
+      path: '/builder/analytics'
+      fullPath: '/admin/builder/analytics'
+      preLoaderRoute: typeof AdminBuilderAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_store/vendedora/$slug': {
       id: '/_store/vendedora/$slug'
       path: '/vendedora/$slug'
@@ -1932,13 +1947,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreCategoriaSlugRouteImport
       parentRoute: typeof StoreRoute
     }
-    '/admin/cms/paginas/': {
-      id: '/admin/cms/paginas/'
-      path: '/cms/paginas'
-      fullPath: '/admin/cms/paginas/'
-      preLoaderRoute: typeof AdminCmsPaginasIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/catalogo/produtos/': {
       id: '/admin/catalogo/produtos/'
       path: '/catalogo/produtos'
@@ -1974,13 +1982,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPedidosIdReciboRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/cms/paginas/novo': {
-      id: '/admin/cms/paginas/novo'
-      path: '/cms/paginas/novo'
-      fullPath: '/admin/cms/paginas/novo'
-      preLoaderRoute: typeof AdminCmsPaginasNovoRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/catalogo/produtos/novo': {
       id: '/admin/catalogo/produtos/novo'
       path: '/catalogo/produtos/novo'
@@ -2009,6 +2010,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCatalogoCategoriasNovoRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/builder/$documentId/editor': {
+      id: '/admin/builder/$documentId/editor'
+      path: '/builder/$documentId/editor'
+      fullPath: '/admin/builder/$documentId/editor'
+      preLoaderRoute: typeof AdminBuilderDocumentIdEditorRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_store/pedido/$publicToken/confirmacao': {
       id: '/_store/pedido/$publicToken/confirmacao'
       path: '/pedido/$publicToken/confirmacao'
@@ -2029,13 +2037,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/conta/conversas/$id'
       preLoaderRoute: typeof StoreContaConversasIdRouteImport
       parentRoute: typeof StoreContaRoute
-    }
-    '/admin/cms/paginas/$id/editor': {
-      id: '/admin/cms/paginas/$id/editor'
-      path: '/cms/paginas/$id/editor'
-      fullPath: '/admin/cms/paginas/$id/editor'
-      preLoaderRoute: typeof AdminCmsPaginasIdEditorRouteImport
-      parentRoute: typeof AdminRoute
     }
   }
 }
@@ -2158,6 +2159,7 @@ interface AdminRouteChildren {
   AdminStoriesRoute: typeof AdminStoriesRoute
   AdminSuporteRoute: typeof AdminSuporteRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminBuilderAnalyticsRoute: typeof AdminBuilderAnalyticsRoute
   AdminCaixaLancamentosRoute: typeof AdminCaixaLancamentosRoute
   AdminCaixaTurnosRoute: typeof AdminCaixaTurnosRoute
   AdminCatalogoAtributosRoute: typeof AdminCatalogoAtributosRoute
@@ -2183,21 +2185,20 @@ interface AdminRouteChildren {
   AdminMarketingNotificacoesRoute: typeof AdminMarketingNotificacoesRoute
   AdminPedidosIdRoute: typeof AdminPedidosIdRoute
   AdminPedidosTrocasRoute: typeof AdminPedidosTrocasRoute
+  AdminBuilderIndexRoute: typeof AdminBuilderIndexRoute
   AdminCaixaIndexRoute: typeof AdminCaixaIndexRoute
   AdminClientesIndexRoute: typeof AdminClientesIndexRoute
   AdminEstoqueIndexRoute: typeof AdminEstoqueIndexRoute
   AdminFretesIndexRoute: typeof AdminFretesIndexRoute
   AdminPedidosIndexRoute: typeof AdminPedidosIndexRoute
+  AdminBuilderDocumentIdEditorRoute: typeof AdminBuilderDocumentIdEditorRoute
   AdminCatalogoCategoriasNovoRoute: typeof AdminCatalogoCategoriasNovoRoute
   AdminCatalogoColecoesNovoRoute: typeof AdminCatalogoColecoesNovoRoute
   AdminCatalogoProdutosIdRoute: typeof AdminCatalogoProdutosIdRoute
   AdminCatalogoProdutosNovoRoute: typeof AdminCatalogoProdutosNovoRoute
-  AdminCmsPaginasNovoRoute: typeof AdminCmsPaginasNovoRoute
   AdminCatalogoCategoriasIndexRoute: typeof AdminCatalogoCategoriasIndexRoute
   AdminCatalogoColecoesIndexRoute: typeof AdminCatalogoColecoesIndexRoute
   AdminCatalogoProdutosIndexRoute: typeof AdminCatalogoProdutosIndexRoute
-  AdminCmsPaginasIndexRoute: typeof AdminCmsPaginasIndexRoute
-  AdminCmsPaginasIdEditorRoute: typeof AdminCmsPaginasIdEditorRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -2219,6 +2220,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminStoriesRoute: AdminStoriesRoute,
   AdminSuporteRoute: AdminSuporteRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminBuilderAnalyticsRoute: AdminBuilderAnalyticsRoute,
   AdminCaixaLancamentosRoute: AdminCaixaLancamentosRoute,
   AdminCaixaTurnosRoute: AdminCaixaTurnosRoute,
   AdminCatalogoAtributosRoute: AdminCatalogoAtributosRoute,
@@ -2244,21 +2246,20 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminMarketingNotificacoesRoute: AdminMarketingNotificacoesRoute,
   AdminPedidosIdRoute: AdminPedidosIdRoute,
   AdminPedidosTrocasRoute: AdminPedidosTrocasRoute,
+  AdminBuilderIndexRoute: AdminBuilderIndexRoute,
   AdminCaixaIndexRoute: AdminCaixaIndexRoute,
   AdminClientesIndexRoute: AdminClientesIndexRoute,
   AdminEstoqueIndexRoute: AdminEstoqueIndexRoute,
   AdminFretesIndexRoute: AdminFretesIndexRoute,
   AdminPedidosIndexRoute: AdminPedidosIndexRoute,
+  AdminBuilderDocumentIdEditorRoute: AdminBuilderDocumentIdEditorRoute,
   AdminCatalogoCategoriasNovoRoute: AdminCatalogoCategoriasNovoRoute,
   AdminCatalogoColecoesNovoRoute: AdminCatalogoColecoesNovoRoute,
   AdminCatalogoProdutosIdRoute: AdminCatalogoProdutosIdRoute,
   AdminCatalogoProdutosNovoRoute: AdminCatalogoProdutosNovoRoute,
-  AdminCmsPaginasNovoRoute: AdminCmsPaginasNovoRoute,
   AdminCatalogoCategoriasIndexRoute: AdminCatalogoCategoriasIndexRoute,
   AdminCatalogoColecoesIndexRoute: AdminCatalogoColecoesIndexRoute,
   AdminCatalogoProdutosIndexRoute: AdminCatalogoProdutosIndexRoute,
-  AdminCmsPaginasIndexRoute: AdminCmsPaginasIndexRoute,
-  AdminCmsPaginasIdEditorRoute: AdminCmsPaginasIdEditorRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

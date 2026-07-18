@@ -9,21 +9,27 @@ import type { ProductCardDTO } from "@/types/catalog";
 
 export function ProductRail({
   content,
-  publishedProducts,
-  collectionsData,
+  resolvedData,
 }: {
-  content: Record<string, unknown>;
-  publishedProducts: ProductCardDTO[];
-  collectionsData?: Record<string, ProductCardDTO[]>;
+  content?: Record<string, unknown>;
+  resolvedData?: ProductCardDTO[];
+  node_id?: string;
+  block_type?: string;
 }) {
-  const title = String(content.title || "Destaques");
-  const slug = content.collection_slug ? String(content.collection_slug) : null;
-  const layout = String(content.layout || "carousel");
+  const safeContent = content || {};
+  const title = String(safeContent.title || "Destaques");
+  const slug = safeContent.collection_slug ? String(safeContent.collection_slug) : null;
+  const layout = String(safeContent.layout || "carousel");
 
-  const productsToDisplay =
-    slug && collectionsData && collectionsData[slug] ? collectionsData[slug] : publishedProducts;
+  const productsToDisplay = Array.isArray(resolvedData) ? resolvedData : [];
 
-  if (productsToDisplay.length === 0) return null;
+  if (productsToDisplay.length === 0) {
+    return (
+      <div className="p-8 text-center border-2 border-dashed border-border/50 text-muted-foreground text-sm">
+        [Product Rail] Fonte de dados não configurada ou vazia.
+      </div>
+    );
+  }
 
   if (layout === "grid") {
     return (

@@ -326,7 +326,11 @@ function CashRegisterPage() {
       });
 
       if (res.status === "success") {
-        toast.success("Venda de balcão concluída!");
+        if (res.hasNegativeStock) {
+          toast.warning("Venda concluída, mas o estoque ficou negativo em alguns produtos. Recomendamos auditoria/recontagem de estoque.", { duration: 8000 });
+        } else {
+          toast.success("Venda de balcão concluída!");
+        }
         setLastReceipt(res);
         setCartItems([]);
         setDiscountCentsInput("0");

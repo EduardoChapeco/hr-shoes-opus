@@ -135,3 +135,34 @@ export const getStockMovements = createServerFn({ method: "GET" })
       return { status: "error" as const, message: "Erro ao buscar ledger de estoque." };
     }
   });
+
+// ---------------------------------------------------------------------------
+// Audit
+// ---------------------------------------------------------------------------
+
+export const performStockAudit = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      variantId: z.string().uuid(),
+      countedQty: z.number().int().min(0),
+      reason: z.enum(["recount", "loss", "damage", "return_defect"]),
+      notes: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data: { variantId, countedQty, reason, notes } }) => {
+    try {
+      const db = getServerClient();
+      const { data, error } = await db.rpc("perform_stock_audit", {
+        p_variant_id: variantId,
+        p_counted_qty: countedQty,
+        p_reason: reason,
+        p_notes: notes || null,
+      });
+
+      if (error) throw error;
+      return { status: "success" as const, data };
+    } catch (e: any) {
+      console.error("[stock.functions] performStockAudit:", e.message);
+      return { status: "error" as const, message: e.message || "Erro ao realizar auditoria." };
+    }
+  });

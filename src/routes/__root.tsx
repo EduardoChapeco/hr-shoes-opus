@@ -73,10 +73,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   loader: async () => {
-    // Busca dados de forma otimista, se falhar, retorna nulo.
     const [themeRes, storeRes] = await Promise.all([
-      getThemeSettings().catch(() => ({ status: "error", data: null })),
-      getPublicStoreSettings().catch(() => ({ status: "error", data: null })),
+      getThemeSettings(),
+      getPublicStoreSettings(),
     ]);
     return {
       theme: themeRes.status === "ok" ? themeRes.data : null,

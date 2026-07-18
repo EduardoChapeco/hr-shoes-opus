@@ -64,6 +64,7 @@ import {
 } from "@/services/admin-catalog.functions";
 import { formatMoney } from "@/lib/money";
 import { adjustStock } from "@/services/stock.functions";
+import { GridBuilderDialog } from "@/components/admin/grid-builder-dialog";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/$id")({
   head: () => ({ meta: [{ title: "Editor Avançado de Produto — Hr Shoes" }] }),
@@ -614,14 +615,17 @@ function VariantsManager({ product }: { product: any }) {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div>
             <CardTitle className="text-base">Variações de Estoque & Tamanho</CardTitle>
             <CardDescription>SKUs específicos por numeração, cor ou especificação.</CardDescription>
           </div>
-          <Button size="sm" onClick={onOpenNew}>
-            <Plus className="mr-1.5 size-4" /> Nova Variante
-          </Button>
+          <div className="flex items-center gap-2">
+            <GridBuilderDialog product={product} />
+            <Button size="sm" onClick={onOpenNew}>
+              <Plus className="mr-1.5 size-4" /> Nova Variante
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {(!product.product_variants || product.product_variants.length === 0) ? (

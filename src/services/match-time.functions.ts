@@ -129,6 +129,57 @@ export const getNextProductsForSwipe = createServerFn({ method: "GET" }).handler
 });
 
 /**
+ * Gera uma oferta relâmpago de Match Time para um produto específico e vincula ao carrinho do usuário.
+ */
+export const generateMatchTimeOffer = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      sessionId: z.string().uuid(),
+      productId: z.string().uuid(),
+    }),
+  )
+  .handler(async ({ data: { sessionId, productId } }) => {
+    try {
+      const ssrClient = getSSRClient();
+      const { data: { user } } = await ssrClient.auth.getUser();
+      if (!user) return { status: "error" as const, message: "Não autorizado" };
+
+      const db = getServerClient();
+      const { data: store } = await db.from("stores").select("id").limit(1).single();
+      if (!store) return { status: "error" as const, message: "Loja não encontrada." };
+
+      // 1. Create the offer for 15 minutes (50% off for testing, in a real app this comes from a rules table)
+      const expiresAt = new Date(Date.now() + 15 * 60000).toISOString();
+      const { data: offer, error: offerError } = await db.from("match_time_offers").insert({
+        store_id: store.id,
+        customer_id: user.id,
+        product_id: productId,
+        session_id: sessionId,
+        discount_percentage: 50, 
+        expires_at: expiresAt,
+        status: 'active'
+      }).select("id").single();
+
+      if (offerError) throw offerError;
+
+      // 2. Link this offer to the user's active cart
+      const { data: cart } = await db.from("carts")
+        .select("id")
+        .eq("status", "active")
+        .eq("customer_id", user.id)
+        .maybeSingle();
+
+      if (cart) {
+        await db.from("carts").update({ match_time_offer_id: offer.id }).eq("id", cart.id);
+      }
+
+      return { status: "success" as const, data: { offerId: offer.id, expiresAt } };
+    } catch (e: any) {
+      return { status: "error" as const, message: e.message || "Erro ao gerar oferta relâmpago." };
+    }
+  });
+
+/**
  * Grava o like/dislike de um produto
  */
 export const recordSwipe = createServerFn({ method: "POST" })
