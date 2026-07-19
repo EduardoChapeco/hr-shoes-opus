@@ -84,7 +84,7 @@ function Home() {
           <h2 className="text-xl font-bold">Nenhum layout publicado</h2>
           <p className="text-muted-foreground mt-2">Acesse o Builder no Admin para construir e publicar a página inicial.</p>
           <Button className="mt-6" asChild>
-            <Link to="/admin/builder">Acessar Builder</Link>
+            <Link to="/admin/vitrine">Acessar Vitrine</Link>
           </Button>
         </div>
       </div>

@@ -1,8 +1,8 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { ArrowLeft, ImagePlus, X, Box, Tag, Layers, Settings2, CheckCircle2, DollarSign } from "lucide-react";
+import { ArrowLeft, ImagePlus, X, Box, Tag, Layers, Settings2, CheckCircle2, DollarSign, Plus } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   listProductTypes,
   createProduct,
@@ -37,6 +38,20 @@ export const Route = createFileRoute("/admin/catalogo/produtos/novo")({
   component: NewProductPage,
 });
 
+// Helper for cartesian product
+function cartesianProduct(arrays: string[][]): string[][] {
+  if (arrays.length === 0) return [];
+  return arrays.reduce((acc, curr) => {
+    if (curr.length === 0) return acc;
+    if (acc.length === 0) return curr.map(c => [c]);
+    return acc.flatMap(a => curr.map(c => [...a, c]));
+  }, [] as string[][]);
+}
+
+function slugify(text: string) {
+  return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+}
+
 function NewProductPage() {
   const { types, categories } = Route.useLoaderData();
   const navigate = useNavigate();
@@ -45,17 +60,26 @@ function NewProductPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [files, setFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-  const [variants, setVariants] = useState([{ sku: "", size: "", stock: 0 }]);
+  
+  // Variações Dinâmicas
+  const [variants, setVariants] = useState<{ sku: string; attributes: Record<string, string>; stock: number }[]>([
+    { sku: "", attributes: {}, stock: 0 }
+  ]);
+  const [selectedVariantOptions, setSelectedVariantOptions] = useState<Record<string, string[]>>({});
+
   const [activeTab, setActiveTab] = useState("general");
 
-  const selectedType = types.find(
-    (t: { id: string; name: string; field_schema: unknown[] }) => t.id === selectedTypeId,
-  );
+  const selectedType = types.find((t: any) => t.id === selectedTypeId);
+  
   const dynamicFields = (selectedType?.field_schema || []) as {
     name: string;
     kind: string;
     required: boolean;
+    options?: string[];
   }[];
+
+  const staticFields = dynamicFields.filter(f => f.kind !== "option_group");
+  const variantGroups = dynamicFields.filter(f => f.kind === "option_group");
 
   const {
     register,
@@ -85,6 +109,66 @@ function NewProductPage() {
       attributes: {} as Record<string, unknown>,
     },
   });
+
+  const baseSlug = watch("slug");
+
+  // Re-calculate Cartesian Product when Variant Options change
+  useEffect(() => {
+    if (variantGroups.length === 0) return;
+
+    const groupNames = variantGroups.map(g => g.name);
+    const arraysToMultiply = groupNames.map(name => selectedVariantOptions[name] || []);
+    
+    // Check if at least one group has selections
+    const hasAnySelection = arraysToMultiply.some(arr => arr.length > 0);
+    
+    if (!hasAnySelection) {
+      // If nothing selected, reset to a single empty variant
+      setVariants([{ sku: "", attributes: {}, stock: 0 }]);
+      return;
+    }
+
+    // Only multiply groups that have at least one selection
+    const activeGroups = groupNames.filter(name => (selectedVariantOptions[name] || []).length > 0);
+    const activeArraysToMultiply = activeGroups.map(name => selectedVariantOptions[name] || []);
+
+    const combinations = cartesianProduct(activeArraysToMultiply);
+
+    setVariants(prevVariants => {
+      return combinations.map(combo => {
+        // combo is an array of strings, e.g. ["38", "Preto"]
+        const attributes: Record<string, string> = {};
+        activeGroups.forEach((groupName, idx) => {
+          attributes[groupName] = combo[idx];
+        });
+
+        const comboSignature = JSON.stringify(attributes);
+        const existing = prevVariants.find(v => JSON.stringify(v.attributes) === comboSignature);
+        
+        const generatedSkuSuffix = combo.map(c => slugify(c).toUpperCase()).join("-");
+        const defaultSku = baseSlug ? `${baseSlug.toUpperCase()}-${generatedSkuSuffix}` : generatedSkuSuffix;
+
+        if (existing) {
+          return { ...existing, sku: existing.sku || defaultSku };
+        }
+        return {
+          sku: defaultSku,
+          attributes,
+          stock: 0,
+        };
+      });
+    });
+  }, [selectedVariantOptions, baseSlug]);
+
+  const toggleVariantOption = (groupName: string, optionValue: string) => {
+    setSelectedVariantOptions(prev => {
+      const current = prev[groupName] || [];
+      const updated = current.includes(optionValue) 
+        ? current.filter(v => v !== optionValue)
+        : [...current, optionValue];
+      return { ...prev, [groupName]: updated };
+    });
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -140,7 +224,7 @@ function NewProductPage() {
         .filter((v) => v.sku)
         .map((v) => ({
           sku: v.sku,
-          attributes: v.size ? { size: v.size } : {},
+          attributes: v.attributes,
           price_cents: priceCents,
           stock: v.stock,
         }));
@@ -185,52 +269,12 @@ function NewProductPage() {
     }
   };
 
-  const renderDynamicField = (field: { name: string; kind: string; required: boolean }) => {
-    const errorMsg = (errors.attributes as Record<string, { message?: string }>)?.[field.name]?.message;
-    return (
-      <div key={field.name} className="space-y-2">
-        <Label className="capitalize">
-          {field.name} {field.required && <span className="text-destructive">*</span>}
-        </Label>
-        {field.kind === "text" && (
-          <Input {...register(`attributes.${field.name}` as const, { required: field.required })} placeholder={`Preencher ${field.name}...`} />
-        )}
-        {field.kind === "number" && (
-          <Input
-            type="number"
-            {...register(`attributes.${field.name}` as const, { required: field.required })}
-          />
-        )}
-        {field.kind === "boolean" && (
-          <Select
-            onValueChange={(v) =>
-              setValue("attributes", { ...watch("attributes"), [field.name]: v === "true" })
-            }
-          >
-            <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="true">Sim</SelectItem>
-              <SelectItem value="false">Não</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
-        {field.kind === "select_single" && (
-          <Input
-            placeholder="Valor da opção..."
-            {...register(`attributes.${field.name}` as const, { required: field.required })}
-          />
-        )}
-        {errorMsg && <p className="text-xs text-destructive">{errorMsg}</p>}
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-8 max-w-[1200px] pb-12">
       <PageHeader
         eyebrow="Catálogo / Produtos"
         title="Cadastrar Novo Produto"
-        description="Adicione um novo item ao seu catálogo. Defina fotos, preços e variações."
+        description="Adicione um novo item ao seu catálogo usando matriz inteligente de variações."
         actions={
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => navigate({ to: "/admin/catalogo/produtos" })}>
@@ -256,7 +300,7 @@ function NewProductPage() {
             <ImagePlus className="size-4 mr-2" /> Fotos e Mídias
           </TabsTrigger>
           <TabsTrigger value="pricing" className="w-full justify-start text-left data-[state=active]:bg-primary/5 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 py-2.5">
-            <DollarSign className="size-4 mr-2" /> Preço e Estoque
+            <DollarSign className="size-4 mr-2" /> Preço e Variações
           </TabsTrigger>
           <TabsTrigger value="logistics" className="w-full justify-start text-left data-[state=active]:bg-primary/5 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 py-2.5">
             <Layers className="size-4 mr-2" /> Logística
@@ -288,9 +332,7 @@ function NewProductPage() {
                       placeholder="Ex: Tênis Runner Pro Masculino Preto"
                       onChange={(e) => {
                         register("title").onChange(e);
-                        const slug = e.target.value
-                          .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                          .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+                        const slug = slugify(e.target.value);
                         setValue("slug", slug);
                       }}
                     />
@@ -308,7 +350,12 @@ function NewProductPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-sm font-semibold">Categoria Principal</Label>
+                      <div className="flex justify-between items-center">
+                        <Label className="text-sm font-semibold">Categoria Principal</Label>
+                        <Link to="/admin/catalogo/categorias" className="text-xs text-primary hover:underline">
+                          + Gerenciar
+                        </Link>
+                      </div>
                       <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                         <SelectTrigger className="h-11"><SelectValue placeholder="Selecione uma categoria" /></SelectTrigger>
                         <SelectContent>
@@ -381,12 +428,12 @@ function NewProductPage() {
               </Card>
             </TabsContent>
 
-            {/* TAB: PRICING */}
+            {/* TAB: PRICING AND VARIANTS */}
             <TabsContent value="pricing" className="space-y-6 mt-0 border-none p-0">
               <Card>
                 <CardHeader>
-                  <CardTitle>Precificação</CardTitle>
-                  <CardDescription>Defina o preço de venda e o preço "De" (comparação) para mostrar descontos.</CardDescription>
+                  <CardTitle>Precificação Base</CardTitle>
+                  <CardDescription>Defina o preço de venda para todas as variações.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -429,23 +476,53 @@ function NewProductPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Variações e Estoque Inicial</CardTitle>
-                  <CardDescription>Crie as grades de tamanho, cor e informe o estoque inicial (SKU).</CardDescription>
+                  <CardTitle>Variações e Matriz de Estoque</CardTitle>
+                  <CardDescription>Selecione as opções disponíveis para este produto e a tabela será gerada automaticamente.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
+                  
+                  {variantGroups.length > 0 ? (
+                    <div className="space-y-6 mb-8 p-4 bg-muted/20 border rounded-xl">
+                      {variantGroups.map(group => (
+                        <div key={group.name} className="space-y-3">
+                          <Label className="text-sm font-semibold text-primary">{group.name}</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {group.options?.map(opt => {
+                              const isSelected = (selectedVariantOptions[group.name] || []).includes(opt);
+                              return (
+                                <Badge 
+                                  key={opt}
+                                  variant={isSelected ? "default" : "outline"}
+                                  className="cursor-pointer hover:opacity-80 transition-opacity px-3 py-1 text-sm"
+                                  onClick={() => toggleVariantOption(group.name, opt)}
+                                >
+                                  {opt}
+                                </Badge>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-yellow-500/10 text-yellow-600 rounded-xl text-sm mb-6 border border-yellow-500/20">
+                      O Tipo de Produto atual não possui Grupos de Variação definidos. Mude o "Tipo de Produto" na aba Especificações para ativar a matriz cartesiana, ou cadastre uma única variação manual abaixo.
+                    </div>
+                  )}
+
                   <div className="border rounded-xl overflow-hidden">
                     <div className="grid grid-cols-[2fr_2fr_1fr_40px] gap-4 bg-muted/50 p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       <div>Código SKU</div>
-                      <div>Atributo (Ex: Tamanho 40)</div>
+                      <div>Atributos da Variante</div>
                       <div>Estoque</div>
                       <div></div>
                     </div>
-                    <div className="divide-y">
+                    <div className="divide-y max-h-[500px] overflow-y-auto">
                       {variants.map((variant, idx) => (
                         <div key={idx} className="grid grid-cols-[2fr_2fr_1fr_40px] gap-4 p-3 items-center hover:bg-muted/10 transition-colors">
                           <Input
                             value={variant.sku}
-                            className="h-9 text-xs"
+                            className="h-9 text-xs font-mono"
                             onChange={(e) => {
                               const newV = [...variants];
                               newV[idx].sku = e.target.value;
@@ -453,35 +530,40 @@ function NewProductPage() {
                             }}
                             placeholder="Ex: TNS-PRT-40"
                           />
-                          <Input
-                            value={variant.size}
-                            className="h-9 text-xs"
-                            onChange={(e) => {
-                              const newV = [...variants];
-                              newV[idx].size = e.target.value;
-                              setVariants(newV);
-                            }}
-                            placeholder="Ex: 40"
-                          />
+                          <div className="flex flex-wrap gap-1">
+                            {Object.entries(variant.attributes).length > 0 ? (
+                              Object.entries(variant.attributes).map(([k, v]) => (
+                                <Badge key={k} variant="secondary" className="text-[10px]">{v}</Badge>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground italic">Variação Única</span>
+                            )}
+                          </div>
                           <Input
                             type="number"
-                            value={variant.stock}
+                            value={variant.stock || ""}
                             className="h-9 text-xs"
                             onChange={(e) => {
                               const newV = [...variants];
                               newV[idx].stock = parseInt(e.target.value, 10) || 0;
                               setVariants(newV);
                             }}
+                            placeholder="0"
                           />
                           <Button type="button" variant="ghost" size="icon" className="size-8 text-muted-foreground hover:text-destructive" onClick={() => setVariants(variants.filter((_, i) => i !== idx))}>
                             <X className="size-4" />
                           </Button>
                         </div>
                       ))}
+                      {variants.length === 0 && (
+                        <div className="p-8 text-center text-muted-foreground text-sm">
+                          Selecione as opções acima para gerar a tabela de SKUs automaticamente.
+                        </div>
+                      )}
                     </div>
                     <div className="p-3 bg-muted/30">
-                      <Button type="button" variant="outline" size="sm" onClick={() => setVariants([...variants, { sku: "", size: "", stock: 0 }])}>
-                        Adicionar Variante
+                      <Button type="button" variant="outline" size="sm" onClick={() => setVariants([...variants, { sku: "", attributes: {}, stock: 0 }])}>
+                        <Plus className="size-3 mr-2" /> Adicionar Linha Manualmente
                       </Button>
                     </div>
                   </div>
@@ -572,16 +654,21 @@ function NewProductPage() {
             </TabsContent>
 
 
-            {/* TAB: SPECS */}
+            {/* TAB: SPECS (Now only static fields) */}
             <TabsContent value="specs" className="space-y-6 mt-0 border-none p-0">
               <Card>
                 <CardHeader>
                   <CardTitle>Classificação de Produto</CardTitle>
-                  <CardDescription>O tipo define quais campos dinâmicos serão solicitados.</CardDescription>
+                  <CardDescription>O tipo define quais grupos de Variações e Campos Dinâmicos serão habilitados.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 max-w-sm">
-                    <Label className="text-sm font-semibold">Tipo de Produto</Label>
+                    <div className="flex justify-between items-center">
+                      <Label className="text-sm font-semibold">Tipo de Produto</Label>
+                      <Link to="/admin/catalogo/tipos" className="text-xs text-primary hover:underline">
+                        + Gerenciar Tipos
+                      </Link>
+                    </div>
                     <Select value={selectedTypeId} onValueChange={setSelectedTypeId}>
                       <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -595,16 +682,54 @@ function NewProductPage() {
                 </CardContent>
               </Card>
 
-              {dynamicFields.length > 0 && (
+              {staticFields.length > 0 && (
                 <Card className="border-primary/20 shadow-brand/10">
                   <CardHeader className="bg-primary/5 pb-4 border-b border-primary/10">
                     <CardTitle className="text-primary flex items-center gap-2">
-                      <Layers className="size-5" /> Atributos Específicos: {selectedType?.name}
+                      <Settings2 className="size-5" /> Especificações Estáticas: {selectedType?.name}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {dynamicFields.map(renderDynamicField)}
+                      {staticFields.map(field => {
+                        const errorMsg = (errors.attributes as Record<string, { message?: string }>)?.[field.name]?.message;
+                        return (
+                          <div key={field.name} className="space-y-2">
+                            <Label className="capitalize">
+                              {field.name} {field.required && <span className="text-destructive">*</span>}
+                            </Label>
+                            {field.kind === "text" && (
+                              <Input {...register(`attributes.${field.name}` as const, { required: field.required })} placeholder={`Preencher ${field.name}...`} />
+                            )}
+                            {field.kind === "number" && (
+                              <Input
+                                type="number"
+                                {...register(`attributes.${field.name}` as const, { required: field.required })}
+                              />
+                            )}
+                            {field.kind === "boolean" && (
+                              <Select
+                                onValueChange={(v) =>
+                                  setValue("attributes", { ...watch("attributes"), [field.name]: v === "true" })
+                                }
+                              >
+                                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="true">Sim</SelectItem>
+                                  <SelectItem value="false">Não</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+                            {field.kind === "select_single" && (
+                              <Input
+                                placeholder="Valor da opção..."
+                                {...register(`attributes.${field.name}` as const, { required: field.required })}
+                              />
+                            )}
+                            {errorMsg && <p className="text-xs text-destructive">{errorMsg}</p>}
+                          </div>
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>

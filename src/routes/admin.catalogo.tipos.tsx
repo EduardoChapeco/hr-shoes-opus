@@ -40,8 +40,9 @@ import { listProductTypes, createProductType } from "@/services/admin-catalog.fu
 
 const fieldSchemaObj = z.object({
   name: z.string().min(1, "Obrigatório"),
-  kind: z.enum(["text", "number", "boolean", "select_single"]),
+  kind: z.enum(["text", "number", "boolean", "select_single", "option_group"]),
   required: z.boolean(),
+  options: z.array(z.string()).optional(),
 });
 
 const formSchema = z.object({
@@ -203,7 +204,7 @@ function ProductTypesPage() {
                             <div className="space-y-2">
                               <Label>Nome do campo</Label>
                               <Input
-                                placeholder="Ex: Material"
+                                placeholder="Ex: Material ou Tamanho"
                                 {...form.register(`fields.${index}.name`)}
                               />
                             </div>
@@ -213,7 +214,7 @@ function ProductTypesPage() {
                                 onValueChange={(val) =>
                                   form.setValue(
                                     `fields.${index}.kind`,
-                                    val as "text" | "number" | "boolean" | "select_single",
+                                    val as "text" | "number" | "boolean" | "select_single" | "option_group",
                                   )
                                 }
                                 defaultValue={field.kind}
@@ -226,11 +227,12 @@ function ProductTypesPage() {
                                   <SelectItem value="number">Número</SelectItem>
                                   <SelectItem value="boolean">Verdadeiro/Falso</SelectItem>
                                   <SelectItem value="select_single">Seleção única</SelectItem>
+                                  <SelectItem value="option_group">Matriz de Variações (Grade)</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
-                            <div className="space-y-2 pt-8">
-                              <div className="flex items-center space-x-2">
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2 pt-8">
                                 <Checkbox
                                   id={`req-${index}`}
                                   onCheckedChange={(checked) =>
@@ -242,6 +244,20 @@ function ProductTypesPage() {
                                 </Label>
                               </div>
                             </div>
+                            {form.watch(`fields.${index}.kind`) === "option_group" && (
+                              <div className="space-y-2 md:col-span-3">
+                                <Label className="text-xs text-muted-foreground">
+                                  Valores permitidos (separados por vírgula)
+                                </Label>
+                                <Input
+                                  placeholder="Ex: 34, 35, 36, Preto, Branco"
+                                  onChange={(e) => {
+                                    const opts = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+                                    form.setValue(`fields.${index}.options`, opts);
+                                  }}
+                                />
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}

@@ -14,6 +14,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as StoreRouteImport } from './routes/_store'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as StoreIndexRouteImport } from './routes/_store.index'
+import { Route as AdminVitrineRouteImport } from './routes/admin.vitrine'
 import { Route as AdminSuporteRouteImport } from './routes/admin.suporte'
 import { Route as AdminStoriesRouteImport } from './routes/admin.stories'
 import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
@@ -138,6 +139,11 @@ const StoreIndexRoute = StoreIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => StoreRoute,
+} as any)
+const AdminVitrineRoute = AdminVitrineRouteImport.update({
+  id: '/vitrine',
+  path: '/vitrine',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminSuporteRoute = AdminSuporteRouteImport.update({
   id: '/suporte',
@@ -693,6 +699,7 @@ export interface FileRoutesByFullPath {
   '/admin/relatorios': typeof AdminRelatoriosRoute
   '/admin/stories': typeof AdminStoriesRoute
   '/admin/suporte': typeof AdminSuporteRoute
+  '/admin/vitrine': typeof AdminVitrineRoute
   '/admin/': typeof AdminIndexRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
@@ -796,6 +803,7 @@ export interface FileRoutesByTo {
   '/admin/relatorios': typeof AdminRelatoriosRoute
   '/admin/stories': typeof AdminStoriesRoute
   '/admin/suporte': typeof AdminSuporteRoute
+  '/admin/vitrine': typeof AdminVitrineRoute
   '/': typeof StoreIndexRoute
   '/admin': typeof AdminIndexRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
@@ -904,6 +912,7 @@ export interface FileRoutesById {
   '/admin/relatorios': typeof AdminRelatoriosRoute
   '/admin/stories': typeof AdminStoriesRoute
   '/admin/suporte': typeof AdminSuporteRoute
+  '/admin/vitrine': typeof AdminVitrineRoute
   '/_store/': typeof StoreIndexRoute
   '/admin/': typeof AdminIndexRoute
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
@@ -1013,6 +1022,7 @@ export interface FileRouteTypes {
     | '/admin/relatorios'
     | '/admin/stories'
     | '/admin/suporte'
+    | '/admin/vitrine'
     | '/admin/'
     | '/categoria/$slug'
     | '/colecao/$slug'
@@ -1116,6 +1126,7 @@ export interface FileRouteTypes {
     | '/admin/relatorios'
     | '/admin/stories'
     | '/admin/suporte'
+    | '/admin/vitrine'
     | '/'
     | '/admin'
     | '/categoria/$slug'
@@ -1223,6 +1234,7 @@ export interface FileRouteTypes {
     | '/admin/relatorios'
     | '/admin/stories'
     | '/admin/suporte'
+    | '/admin/vitrine'
     | '/_store/'
     | '/admin/'
     | '/_store/categoria/$slug'
@@ -1338,6 +1350,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof StoreIndexRouteImport
       parentRoute: typeof StoreRoute
+    }
+    '/admin/vitrine': {
+      id: '/admin/vitrine'
+      path: '/vitrine'
+      fullPath: '/admin/vitrine'
+      preLoaderRoute: typeof AdminVitrineRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/suporte': {
       id: '/admin/suporte'
@@ -2158,6 +2177,7 @@ interface AdminRouteChildren {
   AdminRelatoriosRoute: typeof AdminRelatoriosRoute
   AdminStoriesRoute: typeof AdminStoriesRoute
   AdminSuporteRoute: typeof AdminSuporteRoute
+  AdminVitrineRoute: typeof AdminVitrineRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminBuilderAnalyticsRoute: typeof AdminBuilderAnalyticsRoute
   AdminCaixaLancamentosRoute: typeof AdminCaixaLancamentosRoute
@@ -2219,6 +2239,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminRelatoriosRoute: AdminRelatoriosRoute,
   AdminStoriesRoute: AdminStoriesRoute,
   AdminSuporteRoute: AdminSuporteRoute,
+  AdminVitrineRoute: AdminVitrineRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminBuilderAnalyticsRoute: AdminBuilderAnalyticsRoute,
   AdminCaixaLancamentosRoute: AdminCaixaLancamentosRoute,

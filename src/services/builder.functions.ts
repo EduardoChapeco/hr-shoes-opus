@@ -147,6 +147,58 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
     }
   });
 
+export const getOrCreateHomeDocument = createServerFn({ method: "POST" })
+  .handler(async () => {
+    try {
+      const db = getServerClient();
+
+      // 1. Check if home document exists
+      const { data: doc, error: docError } = await db
+        .from("experience_documents")
+        .select("*")
+        .eq("slug", "home")
+        .eq("document_type", "storefront")
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (doc) {
+        return { status: "success" as const, data: { id: doc.id } };
+      }
+
+      // 2. If not, create it
+      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      if (!storeData) throw new Error("No store found");
+
+      const { data: newDoc, error: newDocError } = await db
+        .from("experience_documents")
+        .insert({
+          store_id: storeData.id,
+          title: "Vitrine Principal",
+          slug: "home",
+          document_type: "storefront",
+          is_active: true,
+        })
+        .select()
+        .single();
+
+      if (newDocError) throw newDocError;
+
+      // 3. Create initial draft version
+      await db
+        .from("experience_versions")
+        .insert({
+          document_id: newDoc.id,
+          version_number: 1,
+          status: 'draft',
+        });
+
+      return { status: "success" as const, data: { id: newDoc.id } };
+    } catch (e) {
+      console.error("[builder.functions] getOrCreateHomeDocument error:", e);
+      return { status: "error" as const, message: "Erro ao criar vitrine principal." };
+    }
+  });
+
 // ---------------------------------------------------------------------------
 // Public Storefront Rendering & Data Hydration
 // ---------------------------------------------------------------------------

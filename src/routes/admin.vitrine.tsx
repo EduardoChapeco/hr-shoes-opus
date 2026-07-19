@@ -3,19 +3,26 @@ import { Plus, GripVertical, Settings2, Eye, Laptop, Smartphone, Save, PanelLeft
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
-import { getExperienceDocument, saveBuilderNodes } from "@/services/builder.functions";
+import { getExperienceDocument, saveBuilderNodes, getOrCreateHomeDocument } from "@/services/builder.functions";
 import type { ExperienceNode } from "@/lib/builder-types";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
 import { builderRegistry } from "@/lib/builder-registry";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export const Route = createFileRoute("/admin/builder/$documentId/editor")({
-  head: () => ({ meta: [{ title: "Editor Avançado — Builder" }] }),
-  loader: async ({ params }) => {
-    // Carregar o documento específico
-    const res = await getExperienceDocument({ data: { id: params.documentId } });
+export const Route = createFileRoute("/admin/vitrine")({
+  head: () => ({ meta: [{ title: "Vitrine Principal — Builder" }] }),
+  loader: async () => {
+    // 1. Garantir que o documento 'home' existe
+    const initRes = await getOrCreateHomeDocument();
+    if (initRes.status !== "success" || !initRes.data) {
+      throw new Error("Erro ao inicializar documento da Vitrine");
+    }
+
+    // 2. Carregar o documento completo (draft)
+    const res = await getExperienceDocument({ data: { id: initRes.data.id } });
     if (res.status === "error" || res.status === "unconfigured") {
       throw new Error("Erro ao carregar Builder");
     }
@@ -118,13 +125,13 @@ function BuilderEditorIDE() {
             </Button>
           </div>
           <div className="h-4 w-px bg-border mx-2" />
-          <Button variant="outline" size="sm" disabled>
+          <Button variant="outline" size="sm">
             <Eye className="h-4 w-4 mr-2" />
             Preview
           </Button>
           <Button size="sm" onClick={handleSave} disabled={isSaving}>
             <Save className="h-4 w-4 mr-2" />
-            {isSaving ? "Salvando..." : "Salvar"}
+            {isSaving ? "Salvando..." : "Salvar e Publicar"}
           </Button>
         </div>
       </header>
@@ -158,6 +165,7 @@ function BuilderEditorIDE() {
             {activeTab === "layers" ? (
               <div className="space-y-1">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">DOM Tree</p>
+                {/* Temporary placeholder for Drag and Drop Layer tree */}
                 {nodes.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">A árvore está vazia.</p>
                 ) : (

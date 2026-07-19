@@ -5,11 +5,9 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -24,14 +22,16 @@ import { listExperienceDocuments, createExperienceDocument } from "@/services/bu
 import type { ExperienceDocument } from "@/lib/builder-types";
 
 export const Route = createFileRoute("/admin/builder/")({
-  head: () => ({ meta: [{ title: "Builder Platform — Hr Shoes" }] }),
+  head: () => ({ meta: [{ title: "Páginas & Bio Links — Hr Shoes" }] }),
   loader: async () => {
     const res = await listExperienceDocuments();
     if (res.status === "error" || res.status === "unconfigured") {
       throw new Error("Erro ao carregar documentos do Builder");
     }
+    // Filtrar vitrine principal para não aparecer aqui
+    const filtered = res.data.filter((doc: ExperienceDocument) => doc.document_type !== "storefront");
     return {
-      documents: res.data,
+      documents: filtered,
     };
   },
   component: BuilderIndex,
@@ -62,11 +62,11 @@ function BuilderIndex() {
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
 
-  const handleCreateDocument = async (type: "storefront" | "biolink") => {
+  const handleCreateDocument = async (type: "biolink" | "campaign") => {
     setIsCreating(true);
     try {
-      const title = type === "storefront" ? "Nova Página de Loja" : "Novo Bio Link";
-      const slug = type === "storefront" ? `pagina-${Date.now()}` : `link-${Date.now()}`;
+      const title = type === "biolink" ? "Novo Bio Link" : "Nova Campanha";
+      const slug = type === "biolink" ? `link-${Date.now()}` : `promo-${Date.now()}`;
       
       const res = await createExperienceDocument({
         data: {
@@ -93,20 +93,13 @@ function BuilderIndex() {
     <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Builder Platform</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Páginas & Bio Links</h1>
           <p className="text-muted-foreground mt-1">
-            Gerencie Páginas, Bio Links e PWAs num único motor.
+            Crie landing pages, campanhas promocionais e bio links para o Instagram.
           </p>
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" asChild>
-            <Link to="/admin/builder/analytics">
-              <BarChart3 className="mr-2 h-4 w-4" />
-              Ver Métricas
-            </Link>
-          </Button>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button disabled={isCreating}>
@@ -117,17 +110,13 @@ function BuilderIndex() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>O que você quer criar?</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleCreateDocument("storefront")}>
-                <LayoutTemplate className="mr-2 h-4 w-4" />
-                <span>Storefront (Página da Loja)</span>
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleCreateDocument("biolink")}>
                 <Link2 className="mr-2 h-4 w-4" />
-                <span>Bio Link (Afiliados)</span>
+                <span>Bio Link (Afiliados/Redes)</span>
               </DropdownMenuItem>
-              <DropdownMenuItem disabled>
-                <Smartphone className="mr-2 h-4 w-4" />
-                <span>PWA App Shell (Em breve)</span>
+              <DropdownMenuItem onClick={() => handleCreateDocument("campaign")}>
+                <FileText className="mr-2 h-4 w-4" />
+                <span>Página de Campanha (Ofertas)</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

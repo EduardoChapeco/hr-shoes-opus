@@ -491,7 +491,8 @@ export async function getProductByIdHandler(id: string) {
       *,
       product_variants (*),
       product_media (*),
-      product_categories (category_id)
+      product_categories (category_id),
+      product_types (id, name, field_schema)
     `,
     )
     .eq("id", id)

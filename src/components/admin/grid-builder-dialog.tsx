@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Loader2, Plus, Sparkles } from "lucide-react";
@@ -22,7 +22,23 @@ export function GridBuilderDialog({ product }: { product: any }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [options, setOptions] = useState([{ name: "Tamanho", values: "" }, { name: "Cor", values: "" }]);
+  const [options, setOptions] = useState<{ name: string; values: string }[]>([
+    { name: "Tamanho", values: "" },
+    { name: "Cor", values: "" }
+  ]);
+
+  // Preenche opções baseadas no tipo do produto quando o modal abre
+  useEffect(() => {
+    if (open && product?.product_types?.field_schema) {
+      const variantGroups = product.product_types.field_schema.filter((f: any) => f.kind === "option_group");
+      if (variantGroups.length > 0) {
+        setOptions(variantGroups.map((g: any) => ({
+          name: g.name,
+          values: (g.options || []).join(", ")
+        })));
+      }
+    }
+  }, [open, product]);
 
   const handleGenerate = async () => {
     const validOptions = options
