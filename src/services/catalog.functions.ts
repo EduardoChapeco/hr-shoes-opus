@@ -566,6 +566,8 @@ export interface PublicStoreProfileDTO {
   instagramHandle: string | null;
   businessHours: string | null;
   settings: Record<string, any>;
+  pixKey?: string | null;
+  paymentInstructions?: string | null;
 }
 
 export type PublicStoreProfileResult = CatalogResult<PublicStoreProfileDTO>;
@@ -577,7 +579,7 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
 
       const { data, error } = await db
         .from("stores")
-        .select("id, name, slug, description, phone, email, address, city, state, logo_url, business_hours, social_links, settings")
+        .select("id, name, slug, description, phone, email, address, city, state, logo_url, business_hours, social_links, settings, pix_key, payment_instructions")
         .order("created_at", { ascending: true })
         .limit(1)
         .single();
@@ -602,6 +604,8 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
         instagramHandle: ((data.social_links as any)?.instagram as string | null) ?? (typeof settings.instagramHandle === "string" ? settings.instagramHandle : null),
         businessHours: (data.business_hours as string | null) ?? (typeof settings.businessHours === "string" ? settings.businessHours : null),
         settings,
+        pixKey: (data.pix_key as string | null) ?? null,
+        paymentInstructions: (data.payment_instructions as string | null) ?? null,
       };
 
       return { status: "ok", data: profile };

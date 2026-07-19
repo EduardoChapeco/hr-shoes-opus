@@ -205,7 +205,7 @@ export async function getPaymentSettingsHandler() {
   const db = getServerClient();
   const { data: store, error } = await db
     .from("stores")
-    .select("id, pix_key, payment_instructions")
+    .select("id, pix_key, payment_instructions, settings")
     .eq("id", identity.store_id)
     .single();
 
@@ -213,7 +213,20 @@ export async function getPaymentSettingsHandler() {
     throw new Error("Loja não encontrada");
   }
 
-  return { status: "ok" as const, data: store };
+  const settingsObj = (store.settings || {}) as Record<string, any>;
+  const paySettings = settingsObj.payment_settings || {};
+
+  return {
+    status: "ok" as const,
+    data: {
+      pix_key: store.pix_key,
+      payment_instructions: store.payment_instructions,
+      pix_discount_percentage: Number(paySettings.pix_discount_percentage ?? 0),
+      max_installments: Number(paySettings.max_installments ?? 12),
+      interest_free_installments: Number(paySettings.interest_free_installments ?? 3),
+      installment_interest_rate: Number(paySettings.installment_interest_rate ?? 2.99),
+    }
+  };
 }
 
 export const getPaymentSettings = createServerFn({ method: "GET" }).handler(
@@ -223,6 +236,10 @@ export const getPaymentSettings = createServerFn({ method: "GET" }).handler(
 export const savePaymentSettingsSchema = z.object({
   pix_key: z.string().max(255).optional().or(z.literal("")),
   payment_instructions: z.string().max(1000).optional().or(z.literal("")),
+  pix_discount_percentage: z.number().min(0).max(100).optional().default(0),
+  max_installments: z.number().int().min(1).max(12).optional().default(12),
+  interest_free_installments: z.number().int().min(1).max(12).optional().default(3),
+  installment_interest_rate: z.number().min(0).max(100).optional().default(2.99),
 });
 
 export const savePaymentSettings = createServerFn({ method: "POST" })
@@ -232,7 +249,33 @@ export const savePaymentSettings = createServerFn({ method: "POST" })
     assertStoreAccess(identity, ["owner", "admin"]);
 
     const db = getServerClient();
-    const { error } = await db.from("stores").update(data).eq("id", identity.store_id);
+    
+    // Fetch existing settings
+    const { data: store } = await db
+      .from("stores")
+      .select("settings")
+      .eq("id", identity.store_id)
+      .single();
+
+    const currentSettings = (store?.settings || {}) as Record<string, any>;
+    const { pix_key, payment_instructions, ...extra } = data;
+
+    const updatedSettings = {
+      ...currentSettings,
+      payment_settings: {
+        ...(currentSettings.payment_settings || {}),
+        ...extra,
+      }
+    };
+
+    const { error } = await db
+      .from("stores")
+      .update({
+        pix_key,
+        payment_instructions,
+        settings: updatedSettings
+      })
+      .eq("id", identity.store_id);
 
     if (error) throw new Error("Erro ao salvar configurações de pagamento: " + error.message);
 

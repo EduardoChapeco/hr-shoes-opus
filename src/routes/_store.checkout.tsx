@@ -9,6 +9,7 @@ import { checkGiftCardBalance } from "@/services/giftcard.functions";
 import { processCheckout } from "@/services/checkout.functions";
 import { initiatePaymentTransaction, getPublicPaymentMethods } from "@/services/payment.functions";
 import { calculateShipping } from "@/services/shipping.functions";
+import { getPublicStoreProfile } from "@/services/catalog.functions";
 import {
   CheckCircle2,
   Ticket,
@@ -21,6 +22,7 @@ import {
   MapPin,
   Loader2,
   Gift,
+  QrCode,
 } from "lucide-react";
 import {
   Select,
@@ -34,7 +36,11 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Hr Shoes" }] }),
   loader: async () => {
-    const [cart, paymentMethodsRes] = await Promise.all([getCart(), getPublicPaymentMethods()]);
+    const [cart, paymentMethodsRes, storeProfileRes] = await Promise.all([
+      getCart(),
+      getPublicPaymentMethods(),
+      getPublicStoreProfile(),
+    ]);
 
     return {
       cart: cart || {
@@ -49,6 +55,7 @@ export const Route = createFileRoute("/_store/checkout")({
         itemCount: 0,
       },
       paymentMethods: paymentMethodsRes.status === "success" ? paymentMethodsRes.data : [],
+      storeProfile: storeProfileRes.status === "ok" ? storeProfileRes.data : null,
     };
   },
   component: CheckoutPage,
@@ -63,7 +70,7 @@ interface ManualPaymentOption {
 }
 
 function CheckoutPage() {
-  const { cart: initialCart, paymentMethods } = Route.useLoaderData();
+  const { cart: initialCart, paymentMethods, storeProfile } = Route.useLoaderData();
   const navigate = useNavigate();
   const router = useRouter();
 
@@ -71,6 +78,15 @@ function CheckoutPage() {
   const [activeStep, setActiveStep] = useState(1); // 1: Identificação, 2: Entrega, 3: Pagamento, 4: Confirmar
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successToken, setSuccessToken] = useState("");
+
+  // Credit card & installment states
+  const [selectedInstallment, setSelectedInstallment] = useState<number>(1);
+  const [creditCardData, setCreditCardData] = useState({
+    number: "",
+    holderName: "",
+    expiryDate: "",
+    cvv: "",
+  });
 
   // Address inputs & calculations
   const [shippingRates, setShippingRates] = useState<any[]>([]);
@@ -227,6 +243,12 @@ function CheckoutPage() {
     return null;
   };
 
+  const paymentSettings = storeProfile?.settings?.payment_settings || {};
+  const pixDiscountPercent = Number(paymentSettings.pix_discount_percentage || 0);
+  const maxInstallments = Number(paymentSettings.max_installments || 12);
+  const interestFreeInstallments = Number(paymentSettings.interest_free_installments || 3);
+  const installmentInterestRate = Number(paymentSettings.installment_interest_rate || 2.99);
+
   const paymentInfo = getSelectedPaymentMethodInfo();
   let paymentSurchargeCents = 0;
   let paymentDiscountCents = 0;
@@ -241,7 +263,51 @@ function CheckoutPage() {
         cart.subtotalCents * (Number(paymentInfo.surcharge_percentage) / 100),
       );
     }
+  } else if (formData.paymentMethod === "pix" && pixDiscountPercent > 0) {
+    paymentDiscountCents = Math.floor(
+      cart.subtotalCents * (pixDiscountPercent / 100)
+    );
   }
+
+  // Calculate installment options helper
+  const calculateInstallmentOptions = (totalCents: number) => {
+    const maxInst = maxInstallments;
+    const freeInst = interestFreeInstallments;
+    const monthlyRate = installmentInterestRate / 100;
+
+    const options = [];
+    for (let i = 1; i <= maxInst; i++) {
+      if (i <= freeInst) {
+        const installmentValue = Math.round(totalCents / i);
+        options.push({
+          number: i,
+          valueCents: installmentValue,
+          totalCents: installmentValue * i,
+          interestFree: true,
+          formattedText: `${i}x de ${formatMoney(installmentValue)} sem juros`,
+        });
+      } else {
+        const p = totalCents;
+        const r = monthlyRate;
+        const n = i;
+        let installmentValue = 0;
+        if (r === 0) {
+          installmentValue = Math.round(p / n);
+        } else {
+          const factor = Math.pow(1 + r, n);
+          installmentValue = Math.round(p * (r * factor) / (factor - 1));
+        }
+        options.push({
+          number: i,
+          valueCents: installmentValue,
+          totalCents: installmentValue * n,
+          interestFree: false,
+          formattedText: `${i}x de ${formatMoney(installmentValue)} com juros (${(r * 100).toFixed(2)}% a.m.)`,
+        });
+      }
+    }
+    return options;
+  };
 
   // Calculate totals before applying Gift Card
   const preGiftTotalCents =
@@ -257,6 +323,12 @@ function CheckoutPage() {
     : 0;
 
   const finalTotalCents = preGiftTotalCents - giftCardDeductionCents;
+  const installmentOptions = calculateInstallmentOptions(finalTotalCents);
+  const activeInstallmentOption = installmentOptions.find((o) => o.number === selectedInstallment);
+  const checkoutTotalCents =
+    formData.paymentMethod === "credit_card" && activeInstallmentOption
+      ? activeInstallmentOption.totalCents
+      : finalTotalCents;
 
   const handleApplyPromo = async () => {
     if (!promoCode) return;
@@ -311,6 +383,15 @@ function CheckoutPage() {
       }
     }
 
+    // Validate credit card inputs
+    if (formData.paymentMethod === "credit_card") {
+      const { number, holderName, expiryDate, cvv } = creditCardData;
+      if (!number || number.length < 15 || !holderName || !expiryDate || expiryDate.length < 5 || !cvv || cvv.length < 3) {
+        toast.error("Por favor, preencha todos os campos obrigatórios do Cartão de Crédito.");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       const res = await processCheckout({
@@ -331,13 +412,13 @@ function CheckoutPage() {
       });
 
       if (res.status === "success") {
-        if (formData.shippingMethod !== "manual_quote" && finalTotalCents > 0) {
+        if (formData.shippingMethod !== "manual_quote" && checkoutTotalCents > 0) {
           try {
             await initiatePaymentTransaction({
               data: {
                 orderId: res.orderToken,
                 method: formData.paymentMethod === "credit_card" ? "credit_card" : "pix",
-                amountCents: finalTotalCents,
+                amountCents: checkoutTotalCents,
               },
             });
           } catch (payErr: any) {
@@ -810,6 +891,106 @@ function CheckoutPage() {
                     </button>
                   </div>
 
+                  {/* PIX instructions card */}
+                  {formData.paymentMethod === "pix" && (
+                    <div className="bg-primary/5 border border-primary/20 p-5 rounded-xl space-y-3 mb-6">
+                      <div className="flex items-center gap-2">
+                        <QrCode className="size-5 text-primary animate-pulse" />
+                        <span className="font-bold text-sm text-foreground">Pagamento Instantâneo via PIX</span>
+                      </div>
+                      {pixDiscountPercent > 0 && (
+                        <p className="text-xs text-green-600 font-semibold bg-green-50 px-2.5 py-1 rounded border border-green-200 w-fit">
+                          Desconto Ativo: Economize {pixDiscountPercent}% no total da sua compra!
+                        </p>
+                      )}
+                      {storeProfile?.pixKey && (
+                        <div className="space-y-1 bg-background p-3 rounded-lg border border-border mt-2">
+                          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Chave PIX da Loja</span>
+                          <p className="text-sm font-mono font-bold select-all text-foreground break-all">{storeProfile.pixKey}</p>
+                        </div>
+                      )}
+                      {storeProfile?.paymentInstructions && (
+                        <p className="text-xs text-muted-foreground whitespace-pre-line bg-background/50 p-2.5 rounded border border-dashed mt-2">
+                          {storeProfile.paymentInstructions}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Credit Card inputs & dynamic installments */}
+                  {formData.paymentMethod === "credit_card" && (
+                    <div className="border border-border p-5 rounded-xl space-y-4 bg-muted/10 mb-6">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="size-5 text-primary" />
+                        <span className="font-semibold text-sm">Dados do Cartão de Crédito</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5 md:col-span-2">
+                          <Label className="text-xs">Número do Cartão *</Label>
+                          <Input
+                            placeholder="0000 0000 0000 0000"
+                            value={creditCardData.number}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim();
+                              setCreditCardData({ ...creditCardData, number: val.substring(0, 19) });
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1.5 md:col-span-2">
+                          <Label className="text-xs">Nome do Titular *</Label>
+                          <Input
+                            placeholder="Nome impresso no cartão"
+                            value={creditCardData.holderName}
+                            onChange={(e) => setCreditCardData({ ...creditCardData, holderName: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Validade *</Label>
+                          <Input
+                            placeholder="MM/AA"
+                            maxLength={5}
+                            value={creditCardData.expiryDate}
+                            onChange={(e) => {
+                              let val = e.target.value.replace(/\D/g, "");
+                              if (val.length > 2) {
+                                val = `${val.substring(0, 2)}/${val.substring(2, 4)}`;
+                              }
+                              setCreditCardData({ ...creditCardData, expiryDate: val });
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">CVV *</Label>
+                          <Input
+                            placeholder="123"
+                            maxLength={4}
+                            value={creditCardData.cvv}
+                            onChange={(e) => setCreditCardData({ ...creditCardData, cvv: e.target.value.replace(/\D/g, "") })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5 border-t pt-4">
+                        <Label className="text-xs font-semibold">Opções de Parcelamento *</Label>
+                        <Select
+                          value={String(selectedInstallment)}
+                          onValueChange={(v) => setSelectedInstallment(Number(v))}
+                        >
+                          <SelectTrigger className="w-full bg-background">
+                            <SelectValue placeholder="Selecione as parcelas" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {installmentOptions.map((opt) => (
+                              <SelectItem key={opt.number} value={String(opt.number)}>
+                                {opt.formattedText}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  )}
+
                   {paymentMethods.length > 0 && (
                     <>
                       <Label className="text-sm font-semibold mb-3 block">
@@ -921,7 +1102,16 @@ function CheckoutPage() {
                     </p>
                     <p className="font-medium text-foreground">
                       {formData.paymentMethod === "pix" && "PIX"}
-                      {formData.paymentMethod === "credit_card" && "Cartão de Crédito"}
+                      {formData.paymentMethod === "credit_card" && (
+                        <>
+                          Cartão de Crédito ({selectedInstallment}x de{" "}
+                          {formatMoney(
+                            installmentOptions.find((o) => o.number === selectedInstallment)
+                              ?.valueCents || 0,
+                          )}
+                          )
+                        </>
+                      )}
                       {formData.paymentMethod === "manual" && (paymentInfo?.name || "Manual")}
                     </p>
                   </div>
@@ -1001,7 +1191,11 @@ function CheckoutPage() {
 
             {paymentDiscountCents > 0 && (
               <div className="flex justify-between text-green-600 font-medium">
-                <span>Desconto Pagamento ({paymentInfo?.name})</span>
+                <span>
+                  {formData.paymentMethod === "pix"
+                    ? `Desconto PIX (-${pixDiscountPercent}%)`
+                    : `Desconto Pagamento (${paymentInfo?.name || "Manual"})`}
+                </span>
                 <span>-{formatMoney(paymentDiscountCents)}</span>
               </div>
             )}
@@ -1012,6 +1206,15 @@ function CheckoutPage() {
                 <span>+{formatMoney(paymentSurchargeCents)}</span>
               </div>
             )}
+
+            {formData.paymentMethod === "credit_card" &&
+              activeInstallmentOption &&
+              !activeInstallmentOption.interestFree && (
+                <div className="flex justify-between text-destructive font-medium">
+                  <span>Juros de Parcelamento ({installmentInterestRate}% a.m.)</span>
+                  <span>+{formatMoney(activeInstallmentOption.totalCents - finalTotalCents)}</span>
+                </div>
+              )}
 
             {appliedGiftCard && giftCardDeductionCents > 0 && (
               <div className="flex justify-between text-green-600 font-medium">
@@ -1051,7 +1254,7 @@ function CheckoutPage() {
           <div className="flex justify-between items-end border-t pt-4 mb-4">
             <span className="font-semibold text-foreground">Total</span>
             <span className="font-bold text-2xl text-foreground">
-              {formatMoney(finalTotalCents)}
+              {formatMoney(checkoutTotalCents)}
             </span>
           </div>
         </div>

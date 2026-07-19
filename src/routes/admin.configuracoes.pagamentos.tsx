@@ -61,7 +61,14 @@ interface PaymentMethod {
 function ManualPaymentsPage() {
   const { methods, pixSettings } = Route.useLoaderData() as {
     methods: PaymentMethod[];
-    pixSettings: { pix_key?: string; payment_instructions?: string } | null;
+    pixSettings: {
+      pix_key?: string;
+      payment_instructions?: string;
+      pix_discount_percentage?: number;
+      max_installments?: number;
+      interest_free_installments?: number;
+      installment_interest_rate?: number;
+    } | null;
   };
   const router = useRouter();
 
@@ -69,6 +76,18 @@ function ManualPaymentsPage() {
   const [pixKey, setPixKey] = useState(pixSettings?.pix_key || "");
   const [paymentInstructions, setPaymentInstructions] = useState(
     pixSettings?.payment_instructions || "",
+  );
+  const [pixDiscountPercentage, setPixDiscountPercentage] = useState(
+    pixSettings?.pix_discount_percentage ?? 0
+  );
+  const [maxInstallments, setMaxInstallments] = useState(
+    pixSettings?.max_installments ?? 12
+  );
+  const [interestFreeInstallments, setInterestFreeInstallments] = useState(
+    pixSettings?.interest_free_installments ?? 3
+  );
+  const [installmentInterestRate, setInstallmentInterestRate] = useState(
+    pixSettings?.installment_interest_rate ?? 2.99
   );
   const [isSavingPix, setIsSavingPix] = useState(false);
 
@@ -90,7 +109,7 @@ function ManualPaymentsPage() {
 
   const isActiveValue = watch("is_active");
 
-  // Save PIX configuration
+  // Save PIX & CC Installments configuration
   const handleSavePix = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingPix(true);
@@ -99,15 +118,19 @@ function ManualPaymentsPage() {
         data: {
           pix_key: pixKey,
           payment_instructions: paymentInstructions,
+          pix_discount_percentage: Number(pixDiscountPercentage),
+          max_installments: Number(maxInstallments),
+          interest_free_installments: Number(interestFreeInstallments),
+          installment_interest_rate: Number(installmentInterestRate),
         },
       });
       if (res.status === "success") {
         toast.success(
-          "Configurações de PIX salvas! Os clientes verão estas informações nos pedidos.",
+          "Configurações salvas com sucesso! As regras serão aplicadas instantaneamente no checkout.",
         );
         router.invalidate();
       } else {
-        toast.error("Erro ao salvar configurações PIX.");
+        toast.error("Erro ao salvar configurações.");
       }
     } catch (e: any) {
       toast.error(e.message || "Erro inesperado");
@@ -189,41 +212,58 @@ function ManualPaymentsPage() {
       <PageHeader
         eyebrow="Configurações"
         title="Pagamentos"
-        description="Configure sua chave PIX, instruções e métodos manuais disponíveis no checkout."
+        description="Configure sua chave PIX, instruções, regras de parcelamento e métodos manuais disponíveis no checkout."
       />
 
-      {/* PIX / Instruções Globais */}
+      {/* PIX / Instruções Globais & Regras de Checkout */}
       <div className="rounded-xl border bg-card p-6 space-y-5">
         <div className="flex items-center gap-3">
           <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
             <QrCode className="size-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground">Chave PIX e Instruções de Pagamento</h3>
+            <h3 className="font-semibold text-foreground">Regras e Instruções de Pagamento</h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Estas informações aparecem automaticamente nos pedidos dos clientes quando aguardam
-              pagamento.
+              Estas informações definem os juros, descontos e exibições dos fluxos de checkout.
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSavePix} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="pix-key">Chave PIX</Label>
-            <Input
-              id="pix-key"
-              placeholder="celular@email.com / 00.000.000/0001-00 / chave aleatória"
-              value={pixKey}
-              onChange={(e) => setPixKey(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Esta chave será exibida ao cliente no detalhes do pedido quando o pagamento for via
-              PIX.
-            </p>
+        <form onSubmit={handleSavePix} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="pix-key">Chave PIX</Label>
+              <Input
+                id="pix-key"
+                placeholder="celular@email.com / 00.000.000/0001-00 / chave aleatória"
+                value={pixKey}
+                onChange={(e) => setPixKey(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Exibida ao cliente no checkout e no detalhe do pedido ao pagar com PIX.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pix-discount">Desconto PIX (%)</Label>
+              <Input
+                id="pix-discount"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                placeholder="Ex: 5"
+                value={pixDiscountPercentage}
+                onChange={(e) => setPixDiscountPercentage(Number(e.target.value))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Desconto percentual aplicado automaticamente ao valor dos itens se pago por PIX.
+              </p>
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="payment-instructions">Instruções Complementares</Label>
+            <Label htmlFor="payment-instructions">Instruções Complementares PIX</Label>
             <Textarea
               id="payment-instructions"
               placeholder="Ex: Envie o comprovante para o nosso WhatsApp após o pagamento. Horário de atendimento: Seg–Sex 9h–18h."
@@ -233,10 +273,62 @@ function ManualPaymentsPage() {
             />
           </div>
 
-          <div className="flex justify-end">
+          {/* CC Installments Options */}
+          <div className="border-t pt-5 space-y-4">
+            <h4 className="font-semibold text-sm text-foreground">Regras de Parcelamento do Cartão</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="max-installments">Parcelas Máximas</Label>
+                <Input
+                  id="max-installments"
+                  type="number"
+                  min="1"
+                  max="12"
+                  value={maxInstallments}
+                  onChange={(e) => setMaxInstallments(Number(e.target.value))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Número máximo de parcelas permitidas (1x a 12x).
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="interest-free">Parcelas Sem Juros</Label>
+                <Input
+                  id="interest-free"
+                  type="number"
+                  min="1"
+                  max="12"
+                  value={interestFreeInstallments}
+                  onChange={(e) => setInterestFreeInstallments(Number(e.target.value))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Até qual parcela o cliente não paga taxa adicional.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="interest-rate">Taxa de Juros Mensal (%)</Label>
+                <Input
+                  id="interest-rate"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={installmentInterestRate}
+                  onChange={(e) => setInstallmentInterestRate(Number(e.target.value))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Taxa de juros aplicada mensalmente a partir da parcela excedente.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end border-t pt-4">
             <Button type="submit" disabled={isSavingPix}>
               <Save className="mr-2 size-4" />
-              {isSavingPix ? "Salvando..." : "Salvar Configurações PIX"}
+              {isSavingPix ? "Salvando..." : "Salvar Configurações Globais"}
             </Button>
           </div>
         </form>
