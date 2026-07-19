@@ -883,7 +883,9 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     title: "Catálogo",
     items: [
       { path: "/admin/catalogo/produtos", label: "Produtos", icon: "Package" },
-      { path: "/admin/catalogo/atributos", label: "Atributos Globais", icon: "Boxes" },
+      { path: "/admin/catalogo/categorias", label: "Categorias", icon: "Boxes" },
+      { path: "/admin/catalogo/colecoes", label: "Coleções", icon: "Layers" },
+      { path: "/admin/catalogo/atributos", label: "Atributos Globais", icon: "Settings2" },
       { path: "/admin/catalogo/tipos", label: "Tipos de Produto", icon: "Settings" },
       { path: "/admin/estoque", label: "Estoque", icon: "Boxes" },
       { path: "/admin/midias", label: "Mídias", icon: "Images" },
@@ -894,7 +896,9 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     items: [
       { path: "/admin/pedidos", label: "Pedidos", icon: "ShoppingCart" },
       { path: "/admin/fretes/tabelas", label: "Fretes & Logística", icon: "Truck" },
+      { path: "/admin/fretes/cotacoes", label: "Cotações Manuais", icon: "Calculator" },
       { path: "/admin/pagamentos", label: "Pagamentos", icon: "CreditCard" },
+      { path: "/admin/comprovantes", label: "Comprovantes", icon: "FileText" },
       { path: "/admin/comissoes", label: "Comissões", icon: "Percent" },
       { path: "/admin/match-time", label: "Ofertas Relâmpago", icon: "Zap" },
     ],
@@ -904,6 +908,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     items: [
       { path: "/admin/clientes", label: "Clientes", icon: "Users" },
       { path: "/admin/conversas", label: "Conversas", icon: "MessagesSquare" },
+      { path: "/admin/pedidos/trocas", label: "Trocas e Devoluções", icon: "ArrowLeftRight" },
       { path: "/admin/suporte", label: "Suporte", icon: "LifeBuoy" },
     ],
   },
@@ -912,9 +917,12 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     items: [
       { path: "/admin/builder", label: "Construtor (Builder)", icon: "Paintbrush" },
       { path: "/admin/perfil-publico", label: "Perfil Institucional", icon: "Store" },
+      { path: "/admin/link-da-bio", label: "Link da Bio", icon: "Link2" },
+      { path: "/admin/destaques", label: "Destaques", icon: "LayoutTemplate" },
       { path: "/admin/marketing/cupons", label: "Marketing & Cupons", icon: "Megaphone" },
       { path: "/admin/marketing/ofertas-checkout", label: "Ofertas de Checkout", icon: "Sparkles" },
       { path: "/admin/cms/navegacao", label: "Menu & Navegação", icon: "Menu" },
+      { path: "/admin/cms/tema", label: "Tema & Estilo", icon: "Palette" },
       { path: "/admin/criador", label: "Studio de Criação", icon: "Video" },
     ],
   },

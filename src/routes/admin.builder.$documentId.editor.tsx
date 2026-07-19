@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { getExperienceDocument, saveBuilderNodes } from "@/services/builder.functions";
 import type { ExperienceNode } from "@/lib/builder-types";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
+import { builderRegistry } from "@/lib/builder-registry";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/admin/builder/$documentId/editor")({
   loader: async ({ params }) => {
@@ -32,7 +35,26 @@ function BuilderEditorIDE() {
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"layers" | "blocks">("layers");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [inspectorTab, setInspectorTab] = useState<"content" | "connection" | "design">("content");
+  const [inspectorTab, setInspectorTab] = useState<"content" | "connection" | "design" | "layout">("content");
+
+  const selectedNode = nodes.find(n => n.id === selectedNodeId);
+  const blockManifest = selectedNode ? builderRegistry[selectedNode.block_type] : null;
+
+  const updateSelectedNode = (propPath: "content" | "design_tokens" | "layout_rules", key: string, value: any) => {
+    if (!selectedNodeId) return;
+    setNodes(prev => prev.map(node => {
+      if (node.id === selectedNodeId) {
+        return {
+          ...node,
+          [propPath]: {
+            ...node[propPath],
+            [key]: value
+          }
+        };
+      }
+      return node;
+    }));
+  };
 
   const handleSave = async () => {
     if (!version) return;
@@ -147,7 +169,7 @@ function BuilderEditorIDE() {
                         onClick={() => setSelectedNodeId(node.id)}
                       >
                         <GripVertical className="h-3 w-3 mr-2 opacity-50" />
-                        {node.block_type}
+                        {builderRegistry[node.block_type]?.name || node.block_type}
                       </div>
                     ))}
                   </div>
@@ -157,15 +179,28 @@ function BuilderEditorIDE() {
               <div className="space-y-1">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Primitivos</p>
                 <div className="grid grid-cols-2 gap-2">
-                   {/* We will map the registry here */}
-                   <Button variant="outline" className="h-20 flex-col gap-2">
-                     <AlignLeft className="h-5 w-5" />
-                     <span className="text-xs">Seção</span>
-                   </Button>
-                   <Button variant="outline" className="h-20 flex-col gap-2">
-                     <Braces className="h-5 w-5" />
-                     <span className="text-xs">Container</span>
-                   </Button>
+                   {Object.values(builderRegistry).map(block => (
+                     <Button 
+                       key={block.type}
+                       variant="outline" 
+                       className="h-20 flex-col gap-2 p-2"
+                       onClick={() => {
+                         const newNode: ExperienceNode = {
+                           id: crypto.randomUUID(),
+                           ...block.defaultProps,
+                           document_id: document.id,
+                           parent_id: null,
+                           sort_order: nodes.length,
+                           created_at: new Date().toISOString(),
+                           updated_at: new Date().toISOString(),
+                         };
+                         setNodes(prev => [...prev, newNode]);
+                         setSelectedNodeId(newNode.id);
+                       }}
+                     >
+                       <span className="text-xs text-center">{block.name}</span>
+                     </Button>
+                   ))}
                 </div>
               </div>
             )}
@@ -192,10 +227,10 @@ function BuilderEditorIDE() {
             Propriedades
           </div>
           <div className="flex-1 overflow-y-auto p-4">
-             {selectedNodeId ? (
+             {selectedNode && blockManifest ? (
                <div className="space-y-6">
                  {/* Tabs do Inspetor */}
-                 <div className="flex bg-muted/50 p-1 rounded-md mb-4">
+                 <div className="flex bg-muted/50 p-1 rounded-md mb-4 flex-wrap">
                    <Button 
                      variant={inspectorTab === "content" ? "secondary" : "ghost"} 
                      size="sm" 
@@ -208,19 +243,61 @@ function BuilderEditorIDE() {
                      className="flex-1 text-xs" 
                      onClick={() => setInspectorTab("connection")}
                    >Conexão</Button>
-                   <Button 
-                     variant={inspectorTab === "design" ? "secondary" : "ghost"} 
-                     size="sm" 
-                     className="flex-1 text-xs" 
-                     onClick={() => setInspectorTab("design")}
-                   >Design</Button>
+                   {blockManifest.inspector?.layout && (
+                     <Button 
+                       variant={inspectorTab === "layout" ? "secondary" : "ghost"} 
+                       size="sm" 
+                       className="flex-1 text-xs" 
+                       onClick={() => setInspectorTab("layout")}
+                     >Layout</Button>
+                   )}
+                   {blockManifest.inspector?.design && (
+                     <Button 
+                       variant={inspectorTab === "design" ? "secondary" : "ghost"} 
+                       size="sm" 
+                       className="flex-1 text-xs" 
+                       onClick={() => setInspectorTab("design")}
+                     >Design</Button>
+                   )}
                  </div>
 
                  {inspectorTab === "content" && (
                    <div className="space-y-3">
                      <h4 className="text-xs font-semibold uppercase text-muted-foreground">Conteúdo Estático</h4>
-                     <p className="text-sm text-muted-foreground">Defina os textos e imagens manuais deste bloco.</p>
-                     {/* Campos dinâmicos do schema seriam renderizados aqui */}
+                     
+                     {blockManifest.inspector?.content?.map(field => (
+                       <div key={field.name} className="space-y-1.5">
+                         <label className="text-xs font-medium">{field.label}</label>
+                         {field.type === "textarea" ? (
+                           <Textarea 
+                             className="text-sm bg-background"
+                             value={selectedNode.content?.[field.name] || ""}
+                             onChange={(e) => updateSelectedNode("content", field.name, e.target.value)}
+                           />
+                         ) : field.type === "boolean" ? (
+                           <input 
+                             type="checkbox"
+                             checked={selectedNode.content?.[field.name] || false}
+                             onChange={(e) => updateSelectedNode("content", field.name, e.target.checked)}
+                           />
+                         ) : field.type === "number" ? (
+                           <Input 
+                             type="number"
+                             className="h-8 text-sm bg-background"
+                             value={selectedNode.content?.[field.name] || ""}
+                             onChange={(e) => updateSelectedNode("content", field.name, Number(e.target.value))}
+                           />
+                         ) : (
+                           <Input 
+                             className="h-8 text-sm bg-background"
+                             value={selectedNode.content?.[field.name] || ""}
+                             onChange={(e) => updateSelectedNode("content", field.name, e.target.value)}
+                           />
+                         )}
+                       </div>
+                     )) || (
+                       <p className="text-sm text-muted-foreground">Este bloco não possui propriedades de conteúdo editáveis.</p>
+                     )}
                    </div>
                  )}
 
@@ -239,10 +316,43 @@ function BuilderEditorIDE() {
                    </div>
                  )}
 
-                 {inspectorTab === "design" && (
+                 {inspectorTab === "layout" && blockManifest.inspector?.layout && (
+                   <div className="space-y-3">
+                     <h4 className="text-xs font-semibold uppercase text-muted-foreground">Layout & Estrutura</h4>
+                     {blockManifest.inspector.layout.map(field => (
+                       <div key={field.name} className="space-y-1.5">
+                         <label className="text-xs font-medium">{field.label}</label>
+                         {field.type === "select" && field.options ? (
+                           <select 
+                             className="w-full text-sm p-1.5 border rounded-md bg-background"
+                             value={selectedNode.layout_rules?.[field.name] || ""}
+                             onChange={(e) => updateSelectedNode("layout_rules", field.name, e.target.value)}
+                           >
+                             {field.options.map(opt => (
+                               <option key={opt.value} value={opt.value}>{opt.label}</option>
+                             ))}
+                           </select>
+                         ) : null}
+                       </div>
+                     ))}
+                   </div>
+                 )}
+
+                 {inspectorTab === "design" && blockManifest.inspector?.design && (
                    <div className="space-y-3">
                      <h4 className="text-xs font-semibold uppercase text-muted-foreground">Layout e Tokens</h4>
-                     <p className="text-sm text-muted-foreground">Ajuste espaçamento, margens, cores e visibilidade (Mobile/Desktop).</p>
+                     {blockManifest.inspector.design.map(field => (
+                       <div key={field.name} className="space-y-1.5">
+                         <label className="text-xs font-medium">{field.label}</label>
+                         {field.type === "color" || field.type === "image" ? (
+                           <Input 
+                             className="h-8 text-sm bg-background"
+                             value={selectedNode.design_tokens?.[field.name] || ""}
+                             onChange={(e) => updateSelectedNode("design_tokens", field.name, e.target.value)}
+                           />
+                         ) : null}
+                       </div>
+                     ))}
                    </div>
                  )}
                </div>

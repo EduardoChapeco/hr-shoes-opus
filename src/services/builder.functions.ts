@@ -310,8 +310,15 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
     try {
       const db = getServerClient();
       
-      // We perform a full replace of nodes for the version
-      // 1. Delete all current nodes for this version
+      // 1. Set Version to published
+      const { error: updError } = await db
+        .from("experience_versions")
+        .update({ status: "published" })
+        .eq("id", input.version_id);
+        
+      if (updError) throw updError;
+
+      // 2. Delete all current nodes for this version
       const { error: delError } = await db
         .from("experience_nodes")
         .delete()
@@ -319,7 +326,7 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
         
       if (delError) throw delError;
       
-      // 2. Insert new nodes if array is not empty
+      // 3. Insert new nodes if array is not empty
       if (input.nodes.length > 0) {
         const nodesToInsert = input.nodes.map((node: any) => ({
            id: node.id,

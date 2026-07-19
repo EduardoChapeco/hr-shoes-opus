@@ -241,5 +241,229 @@ export const builderRegistry: Record<string, BlockManifest> = {
       block_type: "trust_badges",
       content: { badges: [] }
     }
+  },
+
+  product_rail: {
+    type: "product_rail",
+    version: "1.0.0",
+    name: "Vitrine de Produtos (Rail)",
+    description: "Carrossel ou Grid de produtos baseado em uma fonte de dados",
+    category: "commerce",
+    icon: "ShoppingBag",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      layout: z.enum(["carousel", "grid"]).default("carousel"),
+      collection_slug: z.string().optional()
+    }),
+    inspector: { 
+      content: [
+        { name: "title", label: "Título da Vitrine", type: "text" },
+        { name: "collection_slug", label: "Slug da Coleção (opcional para botão Ver Tudo)", type: "text" },
+      ],
+      layout: [
+        { name: "layout", label: "Layout de Exibição", type: "select", options: [
+          { label: "Carrossel", value: "carousel" },
+          { label: "Grid", value: "grid" }
+        ]}
+      ]
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "product_rail",
+      content: { title: "Destaques", layout: "carousel" },
+      data_bindings: { source: "latest_products" }
+    }
+  },
+
+  announcement_bar: {
+    type: "announcement_bar",
+    version: "1.0.0",
+    name: "Barra de Anúncio",
+    description: "Faixa horizontal para avisos globais no topo da página",
+    category: "marketing",
+    icon: "Megaphone",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["none", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      text: z.string(),
+      link: z.string().optional(),
+      bg_color: z.string().optional(),
+      text_color: z.string().optional(),
+    }),
+    inspector: { 
+      content: [
+        { name: "text", label: "Texto do Anúncio", type: "text" },
+        { name: "link", label: "Link (Opcional)", type: "text" }
+      ],
+      design: [
+        { name: "bg_color", label: "Cor de Fundo", type: "color" },
+        { name: "text_color", label: "Cor do Texto", type: "color" }
+      ]
+    },
+    defaultProps: {
+      node_type: "element",
+      block_type: "announcement_bar",
+      content: { text: "Frete grátis para todo o Brasil acima de R$ 299", bg_color: "#000000", text_color: "#ffffff" }
+    }
+  },
+
+  video_section: {
+    type: "video_section",
+    version: "1.0.0",
+    name: "Vídeo",
+    description: "Embed de vídeo do YouTube, Vimeo ou arquivo MP4",
+    category: "content",
+    icon: "Video",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      video_url: z.string().url(),
+      auto_play: z.boolean().default(false),
+      loop: z.boolean().default(true)
+    }),
+    inspector: { 
+      content: [
+        { name: "title", label: "Título do Vídeo", type: "text" },
+        { name: "video_url", label: "URL do Vídeo (YouTube/Vimeo/MP4)", type: "text" },
+        { name: "auto_play", label: "Reprodução Automática", type: "boolean" },
+        { name: "loop", label: "Repetir Vídeo", type: "boolean" }
+      ]
+    },
+    defaultProps: {
+      node_type: "element",
+      block_type: "video_section",
+      content: { video_url: "", auto_play: false, loop: true }
+    }
+  },
+
+  contact_form: {
+    type: "contact_form",
+    version: "1.0.0",
+    name: "Formulário de Contato",
+    description: "Formulário simples com campos de nome, email e mensagem",
+    category: "marketing",
+    icon: "Mail",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      email_to: z.string().email()
+    }),
+    inspector: { 
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "textarea" },
+        { name: "email_to", label: "E-mail de Destino", type: "text" }
+      ]
+    },
+    defaultProps: {
+      node_type: "element",
+      block_type: "contact_form",
+      content: { title: "Fale Conosco", email_to: "contato@loja.com.br" }
+    }
+  },
+
+  gallery_grid: {
+    type: "gallery_grid",
+    version: "1.0.0",
+    name: "Grade de Imagens",
+    description: "Grid responsivo de imagens (Estilo Instagram ou Portfólio)",
+    category: "content",
+    icon: "Image",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      images: z.array(z.any())
+    }),
+    inspector: { 
+      content: [
+        { name: "title", label: "Título da Galeria", type: "text" }
+      ]
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "gallery_grid",
+      content: { title: "Nossa Galeria", images: [] }
+    }
+  },
+
+  info_cards: {
+    type: "info_cards",
+    version: "1.0.0",
+    name: "Cartões de Informação",
+    description: "Cards com ícone, título e texto",
+    category: "marketing",
+    icon: "CreditCard",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      cards: z.array(z.any())
+    }),
+    inspector: { content: [] },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "info_cards",
+      content: { cards: [] }
+    }
+  },
+
+  mosaic_banners: {
+    type: "mosaic_banners",
+    version: "1.0.0",
+    name: "Mosaico de Banners",
+    description: "Banners em formato mosaico",
+    category: "marketing",
+    icon: "LayoutTemplate",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      banners: z.array(z.any())
+    }),
+    inspector: { content: [] },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "mosaic_banners",
+      content: { banners: [] }
+    }
+  },
+
+  social_grid: {
+    type: "social_grid",
+    version: "1.0.0",
+    name: "Feed Social (Instagram)",
+    description: "Mosaico de fotos das redes sociais",
+    category: "marketing",
+    icon: "Instagram",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      handle: z.string().optional(),
+      images: z.array(z.any())
+    }),
+    inspector: { 
+      content: [
+        { name: "title", label: "Título do Feed", type: "text" },
+        { name: "handle", label: "Usuário (@)", type: "text" }
+      ]
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "social_grid",
+      content: { title: "Siga-nos", handle: "@lojahrshoes", images: [] }
+    }
   }
 };

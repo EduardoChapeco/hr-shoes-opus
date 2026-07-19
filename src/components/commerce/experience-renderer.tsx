@@ -10,6 +10,13 @@ import { CountdownTimer } from "./dynamic-sections/countdown-timer";
 import { StoriesRing } from "./dynamic-sections/stories-ring";
 import { TrustBadges } from "./dynamic-sections/trust-badges";
 import { ProductRail } from "./dynamic-sections/product-rail";
+import { AnnouncementBar } from "./dynamic-sections/announcement-bar";
+import { VideoSection } from "./dynamic-sections/video-section";
+import { ContactForm } from "./dynamic-sections/contact-form";
+import { GalleryGrid } from "./dynamic-sections/gallery-grid";
+import { InfoCards } from "./dynamic-sections/info-cards";
+import { MosaicBanners } from "./dynamic-sections/mosaic-banners";
+import { SocialGrid } from "./dynamic-sections/social-grid";
 import { TrackView } from "./analytics-provider";
 
 // Mapeamento dinâmico dos componentes React para cada bloco
@@ -21,6 +28,13 @@ const componentMap: Record<string, React.FC<any>> = {
   stories_ring: StoriesRing,
   trust_badges: TrustBadges,
   product_rail: ProductRail,
+  announcement_bar: AnnouncementBar,
+  video_section: VideoSection,
+  contact_form: ContactForm,
+  gallery_grid: GalleryGrid,
+  info_cards: InfoCards,
+  mosaic_banners: MosaicBanners,
+  social_grid: SocialGrid,
 };
 
 interface ExperienceRendererProps {
