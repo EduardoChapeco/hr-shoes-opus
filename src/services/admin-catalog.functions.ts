@@ -608,19 +608,17 @@ export async function upsertProductVariantHandler(input: {
   barcode?: string | null;
   status: "active" | "inactive" | "archived";
   price_override_cents?: number | null;
+  cost_cents?: number | null;
+  stock_alert_qty?: number | null;
+  ean?: string | null;
+  weight_kg?: number | null;
+  width_cm?: number | null;
+  height_cm?: number | null;
+  length_cm?: number | null;
   attributes: Record<string, any>;
 }) {
   const db = getServerClient();
-  const { id, product_id, sku, barcode, status, price_override_cents, attributes } = input;
-
-  const payload = {
-    product_id,
-    sku,
-    barcode,
-    status,
-    price_override_cents,
-    attributes,
-  };
+  const { id, product_id, ...payload } = input;
 
   const query = db.from("product_variants");
   let result;
@@ -628,7 +626,7 @@ export async function upsertProductVariantHandler(input: {
   if (id) {
     result = await query.update(payload).eq("id", id).select().single();
   } else {
-    result = await query.insert(payload).select().single();
+    result = await query.insert({ product_id, ...payload }).select().single();
   }
 
   if (result.error) throw result.error;
@@ -638,13 +636,20 @@ export async function upsertProductVariantHandler(input: {
 export const upsertProductVariant = createServerFn({ method: "POST" })
   .validator(
     z.object({
-      id: z.string().uuid().optional(), // if missing, create new
+      id: z.string().uuid().optional(),
       product_id: z.string().uuid(),
       sku: z.string().min(1),
       barcode: z.string().optional().nullable(),
       status: z.enum(["active", "inactive", "archived"]).default("active"),
       price_override_cents: z.number().int().min(0).optional().nullable(),
-      attributes: z.record(z.any()).default({}), // e.g., { "size": "39", "color": "Preto" }
+      cost_cents: z.number().int().min(0).optional().nullable(),
+      stock_alert_qty: z.number().int().min(0).optional().nullable(),
+      ean: z.string().optional().nullable(),
+      weight_kg: z.number().min(0).optional().nullable(),
+      width_cm: z.number().min(0).optional().nullable(),
+      height_cm: z.number().min(0).optional().nullable(),
+      length_cm: z.number().min(0).optional().nullable(),
+      attributes: z.record(z.any()).default({}),
     }),
   )
   .handler(async ({ data: input }) => {

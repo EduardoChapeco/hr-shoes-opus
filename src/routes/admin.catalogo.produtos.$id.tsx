@@ -615,11 +615,25 @@ function VariantsManager({ product }: { product: any }) {
   const [editingVariant, setEditingVariant] = useState<any>(null);
   const [attrFields, setAttrFields] = useState<{ k: string; v: string }[]>([]);
 
-  const { register, handleSubmit, reset } = useForm({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
       sku: "",
       price_override_cents: "",
-      stock: "0",
+      cost_cents: "",
+      stock_alert_qty: "",
+      ean: "",
+      weight_kg: "",
+      width_cm: "",
+      height_cm: "",
+      length_cm: "",
+      status: "active" as "active" | "inactive" | "archived",
+      stock: "",
     },
   });
 
@@ -629,6 +643,14 @@ function VariantsManager({ product }: { product: any }) {
     reset({
       sku: `${product.slug}-${(product.product_variants?.length || 0) + 1}`,
       price_override_cents: "",
+      cost_cents: "",
+      stock_alert_qty: "",
+      ean: "",
+      weight_kg: "",
+      width_cm: "",
+      height_cm: "",
+      length_cm: "",
+      status: "active",
       stock: "0",
     });
     setOpen(true);
@@ -642,6 +664,14 @@ function VariantsManager({ product }: { product: any }) {
     reset({
       sku: v.sku,
       price_override_cents: v.price_override_cents ? (v.price_override_cents / 100).toFixed(2) : "",
+      cost_cents: v.cost_cents ? (v.cost_cents / 100).toFixed(2) : "",
+      stock_alert_qty: v.stock_alert_qty !== null && v.stock_alert_qty !== undefined ? String(v.stock_alert_qty) : "",
+      ean: v.ean || "",
+      weight_kg: v.weight_kg !== null && v.weight_kg !== undefined ? String(v.weight_kg) : "",
+      width_cm: v.width_cm !== null && v.width_cm !== undefined ? String(v.width_cm) : "",
+      height_cm: v.height_cm !== null && v.height_cm !== undefined ? String(v.height_cm) : "",
+      length_cm: v.length_cm !== null && v.length_cm !== undefined ? String(v.length_cm) : "",
+      status: v.status || "active",
       stock: String(v.stock_on_hand || 0),
     });
     setOpen(true);
@@ -659,18 +689,39 @@ function VariantsManager({ product }: { product: any }) {
         ? Math.round(parseFloat(values.price_override_cents.replace(",", ".")) * 100)
         : null;
 
+      const cost_cents = values.cost_cents
+        ? Math.round(parseFloat(values.cost_cents.replace(",", ".")) * 100)
+        : null;
+
+      const stock_alert_qty = values.stock_alert_qty
+        ? parseInt(values.stock_alert_qty, 10)
+        : null;
+
+      const weight_kg = values.weight_kg ? parseFloat(values.weight_kg) : null;
+      const width_cm = values.width_cm ? parseFloat(values.width_cm) : null;
+      const height_cm = values.height_cm ? parseFloat(values.height_cm) : null;
+      const length_cm = values.length_cm ? parseFloat(values.length_cm) : null;
+
       const res = await upsertProductVariant({
         data: {
           id: editingVariant?.id,
           product_id: product.id,
           sku: values.sku,
+          barcode: values.ean || null,
           price_override_cents,
+          cost_cents,
+          stock_alert_qty,
+          ean: values.ean || null,
+          weight_kg,
+          width_cm,
+          height_cm,
+          length_cm,
+          status: values.status,
           attributes,
         },
       });
 
       if (res.status === "success") {
-        // Adjust stock if value changed
         const targetStock = parseInt(values.stock || "0", 10);
         const currentStock = editingVariant ? (editingVariant.stock_on_hand || 0) : 0;
         const diff = targetStock - currentStock;
@@ -731,8 +782,9 @@ function VariantsManager({ product }: { product: any }) {
                   <TableRow className="bg-muted/40">
                     <TableHead>SKU</TableHead>
                     <TableHead>Atributos / Tamanho</TableHead>
-                    <TableHead>Sobretaxa Preço</TableHead>
+                    <TableHead>Preço Override</TableHead>
                     <TableHead>Estoque Atual</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -754,6 +806,11 @@ function VariantsManager({ product }: { product: any }) {
                             {v.stock_on_hand ?? 0} un.
                           </Badge>
                         </TableCell>
+                        <TableCell>
+                          <Badge variant={v.status === "active" ? "default" : "secondary"} className="text-[10px]">
+                            {v.status === "active" ? "Ativo" : v.status === "inactive" ? "Inativo" : "Arquivado"}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="sm" onClick={() => onOpenEdit(v)}>
                             Editar SKU
@@ -771,28 +828,80 @@ function VariantsManager({ product }: { product: any }) {
 
       {/* Dialog Formulário de Variante */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingVariant ? "Editar Variante" : "Nova Variante de Estoque"}</DialogTitle>
-            <DialogDescription>Cadastre o SKU e os atributos da variação.</DialogDescription>
+            <DialogDescription>Cadastre o SKU, preços específicos e especificações logísticas.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmitVariant)} className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <Label>SKU Único *</Label>
-              <Input {...register("sku", { required: true })} />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>SKU Único *</Label>
+                <Input {...register("sku", { required: true })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Status da Variante</Label>
+                <Select defaultValue="active" onValueChange={(val) => setValue("status", val as any)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                    <SelectItem value="archived">Arquivado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Sobretaxa Preço (R$)</Label>
+                <Input step="0.01" type="number" placeholder="Preço base se vazio" {...register("price_override_cents")} />
+              </div>
+              <div className="space-y-2">
+                <Label>Custo da Variante (R$)</Label>
+                <Input step="0.01" type="number" placeholder="Custo base se vazio" {...register("cost_cents")} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Estoque Inicial</Label>
+                <Input type="number" min="0" placeholder="Ex: 10" {...register("stock")} />
+              </div>
+              <div className="space-y-2">
+                <Label>Estoque Mínimo (Alerta)</Label>
+                <Input type="number" min="0" placeholder="Ex: 2" {...register("stock_alert_qty")} />
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Sobretaxa / Preço Específico (R$)</Label>
-              <Input step="0.01" type="number" placeholder="Deixe em branco para preço base" {...register("price_override_cents")} />
+              <Label>Código EAN / GTIN específico</Label>
+              <Input placeholder="Ex: 7890000000000" maxLength={14} {...register("ean")} />
             </div>
 
-            <div className="space-y-2">
-              <Label>Quantidade em Estoque</Label>
-              <Input type="number" min="0" placeholder="Ex: 10" {...register("stock")} />
+            <div className="border-t pt-4">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dimensões da Variante (Caso divirja do Produto)</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Peso (kg)</Label>
+                  <Input step="0.001" type="number" placeholder="0.000" {...register("weight_kg")} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Largura (cm)</Label>
+                  <Input step="0.01" type="number" placeholder="0" {...register("width_cm")} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Altura (cm)</Label>
+                  <Input step="0.01" type="number" placeholder="0" {...register("height_cm")} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Comprimento (cm)</Label>
+                  <Input step="0.01" type="number" placeholder="0" {...register("length_cm")} />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2 pt-2">
+            <div className="space-y-2 pt-2 border-t">
               <Label>Atributos da Variante</Label>
               {attrFields.map((field, index) => (
                 <div key={index} className="flex gap-2 items-center">
@@ -818,7 +927,7 @@ function VariantsManager({ product }: { product: any }) {
               ))}
             </div>
 
-            <DialogFooter className="pt-4">
+            <DialogFooter className="pt-4 border-t">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancelar
               </Button>
