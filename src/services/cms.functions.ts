@@ -427,6 +427,51 @@ export const updateReviewStatus = createServerFn({ method: "POST" })
     }
   });
 
+export const createProductReview = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      productId: z.string().uuid(),
+      rating: z.number().int().min(1).max(5),
+      comment: z.string().min(2).max(1000),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+
+      const { data: { user }, error: authError } = await db.auth.getUser();
+      if (authError || !user) {
+        throw new Error("Você precisa estar logado para fazer uma avaliação.");
+      }
+
+      const { data: prod, error: prodError } = await db
+        .from("products")
+        .select("store_id")
+        .eq("id", input.productId)
+        .single();
+      if (prodError || !prod) throw new Error("Produto não encontrado.");
+
+      const { data, error } = await db
+        .from("reviews")
+        .insert({
+          store_id: prod.store_id,
+          product_id: input.productId,
+          user_id: user.id,
+          rating: input.rating,
+          comment: input.comment,
+          status: "approved",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { status: "success" as const, data };
+    } catch (e: any) {
+      console.error("[cms.functions] createProductReview error:", e.message || e);
+      return { status: "error" as const, message: e.message || "Erro ao enviar avaliação." };
+    }
+  });
+
 // ---------------------------------------------------------------------------
 // Link-in-Bio
 // ---------------------------------------------------------------------------

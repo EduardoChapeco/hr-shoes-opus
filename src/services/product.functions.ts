@@ -31,12 +31,15 @@ export const getProductBySlug = createServerFn({ method: "GET" })
            product_media(id, url, alt, media_type, sort_order, focal_point),
            product_variants(
              id, sku, status, price_override_cents,
-             stock_on_hand, stock_reserved,
+             stock_on_hand, stock_reserved, attributes,
              product_media(id, url, alt, media_type, sort_order, focal_point)
-           )`,
+           ),
+           reviews(id, rating, comment, created_at, status)
+          `,
         )
         .eq("slug", slug)
         .eq("status", "published")
+        .eq("reviews.status", "approved")
         .single();
 
       if (error?.code === "PGRST116") {
@@ -67,6 +70,7 @@ export const getProductBySlug = createServerFn({ method: "GET" })
         price_override_cents: number | null;
         stock_on_hand: number;
         stock_reserved: number;
+        attributes: any;
         product_media: RawMedia[] | null;
       };
 
@@ -95,7 +99,7 @@ export const getProductBySlug = createServerFn({ method: "GET" })
               : (product.price_cents as number),
           // available_qty computed here — never on client.
           availableQty: Math.max(0, v.stock_on_hand - v.stock_reserved),
-          attributes: {},
+          attributes: (v.attributes as Record<string, string>) ?? {},
           media: ((v.product_media as RawMedia[] | null) ?? [])
             .map(mapMedia)
             .sort((a, b) => a.sortOrder - b.sortOrder),
@@ -114,6 +118,12 @@ export const getProductBySlug = createServerFn({ method: "GET" })
         allowsPreorder: Boolean(product.allows_preorder),
         seoTitle: (product.seo_title as string | null) ?? null,
         seoDescription: (product.seo_description as string | null) ?? null,
+        reviews: ((product.reviews as any[] | null) ?? []).map((r) => ({
+          id: r.id,
+          rating: r.rating,
+          comment: r.comment,
+          created_at: r.created_at,
+        })),
       };
 
       return { status: "ok", data: dto };

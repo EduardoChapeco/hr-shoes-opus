@@ -105,6 +105,7 @@ export interface ProductDetailDTO {
   allowsPreorder: boolean;
   seoTitle?: string | null;
   seoDescription?: string | null;
+  reviews?: { id: string; rating: number; comment: string | null; created_at: string }[] | null;
 }
 
 // ---------------------------------------------------------------------------
