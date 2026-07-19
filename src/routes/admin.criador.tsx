@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -34,6 +35,7 @@ function CreatorPage() {
 
   const [platform, setPlatform] = useState("instagram");
   const [content, setContent] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -43,11 +45,12 @@ function CreatorPage() {
     setIsSaving(true);
     try {
       const res = await createSocialPost({
-        data: { platform, content_text: content },
+        data: { platform, content_text: content, image_url: imageUrl || undefined },
       });
       if (res.status === "success") {
         toast.success("Post arquivado!");
         setContent("");
+        setImageUrl("");
         router.invalidate();
       } else {
         toast.error(res.message || "Erro ao salvar post.");
@@ -95,6 +98,25 @@ function CreatorPage() {
                 </Select>
               </div>
               <div className="space-y-2">
+                <label className="text-sm font-medium">Mídia do Catálogo (URL da Imagem)</label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="https://..."
+                      className="pl-9"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                    />
+                  </div>
+                </div>
+                {imageUrl && (
+                  <div className="mt-2 relative rounded-md overflow-hidden aspect-video bg-muted border">
+                    <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
                 <label className="text-sm font-medium">Legenda / Texto</label>
                 <Textarea
                   placeholder="Escreva a legenda do post..."
@@ -133,7 +155,12 @@ function CreatorPage() {
                       </span>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
+                    {post.image_url && (
+                      <div className="w-full aspect-video rounded-md overflow-hidden bg-muted border relative">
+                        <img src={post.image_url} alt="Post" className="w-full h-full object-cover" />
+                      </div>
+                    )}
                     <p className="text-sm whitespace-pre-wrap">{post.content_text}</p>
                   </CardContent>
                   <CardFooter className="pt-2 border-t flex justify-end gap-2">

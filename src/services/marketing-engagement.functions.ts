@@ -174,6 +174,7 @@ export const createSocialPost = createServerFn({ method: "POST" })
     z.object({
       platform: z.string(),
       content_text: z.string(),
+      image_url: z.string().url().optional(),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -187,6 +188,7 @@ export const createSocialPost = createServerFn({ method: "POST" })
           store_id: identity.store_id,
           platform: input.platform,
           content_text: input.content_text,
+          image_url: input.image_url || null,
           is_published: false,
         })
         .select()

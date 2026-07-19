@@ -42,9 +42,11 @@ function IntegrationsPage() {
 
   const [metaPixel, setMetaPixel] = useState(getIntegration("meta_pixel"));
   const [googleAnalytics, setGoogleAnalytics] = useState(getIntegration("google_analytics"));
+  const [melhorEnvio, setMelhorEnvio] = useState(getIntegration("melhor_envio"));
+  const [googleMerchant, setGoogleMerchant] = useState(getIntegration("google_merchant_center"));
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = async (provider: "meta_pixel" | "google_analytics", state: any) => {
+  const handleSave = async (provider: "meta_pixel" | "google_analytics" | "melhor_envio" | "google_merchant_center", state: any) => {
     setIsSaving(true);
     try {
       const res = await upsertIntegration({
@@ -162,6 +164,97 @@ function IntegrationsPage() {
             <Button
               disabled={isSaving}
               onClick={() => handleSave("google_analytics", googleAnalytics)}
+            >
+              <Save className="mr-2 h-4 w-4" /> Salvar Configuração
+            </Button>
+          </CardFooter>
+        </Card>
+
+        {/* Melhor Envio */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings2 className="h-5 w-5" />
+              Logística (Melhor Envio)
+            </CardTitle>
+            <CardDescription>Conecte sua conta para cálculo automático de frete e emissão de etiquetas.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Status da Integração</span>
+              <Switch
+                checked={melhorEnvio.is_active}
+                onCheckedChange={(c) => setMelhorEnvio({ ...melhorEnvio, is_active: c })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Token de Acesso (Bearer Token)</label>
+              <Input
+                type="password"
+                placeholder="Insira seu token de API"
+                value={melhorEnvio.credentials?.api_token || ""}
+                onChange={(e) =>
+                  setMelhorEnvio({
+                    ...melhorEnvio,
+                    credentials: { ...melhorEnvio.credentials, api_token: e.target.value },
+                  })
+                }
+              />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button
+              disabled={isSaving}
+              onClick={() => handleSave("melhor_envio", melhorEnvio)}
+            >
+              <Save className="mr-2 h-4 w-4" /> Salvar Configuração
+            </Button>
+          </CardFooter>
+        </Card>
+
+        {/* Google Merchant Center */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings2 className="h-5 w-5" />
+              Google Merchant Center
+            </CardTitle>
+            <CardDescription>Sincronize seu catálogo de produtos no Google Shopping.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Status da Integração</span>
+              <Switch
+                checked={googleMerchant.is_active}
+                onCheckedChange={(c) => setGoogleMerchant({ ...googleMerchant, is_active: c })}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Merchant ID</label>
+              <Input
+                placeholder="Ex: 123456789"
+                value={googleMerchant.credentials?.merchant_id || ""}
+                onChange={(e) =>
+                  setGoogleMerchant({
+                    ...googleMerchant,
+                    credentials: { ...googleMerchant.credentials, merchant_id: e.target.value },
+                  })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Feed XML URL (Gerado pelo sistema)</label>
+              <Input
+                readOnly
+                value={`https://api.hrshoes.com.br/feeds/google-merchant/${googleMerchant.credentials?.merchant_id || "ID"}`}
+                className="bg-muted text-muted-foreground"
+              />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button
+              disabled={isSaving}
+              onClick={() => handleSave("google_merchant_center", googleMerchant)}
             >
               <Save className="mr-2 h-4 w-4" /> Salvar Configuração
             </Button>

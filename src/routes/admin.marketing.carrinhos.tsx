@@ -115,8 +115,19 @@ function AbandonedCartsPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleUpdateStatus(c.id, "contacted")}
-                      disabled={c.status === "recovered" || c.status === "lost"}
+                      onClick={() => {
+                        handleUpdateStatus(c.id, "contacted");
+                        if (c.guest_phone) {
+                          const phone = c.guest_phone.replace(/\D/g, "");
+                          const msg = `Olá${c.guest_name ? ` ${c.guest_name}` : ""}! Sou da equipe da Hr Shoes. Vi que você deixou alguns itens no carrinho, no valor de ${formatMoney(c.total_cents)}. Conseguiu finalizar a compra ou precisa de alguma ajuda?`;
+                          window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`, "_blank");
+                        } else if (c.guest_email) {
+                          const msg = `Olá${c.guest_name ? ` ${c.guest_name}` : ""}! Sou da equipe da Hr Shoes. Vi que você deixou itens no valor de ${formatMoney(c.total_cents)} no seu carrinho. Posso ajudar em algo?`;
+                          window.open(`mailto:${c.guest_email}?subject=Seu carrinho na Hr Shoes&body=${encodeURIComponent(msg)}`, "_blank");
+                        }
+                      }}
+                      disabled={c.status === "recovered" || c.status === "lost" || (!c.guest_phone && !c.guest_email)}
+                      title={c.guest_phone ? "Contatar via WhatsApp" : c.guest_email ? "Contatar via Email" : "Sem contato"}
                     >
                       <Send className="mr-2 h-3 w-3" /> Contatar
                     </Button>
@@ -126,6 +137,7 @@ function AbandonedCartsPage() {
                       className="text-destructive"
                       onClick={() => handleUpdateStatus(c.id, "lost")}
                       disabled={c.status === "recovered" || c.status === "lost"}
+                      title="Marcar como Perdido"
                     >
                       <UserX className="h-4 w-4" />
                     </Button>
