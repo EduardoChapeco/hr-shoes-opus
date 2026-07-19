@@ -672,11 +672,30 @@ export const uploadProductMedia = createServerFn({ method: "POST" })
       const db = getServerClient();
 
       const buffer = Buffer.from(fileBase64, "base64");
-      const fileExt = fileName.split(".").pop();
+      
+      // 1. Validação de Tamanho (< 5MB)
+      const sizeInBytes = buffer.length;
+      const sizeInMB = sizeInBytes / (1024 * 1024);
+      if (sizeInMB > 5) {
+        throw new Error(`Arquivo excede o limite de tamanho de 5MB. Tamanho enviado: ${sizeInMB.toFixed(2)}MB.`);
+      }
+
+      // 2. Validação de Extensão / Formato
+      const fileExt = fileName.split(".").pop()?.toLowerCase();
+      const allowedExts = ["jpg", "jpeg", "png", "webp", "gif", "mp4", "webm"];
+      if (!fileExt || !allowedExts.includes(fileExt)) {
+        throw new Error(`Formato de arquivo não suportado. Formatos aceitos: ${allowedExts.join(", ")}`);
+      }
+
       const path = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
+      let contentType = `image/${fileExt === "png" ? "png" : fileExt === "webp" ? "webp" : fileExt === "gif" ? "gif" : "jpeg"}`;
+      if (["mp4", "webm"].includes(fileExt)) {
+        contentType = `video/${fileExt}`;
+      }
+
       const { data, error } = await db.storage.from("product-media").upload(path, buffer, {
-        contentType: `image/${fileExt === "png" ? "png" : "jpeg"}`,
+        contentType,
         upsert: false,
       });
 
@@ -687,6 +706,59 @@ export const uploadProductMedia = createServerFn({ method: "POST" })
     } catch (e: any) {
       console.error("[admin-catalog] uploadProductMedia error:", e.message);
       return { status: "error" as const, message: e.message || "Erro ao realizar upload." };
+    }
+  });
+
+export const updateProductMediaMetadata = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+      alt: z.string().optional().nullable(),
+      variant_id: z.string().uuid().optional().nullable(),
+      media_type: z.enum(["image", "video"]).default("image"),
+      sort_order: z.number().int().optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    try {
+      const db = getServerClient();
+      const { id, ...updates } = data;
+      const { error } = await db.from("product_media").update(updates).eq("id", id);
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[admin-catalog] updateProductMediaMetadata error:", e.message);
+      return { status: "error" as const, message: e.message || "Erro ao atualizar metadados da mídia." };
+    }
+  });
+
+export const reorderProductMedia = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      mediaOrders: z.array(
+        z.object({
+          id: z.string().uuid(),
+          sort_order: z.number().int(),
+        })
+      ),
+    }),
+  )
+  .handler(async ({ data: { mediaOrders } }) => {
+    try {
+      const db = getServerClient();
+      
+      for (const item of mediaOrders) {
+        const { error } = await db
+          .from("product_media")
+          .update({ sort_order: item.sort_order })
+          .eq("id", item.id);
+        if (error) throw error;
+      }
+      
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[admin-catalog] reorderProductMedia error:", e.message);
+      return { status: "error" as const, message: e.message || "Erro ao reordenar mídias." };
     }
   });
 

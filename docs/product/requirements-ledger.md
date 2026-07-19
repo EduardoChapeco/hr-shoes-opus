@@ -55,7 +55,7 @@
 | CAT-001 | CRUD de produtos completo | P0 | 🔵 ALTERADO MAS NÃO COMPROVADO | Faltam identificadores, prazos, specs profundas. UI foi refinada, backend parcial. |
 | CAT-002 | Tipos de produto com FieldDefinitions versionadas | P0 | 🟡 PARCIAL | `0002_catalog.sql` - Faltam validações complexas. |
 | CAT-003 | Variantes profundas (dimensões, peso, GTIN) | P0 | 🟡 PARCIAL | UI permite SKU e estoque, faltam regras e colunas. |
-| CAT-004 | Mídia de produto (upload, vídeo, alt text, ordenação) | P0 | 🟡 PARCIAL | Faz upload simples; falta ordenação, metadata, bucket policy isolada. |
+| CAT-004 | Mídia de produto (upload, vídeo, alt text, ordenação, variante) | P0 | ✅ COMPROVADO | `uploadProductMedia`, `updateProductMediaMetadata`, `reorderProductMedia` no BFF + MediaManager. |
 | CAT-005 | Categorias em árvore hierárquica | P0 | 🟡 PARCIAL | Funciona nível único, hierarquia não testada 100%. |
 | CAT-006 | Coleções curadas | P1 | 🟡 PARCIAL | UI genérica, sem builder visual. |
 | CAT-007 | Atributos filtráveis / comparáveis | P1 | 🟡 PARCIAL | Salvo no JSON, sem motor de filtro real. |

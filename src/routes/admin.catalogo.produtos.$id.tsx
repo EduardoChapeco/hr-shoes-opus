@@ -18,6 +18,8 @@ import {
   Package,
   CheckCircle2,
   ShieldCheck,
+  ArrowRight,
+  Settings,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
@@ -60,6 +62,8 @@ import {
   upsertProductVariant,
   deleteProductMedia,
   addProductMediaLink,
+  updateProductMediaMetadata,
+  reorderProductMedia,
   listCategories,
 } from "@/services/admin-catalog.functions";
 import { formatMoney } from "@/lib/money";
@@ -832,6 +836,8 @@ function VariantsManager({ product }: { product: any }) {
 function MediaManager({ product }: { product: any }) {
   const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
+  const [editingMedia, setEditingMedia] = useState<any | null>(null);
+  const [isSavingMetadata, setIsSavingMetadata] = useState(false);
 
   const handleAddImage = async (url: string) => {
     if (!url) return;
@@ -865,44 +871,227 @@ function MediaManager({ product }: { product: any }) {
     }
   };
 
+  const handleMove = async (index: number, direction: "left" | "right") => {
+    const list = [...(product.product_media || [])];
+    if (direction === "left" && index === 0) return;
+    if (direction === "right" && index === list.length - 1) return;
+
+    const targetIdx = direction === "left" ? index - 1 : index + 1;
+    const temp = list[index];
+    list[index] = list[targetIdx];
+    list[targetIdx] = temp;
+
+    const mediaOrders = list.map((item, idx) => ({
+      id: item.id,
+      sort_order: idx,
+    }));
+
+    try {
+      const res = await reorderProductMedia({ data: { mediaOrders } });
+      if (res.status === "success") {
+        toast.success("Ordenação atualizada!");
+        router.invalidate();
+      } else {
+        toast.error(res.message || "Erro ao reordenar mídias.");
+      }
+    } catch {
+      toast.error("Erro ao reordenar mídias.");
+    }
+  };
+
+  const handleSaveMetadata = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingMedia) return;
+
+    setIsSavingMetadata(true);
+    const formData = new FormData(e.currentTarget);
+    const alt = formData.get("alt") as string;
+    const media_type = formData.get("media_type") as "image" | "video";
+    const variant_id = formData.get("variant_id") as string || null;
+
+    try {
+      const res = await updateProductMediaMetadata({
+        data: {
+          id: editingMedia.id,
+          alt: alt || null,
+          media_type,
+          variant_id: variant_id === "none" ? null : variant_id,
+        },
+      });
+
+      if (res.status === "success") {
+        toast.success("Metadados atualizados com sucesso!");
+        setEditingMedia(null);
+        router.invalidate();
+      } else {
+        toast.error(res.message || "Erro ao atualizar metadados.");
+      }
+    } catch {
+      toast.error("Erro ao atualizar metadados.");
+    } finally {
+      setIsSavingMetadata(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Galeria de Fotos do Produto</CardTitle>
-        <CardDescription>Fotos em alta qualidade aumentam a conversão de vendas.</CardDescription>
+        <CardDescription>
+          Fotos em alta qualidade aumentam a conversão de vendas. Limite de 5MB por arquivo.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <Label>Fazer Upload de Imagem</Label>
           <div className="max-w-md">
-            <ImageUpload
-              onChange={handleAddImage}
-              bucket="product-media"
-            />
+            <ImageUpload onChange={handleAddImage} bucket="product-media" />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 border-t border-dashed">
-          {product.product_media?.map((m: any, idx: number) => (
-            <div key={m.id || idx} className="relative group aspect-square rounded-lg border bg-muted overflow-hidden">
-              <img src={m.url} alt="" className="w-full h-full object-cover" />
-              {idx === 0 && (
-                <Badge className="absolute top-2 left-2 text-[10px]" variant="default">
-                  Capa
-                </Badge>
-              )}
-              <Button
-                variant="destructive"
-                size="icon"
-                className="absolute top-2 right-2 size-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => handleDelete(m.id, m.url)}
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-2 border-t border-dashed">
+          {product.product_media
+            ?.sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+            .map((m: any, idx: number) => {
+              const matchedVariant = product.product_variants?.find((v: any) => v.id === m.variant_id);
+              const variantText = matchedVariant
+                ? `Variação: ${matchedVariant.sku}`
+                : "Uso Geral";
+
+              return (
+                <div key={m.id || idx} className="relative group border rounded-xl overflow-hidden bg-card shadow-sm flex flex-col justify-between">
+                  <div className="relative aspect-[4/3] bg-muted overflow-hidden flex items-center justify-center">
+                    {m.media_type === "video" ? (
+                      <video src={m.url} className="w-full h-full object-cover" controls={false} muted />
+                    ) : (
+                      <img src={m.url} alt={m.alt || ""} className="w-full h-full object-cover" />
+                    )}
+                    {idx === 0 && (
+                      <Badge className="absolute top-2 left-2 text-[10px]" variant="default">
+                        Capa
+                      </Badge>
+                    )}
+                    {m.media_type === "video" && (
+                      <Badge className="absolute top-2 right-12 text-[10px] bg-red-500 hover:bg-red-600 text-white border-none">
+                        Vídeo
+                      </Badge>
+                    )}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        className="size-8"
+                        onClick={() => setEditingMedia(m)}
+                      >
+                        <Settings className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="size-8"
+                        onClick={() => handleDelete(m.id, m.url)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="p-3 space-y-1">
+                    <p className="text-[11px] font-semibold text-primary truncate">
+                      {variantText}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground truncate italic">
+                      {m.alt ? `"${m.alt}"` : "Sem legenda"}
+                    </p>
+                    <div className="flex items-center justify-between pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="size-7"
+                        disabled={idx === 0}
+                        onClick={() => handleMove(idx, "left")}
+                      >
+                        <ArrowLeft className="size-3.5" />
+                      </Button>
+                      <span className="text-[10px] text-muted-foreground font-mono">Pos: {idx + 1}</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="size-7"
+                        disabled={idx === (product.product_media?.length || 0) - 1}
+                        onClick={() => handleMove(idx, "right")}
+                      >
+                        <ArrowRight className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
         </div>
       </CardContent>
+
+      <Dialog open={!!editingMedia} onOpenChange={(open) => !open && setEditingMedia(null)}>
+        {editingMedia && (
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Detalhes da Mídia</DialogTitle>
+              <DialogDescription>
+                Adicione legendas de acessibilidade ou vincule esta imagem a uma variante específica.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSaveMetadata} className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <Label>Legenda / Texto Alternativo (Acessibilidade)</Label>
+                <Input name="alt" defaultValue={editingMedia.alt || ""} placeholder="Ex: Tênis vermelho de couro sob luz natural" />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tipo de Mídia</Label>
+                <Select name="media_type" defaultValue={editingMedia.media_type || "image"}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="image">Imagem</SelectItem>
+                    <SelectItem value="video">Vídeo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Vincular à Variante</Label>
+                <Select name="variant_id" defaultValue={editingMedia.variant_id || "none"}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Uso Geral (Vitrine Principal)</SelectItem>
+                    {product.product_variants?.map((v: any) => {
+                      const attrsText = Object.entries(v.attributes || {})
+                        .map(([k, val]) => `${k}: ${val}`)
+                        .join(", ");
+                      return (
+                        <SelectItem key={v.id} value={v.id}>
+                          {v.sku} {attrsText ? `(${attrsText})` : ""}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <DialogFooter className="pt-4">
+                <Button type="button" variant="outline" onClick={() => setEditingMedia(null)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isSavingMetadata}>
+                  {isSavingMetadata ? "Salvando..." : "Salvar Alterações"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        )}
+      </Dialog>
     </Card>
   );
 }
