@@ -58,3 +58,51 @@ export const payCommission = createServerFn({ method: "POST" })
     if (error) throw new Error("Erro ao pagar comissão");
     return { status: "success" };
   });
+
+export const listSellers = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+  const { data: sellers, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, role, commission_rate")
+    .eq("store_id", identity.store_id)
+    .in("role", ["seller", "manager"])
+    .order("full_name");
+
+  if (error) throw new Error("Erro ao buscar equipe de vendas");
+  return sellers;
+});
+
+export const updateSellerCommissionRate = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      sellerId: z.string().uuid(),
+      rate: z.number().min(0).max(100),
+    })
+  )
+  .handler(async ({ data: { sellerId, rate } }) => {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+    // Ensure the target seller belongs to the same store
+    const { data: target, error: checkError } = await supabase
+      .from("profiles")
+      .select("store_id")
+      .eq("id", sellerId)
+      .single();
+
+    if (checkError || target.store_id !== identity.store_id) {
+      throw new Error("Vendedor não encontrado ou não pertence a esta loja.");
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ commission_rate: rate })
+      .eq("id", sellerId);
+
+    if (error) throw new Error("Erro ao atualizar taxa de comissão");
+    return { status: "success" };
+  });

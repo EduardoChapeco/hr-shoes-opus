@@ -654,6 +654,14 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 5,
   },
   {
+    path: "/admin/marketing/ofertas-checkout",
+    label: "Ofertas de Checkout",
+    description: "Configuração de regras de Upsell no checkout",
+    audience: "admin",
+    roles: ["owner", "admin", "manager", "content"],
+    phase: 4,
+  },
+  {
     path: "/admin/marketing/gift-cards",
     label: "Gift cards",
     description: "Gestão de gift cards",
@@ -905,6 +913,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
       { path: "/admin/builder", label: "Construtor (Builder)", icon: "Paintbrush" },
       { path: "/admin/perfil-publico", label: "Perfil Institucional", icon: "Store" },
       { path: "/admin/marketing/cupons", label: "Marketing & Cupons", icon: "Megaphone" },
+      { path: "/admin/marketing/ofertas-checkout", label: "Ofertas de Checkout", icon: "Sparkles" },
       { path: "/admin/cms/navegacao", label: "Menu & Navegação", icon: "Menu" },
       { path: "/admin/criador", label: "Studio de Criação", icon: "Video" },
     ],

@@ -24,7 +24,8 @@ import {
   Bell,
   Calendar,
   LogOut,
-  UserPlus
+  UserPlus,
+  Sparkles
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -64,7 +65,8 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Bell,
   Calendar,
   LogOut,
-  UserPlus
+  UserPlus,
+  Sparkles
 };
 
 function resolveIcon(name: string): LucideIcon {
