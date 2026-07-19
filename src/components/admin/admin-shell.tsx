@@ -77,6 +77,23 @@ function resolveIcon(name: string): LucideIcon {
 // Contextual Actions mapping
 // ---------------------------------------------------------------------------
 function getContextualAction(pathname: string) {
+  // Subpages / Detail pages -> Return to parent list
+  if (pathname === "/admin/catalogo/produtos/novo" || pathname.match(/\/admin\/catalogo\/produtos\/[^/]+$/)) {
+    if (pathname !== "/admin/catalogo/produtos") {
+      return { label: "Voltar para Lista", path: "/admin/catalogo/produtos", icon: "ChevronLeft" };
+    }
+  }
+  if (pathname.startsWith("/admin/caixa/")) {
+    return { label: "Voltar para Caixa", path: "/admin/caixa", icon: "ChevronLeft" };
+  }
+  if (pathname.match(/\/admin\/pedidos\/[^/]+$/) && pathname !== "/admin/pedidos") {
+    return { label: "Voltar para Pedidos", path: "/admin/pedidos", icon: "ChevronLeft" };
+  }
+  if (pathname.match(/\/admin\/clientes\/[^/]+$/) && pathname !== "/admin/clientes") {
+    return { label: "Voltar para Clientes", path: "/admin/clientes", icon: "ChevronLeft" };
+  }
+
+  // Base list pages -> Create actions
   if (pathname.startsWith("/admin/catalogo/produtos")) {
     return { label: "Novo Produto", path: "/admin/catalogo/produtos/novo", icon: "Plus" };
   }
@@ -327,6 +344,9 @@ export function AdminShell({ children, session }: { children: ReactNode; session
                           collapsed && "justify-center"
                         )}
                         title={collapsed ? mod.label : undefined}
+                        onClick={() => {
+                          setViewMode("subpages");
+                        }}
                       >
                         <Icon className="size-5 shrink-0" aria-hidden />
                         {!collapsed && <span className="flex-1 truncate text-xs">{mod.label}</span>}
@@ -403,25 +423,68 @@ export function AdminShell({ children, session }: { children: ReactNode; session
               </SheetHeader>
               <ScrollArea className="h-[calc(100vh-4rem)] px-3 py-4">
                 <div className="space-y-6">
-                  <div>
-                    <p className="eyebrow px-3 pb-2 text-muted-foreground">Navegação Geral</p>
-                    <ul className="space-y-1">
-                      {MODULES.map((mod) => {
-                        const Icon = resolveIcon(mod.icon);
-                        return (
-                          <li key={mod.path}>
-                            <Link
-                              to={mod.path}
-                              className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground"
-                            >
-                              <Icon className="size-5" />
-                              {mod.label}
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
+                  {viewMode === "subpages" && activeGroupNav ? (
+                    <div className="space-y-4">
+                      <div className="px-3 pb-2 border-b border-sidebar-border/40 flex items-center justify-between">
+                        <span className="eyebrow text-primary font-bold tracking-wider text-xs">{activeGroupNav.title}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-nav font-semibold text-primary"
+                          onClick={() => setViewMode("modules")}
+                        >
+                          ← Módulos
+                        </Button>
+                      </div>
+                      <ul className="space-y-1">
+                        {activeGroupNav.items.map((item) => {
+                          const Icon = resolveIcon(item.icon);
+                          return (
+                            <li key={item.path}>
+                              <Link
+                                to={item.path}
+                                activeOptions={{ exact: item.path === "/admin" }}
+                                className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/85 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                                activeProps={{
+                                  className: "bg-sidebar-accent text-sidebar-foreground",
+                                }}
+                              >
+                                <Icon className="size-5 shrink-0" aria-hidden />
+                                <span className="flex-1 truncate text-xs">{item.label}</span>
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="eyebrow px-3 pb-2 text-muted-foreground font-bold tracking-wider text-xs">Módulos</p>
+                      <ul className="space-y-1">
+                        {MODULES.map((mod) => {
+                          const Icon = resolveIcon(mod.icon);
+                          const isCurrent = activeGroup === mod.group;
+                          return (
+                            <li key={mod.path}>
+                              <Link
+                                to={mod.path}
+                                className={cn(
+                                  "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                                  isCurrent && "bg-sidebar-accent/50 text-sidebar-foreground"
+                                )}
+                                onClick={() => {
+                                  setViewMode("subpages");
+                                }}
+                              >
+                                <Icon className="size-5 shrink-0" />
+                                <span className="text-xs">{mod.label}</span>
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
             </SheetContent>
