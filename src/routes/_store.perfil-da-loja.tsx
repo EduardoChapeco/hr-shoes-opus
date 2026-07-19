@@ -14,6 +14,10 @@ import {
   MessageCircle,
   Globe,
   Calendar as CalendarIcon,
+  Play,
+  CreditCard,
+  HelpCircle,
+  Image as ImageIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -106,9 +110,140 @@ const renderIcon = (name: string) => {
       return <Clock className="h-5 w-5" />;
     case "MapPin":
       return <MapPin className="h-5 w-5" />;
+    case "CreditCard":
+      return <CreditCard className="h-5 w-5" />;
+    case "Play":
+      return <Play className="h-5 w-5" />;
+    case "HelpCircle":
+      return <HelpCircle className="h-5 w-5" />;
+    case "Mail":
+      return <Mail className="h-5 w-5" />;
+    case "ImageIcon":
+      return <ImageIcon className="h-5 w-5" />;
     default:
       return <Sparkles className="h-5 w-5" />;
   }
+};
+
+const renderRichSectionContent = (sec: any) => {
+  const type = sec.type || "text";
+  let data: any = null;
+  const isJson = sec.content && (sec.content.startsWith("{") || sec.content.startsWith("["));
+  if (isJson) {
+    try {
+      data = JSON.parse(sec.content);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  if (type === "payments" && data) {
+    return (
+      <div className="flex flex-wrap gap-2 pt-1">
+        {data.pix && (
+          <Badge variant="outline" className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 border-emerald-500/20 font-bold py-1 px-2.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            Pix
+          </Badge>
+        )}
+        {data.credit && (
+          <Badge variant="outline" className="flex items-center gap-1.5 bg-blue-500/10 text-blue-700 border-blue-500/20 font-bold py-1 px-2.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+            Cartão de Crédito
+          </Badge>
+        )}
+        {data.debit && (
+          <Badge variant="outline" className="flex items-center gap-1.5 bg-indigo-500/10 text-indigo-700 border-indigo-500/20 font-bold py-1 px-2.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+            Cartão de Débito
+          </Badge>
+        )}
+        {data.installments && (
+          <Badge variant="outline" className="flex items-center gap-1.5 bg-purple-500/10 text-purple-700 border-purple-500/20 font-bold py-1 px-2.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
+            Ficha / Carnê
+          </Badge>
+        )}
+        {data.manual && (
+          <Badge variant="outline" className="flex items-center gap-1.5 bg-amber-500/10 text-amber-700 border-amber-500/20 font-bold py-1 px-2.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            Pagamento Manual
+          </Badge>
+        )}
+      </div>
+    );
+  }
+
+  if (type === "gallery" && Array.isArray(data)) {
+    return (
+      <div className="grid grid-cols-3 gap-3 pt-1">
+        {data.map((url: string, index: number) => (
+          <div key={index} className="aspect-square rounded-xl overflow-hidden border bg-muted shadow-xs">
+            <img src={url} alt={`Gallery item ${index}`} className="h-full w-full object-cover hover:scale-105 transition-transform duration-300" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (type === "video") {
+    const ytUrl = sec.content || "";
+    let ytId = "";
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = ytUrl.match(regExp);
+    if (match && match[2].length === 11) {
+      ytId = match[2];
+    }
+
+    if (ytId) {
+      return (
+        <div className="mt-2 overflow-hidden rounded-xl border aspect-video w-full z-0 bg-black">
+          <iframe
+            src={`https://www.youtube.com/embed/${ytId}`}
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title="Video Section"
+          ></iframe>
+        </div>
+      );
+    }
+    return <p className="text-xs text-muted-foreground italic">Link de vídeo inválido: {ytUrl}</p>;
+  }
+
+  if (type === "support" && data) {
+    return (
+      <div className="space-y-4 pt-1">
+        {data.desc && <p className="text-sm text-muted-foreground leading-relaxed">{data.desc}</p>}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {data.phone && (
+            <Button size="sm" variant="outline" className="flex-1 flex items-center justify-center gap-2 text-xs h-10 border-primary/20 hover:bg-primary/5" asChild>
+              <a href={`https://wa.me/${data.phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="h-4 w-4 text-emerald-500 fill-emerald-500" />
+                WhatsApp: {data.phone}
+              </a>
+            </Button>
+          )}
+          {data.email && (
+            <Button size="sm" variant="outline" className="flex-1 flex items-center justify-center gap-2 text-xs h-10 border-primary/20 hover:bg-primary/5" asChild>
+              <a href={`mailto:${data.email}`}>
+                <Mail className="h-4 w-4 text-primary" />
+                E-mail: {data.email}
+              </a>
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+      {sec.content}
+    </p>
+  );
 };
 
 function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session: any }) {
@@ -272,8 +407,12 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
           {/* Contato */}
           {(store.phone || store.email) && <ContactCard phone={store.phone} email={store.email} />}
 
-          {/* Endereço */}
-          {fullAddress && <AddressCard address={fullAddress} />}
+          {/* Endereço ou Atendimento Online */}
+          {store.settings?.virtual_only ? (
+            <OnlineSupportCard phone={store.phone} email={store.email} />
+          ) : (
+            fullAddress && <AddressCard address={fullAddress} />
+          )}
 
           {/* Horários */}
           {(store.businessHours || extendedHours) && (
@@ -292,16 +431,14 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
         {customSections.length > 0 && (
           <div className="grid gap-6 md:grid-cols-2 mt-10">
             {customSections.map((sec: any) => (
-              <div key={sec.id} className="rounded-2xl border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div key={sec.id} className="rounded-2xl border bg-card p-6 shadow-sm hover:shadow-md transition-shadow text-left">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                     <div className="text-primary">{renderIcon(sec.icon)}</div>
                   </div>
                   <h3 className="font-bold text-base">{sec.title}</h3>
                 </div>
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                  {sec.content}
-                </p>
+                {renderRichSectionContent(sec)}
               </div>
             ))}
           </div>
@@ -537,6 +674,42 @@ function QuickLinksCard({ instagram }: { instagram: string | null }) {
             <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
           </a>
         )}
+      </div>
+    </div>
+  );
+}
+
+function OnlineSupportCard({ phone, email }: { phone: string | null; email: string | null }) {
+  return (
+    <div className="rounded-2xl border bg-card p-6 shadow-sm transition-shadow hover:shadow-md flex flex-col justify-between">
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+            <MessageCircle className="h-5 w-5 text-primary" />
+          </div>
+          <h3 className="font-semibold text-base">Atendimento Online</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+          Nossa loja opera 100% online! Oferecemos suporte completo pelos canais abaixo.
+        </p>
+        <div className="space-y-3">
+          {phone && (
+            <Button size="sm" variant="outline" className="w-full flex items-center justify-start gap-2 h-10" asChild>
+              <a href={`https://wa.me/${phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="h-4 w-4 text-emerald-500 fill-emerald-500 shrink-0" />
+                <span className="truncate text-xs">WhatsApp: {phone}</span>
+              </a>
+            </Button>
+          )}
+          {email && (
+            <Button size="sm" variant="outline" className="w-full flex items-center justify-start gap-2 h-10" asChild>
+              <a href={`mailto:${email}`}>
+                <Mail className="h-4 w-4 text-primary shrink-0" />
+                <span className="truncate text-xs">E-mail: {email}</span>
+              </a>
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

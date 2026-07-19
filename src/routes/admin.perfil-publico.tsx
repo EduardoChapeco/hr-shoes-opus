@@ -19,9 +19,14 @@ import {
   MessageCircle,
   Globe,
   Calendar as CalendarIcon,
+  Play,
+  CreditCard,
+  HelpCircle,
+  Mail,
 } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -98,13 +103,28 @@ function PerfilPublicoPage() {
     storeSettings.instagramHandle || ""
   );
 
+  const [virtualOnly, setVirtualOnly] = useState<boolean>(storeSettings.virtual_only || false);
+
   const [isSaving, setIsSaving] = useState(false);
 
   // New section form state
   const [newSection, setNewSection] = useState({
     title: "",
+    type: "text", // "text" | "payments" | "gallery" | "video" | "support"
     content: "",
     icon: "Star",
+    videoUrl: "",
+    galleryUrl1: "",
+    galleryUrl2: "",
+    galleryUrl3: "",
+    payPix: true,
+    payCredit: true,
+    payDebit: true,
+    payInstallments: false,
+    payManual: false,
+    supportPhone: "",
+    supportEmail: "",
+    supportDesc: ""
   });
 
   // New exception form state
@@ -131,6 +151,7 @@ function PerfilPublicoPage() {
         ...form,
         settings: {
           ...storeSettings,
+          virtual_only: virtualOnly,
           logoUrl: form.logo_url || undefined,
           cover_url: coverUrl || undefined,
           instagramHandle: instagramHandle || undefined,
@@ -161,16 +182,80 @@ function PerfilPublicoPage() {
 
   // Custom sections builders helpers
   const handleAddSection = () => {
-    if (!newSection.title || !newSection.content) {
-      toast.error("Preencha o título e conteúdo da seção");
+    if (!newSection.title) {
+      toast.error("Preencha o título da seção");
       return;
     }
+
+    let finalContent = "";
+    let finalIcon = newSection.icon;
+
+    if (newSection.type === "text") {
+      if (!newSection.content) {
+        toast.error("Preencha o conteúdo da seção");
+        return;
+      }
+      finalContent = newSection.content;
+    } else if (newSection.type === "payments") {
+      finalContent = JSON.stringify({
+        pix: newSection.payPix,
+        credit: newSection.payCredit,
+        debit: newSection.payDebit,
+        installments: newSection.payInstallments,
+        manual: newSection.payManual
+      });
+      finalIcon = "CreditCard";
+    } else if (newSection.type === "gallery") {
+      const urls = [newSection.galleryUrl1, newSection.galleryUrl2, newSection.galleryUrl3].filter(Boolean);
+      if (urls.length === 0) {
+        toast.error("Adicione pelo menos uma imagem à galeria");
+        return;
+      }
+      finalContent = JSON.stringify(urls);
+      finalIcon = "ImageIcon";
+    } else if (newSection.type === "video") {
+      if (!newSection.videoUrl) {
+        toast.error("Preencha a URL do vídeo do YouTube");
+        return;
+      }
+      finalContent = newSection.videoUrl;
+      finalIcon = "Play";
+    } else if (newSection.type === "support") {
+      finalContent = JSON.stringify({
+        phone: newSection.supportPhone,
+        email: newSection.supportEmail,
+        desc: newSection.supportDesc
+      });
+      finalIcon = "HelpCircle";
+    }
+
     const created = {
       id: `sec-${Date.now()}`,
-      ...newSection,
+      title: newSection.title,
+      type: newSection.type,
+      content: finalContent,
+      icon: finalIcon,
     };
+
     setProfileSections((prev) => [...prev, created]);
-    setNewSection({ title: "", content: "", icon: "Star" });
+    setNewSection({
+      title: "",
+      type: "text",
+      content: "",
+      icon: "Star",
+      videoUrl: "",
+      galleryUrl1: "",
+      galleryUrl2: "",
+      galleryUrl3: "",
+      payPix: true,
+      payCredit: true,
+      payDebit: true,
+      payInstallments: false,
+      payManual: false,
+      supportPhone: "",
+      supportEmail: "",
+      supportDesc: ""
+    });
     toast.success("Seção adicionada!");
   };
 
@@ -262,6 +347,16 @@ function PerfilPublicoPage() {
         return <Phone className="h-4 w-4" />;
       case "calendar":
         return <CalendarIcon className="h-4 w-4" />;
+      case "CreditCard":
+        return <CreditCard className="h-4 w-4" />;
+      case "Play":
+        return <Play className="h-4 w-4" />;
+      case "HelpCircle":
+        return <HelpCircle className="h-4 w-4" />;
+      case "Mail":
+        return <Mail className="h-4 w-4" />;
+      case "ImageIcon":
+        return <ImageIcon className="h-4 w-4" />;
       default:
         return <Sparkles className="h-4 w-4" />;
     }
@@ -393,14 +488,24 @@ function PerfilPublicoPage() {
                           <span className="text-[13px] font-medium">@{instagramHandle}</span>
                         </div>
                       )}
-                      {form.address && (
-                        <div className="flex items-start gap-3">
-                          <MapPin className="size-4 text-primary shrink-0 mt-0.5" />
-                          <span className="text-[13px] font-medium leading-tight text-muted-foreground">{form.address}</span>
+                      {virtualOnly ? (
+                        <div className="flex items-start gap-3 text-left">
+                          <Globe className="size-4 text-emerald-500 shrink-0 mt-0.5" />
+                          <div>
+                            <span className="text-[12px] font-bold text-emerald-600 block">Loja 100% Online</span>
+                            <span className="text-[11px] text-muted-foreground leading-tight">Atendimento e vendas digitais em todo o Brasil.</span>
+                          </div>
                         </div>
+                      ) : (
+                        form.address && (
+                          <div className="flex items-start gap-3 text-left">
+                            <MapPin className="size-4 text-primary shrink-0 mt-0.5" />
+                            <span className="text-[13px] font-medium leading-tight text-muted-foreground">{form.address}</span>
+                          </div>
+                        )
                       )}
                       {form.business_hours && (
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-3 text-left">
                           <Clock className="size-4 text-primary shrink-0 mt-0.5" />
                           <span className="text-[13px] font-medium leading-tight text-muted-foreground">{form.business_hours}</span>
                         </div>
@@ -410,16 +515,69 @@ function PerfilPublicoPage() {
 
                   {/* Custom Sections */}
                   {profileSections.length > 0 && (
-                    <div className="space-y-3 pt-2">
+                    <div className="space-y-3 pt-2 text-left">
                       {profileSections.map((sec) => (
                         <div key={sec.id} className="rounded-2xl bg-card border shadow-sm p-4">
                           <h3 className="font-bold text-[13px] flex items-center gap-2 mb-2">
                             <span className="text-primary">{renderIcon(sec.icon)}</span>
                             {sec.title}
                           </h3>
-                          <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                            {sec.content}
-                          </p>
+                          {(() => {
+                            const type = sec.type || "text";
+                            let data: any = null;
+                            const isJson = sec.content && (sec.content.startsWith("{") || sec.content.startsWith("["));
+                            if (isJson) {
+                              try {
+                                data = JSON.parse(sec.content);
+                              } catch (e) {
+                                console.error(e);
+                              }
+                            }
+
+                            if (type === "payments" && data) {
+                              return (
+                                <div className="flex flex-wrap gap-1 pt-0.5">
+                                  {data.pix && <span className="text-[10px] font-bold bg-emerald-500/10 text-emerald-700 px-2 py-0.5 rounded">Pix</span>}
+                                  {data.credit && <span className="text-[10px] font-bold bg-blue-500/10 text-blue-700 px-2 py-0.5 rounded">Crédito</span>}
+                                  {data.debit && <span className="text-[10px] font-bold bg-indigo-500/10 text-indigo-700 px-2 py-0.5 rounded">Débito</span>}
+                                  {data.installments && <span className="text-[10px] font-bold bg-purple-500/10 text-purple-700 px-2 py-0.5 rounded">Carnê</span>}
+                                  {data.manual && <span className="text-[10px] font-bold bg-amber-500/10 text-amber-700 px-2 py-0.5 rounded">Manual</span>}
+                                </div>
+                              );
+                            }
+
+                            if (type === "gallery" && Array.isArray(data)) {
+                              return (
+                                <div className="grid grid-cols-3 gap-1 pt-0.5">
+                                  {data.map((url: string, idx: number) => (
+                                    <div key={idx} className="aspect-square rounded overflow-hidden border bg-muted">
+                                      <img src={url} alt="" className="h-full w-full object-cover" />
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            }
+
+                            if (type === "video") {
+                              return <span className="text-[10px] text-muted-foreground italic">Vídeo incorporado</span>;
+                            }
+
+                            if (type === "support" && data) {
+                              return (
+                                <div className="space-y-1.5 pt-0.5 text-xs text-muted-foreground">
+                                  {data.desc && <p className="text-[11px] leading-tight">{data.desc}</p>}
+                                  {data.phone && <div className="font-semibold text-foreground">WhatsApp: {data.phone}</div>}
+                                  {data.email && <div className="font-semibold text-foreground">E-mail: {data.email}</div>}
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                                {sec.content}
+                              </p>
+                            );
+                          })()}
                         </div>
                       ))}
                     </div>
@@ -512,6 +670,20 @@ function PerfilPublicoPage() {
                     </div>
                   </div>
 
+                  <div className="flex items-center justify-between rounded-lg border p-4 bg-muted/10">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="store-virtual">Loja 100% Virtual / Sem Endereço Físico</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Ative se você não atende presencialmente. O mapa será ocultado na vitrine.
+                      </p>
+                    </div>
+                    <Switch
+                      id="store-virtual"
+                      checked={virtualOnly}
+                      onCheckedChange={setVirtualOnly}
+                    />
+                  </div>
+
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -522,8 +694,9 @@ function PerfilPublicoPage() {
                       placeholder="Rua Exemplo, 123 — Chapecó, SC"
                       value={form.address}
                       onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                      disabled={virtualOnly}
                     />
-                    {form.address && (
+                    {!virtualOnly && form.address && (
                       <div className="mt-2 overflow-hidden rounded-lg border aspect-video w-full max-h-40 z-0">
                         <iframe
                           src={`https://maps.google.com/maps?q=${encodeURIComponent(form.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
@@ -730,49 +903,215 @@ function PerfilPublicoPage() {
 
                   {/* Form de Nova Seção */}
                   <div className="p-4 border rounded-xl bg-muted/20 space-y-4">
-                    <h4 className="font-bold text-xs flex items-center gap-1">
-                      <Plus className="h-3.5 w-3.5" /> Adicionar Nova Seção
+                    <h4 className="font-bold text-xs flex items-center gap-1 text-primary">
+                      <Plus className="h-3.5 w-3.5" /> Adicionar Nova Seção Personalizada
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs">Título da Seção</Label>
                         <Input
                           placeholder="Ex: Como Cuidar do Couro"
                           value={newSection.title}
                           onChange={(e) => setNewSection({ ...newSection, title: e.target.value })}
-                          className="h-8 text-xs"
+                          className="h-8 text-xs bg-card"
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs">Ícone Relacionado</Label>
+                        <Label className="text-xs">Tipo de Bloco</Label>
+                        <Select
+                          value={newSection.type}
+                          onValueChange={(val) => setNewSection({ ...newSection, type: val })}
+                        >
+                          <SelectTrigger className="h-8 text-xs bg-card">
+                            <SelectValue placeholder="Selecione o tipo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="text">Texto Livre / Artigo</SelectItem>
+                            <SelectItem value="payments">Meios de Pagamento Aceitos</SelectItem>
+                            <SelectItem value="gallery">Galeria de Imagens / Fotos</SelectItem>
+                            <SelectItem value="video">Vídeo Incorporado (YouTube)</SelectItem>
+                            <SelectItem value="support">Canais de Atendimento</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Ícone de Cabeçalho</Label>
                         <Select
                           value={newSection.icon}
                           onValueChange={(val) => setNewSection({ ...newSection, icon: val })}
+                          disabled={newSection.type !== "text"} // Auto icons for other types
                         >
                           <SelectTrigger className="h-8 text-xs bg-card">
-                            <SelectValue placeholder="Selecione um ícone" />
+                            <SelectValue placeholder="Ícone" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Star">Estrela</SelectItem>
                             <SelectItem value="Sparkles">Brilho/Destaque</SelectItem>
-                            <SelectItem value="Clock">Relógio/Tempo</SelectItem>
-                            <SelectItem value="MapPin">Mapa/Local</SelectItem>
+                            <SelectItem value="Clock">Relógio</SelectItem>
+                            <SelectItem value="MapPin">Localização</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Conteúdo da Seção</Label>
-                      <Textarea
-                        placeholder="Descreva as informações detalhadas desta seção..."
-                        value={newSection.content}
-                        onChange={(e) => setNewSection({ ...newSection, content: e.target.value })}
-                        rows={3}
-                        className="text-xs"
-                      />
-                    </div>
-                    <Button type="button" onClick={handleAddSection} size="sm" className="font-bold">
-                      Inserir Seção no Perfil
+
+                    {/* Conditional inputs depending on section type */}
+                    {newSection.type === "text" && (
+                      <div className="space-y-1">
+                        <Label className="text-xs">Conteúdo da Seção</Label>
+                        <Textarea
+                          placeholder="Descreva as informações detalhadas desta seção..."
+                          value={newSection.content}
+                          onChange={(e) => setNewSection({ ...newSection, content: e.target.value })}
+                          rows={3}
+                          className="text-xs bg-card"
+                        />
+                      </div>
+                    )}
+
+                    {newSection.type === "payments" && (
+                      <div className="p-3 border rounded-lg bg-card space-y-3 text-left">
+                        <Label className="text-xs font-bold block mb-1">Meios de Pagamento Disponíveis:</Label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="pay-pix"
+                              checked={newSection.payPix}
+                              onChange={(e) => setNewSection({ ...newSection, payPix: e.target.checked })}
+                              className="size-4 rounded border-gray-300 accent-primary"
+                            />
+                            <Label htmlFor="pay-pix" className="text-xs cursor-pointer">Pix</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="pay-credit"
+                              checked={newSection.payCredit}
+                              onChange={(e) => setNewSection({ ...newSection, payCredit: e.target.checked })}
+                              className="size-4 rounded border-gray-300 accent-primary"
+                            />
+                            <Label htmlFor="pay-credit" className="text-xs cursor-pointer">Cartão de Crédito</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="pay-debit"
+                              checked={newSection.payDebit}
+                              onChange={(e) => setNewSection({ ...newSection, payDebit: e.target.checked })}
+                              className="size-4 rounded border-gray-300 accent-primary"
+                            />
+                            <Label htmlFor="pay-debit" className="text-xs cursor-pointer">Cartão de Débito</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="pay-inst"
+                              checked={newSection.payInstallments}
+                              onChange={(e) => setNewSection({ ...newSection, payInstallments: e.target.checked })}
+                              className="size-4 rounded border-gray-300 accent-primary"
+                            />
+                            <Label htmlFor="pay-inst" className="text-xs cursor-pointer">Ficha / Carnê Próprio</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="pay-manual"
+                              checked={newSection.payManual}
+                              onChange={(e) => setNewSection({ ...newSection, payManual: e.target.checked })}
+                              className="size-4 rounded border-gray-300 accent-primary"
+                            />
+                            <Label htmlFor="pay-manual" className="text-xs cursor-pointer">A combinar (Manual)</Label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {newSection.type === "gallery" && (
+                      <div className="p-3 border rounded-lg bg-card space-y-4 text-left">
+                        <Label className="text-xs font-bold block">Galeria de Fotos (até 3 imagens):</Label>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">Imagem 1</Label>
+                            <ImageUpload
+                              value={newSection.galleryUrl1}
+                              onChange={(url) => setNewSection({ ...newSection, galleryUrl1: url })}
+                              onRemove={() => setNewSection({ ...newSection, galleryUrl1: "" })}
+                              bucket="cms-media"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">Imagem 2</Label>
+                            <ImageUpload
+                              value={newSection.galleryUrl2}
+                              onChange={(url) => setNewSection({ ...newSection, galleryUrl2: url })}
+                              onRemove={() => setNewSection({ ...newSection, galleryUrl2: "" })}
+                              bucket="cms-media"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">Imagem 3</Label>
+                            <ImageUpload
+                              value={newSection.galleryUrl3}
+                              onChange={(url) => setNewSection({ ...newSection, galleryUrl3: url })}
+                              onRemove={() => setNewSection({ ...newSection, galleryUrl3: "" })}
+                              bucket="cms-media"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {newSection.type === "video" && (
+                      <div className="space-y-1 text-left">
+                        <Label className="text-xs">Link do Vídeo no YouTube</Label>
+                        <Input
+                          placeholder="Ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                          value={newSection.videoUrl}
+                          onChange={(e) => setNewSection({ ...newSection, videoUrl: e.target.value })}
+                          className="h-8 text-xs bg-card"
+                        />
+                      </div>
+                    )}
+
+                    {newSection.type === "support" && (
+                      <div className="p-3 border rounded-lg bg-card space-y-3 text-left">
+                        <Label className="text-xs font-bold block mb-1">Canais de Contato Rápido:</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-[10px]">WhatsApp Comercial</Label>
+                            <Input
+                              placeholder="Ex: (49) 99999-9999"
+                              value={newSection.supportPhone}
+                              onChange={(e) => setNewSection({ ...newSection, supportPhone: e.target.value })}
+                              className="h-8 text-xs bg-card"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px]">E-mail de Suporte</Label>
+                            <Input
+                              type="email"
+                              placeholder="Ex: suporte@loja.com"
+                              value={newSection.supportEmail}
+                              onChange={(e) => setNewSection({ ...newSection, supportEmail: e.target.value })}
+                              className="h-8 text-xs bg-card"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px]">Descrição do Atendimento</Label>
+                          <Textarea
+                            placeholder="Ex: Respondemos em menos de 15 minutos em horário comercial."
+                            value={newSection.supportDesc}
+                            onChange={(e) => setNewSection({ ...newSection, supportDesc: e.target.value })}
+                            rows={2}
+                            className="text-xs bg-card"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <Button type="button" onClick={handleAddSection} size="sm" className="font-bold w-full bg-primary/95 text-xs hover:bg-primary h-9">
+                      Inserir Bloco de Seção no Perfil
                     </Button>
                   </div>
 
