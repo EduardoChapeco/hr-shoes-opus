@@ -136,6 +136,28 @@ export const updateProductType = createServerFn({ method: "POST" })
     }
   });
 
+export async function deleteProductTypeHandler(id: string) {
+  const db = getServerClient();
+  const { error } = await db.from("product_types").delete().eq("id", id);
+  if (error) throw error;
+  return true;
+}
+
+export const deleteProductType = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    try {
+      await deleteProductTypeHandler(id);
+      return { status: "success" as const };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] deleteProductType error:", e);
+      return {
+        status: "error" as const,
+        message: "Não foi possível excluir o tipo. Verifique se existem produtos cadastrados usando este tipo.",
+      };
+    }
+  });
+
 // ---------------------------------------------------------------------------
 // Products
 // ---------------------------------------------------------------------------
@@ -406,6 +428,63 @@ export const createCategory = createServerFn({ method: "POST" })
     }
   });
 
+export async function getCategoryByIdHandler(id: string) {
+  const db = getServerClient();
+  const { data, error } = await db.from("categories").select("*").eq("id", id).single();
+  if (error) throw error;
+  return data;
+}
+
+export const getCategoryById = createServerFn({ method: "GET" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    try {
+      const data = await getCategoryByIdHandler(id);
+      return { status: "ok" as const, data };
+    } catch (e) {
+      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      console.error("[admin-catalog] getCategoryById error:", e);
+      return { status: "error" as const, message: "Erro ao buscar categoria." };
+    }
+  });
+
+export async function updateCategoryHandler(input: {
+  id: string;
+  name?: string;
+  slug?: string;
+  parent_id?: string | null;
+  status?: "active" | "inactive" | "archived";
+}) {
+  const db = getServerClient();
+  const { id, ...updates } = input;
+  const { data, error } = await db.from("categories").update(updates).eq("id", id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export const updateCategory = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+      name: z.string().min(1).max(100).optional(),
+      slug: z.string().regex(/^[a-z0-9-]+$/).optional(),
+      parent_id: z.string().uuid().optional().nullable(),
+      status: z.enum(["active", "inactive", "archived"]).optional(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const data = await updateCategoryHandler(input);
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] updateCategory error:", e);
+      return {
+        status: "error" as const,
+        message: e instanceof Error ? e.message : "Erro ao atualizar categoria.",
+      };
+    }
+  });
+
 // ---------------------------------------------------------------------------
 // Collections
 // ---------------------------------------------------------------------------
@@ -473,6 +552,61 @@ export const createCollection = createServerFn({ method: "POST" })
       return {
         status: "error" as const,
         message: e instanceof Error ? e.message : "Erro ao criar coleção.",
+      };
+    }
+  });
+
+export async function getCollectionByIdHandler(id: string) {
+  const db = getServerClient();
+  const { data, error } = await db.from("collections").select("*").eq("id", id).single();
+  if (error) throw error;
+  return data;
+}
+
+export const getCollectionById = createServerFn({ method: "GET" })
+  .validator(z.object({ id: z.string().uuid() }))
+  .handler(async ({ data: { id } }) => {
+    try {
+      const data = await getCollectionByIdHandler(id);
+      return { status: "ok" as const, data };
+    } catch (e) {
+      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      console.error("[admin-catalog] getCollectionById error:", e);
+      return { status: "error" as const, message: "Erro ao buscar coleção." };
+    }
+  });
+
+export async function updateCollectionHandler(input: {
+  id: string;
+  name?: string;
+  slug?: string;
+  status?: "active" | "inactive" | "archived";
+}) {
+  const db = getServerClient();
+  const { id, ...updates } = input;
+  const { data, error } = await db.from("collections").update(updates).eq("id", id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export const updateCollection = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+      name: z.string().min(1).max(100).optional(),
+      slug: z.string().regex(/^[a-z0-9-]+$/).optional(),
+      status: z.enum(["active", "inactive", "archived"]).optional(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const data = await updateCollectionHandler(input);
+      return { status: "success" as const, data };
+    } catch (e: unknown) {
+      console.error("[admin-catalog] updateCollection error:", e);
+      return {
+        status: "error" as const,
+        message: e instanceof Error ? e.message : "Erro ao atualizar coleção.",
       };
     }
   });

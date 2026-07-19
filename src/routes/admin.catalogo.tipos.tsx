@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { Plus, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,7 +36,18 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/state/states";
-import { listProductTypes, createProductType } from "@/services/admin-catalog.functions";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  listProductTypes,
+  createProductType,
+  updateProductType,
+  deleteProductType,
+} from "@/services/admin-catalog.functions";
 
 const fieldSchemaObj = z.object({
   name: z.string().min(1, "Obrigatório"),
@@ -67,6 +78,7 @@ function ProductTypesPage() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingType, setEditingType] = useState<any | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -85,26 +97,79 @@ function ProductTypesPage() {
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
-      const res = await createProductType({
-        data: {
-          name: values.name,
-          slug: values.slug,
-          field_schema: values.fields,
-        },
-      });
-
-      if (res.status === "success") {
-        toast.success("Tipo de produto criado com sucesso!");
-        setOpen(false);
-        form.reset();
-        router.invalidate();
+      if (editingType) {
+        const res = await updateProductType({
+          data: {
+            id: editingType.id,
+            name: values.name,
+            slug: values.slug,
+            field_schema: values.fields,
+          },
+        });
+        if (res.status === "success") {
+          toast.success("Tipo de produto atualizado!");
+          setOpen(false);
+          setEditingType(null);
+          form.reset();
+          router.invalidate();
+        } else {
+          toast.error(res.message || "Erro ao atualizar tipo");
+        }
       } else {
-        toast.error(res.message || "Erro ao criar tipo");
+        const res = await createProductType({
+          data: {
+            name: values.name,
+            slug: values.slug,
+            field_schema: values.fields,
+          },
+        });
+
+        if (res.status === "success") {
+          toast.success("Tipo de produto criado com sucesso!");
+          setOpen(false);
+          form.reset();
+          router.invalidate();
+        } else {
+          toast.error(res.message || "Erro ao criar tipo");
+        }
       }
     } catch (e: unknown) {
       toast.error("Erro inesperado");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleOpenNew = () => {
+    setEditingType(null);
+    form.reset({ name: "", slug: "", fields: [] });
+    setOpen(true);
+  };
+
+  const handleOpenEdit = (type: any) => {
+    setEditingType(type);
+    form.reset({
+      name: type.name,
+      slug: type.slug,
+      fields: Array.isArray(type.field_schema) ? type.field_schema : [],
+    });
+    setOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este tipo de produto? Isso pode quebrar a associação de produtos que usam este tipo.")) {
+      return;
+    }
+    try {
+      const res = await deleteProductType({ data: { id } });
+      if (res.status === "success") {
+        toast.success("Tipo de produto excluído!");
+        router.invalidate();
+      } else {
+        toast.error(res.message || "Erro ao excluir tipo");
+      }
+    } catch {
+      toast.error("Erro ao excluir tipo");
     }
   };
 
@@ -115,16 +180,14 @@ function ProductTypesPage() {
         title="Tipos de produto"
         description="Defina os esquemas de atributos dinâmicos para diferentes categorias de produtos."
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 size-4" aria-hidden />
-                Novo tipo
-              </Button>
-            </DialogTrigger>
+          <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) setEditingType(null); }}>
+            <Button onClick={handleOpenNew}>
+              <Plus className="mr-2 size-4" aria-hidden />
+              Novo tipo
+            </Button>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Criar tipo de produto</DialogTitle>
+                <DialogTitle>{editingType ? "Editar tipo de produto" : "Criar tipo de produto"}</DialogTitle>
                 <DialogDescription>
                   Um tipo de produto define quais atributos um produto deve ter (ex: Tamanho, Cor,
                   Material).
@@ -292,7 +355,8 @@ function ProductTypesPage() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Slug</TableHead>
                 <TableHead>Campos Dinâmicos</TableHead>
-                <TableHead className="text-right">Criado em</TableHead>
+                <TableHead>Criado em</TableHead>
+                <TableHead className="w-[80px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -310,8 +374,30 @@ function ProductTypesPage() {
                     <TableCell>
                       {Array.isArray(type.field_schema) ? type.field_schema.length : 0} campos
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell>
                       {new Date(type.created_at).toLocaleDateString("pt-BR")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleOpenEdit(type)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar tipo
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => handleDelete(type.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir tipo
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ),

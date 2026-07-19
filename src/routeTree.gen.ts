@@ -110,7 +110,9 @@ import { Route as AdminPedidosIdReciboRouteImport } from './routes/admin_.pedido
 import { Route as AdminCatalogoProdutosNovoRouteImport } from './routes/admin.catalogo.produtos.novo'
 import { Route as AdminCatalogoProdutosIdRouteImport } from './routes/admin.catalogo.produtos.$id'
 import { Route as AdminCatalogoColecoesNovoRouteImport } from './routes/admin.catalogo.colecoes.novo'
+import { Route as AdminCatalogoColecoesIdRouteImport } from './routes/admin.catalogo.colecoes.$id'
 import { Route as AdminCatalogoCategoriasNovoRouteImport } from './routes/admin.catalogo.categorias.novo'
+import { Route as AdminCatalogoCategoriasIdRouteImport } from './routes/admin.catalogo.categorias.$id'
 import { Route as AdminBuilderDocumentIdEditorRouteImport } from './routes/admin.builder.$documentId.editor'
 import { Route as StorePedidoPublicTokenConfirmacaoRouteImport } from './routes/_store.pedido.$publicToken.confirmacao'
 import { Route as StoreContaPedidosIdRouteImport } from './routes/_store.conta.pedidos.$id'
@@ -631,10 +633,21 @@ const AdminCatalogoColecoesNovoRoute =
     path: '/catalogo/colecoes/novo',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminCatalogoColecoesIdRoute = AdminCatalogoColecoesIdRouteImport.update({
+  id: '/catalogo/colecoes/$id',
+  path: '/catalogo/colecoes/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCatalogoCategoriasNovoRoute =
   AdminCatalogoCategoriasNovoRouteImport.update({
     id: '/catalogo/categorias/novo',
     path: '/catalogo/categorias/novo',
+    getParentRoute: () => AdminRoute,
+  } as any)
+const AdminCatalogoCategoriasIdRoute =
+  AdminCatalogoCategoriasIdRouteImport.update({
+    id: '/catalogo/categorias/$id',
+    path: '/catalogo/categorias/$id',
     getParentRoute: () => AdminRoute,
   } as any)
 const AdminBuilderDocumentIdEditorRoute =
@@ -757,7 +770,9 @@ export interface FileRoutesByFullPath {
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
   '/admin/builder/$documentId/editor': typeof AdminBuilderDocumentIdEditorRoute
+  '/admin/catalogo/categorias/$id': typeof AdminCatalogoCategoriasIdRoute
   '/admin/catalogo/categorias/novo': typeof AdminCatalogoCategoriasNovoRoute
+  '/admin/catalogo/colecoes/$id': typeof AdminCatalogoColecoesIdRoute
   '/admin/catalogo/colecoes/novo': typeof AdminCatalogoColecoesNovoRoute
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
@@ -862,7 +877,9 @@ export interface FileRoutesByTo {
   '/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
   '/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
   '/admin/builder/$documentId/editor': typeof AdminBuilderDocumentIdEditorRoute
+  '/admin/catalogo/categorias/$id': typeof AdminCatalogoCategoriasIdRoute
   '/admin/catalogo/categorias/novo': typeof AdminCatalogoCategoriasNovoRoute
+  '/admin/catalogo/colecoes/$id': typeof AdminCatalogoColecoesIdRoute
   '/admin/catalogo/colecoes/novo': typeof AdminCatalogoColecoesNovoRoute
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
@@ -971,7 +988,9 @@ export interface FileRoutesById {
   '/_store/conta/pedidos/$id': typeof StoreContaPedidosIdRoute
   '/_store/pedido/$publicToken/confirmacao': typeof StorePedidoPublicTokenConfirmacaoRoute
   '/admin/builder/$documentId/editor': typeof AdminBuilderDocumentIdEditorRoute
+  '/admin/catalogo/categorias/$id': typeof AdminCatalogoCategoriasIdRoute
   '/admin/catalogo/categorias/novo': typeof AdminCatalogoCategoriasNovoRoute
+  '/admin/catalogo/colecoes/$id': typeof AdminCatalogoColecoesIdRoute
   '/admin/catalogo/colecoes/novo': typeof AdminCatalogoColecoesNovoRoute
   '/admin/catalogo/produtos/$id': typeof AdminCatalogoProdutosIdRoute
   '/admin/catalogo/produtos/novo': typeof AdminCatalogoProdutosNovoRoute
@@ -1080,7 +1099,9 @@ export interface FileRouteTypes {
     | '/conta/pedidos/$id'
     | '/pedido/$publicToken/confirmacao'
     | '/admin/builder/$documentId/editor'
+    | '/admin/catalogo/categorias/$id'
     | '/admin/catalogo/categorias/novo'
+    | '/admin/catalogo/colecoes/$id'
     | '/admin/catalogo/colecoes/novo'
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
@@ -1185,7 +1206,9 @@ export interface FileRouteTypes {
     | '/conta/pedidos/$id'
     | '/pedido/$publicToken/confirmacao'
     | '/admin/builder/$documentId/editor'
+    | '/admin/catalogo/categorias/$id'
     | '/admin/catalogo/categorias/novo'
+    | '/admin/catalogo/colecoes/$id'
     | '/admin/catalogo/colecoes/novo'
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
@@ -1293,7 +1316,9 @@ export interface FileRouteTypes {
     | '/_store/conta/pedidos/$id'
     | '/_store/pedido/$publicToken/confirmacao'
     | '/admin/builder/$documentId/editor'
+    | '/admin/catalogo/categorias/$id'
     | '/admin/catalogo/categorias/novo'
+    | '/admin/catalogo/colecoes/$id'
     | '/admin/catalogo/colecoes/novo'
     | '/admin/catalogo/produtos/$id'
     | '/admin/catalogo/produtos/novo'
@@ -2023,11 +2048,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCatalogoColecoesNovoRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/catalogo/colecoes/$id': {
+      id: '/admin/catalogo/colecoes/$id'
+      path: '/catalogo/colecoes/$id'
+      fullPath: '/admin/catalogo/colecoes/$id'
+      preLoaderRoute: typeof AdminCatalogoColecoesIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/catalogo/categorias/novo': {
       id: '/admin/catalogo/categorias/novo'
       path: '/catalogo/categorias/novo'
       fullPath: '/admin/catalogo/categorias/novo'
       preLoaderRoute: typeof AdminCatalogoCategoriasNovoRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/catalogo/categorias/$id': {
+      id: '/admin/catalogo/categorias/$id'
+      path: '/catalogo/categorias/$id'
+      fullPath: '/admin/catalogo/categorias/$id'
+      preLoaderRoute: typeof AdminCatalogoCategoriasIdRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/builder/$documentId/editor': {
@@ -2213,7 +2252,9 @@ interface AdminRouteChildren {
   AdminFretesIndexRoute: typeof AdminFretesIndexRoute
   AdminPedidosIndexRoute: typeof AdminPedidosIndexRoute
   AdminBuilderDocumentIdEditorRoute: typeof AdminBuilderDocumentIdEditorRoute
+  AdminCatalogoCategoriasIdRoute: typeof AdminCatalogoCategoriasIdRoute
   AdminCatalogoCategoriasNovoRoute: typeof AdminCatalogoCategoriasNovoRoute
+  AdminCatalogoColecoesIdRoute: typeof AdminCatalogoColecoesIdRoute
   AdminCatalogoColecoesNovoRoute: typeof AdminCatalogoColecoesNovoRoute
   AdminCatalogoProdutosIdRoute: typeof AdminCatalogoProdutosIdRoute
   AdminCatalogoProdutosNovoRoute: typeof AdminCatalogoProdutosNovoRoute
@@ -2275,7 +2316,9 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFretesIndexRoute: AdminFretesIndexRoute,
   AdminPedidosIndexRoute: AdminPedidosIndexRoute,
   AdminBuilderDocumentIdEditorRoute: AdminBuilderDocumentIdEditorRoute,
+  AdminCatalogoCategoriasIdRoute: AdminCatalogoCategoriasIdRoute,
   AdminCatalogoCategoriasNovoRoute: AdminCatalogoCategoriasNovoRoute,
+  AdminCatalogoColecoesIdRoute: AdminCatalogoColecoesIdRoute,
   AdminCatalogoColecoesNovoRoute: AdminCatalogoColecoesNovoRoute,
   AdminCatalogoProdutosIdRoute: AdminCatalogoProdutosIdRoute,
   AdminCatalogoProdutosNovoRoute: AdminCatalogoProdutosNovoRoute,
