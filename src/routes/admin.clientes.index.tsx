@@ -174,69 +174,101 @@ function CustomersPage() {
       />
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Novo Cliente</DialogTitle>
+        <DialogContent className="sm:max-w-2xl p-0 overflow-hidden">
+          <DialogHeader className="px-6 py-4 border-b bg-muted/30">
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <UserCheck className="size-5 text-primary" />
+              Cadastrar Novo Cliente
+            </DialogTitle>
             <DialogDescription>
-              Cadastre um novo cliente no CRM da loja para vendas e acompanhamento de histórico.
+              Preencha os dados abaixo para adicionar um contato ao seu CRM e habilitar o histórico de compras.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleCreate} className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <Label htmlFor="cli-name">Nome Completo *</Label>
-              <Input
-                id="cli-name"
-                required
-                value={form.fullName}
-                onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                placeholder="Ex: Carlos Souza"
-              />
+          <form onSubmit={handleCreate} className="px-6 py-4">
+            <div className="grid md:grid-cols-2 gap-6">
+              
+              {/* Coluna 1: Dados Pessoais e Contato */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cli-name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome Completo *</Label>
+                  <Input
+                    id="cli-name"
+                    required
+                    value={form.fullName}
+                    onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                    placeholder="Ex: Carlos Souza"
+                    className="h-10 bg-background"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cli-email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">E-mail *</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 size-4 text-muted-foreground/50" />
+                    <Input
+                      id="cli-email"
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      placeholder="carlos@exemplo.com"
+                      className="pl-9 h-10 bg-background"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cli-phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Telefone / WhatsApp</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 size-4 text-muted-foreground/50" />
+                    <Input
+                      id="cli-phone"
+                      type="tel"
+                      value={form.phone}
+                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                      placeholder="(49) 99999-9999"
+                      className="pl-9 h-10 bg-background"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Coluna 2: Segmentação e Notas CRM */}
+              <div className="space-y-4 md:border-l md:pl-6">
+                <div className="space-y-2">
+                  <Label htmlFor="cli-tags" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tags de Segmentação</Label>
+                  <Input
+                    id="cli-tags"
+                    value={form.tagsRaw}
+                    onChange={(e) => setForm({ ...form, tagsRaw: e.target.value })}
+                    placeholder="Ex: VIP, Atacado, Compra Frequente"
+                    className="h-10 bg-background"
+                  />
+                  <p className="text-[10px] text-muted-foreground">Separe as tags por vírgulas.</p>
+                </div>
+                <div className="space-y-2 h-full flex flex-col">
+                  <Label htmlFor="cli-notes" className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <MessageSquare className="size-3.5" /> Notas Internas do CRM
+                  </Label>
+                  <textarea
+                    id="cli-notes"
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                    placeholder="Observações importantes sobre preferências ou negociações..."
+                    className="flex min-h-[100px] w-full flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="cli-email">E-mail *</Label>
-              <Input
-                id="cli-email"
-                type="email"
-                required
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="carlos@exemplo.com"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cli-phone">Telefone / WhatsApp</Label>
-              <Input
-                id="cli-phone"
-                type="tel"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="(49) 99999-9999"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cli-tags">Tags (separadas por vírgula)</Label>
-              <Input
-                id="cli-tags"
-                value={form.tagsRaw}
-                onChange={(e) => setForm({ ...form, tagsRaw: e.target.value })}
-                placeholder="VIP, Atacado, Sapato"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="cli-notes">Anotações Internas (CRM)</Label>
-              <Input
-                id="cli-notes"
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="Observações importantes..."
-              />
-            </div>
-            <DialogFooter className="pt-4">
-              <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>
+            
+            <DialogFooter className="pt-6 mt-4 border-t border-border/50">
+              <Button type="button" variant="ghost" onClick={() => setIsOpen(false)} className="h-10">
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSaving} className="font-bold">
-                {isSaving ? "Salvando..." : "Salvar Cliente"}
+              <Button type="submit" disabled={isSaving} className="h-10 min-w-32 font-bold bg-primary text-primary-foreground hover:bg-primary/90">
+                {isSaving ? "Salvando..." : (
+                  <>
+                    <CheckCircle className="size-4 mr-2" /> Cadastrar Cliente
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </form>

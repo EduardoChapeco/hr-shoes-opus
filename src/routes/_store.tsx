@@ -2,11 +2,14 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { getNavigationMenus, getPublicStoreSettings } from "@/services/cms.functions";
 import { getCart } from "@/services/cart.functions";
 import { getActiveGlobalPopups } from "@/services/builder.functions";
+import { useEffect } from "react";
 
 import { PublicHeader } from "@/components/commerce/public-header";
 import { PublicFooter } from "@/components/commerce/public-footer";
 import { BottomNav } from "@/components/commerce/bottom-nav";
 import { GlobalPopupRenderer } from "@/components/commerce/global-popup-renderer";
+import { CartProvider, useCartContext } from "@/lib/cart-context";
+import { SlideOutCart } from "@/components/commerce/slide-out-cart";
 
 export const Route = createFileRoute("/_store")({
   loader: async () => {
@@ -23,7 +26,7 @@ export const Route = createFileRoute("/_store")({
       popups: popupsRes.status === "ok" ? popupsRes.data : []
     };
   },
-  component: StoreLayout,
+  component: StoreLayoutWrapper,
   errorComponent: ({ error }: { error: any }) => (
     <div className="flex min-h-[50vh] flex-col items-center justify-center text-center px-4">
       <h1 className="text-2xl font-bold text-destructive">Erro Inesperado</h1>
@@ -35,15 +38,71 @@ export const Route = createFileRoute("/_store")({
   ),
 });
 
+function StoreLayoutWrapper() {
+  return (
+    <CartProvider>
+      <StoreLayout />
+    </CartProvider>
+  );
+}
+
 function StoreLayout() {
   const { menus, store, cart, popups } = Route.useLoaderData() as any;
+  const { initCart } = useCartContext();
+
+  useEffect(() => {
+    initCart(cart);
+  }, [cart, initCart]);
 
   // Extract header and footer menus
   const headerMenu = menus.find((m: any) => m.handle === "header")?.items || [];
   const footerMenu = menus.find((m: any) => m.handle === "footer")?.items || [];
 
+  const storeName = store?.name || "Hr Shoes";
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://hrshoes.com.br";
+  
+  // JSON-LD Structured Data (Organization + WebSite with SearchAction)
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${baseUrl}/#organization`,
+        name: storeName,
+        url: baseUrl,
+        logo: store?.logoUrl || `${baseUrl}/logo.png`,
+        contactPoint: store?.contactPhone
+          ? {
+              "@type": "ContactPoint",
+              telephone: store.contactPhone,
+              contactType: "customer service",
+            }
+          : undefined,
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${baseUrl}/#website`,
+        url: baseUrl,
+        name: storeName,
+        publisher: { "@id": `${baseUrl}/#organization` },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: `${baseUrl}/buscar?q={search_term_string}`,
+          },
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <PublicHeader menuItems={headerMenu} storeName={store?.name} cart={cart} />
       {/* pb accounts for the sticky mobile bottom nav */}
       <main className="flex-1 pb-20 md:pb-0">
@@ -52,6 +111,8 @@ function StoreLayout() {
       <PublicFooter menuItems={footerMenu} store={store} />
       <BottomNav />
       <GlobalPopupRenderer popups={popups} />
+      <SlideOutCart />
     </div>
   );
 }
+

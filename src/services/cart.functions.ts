@@ -155,16 +155,49 @@ export const getCart = createServerFn({ method: "GET" }).handler(
         isOutOfStock,
       };
     });
+    // Dynamic Recalculation (M-08-F2)
+    // Always recompute the discount based on the latest subtotal if a coupon is present.
+    let dynamicDiscountCents = cart.discount_cents || 0;
+    let currentCouponCode = cart.coupon_code;
+
+    if (currentCouponCode) {
+      const { data: coupon } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("code", currentCouponCode)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (!coupon || (coupon.expires_at && new Date(coupon.expires_at) < new Date()) || (coupon.min_order_cents && totalCents < coupon.min_order_cents)) {
+        // Invalidated by qty change or expiration
+        dynamicDiscountCents = 0;
+        currentCouponCode = null;
+        // Fire-and-forget DB update to clear the invalid coupon
+        supabase.from("carts").update({ coupon_code: null, discount_cents: 0 }).eq("id", cart.id).then();
+      } else {
+        if (coupon.discount_type === "percentage") {
+          dynamicDiscountCents = Math.floor(totalCents * (coupon.discount_value / 100));
+        } else if (coupon.discount_type === "fixed_amount") {
+          dynamicDiscountCents = Math.round(coupon.discount_value * 100);
+          if (dynamicDiscountCents > totalCents) dynamicDiscountCents = totalCents;
+        }
+        
+        // If the recomputed discount differs from the DB, update DB silently
+        if (dynamicDiscountCents !== cart.discount_cents) {
+           supabase.from("carts").update({ discount_cents: dynamicDiscountCents }).eq("id", cart.id).then();
+        }
+      }
+    }
 
     return {
       id: cart.id,
       items,
       subtotalCents: totalCents,
-      totalCents: totalCents + cart.shipping_cents - cart.discount_cents,
+      totalCents: Math.max(0, totalCents + cart.shipping_cents - dynamicDiscountCents),
       shippingCents: cart.shipping_cents,
       shippingMethod: cart.shipping_method,
-      discountCents: cart.discount_cents,
-      couponCode: cart.coupon_code,
+      discountCents: dynamicDiscountCents,
+      couponCode: currentCouponCode,
       itemCount: items.reduce((acc: number, item: { qty: number }) => acc + item.qty, 0),
     };
   },

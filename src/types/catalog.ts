@@ -63,8 +63,12 @@ export interface ProductCardDTO {
   compareAtCents?: number | null;
   coverUrl?: string | null;
   coverAlt?: string | null;
+  /** Second image URL — shown on hover (if product has ≥2 media). */
+  hoverUrl?: string | null;
   /** True when all active variants are out of stock (server-computed). */
   isOutOfStock?: boolean;
+  /** ISO timestamp — used to derive "Novo" badge (< 7 days). */
+  publishedAt?: string | null;
 }
 
 // ---------------------------------------------------------------------------

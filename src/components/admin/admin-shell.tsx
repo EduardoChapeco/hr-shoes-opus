@@ -25,7 +25,14 @@ import {
   Calendar,
   LogOut,
   UserPlus,
-  Sparkles
+  Sparkles,
+  Star,
+  Percent,
+  Zap,
+  LifeBuoy,
+  Paintbrush,
+  Video,
+  Plug
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -66,7 +73,15 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Calendar,
   LogOut,
   UserPlus,
-  Sparkles
+  Sparkles,
+  Star,
+  Percent,
+  Zap,
+  LifeBuoy,
+  Paintbrush,
+  Menu,
+  Video,
+  Plug
 };
 
 function resolveIcon(name: string): LucideIcon {
@@ -285,9 +300,11 @@ export function AdminShell({ children, session }: { children: ReactNode; session
               variant="secondary"
               size="sm"
               className="w-full text-xs font-semibold bg-primary/10 hover:bg-primary/20 text-primary border-transparent"
-              onClick={() => setViewMode("modules")}
+              asChild
             >
-              {collapsed ? <Grid className="size-4" /> : "← Voltar aos Módulos"}
+              <Link to="/admin" onClick={() => setViewMode("modules")}>
+                {collapsed ? <Grid className="size-4" /> : "← Voltar aos Módulos"}
+              </Link>
             </Button>
           )}
         </div>
@@ -431,9 +448,11 @@ export function AdminShell({ children, session }: { children: ReactNode; session
                           variant="ghost"
                           size="sm"
                           className="h-8 px-2 text-nav font-semibold text-primary"
-                          onClick={() => setViewMode("modules")}
+                          asChild
                         >
-                          ← Módulos
+                          <Link to="/admin" onClick={() => setViewMode("modules")}>
+                            ← Módulos
+                          </Link>
                         </Button>
                       </div>
                       <ul className="space-y-1">

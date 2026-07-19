@@ -95,7 +95,9 @@ function mapProductCardDTO(row: any): ProductCardDTO {
     compareAtCents: compareAt,
     coverUrl: cover?.url ?? null,
     coverAlt: cover?.alt ?? null,
+    hoverUrl: mediaList[1]?.url ?? null,
     isOutOfStock,
+    publishedAt: row.published_at ?? null,
   };
 }
 
@@ -110,6 +112,9 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         limit: z.number().int().min(1).max(50).default(20),
         cursor: z.string().uuid().optional(),
         categorySlug: z.string().optional(),
+        sort: z.enum(["newest", "price_asc", "price_desc", "in_stock"]).default("newest"),
+        minCents: z.number().int().min(0).optional(),
+        maxCents: z.number().int().min(0).optional(),
       })
       .default({}),
   )
@@ -126,24 +131,40 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       }
 
       const selectQuery = params.categorySlug
-        ? `id, slug, title, brand, price_cents, compare_at_cents,
+        ? `id, slug, title, brand, price_cents, compare_at_cents, published_at,
            product_media(url, alt, sort_order),
            product_categories!inner(categories!inner(slug)),
            product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`
-        : `id, slug, title, brand, price_cents, compare_at_cents,
+        : `id, slug, title, brand, price_cents, compare_at_cents, published_at,
            product_media(url, alt, sort_order),
            product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`;
+
+      // Determine sort order — price sorting must be done post-fetch since effective price
+      // depends on variant override logic (server-calculated, never trusted from client)
+      const dbOrderField =
+        params.sort === "price_asc" || params.sort === "price_desc"
+          ? "price_cents" // approximate — fine-tuned after mapping
+          : "published_at";
+      const dbOrderAsc = params.sort === "price_asc";
 
       let query = db
         .from("products")
         .select(selectQuery)
         .eq("store_id", storeId)
         .eq("status", "published")
-        .order("published_at", { ascending: false })
-        .limit(params.limit);
+        .order(dbOrderField, { ascending: dbOrderAsc })
+        .limit(params.limit * 2); // fetch more to allow client-side re-sort after mapping
 
       if (params.categorySlug) {
         query = query.eq("product_categories.categories.slug", params.categorySlug);
+      }
+
+      // Price range filter (applied on base price_cents — server enforced)
+      if (params.minCents != null) {
+        query = query.gte("price_cents", params.minCents);
+      }
+      if (params.maxCents != null) {
+        query = query.lte("price_cents", params.maxCents);
       }
 
       if (params.cursor) {
@@ -161,7 +182,19 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         return { status: "empty" };
       }
 
-      const products: ProductCardDTO[] = data.map(mapProductCardDTO);
+      let products: ProductCardDTO[] = data.map(mapProductCardDTO);
+
+      // Post-map sort for price (uses effective price from variant, not DB price_cents)
+      if (params.sort === "price_asc") {
+        products = products.sort((a, b) => a.priceCents - b.priceCents);
+      } else if (params.sort === "price_desc") {
+        products = products.sort((a, b) => b.priceCents - a.priceCents);
+      } else if (params.sort === "in_stock") {
+        products = products.filter((p) => !p.isOutOfStock);
+      }
+
+      // Trim to requested limit after sorting
+      products = products.slice(0, params.limit);
 
       return { status: "ok", data: products };
     } catch (e) {
@@ -175,6 +208,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       return { status: "error", message: "Erro inesperado ao carregar produtos." };
     }
   });
+
 
 // ---------------------------------------------------------------------------
 // listPublishedCategories
@@ -309,40 +343,65 @@ export const searchProducts = createServerFn({ method: "GET" })
         return { status: "unconfigured", reason: "Loja não encontrada." };
       }
 
-      const { data, error } = await db
+      const selectFields = `
+        id,
+        title,
+        slug,
+        brand,
+        status,
+        published_at,
+        priceCents:price_cents,
+        compareAtCents:compare_at_cents,
+        media:product_media(id, url, alt, sort_order),
+        variants:product_variants(status, price_override_cents, stock_on_hand, stock_reserved)
+      `;
+
+      // Stage 1: Full-text search using tsvector (Portuguese stemming + stop words)
+      const tsQuery = query
+        .trim()
+        .split(/\s+/)
+        .map((w) => w + ":*")
+        .join(" & ");
+
+      const { data: ftsData, error: ftsError } = await db
         .from("products")
-        .select(
-          `
-          id,
-          title,
-          slug,
-          status,
-          priceCents:price_cents,
-          compareAtCents:compare_at_cents,
-          media:product_media(id, url, alt, sort_order),
-          variants:product_variants(status, price_override_cents, stock_on_hand, stock_reserved)
-        `,
-        )
+        .select(selectFields)
         .eq("store_id", store.id)
         .eq("status", "published")
-        .ilike("name", `%${query}%`)
-        .order("created_at", { ascending: false });
+        .textSearch("search_vector", tsQuery, { type: "websearch", config: "portuguese" })
+        .order("published_at", { ascending: false })
+        .limit(20);
 
-      if (error) {
-        return { status: "error", message: error.message };
+      // If FTS returns results, use them
+      if (!ftsError && ftsData && ftsData.length > 0) {
+        return { status: "ok", data: ftsData.map(mapProductCardDTO) };
       }
 
-      if (!data || data.length === 0) {
+      // Stage 2: Trigram fallback — match across title, brand, description
+      const likePattern = `%${query}%`;
+      const { data: trigramData, error: trigramError } = await db
+        .from("products")
+        .select(selectFields)
+        .eq("store_id", store.id)
+        .eq("status", "published")
+        .or(`title.ilike.${likePattern},brand.ilike.${likePattern},description.ilike.${likePattern}`)
+        .order("published_at", { ascending: false })
+        .limit(20);
+
+      if (trigramError) {
+        return { status: "error", message: trigramError.message };
+      }
+
+      if (!trigramData || trigramData.length === 0) {
         return { status: "ok", data: [] };
       }
 
-      const mapped: ProductCardDTO[] = data.map(mapProductCardDTO);
-
-      return { status: "ok", data: mapped };
+      return { status: "ok", data: trigramData.map(mapProductCardDTO) };
     } catch (e: any) {
       return { status: "error", message: e.message || "Erro desconhecido" };
     }
   });
+
 
 export const getProductsByCollection = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string().min(1) }))
@@ -380,7 +439,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
       const { data, error } = await db
         .from("products")
         .select(
-          `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order), variants:product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`,
+          `id, slug, title, brand, published_at, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order), variants:product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`,
         )
         .eq("store_id", store.id)
         .eq("status", "published")

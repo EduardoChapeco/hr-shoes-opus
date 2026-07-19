@@ -34,6 +34,7 @@ import { calculateShipping } from "@/services/shipping.functions";
 import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions";
 import type { ProductDetailDTO, ProductMediaDTO, VariantDTO } from "@/types/catalog";
 import { formatMoney } from "@/lib/money";
+import { useCartContext } from "@/lib/cart-context";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
@@ -163,9 +164,40 @@ function SizeGuideDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
 }
 
 export const Route = createFileRoute("/_store/produto/$slug")({
-  head: () => ({
-    meta: [{ title: "Hr Shoes — Produto" }],
-  }),
+  head: ({ loaderData }) => {
+    const result = loaderData?.productResult;
+    if (!result || result.status !== "ok") {
+      return { meta: [{ title: "Produto — Hr Shoes" }] };
+    }
+    const product = result.data;
+    const title = product.seoTitle || `${product.title} — Hr Shoes`;
+    const description =
+      product.seoDescription ||
+      (product.description
+        ? product.description.replace(/<[^>]+>/g, "").slice(0, 155)
+        : `Compre ${product.title} na Hr Shoes. Frete rápido e parcelamento disponível.`);
+    const coverUrl = product.media?.[0]?.url ?? null;
+    const canonical = `${typeof window !== "undefined" ? window.location.origin : ""}/produto/${product.slug}`;
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        // Open Graph
+        { property: "og:type", content: "product" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        ...(coverUrl ? [{ property: "og:image", content: coverUrl }] : []),
+        { property: "og:url", content: canonical },
+        // Twitter Card
+        { name: "twitter:card", content: coverUrl ? "summary_large_image" : "summary" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        ...(coverUrl ? [{ name: "twitter:image", content: coverUrl }] : []),
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+    };
+  },
   loader: async ({ params }) => {
     const [productRes, templateRes] = await Promise.all([
       getProductBySlug({ data: { slug: params.slug } }),
@@ -179,6 +211,7 @@ export const Route = createFileRoute("/_store/produto/$slug")({
   },
   component: ProductPage,
 });
+
 
 function ProductPage() {
   const { productResult: result, templateTree } = Route.useLoaderData() as any;
@@ -269,6 +302,8 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
     }
   }, [selectedVariant]);
 
+  const { refreshCart, setIsCartOpen } = useCartContext();
+
   const handleAddToCart = async () => {
     if (!selectedVariant) {
       toast.error("Por favor, selecione as opções do produto.");
@@ -284,7 +319,8 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
     try {
       await addToCart({ data: { variantId: selectedVariant.id, quantity: 1 } });
       toast.success("Adicionado ao carrinho");
-      router.invalidate();
+      await refreshCart();
+      setIsCartOpen(true);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao adicionar ao carrinho.");
     } finally {
