@@ -335,6 +335,17 @@ function GeneralForm({
       cost_cents: product.cost_cents ? (product.cost_cents / 100).toFixed(2) : "",
       status: product.status,
       weight_grams: product.weight_grams || "",
+      short_description: product.short_description || "",
+      manufacturer: product.manufacturer || "",
+      ean: product.ean || "",
+      meta_title: product.meta_title || "",
+      meta_description: product.meta_description || "",
+      is_physical: product.is_physical !== false,
+      weight_kg: product.weight_kg || "",
+      width_cm: product.width_cm || "",
+      height_cm: product.height_cm || "",
+      length_cm: product.length_cm || "",
+      preparation_time_days: product.preparation_time_days || 0,
     },
   });
 
@@ -403,6 +414,17 @@ function GeneralForm({
           compare_at_cents,
           cost_cents,
           weight_grams,
+          short_description: values.short_description || null,
+          manufacturer: values.manufacturer || null,
+          ean: values.ean || null,
+          meta_title: values.meta_title || null,
+          meta_description: values.meta_description || null,
+          is_physical: values.is_physical,
+          weight_kg: values.weight_kg ? parseFloat(values.weight_kg) : null,
+          width_cm: values.width_cm ? parseFloat(values.width_cm) : null,
+          height_cm: values.height_cm ? parseFloat(values.height_cm) : null,
+          length_cm: values.length_cm ? parseFloat(values.length_cm) : null,
+          preparation_time_days: values.preparation_time_days ? parseInt(values.preparation_time_days, 10) : 0,
           category_ids: selectedCategory ? [selectedCategory] : [],
         },
       });
@@ -484,7 +506,7 @@ function GeneralForm({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Publicação & Logística</CardTitle>
+          <CardTitle className="text-base">Publicação & Status</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -501,8 +523,74 @@ function GeneralForm({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Peso de Envio (gramas)</Label>
+            <Label>Peso Antigo (gramas)</Label>
             <Input type="number" placeholder="Ex: 600" {...register("weight_grams")} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Logística Avançada & Dimensões</CardTitle>
+          <CardDescription>Necessário para cálculo de frete e prazos.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <input type="checkbox" id="is_physical" {...register("is_physical")} className="size-4 rounded border-gray-300 text-primary focus:ring-primary" />
+            <Label htmlFor="is_physical" className="text-sm font-semibold">Este é um produto físico que requer frete</Label>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label>Peso (kg)</Label>
+              <Input {...register("weight_kg")} type="number" step="0.001" placeholder="Ex: 0.500" />
+            </div>
+            <div className="space-y-2">
+              <Label>Largura (cm)</Label>
+              <Input {...register("width_cm")} type="number" step="0.01" placeholder="Ex: 20" />
+            </div>
+            <div className="space-y-2">
+              <Label>Altura (cm)</Label>
+              <Input {...register("height_cm")} type="number" step="0.01" placeholder="Ex: 15" />
+            </div>
+            <div className="space-y-2">
+              <Label>Comprimento (cm)</Label>
+              <Input {...register("length_cm")} type="number" step="0.01" placeholder="Ex: 30" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Prazo de Preparação (dias)</Label>
+            <Input {...register("preparation_time_days")} type="number" placeholder="Ex: 0" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Identificadores & SEO</CardTitle>
+          <CardDescription>Otimização para busca e conformidade fiscal/EAN.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Fabricante / Marca do Fornecedor</Label>
+              <Input {...register("manufacturer")} placeholder="Ex: Nike S.A." />
+            </div>
+            <div className="space-y-2">
+              <Label>Código EAN / GTIN</Label>
+              <Input {...register("ean")} placeholder="Ex: 7891234567890" maxLength={14} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Resumo Curto (Short Description)</Label>
+            <Textarea {...register("short_description")} placeholder="Visualização rápida do produto..." className="min-h-16" />
+          </div>
+          <div className="space-y-2">
+            <Label>Meta Title (SEO)</Label>
+            <Input {...register("meta_title")} />
+          </div>
+          <div className="space-y-2">
+            <Label>Meta Description (SEO)</Label>
+            <Textarea {...register("meta_description")} className="min-h-16" />
           </div>
         </CardContent>
       </Card>

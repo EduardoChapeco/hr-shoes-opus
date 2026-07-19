@@ -8,11 +8,16 @@
 
 | Status | Significado |
 |--------|-------------|
-| `✅ completo` | Implementado, testado, em produção |
-| `🟡 parcial` | Existe mas incompleto ou sem teste adequado |
-| `🔴 faltante` | Requisito conhecido, não implementado |
+| `✅ COMPROVADO` | Implementado, testado de ponta-a-ponta, servidor validado, em produção |
+| `🟡 PARCIAL` | Existe mas incompleto, sem teste adequado ou faltando capacidades |
+| `🔴 MOCKADO` / `SIMULADO` | Apenas visual, dados fake, sem persistência real |
+| `🟠 HARDCODADO` | Funciona, mas fixo no código (sem DB ou config) |
+| `🟣 DUPLICADO` | Implementado mais de uma vez ou sem usar fonte canônica |
+| `🟤 FUNCIONA MAS NA CAMADA ERRADA` | Lógica no cliente que deveria estar no servidor |
+| `🔵 ALTERADO MAS NÃO COMPROVADO` | Código alterado recentemente, sem auditoria de profundidade |
+| `❌ CONTINUA QUEBRADO` | Falha conhecida não resolvida |
+| `⛔ BLOQUEADO` | Depende de outra microfase |
 | `⚪ fora-escopo` | Decidido que não será implementado nesta fase |
-| `🔵 planejado` | Priorizado para próxima microfase |
 
 ---
 
@@ -20,26 +25,26 @@
 
 | ID | Requisito | Prioridade | Status | Evidência / Observação |
 |----|-----------|-----------|--------|----------------------|
-| AUTH-001 | Login com email/senha | P0 | ✅ completo | `auth.functions.ts` → `loginWithEmail` |
-| AUTH-002 | Registro com email/senha | P0 | ✅ completo | `auth.functions.ts` → `registerWithEmail` |
-| AUTH-003 | Login OAuth (Google) | P1 | ✅ completo | `auth.functions.ts` → `loginWithOAuth` |
-| AUTH-004 | Recuperação de senha | P1 | ✅ completo | `_store.recuperar-senha.tsx` |
-| AUTH-005 | Redefinição de senha | P1 | ✅ completo | `_store.redefinir-senha.tsx` |
-| AUTH-006 | Logout | P0 | ✅ completo | `auth.functions.ts` → `logoutUser` |
-| AUTH-007 | Sessão SSR (cookie seguro) | P0 | ✅ completo | `getSSRClient` via `@supabase/ssr` |
-| AUTH-008 | Criação automática de perfil via DB trigger | P0 | ✅ completo | Migration `0010_auto_profile_trigger.sql` |
-| AUTH-009 | RBAC — roles: owner/admin/manager/seller/stock/finance/content/support/customer | P0 | ✅ completo | `memberships` table + `assertStoreAccess` |
-| AUTH-010 | RLS deny-by-default em todas as tabelas sensíveis | P0 | ✅ completo | Migrations `0037–0038` |
-| AUTH-011 | Rate limiting de login (proteção brute force) | P1 | 🔴 faltante | Sem evidência de implementação |
+| AUTH-001 | Login com email/senha | P0 | ✅ COMPROVADO | `auth.functions.ts` → `loginWithEmail` |
+| AUTH-002 | Registro com email/senha | P0 | ✅ COMPROVADO | `auth.functions.ts` → `registerWithEmail` |
+| AUTH-003 | Login OAuth (Google) | P1 | ✅ COMPROVADO | `auth.functions.ts` → `loginWithOAuth` |
+| AUTH-004 | Recuperação de senha | P1 | ✅ COMPROVADO | `_store.recuperar-senha.tsx` |
+| AUTH-005 | Redefinição de senha | P1 | ✅ COMPROVADO | `_store.redefinir-senha.tsx` |
+| AUTH-006 | Logout | P0 | ✅ COMPROVADO | `auth.functions.ts` → `logoutUser` |
+| AUTH-007 | Sessão SSR (cookie seguro) | P0 | ✅ COMPROVADO | `getSSRClient` via `@supabase/ssr` |
+| AUTH-008 | Criação automática de perfil via DB trigger | P0 | ✅ COMPROVADO | Migration `0010_auto_profile_trigger.sql` |
+| AUTH-009 | RBAC — roles | P0 | ✅ COMPROVADO | `memberships` table + `assertStoreAccess` |
+| AUTH-010 | RLS deny-by-default | P0 | ✅ COMPROVADO | Migrations `0037–0038` |
+| AUTH-011 | Rate limiting de login | P1 | 🔴 faltante | Sem evidência de implementação |
 | AUTH-012 | 2FA / MFA opcional | P2 | 🔴 faltante | Não implementado |
-| AUTH-013 | Expiração e renovação automática de sessão | P1 | 🟡 parcial | Supabase gerencia; sem lógica custom de revalidação |
-| AUTH-014 | Verificação de email (confirmação de conta) | P1 | ✅ completo | `api.auth.confirm.ts` + `api.auth.callback.ts` |
-| AUTH-015 | Página de onboarding pós-registro (admin) | P1 | ✅ completo | `onboarding.functions.ts` |
-| AUTH-016 | Consentimentos LGPD no cadastro | P2 | 🟡 parcial | Rota `/conta/privacidade` existe mas sem DB |
-| AUTH-017 | Desvinculação/exclusão de conta (direito ao esquecimento) | P2 | 🔴 faltante | LGPD — não implementado |
-| AUTH-018 | Multi-tenant isolation (organization_id em todas entidades) | P0 | ✅ completo | Arquitetura de schema |
-| AUTH-019 | Merge de carrinho guest→autenticado | P1 | ✅ completo | `cart.functions.ts` → `mergeGuestCart` |
-| AUTH-020 | Perfil público de cliente (dados pessoais editáveis) | P1 | 🟡 parcial | UI mínima em `_store.conta.perfil.tsx` |
+| AUTH-013 | Expiração e renovação automática de sessão | P1 | 🟡 PARCIAL | Supabase gerencia; sem lógica custom |
+| AUTH-014 | Verificação de email (confirmação de conta) | P1 | ✅ COMPROVADO | `api.auth.confirm.ts` |
+| AUTH-015 | Página de onboarding pós-registro | P1 | ✅ COMPROVADO | `onboarding.functions.ts` |
+| AUTH-016 | Consentimentos LGPD no cadastro | P2 | 🔴 MOCKADO | UI existe mas sem DB / registro real |
+| AUTH-017 | Desvinculação/exclusão de conta | P2 | 🔴 faltante | Não implementado |
+| AUTH-018 | Multi-tenant isolation | P0 | ✅ COMPROVADO | Arquitetura de schema |
+| AUTH-019 | Merge de carrinho guest→autenticado | P1 | ✅ COMPROVADO | `cart.functions.ts` |
+| AUTH-020 | Perfil público de cliente | P1 | 🟡 PARCIAL | UI mínima em `_store.conta.perfil.tsx` |
 
 ---
 
@@ -47,20 +52,20 @@
 
 | ID | Requisito | Prioridade | Status | Evidência |
 |----|-----------|-----------|--------|-----------|
-| CAT-001 | CRUD de produtos (nome, descrição, status) | P0 | ✅ completo | `admin-catalog.functions.ts` |
-| CAT-002 | Tipos de produto com FieldDefinitions versionadas | P0 | ✅ completo | `0002_catalog.sql` + `admin.catalogo.tipos.tsx` |
-| CAT-003 | Variantes (SKU, cor, tamanho, preço override) | P0 | ✅ completo | `0033_catalog_variants_stock.sql` |
-| CAT-004 | Mídia de produto (upload de imagens/vídeos) | P0 | ✅ completo | `storage.functions.ts` + Storage buckets |
-| CAT-005 | Categorias em árvore hierárquica | P0 | ✅ completo | `admin.catalogo.categorias.index.tsx` |
-| CAT-006 | Coleções curadas | P1 | ✅ completo | `admin.catalogo.colecoes.index.tsx` |
-| CAT-007 | Atributos filtráveis / comparáveis | P1 | ✅ completo | `admin.catalogo.atributos.tsx` |
-| CAT-008 | SEO por produto (title, description, canonical) | P1 | ✅ completo | `admin.configuracoes.seo.tsx` |
-| CAT-009 | Variante com galeria própria (VariantMedia) | P1 | ✅ completo | `0033_catalog_variants_stock.sql` |
+| CAT-001 | CRUD de produtos completo | P0 | 🔵 ALTERADO MAS NÃO COMPROVADO | Faltam identificadores, prazos, specs profundas. UI foi refinada, backend parcial. |
+| CAT-002 | Tipos de produto com FieldDefinitions versionadas | P0 | 🟡 PARCIAL | `0002_catalog.sql` - Faltam validações complexas. |
+| CAT-003 | Variantes profundas (dimensões, peso, GTIN) | P0 | 🟡 PARCIAL | UI permite SKU e estoque, faltam regras e colunas. |
+| CAT-004 | Mídia de produto (upload, vídeo, alt text, ordenação) | P0 | 🟡 PARCIAL | Faz upload simples; falta ordenação, metadata, bucket policy isolada. |
+| CAT-005 | Categorias em árvore hierárquica | P0 | 🟡 PARCIAL | Funciona nível único, hierarquia não testada 100%. |
+| CAT-006 | Coleções curadas | P1 | 🟡 PARCIAL | UI genérica, sem builder visual. |
+| CAT-007 | Atributos filtráveis / comparáveis | P1 | 🟡 PARCIAL | Salvo no JSON, sem motor de filtro real. |
+| CAT-008 | SEO por produto | P1 | 🔴 SIMULADO | UI não salva em metadados reais por produto (salva global). |
+| CAT-009 | Variante com galeria própria | P1 | 🔴 faltante | Modelado no banco, ausente na UI e no server action. |
 | CAT-010 | Import/export CSV de produtos | P2 | 🔴 faltante | Não implementado |
 | CAT-011 | Publicação agendada de produtos | P2 | 🔴 faltante | Não implementado |
 | CAT-012 | Produto digital (download) | P3 | ⚪ fora-escopo | Fora do escopo atual |
-| CAT-013 | Busca full-text de produtos | P1 | 🟡 parcial | `_store.buscar.tsx` existe; sem trigram/FTS indexado |
-| CAT-014 | Produtos relacionados / cross-sell | P1 | 🟡 parcial | Seção produto existe; sem serviço curado |
+| CAT-013 | Busca full-text de produtos | P1 | 🟡 PARCIAL | `_store.buscar.tsx` existe, FTS indexado em `0061` mas front parcial. |
+| CAT-014 | Produtos relacionados / cross-sell | P1 | 🔴 SIMULADO | Seção existe estática. |
 
 ---
 
@@ -174,11 +179,11 @@
 
 | ID | Requisito | Prioridade | Status | Evidência |
 |----|-----------|-----------|--------|-----------|
-| CRM-001 | Lista de clientes com filtros | P1 | ✅ completo | `admin.clientes.index.tsx` |
-| CRM-002 | Ficha 360° da cliente | P1 | ✅ completo | `admin.clientes.$id.tsx` |
-| CRM-003 | Chat em tempo real (admin ↔ cliente) | P2 | ✅ completo | `admin.conversas.tsx` + Realtime |
-| CRM-004 | Pipeline de leads / prospectos | P2 | 🟡 parcial | `crm.functions.ts` — sem UI de kanban |
-| CRM-005 | Notas e histórico de atendimento | P2 | 🟡 parcial | Integrado na ficha mas incompleto |
+| CRM-001 | Lista de clientes com filtros | P1 | 🟡 PARCIAL | `admin.clientes.index.tsx` (Filtros locais, sem paginação/busca remota). |
+| CRM-002 | Ficha 360° da cliente | P1 | 🔵 ALTERADO MAS NÃO COMPROVADO | UI aprimorada (modal), mas banco de dados não tem deduplicação, endereços e consentimentos reais. |
+| CRM-003 | Chat em tempo real (admin ↔ cliente) | P2 | 🟡 PARCIAL | `admin.conversas.tsx` + Realtime básico. |
+| CRM-004 | Pipeline de leads / prospectos | P2 | 🟡 PARCIAL | `crm.functions.ts` — Sem UI de kanban. |
+| CRM-005 | Notas e histórico de atendimento | P2 | 🟡 PARCIAL | Integrado na ficha mas incompleto. |
 | CRM-006 | Exportação de base de clientes | P2 | 🔴 faltante | Não implementado |
 
 ---

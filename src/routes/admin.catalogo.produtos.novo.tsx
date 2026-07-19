@@ -67,10 +67,21 @@ function NewProductPage() {
     defaultValues: {
       title: "",
       slug: "",
+      short_description: "",
+      manufacturer: "",
+      ean: "",
+      meta_title: "",
+      meta_description: "",
       description: "",
       price_cents: "",
       compare_at_cents: "",
       status: "draft",
+      is_physical: true,
+      weight_kg: "",
+      width_cm: "",
+      height_cm: "",
+      length_cm: "",
+      preparation_time_days: "",
       attributes: {} as Record<string, unknown>,
     },
   });
@@ -144,6 +155,17 @@ function NewProductPage() {
           status: values.status as "draft" | "published" | "archived",
           type_id: selectedTypeId === "generic" ? null : selectedTypeId,
           attributes: values.attributes,
+          short_description: values.short_description || null,
+          manufacturer: values.manufacturer || null,
+          ean: values.ean || null,
+          meta_title: values.meta_title || null,
+          meta_description: values.meta_description || null,
+          is_physical: values.is_physical,
+          weight_kg: values.weight_kg ? parseFloat(values.weight_kg) : null,
+          width_cm: values.width_cm ? parseFloat(values.width_cm) : null,
+          height_cm: values.height_cm ? parseFloat(values.height_cm) : null,
+          length_cm: values.length_cm ? parseFloat(values.length_cm) : null,
+          preparation_time_days: values.preparation_time_days ? parseInt(values.preparation_time_days, 10) : 0,
           media_urls,
           category_ids: selectedCategory ? [selectedCategory] : [],
           variants: payloadVariants.length > 0 ? payloadVariants : undefined,
@@ -235,6 +257,12 @@ function NewProductPage() {
           </TabsTrigger>
           <TabsTrigger value="pricing" className="w-full justify-start text-left data-[state=active]:bg-primary/5 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 py-2.5">
             <DollarSign className="size-4 mr-2" /> Preço e Estoque
+          </TabsTrigger>
+          <TabsTrigger value="logistics" className="w-full justify-start text-left data-[state=active]:bg-primary/5 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 py-2.5">
+            <Layers className="size-4 mr-2" /> Logística
+          </TabsTrigger>
+          <TabsTrigger value="seo" className="w-full justify-start text-left data-[state=active]:bg-primary/5 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 py-2.5">
+            <Tag className="size-4 mr-2" /> SEO e Identidade
           </TabsTrigger>
           <TabsTrigger value="specs" className="w-full justify-start text-left data-[state=active]:bg-primary/5 data-[state=active]:text-primary border border-transparent data-[state=active]:border-primary/20 py-2.5">
             <Settings2 className="size-4 mr-2" /> Especificações
@@ -451,13 +479,98 @@ function NewProductPage() {
                         </div>
                       ))}
                     </div>
+                    <div className="p-3 bg-muted/30">
+                      <Button type="button" variant="outline" size="sm" onClick={() => setVariants([...variants, { sku: "", size: "", stock: 0 }])}>
+                        Adicionar Variante
+                      </Button>
+                    </div>
                   </div>
-                  <Button type="button" variant="outline" size="sm" onClick={() => setVariants([...variants, { sku: "", size: "", stock: 0 }])} className="border-dashed border-primary/50 text-primary hover:bg-primary/5">
-                    + Adicionar Variação
-                  </Button>
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* TAB: LOGISTICS */}
+            <TabsContent value="logistics" className="space-y-6 mt-0 border-none p-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Logística e Dimensões</CardTitle>
+                  <CardDescription>Necessário para cálculo automático de frete.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center space-x-2">
+                    <input type="checkbox" id="is_physical" {...register("is_physical")} className="size-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                    <Label htmlFor="is_physical" className="text-sm font-semibold">Este é um produto físico que requer frete</Label>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold">Peso (kg)</Label>
+                      <Input {...register("weight_kg")} type="number" step="0.001" placeholder="Ex: 0.500" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold">Largura (cm)</Label>
+                      <Input {...register("width_cm")} type="number" step="0.01" placeholder="Ex: 20" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold">Altura (cm)</Label>
+                      <Input {...register("height_cm")} type="number" step="0.01" placeholder="Ex: 15" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold">Comprimento (cm)</Label>
+                      <Input {...register("length_cm")} type="number" step="0.01" placeholder="Ex: 30" />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Prazo de preparação (dias)</Label>
+                    <Input {...register("preparation_time_days")} type="number" placeholder="Ex: 0 (Pronta entrega)" />
+                    <p className="text-xs text-muted-foreground">Dias adicionados ao prazo de frete padrão.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* TAB: SEO & IDENTITY */}
+            <TabsContent value="seo" className="space-y-6 mt-0 border-none p-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Identidade Canônica</CardTitle>
+                  <CardDescription>Informações globais do fornecedor e códigos universais.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Fabricante / Marca Fornecedora</Label>
+                    <Input {...register("manufacturer")} placeholder="Ex: Nike S.A." />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Código de Barras (EAN / GTIN)</Label>
+                    <Input {...register("ean")} placeholder="Ex: 7891234567890" maxLength={14} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>SEO e Metadados</CardTitle>
+                  <CardDescription>Otimização para motores de busca e compartilhamento social.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Resumo Curto (Short Description)</Label>
+                    <Textarea {...register("short_description")} placeholder="Exiba isso na listagem rápida de produtos..." className="min-h-16" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Meta Title (SEO)</Label>
+                    <Input {...register("meta_title")} placeholder="Deixe em branco para usar o título do produto" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Meta Description (SEO)</Label>
+                    <Textarea {...register("meta_description")} placeholder="Um resumo atrativo para o Google..." className="min-h-16" />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
 
             {/* TAB: SPECS */}
             <TabsContent value="specs" className="space-y-6 mt-0 border-none p-0">

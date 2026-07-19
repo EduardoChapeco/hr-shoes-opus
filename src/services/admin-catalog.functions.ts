@@ -174,6 +174,11 @@ export async function createProductHandler(input: {
   title: string;
   slug: string;
   description?: string | null;
+  short_description?: string | null;
+  manufacturer?: string | null;
+  ean?: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
   status: "draft" | "published" | "archived";
   brand?: string | null;
   price_cents: number;
@@ -181,6 +186,12 @@ export async function createProductHandler(input: {
   cost_cents?: number | null;
   attributes: Record<string, any>;
   weight_grams?: number | null;
+  is_physical?: boolean;
+  weight_kg?: number | null;
+  width_cm?: number | null;
+  height_cm?: number | null;
+  length_cm?: number | null;
+  preparation_time_days?: number | null;
   media_urls?: string[];
   category_ids?: string[];
   variants?: {
@@ -277,6 +288,11 @@ export const createProduct = createServerFn({ method: "POST" })
       title: z.string().min(1).max(300),
       slug: z.string().regex(/^[a-z0-9-]+$/),
       description: z.string().optional().nullable(),
+      short_description: z.string().optional().nullable(),
+      manufacturer: z.string().optional().nullable(),
+      ean: z.string().optional().nullable(),
+      meta_title: z.string().optional().nullable(),
+      meta_description: z.string().optional().nullable(),
       status: z.enum(["draft", "published", "archived"]).default("draft"),
       brand: z.string().optional().nullable(),
       price_cents: z.number().int().min(0),
@@ -284,6 +300,12 @@ export const createProduct = createServerFn({ method: "POST" })
       cost_cents: z.number().int().min(0).optional().nullable(),
       attributes: z.record(z.any()).default({}), // Dynamic fields based on type
       weight_grams: z.number().int().min(0).optional().nullable(),
+      is_physical: z.boolean().default(true).optional(),
+      weight_kg: z.number().min(0).optional().nullable(),
+      width_cm: z.number().min(0).optional().nullable(),
+      height_cm: z.number().min(0).optional().nullable(),
+      length_cm: z.number().min(0).optional().nullable(),
+      preparation_time_days: z.number().int().min(0).optional().nullable(),
       media_urls: z.array(z.string().url()).optional(),
       category_ids: z.array(z.string().uuid()).optional(),
       variants: z
@@ -496,6 +518,11 @@ export async function updateProductHandler(input: {
   id: string;
   title?: string;
   description?: string | null;
+  short_description?: string | null;
+  manufacturer?: string | null;
+  ean?: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
   status?: "draft" | "published" | "archived";
   brand?: string | null;
   price_cents?: number;
@@ -503,6 +530,12 @@ export async function updateProductHandler(input: {
   cost_cents?: number | null;
   attributes?: Record<string, any>;
   weight_grams?: number | null;
+  is_physical?: boolean;
+  weight_kg?: number | null;
+  width_cm?: number | null;
+  height_cm?: number | null;
+  length_cm?: number | null;
+  preparation_time_days?: number | null;
   type_id?: string | null;
   category_ids?: string[];
 }) {
@@ -533,6 +566,11 @@ export const updateProduct = createServerFn({ method: "POST" })
       id: z.string().uuid(),
       title: z.string().min(1).max(300).optional(),
       description: z.string().optional().nullable(),
+      short_description: z.string().optional().nullable(),
+      manufacturer: z.string().optional().nullable(),
+      ean: z.string().optional().nullable(),
+      meta_title: z.string().optional().nullable(),
+      meta_description: z.string().optional().nullable(),
       status: z.enum(["draft", "published", "archived"]).optional(),
       brand: z.string().optional().nullable(),
       price_cents: z.number().int().min(0).optional(),
@@ -540,6 +578,12 @@ export const updateProduct = createServerFn({ method: "POST" })
       cost_cents: z.number().int().min(0).optional().nullable(),
       attributes: z.record(z.any()).optional(),
       weight_grams: z.number().int().min(0).optional().nullable(),
+      is_physical: z.boolean().optional(),
+      weight_kg: z.number().min(0).optional().nullable(),
+      width_cm: z.number().min(0).optional().nullable(),
+      height_cm: z.number().min(0).optional().nullable(),
+      length_cm: z.number().min(0).optional().nullable(),
+      preparation_time_days: z.number().int().min(0).optional().nullable(),
       type_id: z.string().uuid().optional().nullable(),
       category_ids: z.array(z.string().uuid()).optional(),
     }),
