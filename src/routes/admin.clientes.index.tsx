@@ -201,6 +201,19 @@ function CustomersPage() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="cli-tax" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">CPF ou CNPJ</Label>
+                  <div className="relative">
+                    <FileText className="absolute left-3 top-3 size-4 text-muted-foreground/50" />
+                    <Input
+                      id="cli-tax"
+                      value={form.taxId}
+                      onChange={(e) => setForm({ ...form, taxId: e.target.value })}
+                      placeholder="000.000.000-00"
+                      className="pl-9 h-10 bg-background"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="cli-email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">E-mail *</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 size-4 text-muted-foreground/50" />
@@ -244,6 +257,24 @@ function CustomersPage() {
                   />
                   <p className="text-[10px] text-muted-foreground">Separe as tags por vírgulas.</p>
                 </div>
+                <div className="flex items-start space-x-2 pt-2 pb-2 border-y border-dashed border-border/80">
+                  <Checkbox
+                    id="cli-consent-lgpd"
+                    checked={form.isConsentLgpd}
+                    onCheckedChange={(checked) => setForm({ ...form, isConsentLgpd: !!checked })}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <label
+                      htmlFor="cli-consent-lgpd"
+                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground cursor-pointer flex items-center gap-1"
+                    >
+                      <ShieldCheck className="size-3.5 text-emerald-500" /> Consentimento LGPD
+                    </label>
+                    <p className="text-[10px] text-muted-foreground leading-snug">
+                      O cliente autoriza expressamente a coleta e o processamento de seus dados cadastrais.
+                    </p>
+                  </div>
+                </div>
                 <div className="space-y-2 h-full flex flex-col">
                   <Label htmlFor="cli-notes" className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                     <MessageSquare className="size-3.5" /> Notas Internas do CRM
@@ -253,7 +284,7 @@ function CustomersPage() {
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
                     placeholder="Observações importantes sobre preferências ou negociações..."
-                    className="flex min-h-[100px] w-full flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex min-h-[80px] w-full flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
               </div>
@@ -318,7 +349,19 @@ function CustomersPage() {
               <TableBody>
                 {filteredCustomers.map((c: any) => (
                   <TableRow key={c.id}>
-                    <TableCell className="font-semibold text-foreground text-sm">{c.name}</TableCell>
+                    <TableCell>
+                      <div className="font-semibold text-foreground text-sm flex items-center gap-2">
+                        {c.name}
+                        {c.isConsentLgpd && (
+                          <Badge variant="outline" className="text-[9px] text-emerald-600 border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50/50 h-4 px-1">
+                            LGPD
+                          </Badge>
+                        )}
+                      </div>
+                      {c.taxId && (
+                        <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{c.taxId}</p>
+                      )}
+                    </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {new Date(c.joinedAt).toLocaleDateString("pt-BR", {
                         month: "short",

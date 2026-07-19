@@ -10,7 +10,7 @@ export const listCustomers = createServerFn({ method: "GET" }).handler(async () 
 
   const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
-    .select("id, full_name, created_at")
+    .select("id, full_name, created_at, tax_id, is_consent_lgpd")
     .eq("role", "customer")
     .eq("store_id", identity.store_id);
 
@@ -51,6 +51,8 @@ export const listCustomers = createServerFn({ method: "GET" }).handler(async () 
     return {
       id: p.id,
       name: p.full_name || "Cliente sem nome",
+      taxId: p.tax_id,
+      isConsentLgpd: p.is_consent_lgpd,
       joinedAt: p.created_at,
       orderCount: stats.count,
       ltvCents: stats.ltv,
@@ -68,7 +70,7 @@ export const getCustomer360 = createServerFn({ method: "GET" })
 
     const { data: profile, error } = await supabase
       .from("profiles")
-      .select("id, full_name, created_at")
+      .select("id, full_name, created_at, tax_id, is_consent_lgpd")
       .eq("id", customerId)
       .eq("store_id", identity.store_id)
       .single();
@@ -87,14 +89,24 @@ export const getCustomer360 = createServerFn({ method: "GET" })
       .eq("customer_id", customerId)
       .order("created_at", { ascending: false });
 
+    const { data: addresses } = await supabase
+      .from("customer_addresses")
+      .select("*")
+      .eq("customer_id", customerId)
+      .eq("store_id", identity.store_id)
+      .order("is_default", { ascending: false });
+
     return {
       profile: {
         id: profile.id,
         name: profile.full_name || "Cliente sem nome",
+        taxId: profile.tax_id,
+        isConsentLgpd: profile.is_consent_lgpd,
         joinedAt: profile.created_at,
       },
       crm: crm || { notes: null, tags: [] },
       orders: orders || [],
+      addresses: addresses || [],
     };
   });
 
@@ -126,6 +138,8 @@ export const createCustomerSchema = z.object({
   fullName: z.string().min(2).max(100),
   email: z.string().email(),
   phone: z.string().max(20).optional().or(z.literal("")),
+  taxId: z.string().max(20).optional().nullable(),
+  isConsentLgpd: z.boolean().default(false),
   tags: z.array(z.string()).optional(),
   notes: z.string().optional(),
 });
@@ -138,7 +152,20 @@ export const createCustomer = createServerFn({ method: "POST" })
       const identity = await getServerIdentity();
       assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
 
-      // 1. Criar o usuário no Supabase Auth usando o admin client
+      // 1. Deduplicação - Verifica CPF/CNPJ se fornecido
+      if (input.taxId) {
+        const { data: existingTax } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("tax_id", input.taxId)
+          .maybeSingle();
+
+        if (existingTax) {
+          throw new Error("Já existe um cliente cadastrado com este CPF/CNPJ neste catálogo.");
+        }
+      }
+
+      // 2. Criar o usuário no Supabase Auth usando o admin client
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: input.email,
         password: "HrShoesCustomer123!",
@@ -149,12 +176,15 @@ export const createCustomer = createServerFn({ method: "POST" })
       });
 
       if (authError) {
+        if (authError.message.includes("already registered") || authError.message.includes("exists")) {
+          throw new Error("Este endereço de e-mail já está em uso por outro cliente.");
+        }
         throw new Error(authError.message);
       }
 
       const userId = authData.user.id;
 
-      // 2. Atualizar o perfil associando a role 'customer' e o store_id
+      // 3. Atualizar o perfil associando a role 'customer', o store_id, tax_id e consentimento LGPD
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
@@ -162,6 +192,8 @@ export const createCustomer = createServerFn({ method: "POST" })
           organization_id: identity.organization_id,
           role: "customer",
           full_name: input.fullName,
+          tax_id: input.taxId || null,
+          is_consent_lgpd: input.isConsentLgpd,
         })
         .eq("id", userId);
 
@@ -169,7 +201,7 @@ export const createCustomer = createServerFn({ method: "POST" })
         console.error("[crm] error updating profile:", profileError);
       }
 
-      // 3. Cadastrar tags/anotações se existirem
+      // 4. Cadastrar tags/anotações se existirem
       if ((input.tags && input.tags.length > 0) || input.notes) {
         const { error: crmError } = await supabase.from("customers_crm").upsert({
           id: userId,
@@ -312,6 +344,97 @@ export const promoteLeadToCustomer = createServerFn({ method: "POST" })
     } catch (e: any) {
       console.error("[crm] promoteLeadToCustomer error:", e);
       return { status: "error" as const, message: e.message || "Erro ao converter lead." };
+    }
+  });
+
+export const upsertCustomerAddress = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid().optional(),
+      customer_id: z.string().uuid(),
+      zipcode: z.string().min(8).max(20),
+      street: z.string().min(1),
+      number: z.string().min(1),
+      complement: z.string().optional().nullable(),
+      neighborhood: z.string().min(1),
+      city: z.string().min(1),
+      state: z.string().length(2),
+      is_default: z.boolean().default(false),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const supabase = getServerClient();
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+      const { id, customer_id, is_default, ...addressFields } = input;
+
+      if (is_default) {
+        await supabase
+          .from("customer_addresses")
+          .update({ is_default: false })
+          .eq("customer_id", customer_id)
+          .eq("store_id", identity.store_id);
+      }
+
+      const payload = {
+        store_id: identity.store_id,
+        customer_id,
+        is_default,
+        ...addressFields,
+      };
+
+      let result;
+      if (id) {
+        result = await supabase
+          .from("customer_addresses")
+          .update(payload)
+          .eq("id", id)
+          .eq("store_id", identity.store_id)
+          .select()
+          .single();
+      } else {
+        result = await supabase
+          .from("customer_addresses")
+          .insert(payload)
+          .select()
+          .single();
+      }
+
+      if (result.error) throw result.error;
+      return { status: "success" as const, data: result.data };
+    } catch (e: any) {
+      console.error("[crm] upsertCustomerAddress error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao salvar endereço." };
+    }
+  });
+
+export const deleteCustomerAddress = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      addressId: z.string().uuid(),
+      customerId: z.string().uuid(),
+    }),
+  )
+  .handler(async ({ data: { addressId, customerId } }) => {
+    try {
+      const supabase = getServerClient();
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+      const { error } = await supabase
+        .from("customer_addresses")
+        .delete()
+        .eq("id", addressId)
+        .eq("customer_id", customerId)
+        .eq("store_id", identity.store_id);
+
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[crm] deleteCustomerAddress error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao deletar endereço." };
     }
   });
 
