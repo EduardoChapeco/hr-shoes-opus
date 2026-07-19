@@ -626,6 +626,29 @@ export const deleteStory = createServerFn({ method: "POST" })
     }
   });
 
+export const listPublicStories = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+
+    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+    if (!storeData) throw new Error("No store found");
+
+    const { data, error } = await db
+      .from("stories")
+      .select("*")
+      .eq("store_id", storeData.id)
+      .eq("status", "active")
+      .order("sort_order", { ascending: true });
+
+    if (error) throw error;
+    return { status: "ok" as const, data };
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    console.error("[cms.functions] listPublicStories error:", e);
+    return { status: "error" as const, message: "Erro ao listar stories." };
+  }
+});
+
 export const getPageBySlug = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string() }))
   .handler(async ({ data: { slug } }) => {

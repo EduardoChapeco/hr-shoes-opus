@@ -104,13 +104,15 @@ function PerfilPublicoPage() {
   );
 
   const [virtualOnly, setVirtualOnly] = useState<boolean>(storeSettings.virtual_only || false);
+  const [latitude, setLatitude] = useState<string>(storeSettings.latitude || "");
+  const [longitude, setLongitude] = useState<string>(storeSettings.longitude || "");
 
   const [isSaving, setIsSaving] = useState(false);
 
   // New section form state
-  const [newSection, setNewSection] = useState({
+  const [newSection, setNewSection] = useState<any>({
     title: "",
-    type: "text", // "text" | "payments" | "gallery" | "video" | "support"
+    type: "text", // "text" | "payments" | "gallery" | "video" | "support" | "faq"
     content: "",
     icon: "Star",
     videoUrl: "",
@@ -124,7 +126,11 @@ function PerfilPublicoPage() {
     payManual: false,
     supportPhone: "",
     supportEmail: "",
-    supportDesc: ""
+    supportDesc: "",
+    faqQuestion1: "",
+    faqAnswer1: "",
+    faqQuestion2: "",
+    faqAnswer2: "",
   });
 
   // New exception form state
@@ -152,6 +158,8 @@ function PerfilPublicoPage() {
         settings: {
           ...storeSettings,
           virtual_only: virtualOnly,
+          latitude: latitude || undefined,
+          longitude: longitude || undefined,
           logoUrl: form.logo_url || undefined,
           cover_url: coverUrl || undefined,
           instagramHandle: instagramHandle || undefined,
@@ -227,6 +235,18 @@ function PerfilPublicoPage() {
         desc: newSection.supportDesc
       });
       finalIcon = "HelpCircle";
+    } else if (newSection.type === "faq") {
+      const items = [
+        { q: newSection.faqQuestion1, a: newSection.faqAnswer1 },
+        { q: newSection.faqQuestion2, a: newSection.faqAnswer2 }
+      ].filter(item => item.q && item.a);
+
+      if (items.length === 0) {
+        toast.error("Adicione pelo menos uma pergunta e resposta");
+        return;
+      }
+      finalContent = JSON.stringify(items);
+      finalIcon = "HelpCircle";
     }
 
     const created = {
@@ -254,7 +274,11 @@ function PerfilPublicoPage() {
       payManual: false,
       supportPhone: "",
       supportEmail: "",
-      supportDesc: ""
+      supportDesc: "",
+      faqQuestion1: "",
+      faqAnswer1: "",
+      faqQuestion2: "",
+      faqAnswer2: ""
     });
     toast.success("Seção adicionada!");
   };
@@ -572,6 +596,19 @@ function PerfilPublicoPage() {
                               );
                             }
 
+                            if (type === "faq" && Array.isArray(data)) {
+                              return (
+                                <div className="space-y-2 pt-0.5">
+                                  {data.map((item: any, idx: number) => (
+                                    <div key={idx} className="text-[11px] leading-snug border-b pb-1">
+                                      <p className="font-bold text-foreground">Q: {item.q}</p>
+                                      <p className="text-muted-foreground">A: {item.a}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            }
+
                             return (
                               <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
                                 {sec.content}
@@ -696,6 +733,28 @@ function PerfilPublicoPage() {
                       onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
                       disabled={virtualOnly}
                     />
+                    {!virtualOnly && (
+                      <div className="grid grid-cols-2 gap-3 mt-2">
+                        <div className="space-y-1">
+                          <Label className="text-[11px] text-muted-foreground">Latitude do Mapa (Leaflet)</Label>
+                          <Input
+                            placeholder="Ex: -27.0988"
+                            value={latitude}
+                            onChange={(e) => setLatitude(e.target.value)}
+                            className="h-8 text-xs bg-card"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[11px] text-muted-foreground">Longitude do Mapa (Leaflet)</Label>
+                          <Input
+                            placeholder="Ex: -52.6128"
+                            value={longitude}
+                            onChange={(e) => setLongitude(e.target.value)}
+                            className="h-8 text-xs bg-card"
+                          />
+                        </div>
+                      </div>
+                    )}
                     {!virtualOnly && form.address && (
                       <div className="mt-2 overflow-hidden rounded-lg border aspect-video w-full max-h-40 z-0">
                         <iframe
@@ -931,6 +990,7 @@ function PerfilPublicoPage() {
                             <SelectItem value="gallery">Galeria de Imagens / Fotos</SelectItem>
                             <SelectItem value="video">Vídeo Incorporado (YouTube)</SelectItem>
                             <SelectItem value="support">Canais de Atendimento</SelectItem>
+                            <SelectItem value="faq">Perguntas Frequentes (FAQ)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1106,6 +1166,48 @@ function PerfilPublicoPage() {
                             rows={2}
                             className="text-xs bg-card"
                           />
+                        </div>
+                      </div>
+                    )}
+
+                    {newSection.type === "faq" && (
+                      <div className="p-3 border rounded-lg bg-card space-y-3 text-left">
+                        <Label className="text-xs font-bold block mb-1">Perguntas Frequentes (FAQ):</Label>
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-1 gap-2">
+                            <Label className="text-[10px] font-semibold text-primary">Pergunta 1</Label>
+                            <Input
+                              placeholder="Ex: Quais as formas de envio?"
+                              value={newSection.faqQuestion1}
+                              onChange={(e) => setNewSection({ ...newSection, faqQuestion1: e.target.value })}
+                              className="h-8 text-xs bg-card"
+                            />
+                            <Label className="text-[10px] text-muted-foreground">Resposta 1</Label>
+                            <Textarea
+                              placeholder="Ex: Enviamos via Correios (PAC e Sedex) e Transportadora para todo o Brasil..."
+                              value={newSection.faqAnswer1}
+                              onChange={(e) => setNewSection({ ...newSection, faqAnswer1: e.target.value })}
+                              rows={2}
+                              className="text-xs bg-card"
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 gap-2 border-t pt-2">
+                            <Label className="text-[10px] font-semibold text-primary">Pergunta 2</Label>
+                            <Input
+                              placeholder="Ex: Como funciona a garantia?"
+                              value={newSection.faqQuestion2}
+                              onChange={(e) => setNewSection({ ...newSection, faqQuestion2: e.target.value })}
+                              className="h-8 text-xs bg-card"
+                            />
+                            <Label className="text-[10px] text-muted-foreground">Resposta 2</Label>
+                            <Textarea
+                              placeholder="Ex: Todos os nossos produtos possuem garantia legal de 90 dias contra defeitos de fabricação..."
+                              value={newSection.faqAnswer2}
+                              onChange={(e) => setNewSection({ ...newSection, faqAnswer2: e.target.value })}
+                              rows={2}
+                              className="text-xs bg-card"
+                            />
+                          </div>
                         </div>
                       </div>
                     )}
