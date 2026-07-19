@@ -54,13 +54,13 @@
 |----|-----------|-----------|--------|-----------|
 | CAT-001 | CRUD de produtos completo | P0 | 🔵 ALTERADO MAS NÃO COMPROVADO | Faltam identificadores, prazos, specs profundas. UI foi refinada, backend parcial. |
 | CAT-002 | Tipos de produto com FieldDefinitions versionadas | P0 | 🟡 PARCIAL | `0002_catalog.sql` - Faltam validações complexas. |
-| CAT-003 | Variantes profundas (dimensões, peso, GTIN) | P0 | 🟡 PARCIAL | UI permite SKU e estoque, faltam regras e colunas. |
+| CAT-003 | Variantes profundas (dimensões, peso, GTIN) | P0 | ✅ COMPROVADO | `upsertProductVariant` suporta barcode/EAN, overrides logísticos, custos e estoque mínimo. |
 | CAT-004 | Mídia de produto (upload, vídeo, alt text, ordenação, variante) | P0 | ✅ COMPROVADO | `uploadProductMedia`, `updateProductMediaMetadata`, `reorderProductMedia` no BFF + MediaManager. |
 | CAT-005 | Categorias em árvore hierárquica | P0 | 🟡 PARCIAL | Funciona nível único, hierarquia não testada 100%. |
 | CAT-006 | Coleções curadas | P1 | 🟡 PARCIAL | UI genérica, sem builder visual. |
 | CAT-007 | Atributos filtráveis / comparáveis | P1 | 🟡 PARCIAL | Salvo no JSON, sem motor de filtro real. |
-| CAT-008 | SEO por produto | P1 | 🔴 SIMULADO | UI não salva em metadados reais por produto (salva global). |
-| CAT-009 | Variante com galeria própria | P1 | 🔴 faltante | Modelado no banco, ausente na UI e no server action. |
+| CAT-008 | SEO por produto | P1 | ✅ COMPROVADO | Campos de SEO (`short_description`, `meta_title`, `meta_description`) salvos e expostos na UI e BFF. |
+| CAT-009 | Variante com galeria própria | P1 | ✅ COMPROVADO | Mídias vinculáveis a variante específica via `updateProductMediaMetadata` no MediaManager. |
 | CAT-010 | Import/export CSV de produtos | P2 | 🔴 faltante | Não implementado |
 | CAT-011 | Publicação agendada de produtos | P2 | 🔴 faltante | Não implementado |
 | CAT-012 | Produto digital (download) | P3 | ⚪ fora-escopo | Fora do escopo atual |
