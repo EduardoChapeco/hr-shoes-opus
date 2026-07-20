@@ -33,8 +33,8 @@ CREATE POLICY "Admin can insert media" ON public.media_assets
   WITH CHECK (
     store_id = (SELECT id FROM public.stores LIMIT 1)
     AND EXISTS (
-      SELECT 1 FROM public.team_members 
-      WHERE user_id = auth.uid() 
+      SELECT 1 FROM public.profiles 
+      WHERE id = auth.uid() 
       AND role IN ('owner', 'admin', 'manager', 'content')
     )
   );
@@ -44,8 +44,8 @@ CREATE POLICY "Admin can delete media" ON public.media_assets
   USING (
     store_id = (SELECT id FROM public.stores LIMIT 1)
     AND EXISTS (
-      SELECT 1 FROM public.team_members 
-      WHERE user_id = auth.uid() 
+      SELECT 1 FROM public.profiles 
+      WHERE id = auth.uid() 
       AND role IN ('owner', 'admin', 'manager', 'content')
     )
   );
@@ -70,8 +70,8 @@ CREATE POLICY "Admin can upload product media" ON storage.objects
   WITH CHECK (
     bucket_id = 'product-media'
     AND EXISTS (
-      SELECT 1 FROM public.team_members 
-      WHERE user_id = auth.uid() 
+      SELECT 1 FROM public.profiles 
+      WHERE id = auth.uid() 
       AND role IN ('owner', 'admin', 'manager', 'content')
     )
   );
@@ -81,8 +81,8 @@ CREATE POLICY "Admin can update product media" ON storage.objects
   WITH CHECK (
     bucket_id = 'product-media'
     AND EXISTS (
-      SELECT 1 FROM public.team_members 
-      WHERE user_id = auth.uid() 
+      SELECT 1 FROM public.profiles 
+      WHERE id = auth.uid() 
       AND role IN ('owner', 'admin', 'manager', 'content')
     )
   );
@@ -92,8 +92,8 @@ CREATE POLICY "Admin can delete product media" ON storage.objects
   USING (
     bucket_id = 'product-media'
     AND EXISTS (
-      SELECT 1 FROM public.team_members 
-      WHERE user_id = auth.uid() 
+      SELECT 1 FROM public.profiles 
+      WHERE id = auth.uid() 
       AND role IN ('owner', 'admin', 'manager', 'content')
     )
   );
