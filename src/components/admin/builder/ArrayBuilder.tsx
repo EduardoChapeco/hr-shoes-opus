@@ -120,8 +120,15 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
-                        onChange={(val) => handleUpdateItem(index, field.name, val)}
-                      />
+                <AccordionContent className="p-3 border-t bg-card space-y-3">
+                  {arrayFields.map(field => (
+                    <div key={field.name} className="flex flex-col gap-1.5">
+                      {field.type === "image" ? (
+                        <MediaUploader
+                          label={field.label}
+                          value={item[field.name] || ""}
+                          onChange={(val) => handleUpdateItem(index, field.name, val)}
+                        />
                     ) : field.type === "color" ? (
                       <div className="space-y-1.5">
                         <label className="text-xs font-semibold uppercase text-muted-foreground">{field.label}</label>
@@ -175,7 +182,8 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
                 ))}
               </AccordionContent>
             </AccordionItem>
-          ))}
+            );
+          })}
         </Accordion>
       )}
       
