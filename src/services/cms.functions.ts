@@ -8,14 +8,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
+import { getSSRClient } from "@/lib/supabase-ssr.server";
 
 // ---------------------------------------------------------------------------
 // Admin CRUD
 // ---------------------------------------------------------------------------
 
 export async function listAdminPagesHandler() {
-  const db = getServerClient();
-  const { data, error } = await db
+  const db = getSSRClient();
+      const { data, error } = await db
     .from("pages")
     .select("id, title, slug, status, created_at, updated_at")
     .order("created_at", { ascending: false });
@@ -462,7 +463,6 @@ export const createProductReview = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const db = getServerClient();
-
       const { data: { user }, error: authError } = await db.auth.getUser();
       if (authError || !user) {
         throw new Error("Você precisa estar logado para fazer uma avaliação.");
@@ -728,8 +728,8 @@ export const createReview = createServerFn({ method: "POST" })
   .validator(z.object({ productId: z.string().uuid(), rating: z.number().min(1).max(5), comment: z.string().optional() }))
   .handler(async ({ data: { productId, rating, comment } }) => {
     try {
-      const ssrClient = getServerClient();
-      const { data: { user } } = await ssrClient.auth.getUser();
+      const ssrClient = getSSRClient();
+        const { data: { user } } = await ssrClient.auth.getUser();
       if (!user) throw new Error("Não autenticado");
 
       const { data: product } = await ssrClient.from("products").select("store_id").eq("id", productId).single();
@@ -764,8 +764,8 @@ export const createManualReview = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { productId, rating, comment, reviewerName } }) => {
     try {
-      const ssrClient = getServerClient();
-      const { data: { user } } = await ssrClient.auth.getUser();
+      const ssrClient = getSSRClient();
+        const { data: { user } } = await ssrClient.auth.getUser();
       if (!user) throw new Error("Não autenticado");
 
       // Verify user is store admin/owner

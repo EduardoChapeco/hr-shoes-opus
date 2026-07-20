@@ -17,13 +17,10 @@ import type { ExperienceDocument, ExperienceNode, ExperienceType } from "@/lib/b
 // Used by both the editor (draft) and public renderer (published).
 // ---------------------------------------------------------------------------
 
-async function hydrateStoreProfileForNode(db: ReturnType<typeof getServerClient>): Promise<Record<string, any> | null> {
+async function hydrateStoreProfileForNode(db: ReturnType<typeof getServerClient>, store_id: string): Promise<Record<string, any> | null> {
   try {
     const { data: store } = await db
-      .from("stores")
-      .select("name, slug, description, address, city, state, phone, email, settings")
-      .limit(1)
-      .single();
+      .from("stores").select("name, slug, description, address, city, state, phone, email, settings").eq("id", store_id).single();
 
     if (!store) return null;
 
@@ -69,15 +66,14 @@ async function hydrateStoreProfileForNode(db: ReturnType<typeof getServerClient>
 
 async function hydrateBindings(
   nodes: ExperienceNode[],
-  db: ReturnType<typeof getServerClient>
+  db: ReturnType<typeof getServerClient>,
+  store_id: string
 ): Promise<ExperienceNode[]> {
   // Eagerly resolve store_profile once for all matching nodes
   const needsStoreProfile = nodes.some(
     (n) => n.data_bindings && (n.data_bindings.source === "store_profile")
   );
-  const storeProfileData = needsStoreProfile
-    ? await hydrateStoreProfileForNode(db)
-    : null;
+  const storeProfileData = needsStoreProfile ? await hydrateStoreProfileForNode(db, store_id) : null;
 
   return Promise.all(
     nodes.map(async (node) => {
@@ -90,18 +86,42 @@ async function hydrateBindings(
 
       if (bindingType === "product_collection" && bindings.collection_slug) {
         const { getProductsByCollection } = await import("@/services/catalog.functions");
-        const res = await getProductsByCollection({ data: { slug: bindings.collection_slug } }).catch(() => null);
+        // Use the exact store_id, bypass public resolveTenantStoreId to avoid spoofing issues in admin
+          const { data: col } = await db.from("collections").select("id").eq("slug", bindings.collection_slug).eq("store_id", store_id).eq("status", "active").single();
+            let res = null;
+            if (col) {
+              const { data: junction } = await db.from("product_collections").select("product_id").eq("collection_id", col.id);
+              const pIds = junction?.map((j: any) => j.product_id) || [];
+              if (pIds.length > 0) {
+                const { data } = await db.from("products")
+                  .select("id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)")
+                  .eq("status", "published")
+                  .eq("store_id", store_id)
+                  .in("id", pIds)
+                  .order("created_at", { ascending: false })
+                  .limit(12);
+                if (data) {
+                  const formatted = data.map((p: any) => {
+                    const sortedMedia = p.media ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order) : [];
+                    return {
+                      id: p.id, title: p.title, slug: p.slug,
+                      priceCents: p.price_cents, compareAtCents: p.compare_at_cents,
+                      coverUrl: sortedMedia[0]?.url || null,
+                      hoverUrl: sortedMedia[1]?.url || null,
+                      isOutOfStock: false,
+                    };
+                  });
+                  res = { status: "ok", data: formatted };
+                }
+              }
+            }
         if (res && res.status === "ok") {
           return { ...node, transient_data: { products: res.data } };
         }
       } else if (bindingType === "latest_products" || bindingType === "dynamic_products") {
         const limit = bindings.limit || 12;
         const { data: latest } = await db
-          .from("products")
-          .select("id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)")
-          .eq("status", "active")
-          .order("created_at", { ascending: false })
-          .limit(limit);
+          .from("products").select("id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)").eq("status", "published").eq("store_id", store_id).order("created_at", { ascending: false }).limit(limit);
         if (latest) {
           const formatted = latest.map((p: any) => {
             const sortedMedia = p.media ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order) : [];
@@ -208,7 +228,10 @@ export const getExperienceDocument = createServerFn({ method: "GET" })
         
         // 4. Hydrate Data Bindings — shared helper covers store_profile, products, reviews
         const rawNodes = nodesData as ExperienceNode[];
-        nodes = await hydrateBindings(rawNodes, db);
+        const { getServerIdentity } = await import("@/lib/identity");
+          const { store_id } = await getServerIdentity();
+          if (!store_id) throw new Error("No store found");
+          nodes = await hydrateBindings(rawNodes, db, store_id);
       }
 
       return { status: "ok" as const, data: { document: doc as ExperienceDocument, version, nodes } };
@@ -938,7 +961,10 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
       let nodes = nodesData as ExperienceNode[];
       
       // 4. Hydrate Data Bindings — shared helper covers store_profile, products, reviews
-      const hydratedNodes = await hydrateBindings(nodes, db);
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+        const storeId = await resolveTenantStoreId();
+        if (!storeId) throw new Error("Loja não encontrada");
+        const hydratedNodes = await hydrateBindings(nodes, db, storeId);
 
       // 5. Build Tree
       const buildTree = (flatNodes: any[], parentId: string | null = null): any[] => {

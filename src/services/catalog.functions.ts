@@ -261,11 +261,19 @@ export const getStoreConfig = createServerFn({ method: "GET" }).handler(
     try {
       const db = getAnonServerClient();
 
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      if (!storeId) {
+        return {
+          status: "unconfigured",
+          reason: "Nenhuma loja configurada.",
+        };
+      }
+
       const { data, error } = await db
         .from("stores")
         .select("id, name, settings")
-        .order("created_at", { ascending: true })
-        .limit(1)
+        .eq("id", storeId)
         .single();
 
       if (error || !data) {
@@ -296,6 +304,7 @@ export const getStoreConfig = createServerFn({ method: "GET" }).handler(
         storeId: data.id as string,
         name: data.name as string,
         logoUrl: typeof settings.logoUrl === "string" ? settings.logoUrl : null,
+        faviconUrl: typeof settings.faviconUrl === "string" ? settings.faviconUrl : null,
         announcements,
         heroBanners,
         benefits,

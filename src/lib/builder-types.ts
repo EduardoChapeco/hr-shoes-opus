@@ -53,7 +53,7 @@ export interface ExperienceNode {
 // ---------------------------------------------------------------------------
 
 export type InspectorFieldType = 
-  | "text" | "textarea" | "number" | "boolean" | "color" 
+  | "text" | "textarea" | "number" | "boolean" | "color" | "collection_select" | "category_select" 
   | "image" | "video" | "select" | "radio" | "slider"
   | "data_binding" | "action_selector" | "collection" | "product" | "json" | "array";
 

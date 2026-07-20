@@ -144,6 +144,7 @@ export interface StoreConfigDTO {
   storeId: string;
   name: string;
   logoUrl?: string | null;
+  faviconUrl?: string | null;
   announcements: AnnouncementDTO[];
   heroBanners: HeroBannerDTO[];
   benefits: BenefitDTO[];

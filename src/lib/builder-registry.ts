@@ -309,7 +309,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
     inspector: { 
       content: [
         { name: "title", label: "Título da Vitrine", type: "text" },
-        { name: "collection_slug", label: "Slug da Coleção (opcional para botão Ver Tudo)", type: "text" },
+        { name: "collection_slug", label: "Coleção (opcional)", type: "collection_select" },
       ],
       layout: [
         { name: "layout", label: "Layout de Exibição", type: "select", options: [
@@ -667,7 +667,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
       content: [
         { name: "title", label: "Título", type: "text" },
         { name: "subtitle", label: "Subtítulo", type: "textarea" },
-        { name: "collection_slug", label: "Slug da Coleção (opcional)", type: "text" }
+        { name: "collection_slug", label: "Coleção (opcional)", type: "collection_select" }
       ]
     },
     defaultProps: {
@@ -697,7 +697,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
       content: [
         { name: "title", label: "Título", type: "text" },
         { name: "subtitle", label: "Subtítulo", type: "textarea" },
-        { name: "collection_slug", label: "Slug da Coleção (opcional)", type: "text" }
+        { name: "collection_slug", label: "Coleção (opcional)", type: "collection_select" }
       ]
     },
     defaultProps: {

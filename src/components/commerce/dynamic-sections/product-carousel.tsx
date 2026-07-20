@@ -120,12 +120,12 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
           </div>
         ) : (
           <Carousel
-            opts={{ align: "start", loop: true }}
+            opts={{ align: "start", loop: false, dragFree: true }}
             className="w-full relative"
           >
-            <CarouselContent className="-ml-2 @md:-ml-4">
+            <CarouselContent className="-ml-3 @md:-ml-4">
               {activeProducts.map((product: any) => (
-                <CarouselItem key={product.id} className="pl-2 @md:pl-4 basis-4/5 @md:basis-1/3 @lg:basis-1/4">
+                <CarouselItem key={product.id} className="pl-3 @md:pl-4 basis-[65%] @sm:basis-1/2 @md:basis-1/3 @lg:basis-1/4 @xl:basis-1/5">
                   <ProductCard product={product} />
                 </CarouselItem>
               ))}

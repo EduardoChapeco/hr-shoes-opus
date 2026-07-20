@@ -45,7 +45,7 @@ export function HeroCarousel({ content, node_id, block_type }: { content: Record
   if (banners.length === 0) {
     return (
       <section className="relative overflow-hidden bg-secondary">
-        <div className="flex aspect-[21/9] w-full flex-col items-center justify-center gap-3 text-muted-foreground border-y border-border">
+        <div className="flex aspect-[4/5] @md:aspect-[21/9] w-full flex-col items-center justify-center gap-3 text-muted-foreground border-y border-border">
           <ImageOff className="size-10" aria-hidden />
           <p>Nenhum banner configurado</p>
         </div>
@@ -65,27 +65,27 @@ export function HeroCarousel({ content, node_id, block_type }: { content: Record
             const button_link = String(banner.link || "");
 
             return (
-              <div key={index} className="relative min-w-0 flex-full shrink-0 grow-0 basis-full bg-[#222]">
+              <div key={index} className="relative min-w-0 flex-full shrink-0 grow-0 basis-full bg-[#111] aspect-[4/5] @md:aspect-[21/9]">
                 {/* Background Image (Static to dictate height naturally without cropping) */}
                 {bg_url ? (
-                  <picture className="block w-full">
+                  <picture className="absolute inset-0 block w-full h-full">
                     <source media="(max-width: 640px)" srcSet={mobile_bg_url} />
                     <img
                       src={bg_url}
                       alt={title || "Banner"}
                       loading={index === 0 ? "eager" : "lazy"}
-                      className="block w-full h-auto object-cover"
+                      className="block w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                     />
                   </picture>
                 ) : (
-                  <div className="w-full aspect-[21/9] bg-gradient-to-tr from-[#1a1a2e] to-[#16213e] flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-4">
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-tr from-[#1a1a2e] to-[#16213e] flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-4">
                     <span className="text-white/60 text-sm font-semibold tracking-wide uppercase mb-1">Banner Principal</span>
                     <span className="text-white/30 text-xs">Arraste/selecione uma imagem ou cole uma URL no painel à direita</span>
                   </div>
                 )}
                 
                 {/* Subtle overlay for text readability */}
-                <div className="absolute inset-0 bg-black/30 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
 
                 {/* Content Overlay */}
                 <div className="absolute inset-0 z-10 mx-auto flex w-full max-w-screen-xl flex-col items-start justify-center px-6 py-8 @md:px-12 pointer-events-none">

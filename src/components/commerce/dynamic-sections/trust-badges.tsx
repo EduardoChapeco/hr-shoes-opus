@@ -7,12 +7,13 @@ interface TrustBadgesProps {
       icon: "shield" | "truck" | "lock" | "return" | "card" | "award";
       title: string;
       description?: string;
+      subtitle?: string;
     }>;
   };
 }
 
 export function TrustBadges({ content }: TrustBadgesProps) {
-  const badges = content.badges || [
+  const badges = (content.badges || []).length > 0 ? content.badges : [
     { icon: "lock", title: "Compra 100% Segura", description: "Seus dados estão protegidos" },
     { icon: "truck", title: "Frete Grátis", description: "Para todo o Brasil" },
     { icon: "return", title: "Primeira Troca Grátis", description: "Até 30 dias após receber" }
@@ -35,16 +36,16 @@ export function TrustBadges({ content }: TrustBadgesProps) {
   };
 
   return (
-    <div className="w-full grid grid-cols-2 @md:grid-cols-4 gap-6 py-8 border-y border-border/50 bg-card">
+    <div className="w-full grid grid-cols-2 @md:grid-cols-4 gap-6 py-12 px-4 border-y border-border/30 bg-muted/30 backdrop-blur-sm">
       {badges.map((badge, idx) => (
-        <div key={idx} className="flex flex-col items-center text-center gap-3">
-          <div className="p-3 rounded-full bg-primary/10">
+        <div key={idx} className="group flex flex-col items-center text-center gap-4 transition-transform duration-300 hover:-translate-y-1">
+          <div className="p-4 rounded-2xl bg-background shadow-sm border border-border/50 group-hover:shadow-md transition-shadow duration-300 group-hover:border-primary/20">
             {getIcon(badge.icon)}
           </div>
           <div>
-            <h4 className="font-bold text-sm text-foreground">{badge.title}</h4>
-            {badge.description && (
-              <p className="text-xs text-muted-foreground mt-1">{badge.description}</p>
+            <h4 className="font-bold text-[15px] tracking-tight text-foreground">{badge.title}</h4>
+            {(badge.description || badge.subtitle) && (
+              <p className="text-[13px] leading-relaxed text-muted-foreground mt-1.5">{badge.description || badge.subtitle}</p>
             )}
           </div>
         </div>

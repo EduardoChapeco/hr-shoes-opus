@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { EmptyState, ErrorState } from "@/components/state/states";
 import { PriceDisplay } from "@/components/commerce/price-display";
 import { getProductBySlug } from "@/services/product.functions";
+import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions";
 import { addToCart } from "@/services/cart.functions";
 import { useCartContext } from "@/lib/cart-context";
 import { toast } from "sonner";

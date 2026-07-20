@@ -49,7 +49,7 @@ export const Route = createFileRoute("/_store/catalogo")({
       },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>): CatalogSearch => SearchSchema.parse(search),
+  validateSearch: (search: Record<string, unknown>): CatalogSearch => SearchSchema.parse(search), loaderDeps: ({ search }) => search,
   loader: async ({ location }) => {
     const search = location.search as CatalogSearch;
     const [productsRes, categoriesRes] = await Promise.all([
