@@ -20,18 +20,18 @@ export function TrustBadges({ content }: TrustBadgesProps) {
 
   const getIcon = (iconName: string) => {
     switch(iconName) {
-      case "shield": return <ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-primary" />;
-      case "truck": return <Truck className="w-8 h-8 md:w-10 md:h-10 text-primary" />;
-      case "lock": return <Lock className="w-8 h-8 md:w-10 md:h-10 text-primary" />;
-      case "return": return <RotateCcw className="w-8 h-8 md:w-10 md:h-10 text-primary" />;
-      case "card": return <CreditCard className="w-8 h-8 md:w-10 md:h-10 text-primary" />;
-      case "award": return <Award className="w-8 h-8 md:w-10 md:h-10 text-primary" />;
-      default: return <ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-primary" />;
+      case "shield": return <ShieldCheck className="w-8 h-8 @md:w-10 @md:h-10 text-primary" />;
+      case "truck": return <Truck className="w-8 h-8 @md:w-10 @md:h-10 text-primary" />;
+      case "lock": return <Lock className="w-8 h-8 @md:w-10 @md:h-10 text-primary" />;
+      case "return": return <RotateCcw className="w-8 h-8 @md:w-10 @md:h-10 text-primary" />;
+      case "card": return <CreditCard className="w-8 h-8 @md:w-10 @md:h-10 text-primary" />;
+      case "award": return <Award className="w-8 h-8 @md:w-10 @md:h-10 text-primary" />;
+      default: return <ShieldCheck className="w-8 h-8 @md:w-10 @md:h-10 text-primary" />;
     }
   };
 
   return (
-    <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-6 py-8 border-y border-border/50 bg-card">
+    <div className="w-full grid grid-cols-2 @md:grid-cols-4 gap-6 py-8 border-y border-border/50 bg-card">
       {badges.map((badge, idx) => (
         <div key={idx} className="flex flex-col items-center text-center gap-3">
           <div className="p-3 rounded-full bg-primary/10">

@@ -26,21 +26,21 @@ export function BentoGrid({ content, node_id, block_type }: BentoGridProps) {
   const getSizeClasses = (size?: string) => {
     switch (size) {
       case "wide":
-        return "md:col-span-2 md:row-span-1 aspect-[16/9] md:aspect-auto md:h-64";
+        return "@@md:col-span-2 @@md:row-span-1 aspect-[16/9] @@md:aspect-auto @@md:h-64";
       case "tall":
-        return "md:col-span-1 md:row-span-2 aspect-[3/4] md:aspect-auto md:h-[512px]";
+        return "@@md:col-span-1 @@md:row-span-2 aspect-[3/4] @@md:aspect-auto @@md:h-[512px]";
       case "large":
-        return "md:col-span-2 md:row-span-2 aspect-square md:aspect-auto md:h-[512px]";
+        return "@@md:col-span-2 @@md:row-span-2 aspect-square @@md:aspect-auto @@md:h-[512px]";
       case "small":
       default:
-        return "md:col-span-1 md:row-span-1 aspect-[4/3] md:aspect-auto md:h-64";
+        return "@@md:col-span-1 @@md:row-span-1 aspect-[4/3] @@md:aspect-auto @@md:h-64";
     }
   };
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-8 space-y-6">
       {content.title && (
-        <h2 className="text-xl md:text-2xl font-black text-foreground tracking-tight">
+        <h2 className="text-xl @@md:text-2xl font-black text-foreground tracking-tight">
           {content.title}
         </h2>
       )}
@@ -50,7 +50,7 @@ export function BentoGrid({ content, node_id, block_type }: BentoGridProps) {
           Nenhum item configurado para o Bento Grid.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-max">
+        <div className="grid grid-cols-1 @@md:grid-cols-3 gap-4 auto-rows-max">
           {items.map((item, idx) => {
             const sizeClass = getSizeClasses(item.size);
             const CardWrapper = item.link ? "a" : "div";

@@ -66,31 +66,31 @@ export function ProductGrid({ content, design_tokens, data_bindings, transientDa
     : (isCollection ? (clientCollectionProducts || []) : (clientLatestProducts || []));
 
   const cols = content?.columns ?? 4;
-  const colClass = { 2: "grid-cols-2", 3: "grid-cols-2 md:grid-cols-3", 4: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" }[cols] ?? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+  const colClass = { 2: "grid-cols-2", 3: "grid-cols-2 @md:grid-cols-3", 4: "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4" }[cols] ?? "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4";
 
   return (
     <div
-      className={cn("w-full py-12 md:py-24 overflow-hidden", design_tokens?.className)}
+      className={cn("w-full py-12 @md:py-24 overflow-hidden", design_tokens?.className)}
       style={{
         backgroundColor: design_tokens?.backgroundColor,
         color: design_tokens?.textColor,
       }}
     >
-      <div className="mx-auto max-w-[1400px] px-4 md:px-8">
-        <div className="flex items-end justify-between mb-8 md:mb-12">
+      <div className="mx-auto max-w-[1400px] px-4 @md:px-8">
+        <div className="flex items-end justify-between mb-8 @md:mb-12">
           <div>
             {content?.title && (
-              <h2 className="text-2xl md:text-4xl font-bold tracking-tight mb-2">
+              <h2 className="text-2xl @md:text-4xl font-bold tracking-tight mb-2">
                 {content.title}
               </h2>
             )}
             {content?.subtitle && (
-              <p className="text-muted-foreground text-sm md:text-lg">
+              <p className="text-muted-foreground text-sm @md:text-lg">
                 {content.subtitle}
               </p>
             )}
           </div>
-          <Button variant="ghost" className="hidden md:flex gap-2 group" asChild>
+          <Button variant="ghost" className="hidden @md:flex gap-2 group" asChild>
             <Link to="/catalogo">
               Ver Todos
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -114,7 +114,7 @@ export function ProductGrid({ content, design_tokens, data_bindings, transientDa
             </div>
           </div>
         ) : (
-          <div className={cn("grid gap-4 md:gap-6 lg:gap-8", colClass)}>
+          <div className={cn("grid gap-4 @md:gap-6 @lg:gap-8", colClass)}>
             {activeProducts.map((product: any) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -122,7 +122,7 @@ export function ProductGrid({ content, design_tokens, data_bindings, transientDa
         )}
 
         {activeProducts.length > 0 && (
-          <Button variant="outline" className="w-full mt-8 md:hidden" asChild>
+          <Button variant="outline" className="w-full mt-8 @md:hidden" asChild>
             <Link to="/catalogo">Ver Todos</Link>
           </Button>
         )}

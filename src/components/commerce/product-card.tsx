@@ -62,7 +62,7 @@ export function ProductCard({
 
         {/* Quick Add Overlay (Desktop only) */}
         {!product.isOutOfStock && (
-          <div className="absolute inset-x-2 bottom-2 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hidden md:block">
+          <div className="absolute inset-x-2 bottom-2 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hidden @md:block">
             <div className="w-full rounded-lg bg-background/90 text-foreground shadow-sm backdrop-blur py-2 text-center text-xs font-semibold hover:bg-primary hover:text-primary-foreground transition-colors">
               Ver Opções
             </div>
@@ -71,7 +71,7 @@ export function ProductCard({
 
         {/* Mobile quick-add bag icon */}
         {!product.isOutOfStock && (
-          <div className="absolute bottom-2 right-2 rounded-full bg-background/90 p-2 shadow-sm backdrop-blur md:hidden">
+          <div className="absolute bottom-2 right-2 rounded-full bg-background/90 p-2 shadow-sm backdrop-blur @md:hidden">
             <ShoppingBag className="size-4 text-foreground" aria-hidden />
           </div>
         )}

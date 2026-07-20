@@ -71,7 +71,7 @@ export function StoreHours({ content, design_tokens, transient_data }: StoreHour
         color: design_tokens?.textColor,
       }}
     >
-      <div className="mx-auto max-w-xl px-4 md:px-6">
+      <div className="mx-auto max-w-xl px-4 @md:px-6">
         <div className="flex items-center justify-between mb-6 gap-4">
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />

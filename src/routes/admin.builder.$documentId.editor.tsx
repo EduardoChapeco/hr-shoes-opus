@@ -745,7 +745,7 @@ function BuilderEditorIDE() {
             onClick={() => setSelectedNodeId(null)}
           >
             {/* Scrollable content wrapper */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden w-full h-full flex flex-col bg-white">
+            <div className="@container flex-1 overflow-y-auto overflow-x-hidden w-full h-full flex flex-col bg-white">
               {nodes.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center min-h-[400px] text-gray-400 gap-4 p-8 text-center">
                   <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center">

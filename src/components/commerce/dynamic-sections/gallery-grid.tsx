@@ -23,19 +23,19 @@ export function GalleryGrid({ content }: GalleryGridProps) {
   const getColClass = () => {
     switch (columns) {
       case "2":
-        return "grid-cols-1 sm:grid-cols-2";
+        return "grid-cols-1 @sm:grid-cols-2";
       case "4":
-        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-4";
+        return "grid-cols-1 @sm:grid-cols-2 @md:grid-cols-4";
       case "3":
       default:
-        return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
+        return "grid-cols-1 @sm:grid-cols-2 @md:grid-cols-3";
     }
   };
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-8 space-y-6">
       {content.title && (
-        <h2 className="text-xl md:text-2xl font-black text-foreground tracking-tight">
+        <h2 className="text-xl @md:text-2xl font-black text-foreground tracking-tight">
           {content.title}
         </h2>
       )}

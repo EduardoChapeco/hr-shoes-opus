@@ -45,17 +45,17 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
 
   return (
     <div
-      className={cn("w-full py-12 md:py-24 overflow-hidden", design_tokens?.className)}
+      className={cn("w-full py-12 @@md:py-24 overflow-hidden", design_tokens?.className)}
       style={{
         backgroundColor: design_tokens?.backgroundColor,
         color: design_tokens?.textColor,
       }}
     >
-      <div className="mx-auto max-w-6xl px-4 md:px-8">
+      <div className="mx-auto max-w-6xl px-4 @@md:px-8">
         {(content?.title || content?.subtitle) && (
           <div className="mb-12 text-center">
             {content?.title && (
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
+              <h2 className="text-3xl @@md:text-4xl font-bold tracking-tight mb-3">
                 {content.title}
               </h2>
             )}
@@ -69,7 +69,7 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
 
         {isLoading ? (
           <div className="flex gap-4 overflow-hidden">
-             {[1,2,3].map(i => <div key={i} className="w-[300px] md:w-[350px] h-[200px] bg-muted animate-pulse rounded-lg flex-shrink-0" />)}
+             {[1,2,3].map(i => <div key={i} className="w-[300px] @@md:w-[350px] h-[200px] bg-muted animate-pulse rounded-lg flex-shrink-0" />)}
           </div>
         ) : testimonials.length > 0 ? (
           <Carousel
@@ -79,9 +79,9 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
             }}
             className="w-full relative"
           >
-            <CarouselContent className="-ml-2 md:-ml-4">
+            <CarouselContent className="-ml-2 @@md:-ml-4">
               {testimonials.map((item: any, idx: number) => (
-                <CarouselItem key={idx} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                <CarouselItem key={idx} className="pl-2 @@md:pl-4 @@md:basis-1/2 @@lg:basis-1/3">
                   <div className="p-1 h-full">
                     <Card className="h-full border-muted/50 bg-background/50 backdrop-blur shadow-sm">
                       <CardContent className="flex flex-col h-full p-6">
@@ -98,7 +98,7 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
                             ))}
                           </div>
                         )}
-                        <p className="text-sm md:text-base leading-relaxed text-foreground flex-1 italic mb-6">
+                        <p className="text-sm @@md:text-base leading-relaxed text-foreground flex-1 italic mb-6">
                           "{item.content}"
                         </p>
                         <div className="flex items-center gap-3 mt-auto">
@@ -124,9 +124,9 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <div className="hidden md:block">
-              <CarouselPrevious className="-left-4 lg:-left-12 bg-background border-muted shadow-sm hover:bg-background" />
-              <CarouselNext className="-right-4 lg:-right-12 bg-background border-muted shadow-sm hover:bg-background" />
+            <div className="hidden @@md:block">
+              <CarouselPrevious className="-left-4 @@lg:-left-12 bg-background border-muted shadow-sm hover:bg-background" />
+              <CarouselNext className="-right-4 @@lg:-right-12 bg-background border-muted shadow-sm hover:bg-background" />
             </div>
           </Carousel>
         ) : (

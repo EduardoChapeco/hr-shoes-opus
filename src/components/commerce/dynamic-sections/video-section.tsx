@@ -89,7 +89,7 @@ export function VideoSection({ content }: VideoSectionProps) {
   return (
     <section className="w-full max-w-5xl mx-auto px-4 py-8 space-y-4">
       {title && (
-        <h2 className="text-lg md:text-xl font-black text-foreground tracking-tight text-center">
+        <h2 className="text-lg @md:text-xl font-black text-foreground tracking-tight text-center">
           {title}
         </h2>
       )}

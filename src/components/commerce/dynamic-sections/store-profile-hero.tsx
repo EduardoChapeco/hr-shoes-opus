@@ -52,7 +52,7 @@ export function StoreProfileHero({ content, design_tokens, transient_data }: Sto
     >
       {/* Cover */}
       {showCover && (
-        <div className="relative h-40 md:h-56 w-full bg-muted">
+        <div className="relative h-40 @md:h-56 w-full bg-muted">
           {store.cover_url ? (
             <img
               src={store.cover_url}
@@ -69,7 +69,7 @@ export function StoreProfileHero({ content, design_tokens, transient_data }: Sto
       {/* Profile info */}
       <div
         className={cn(
-          "mx-auto max-w-2xl px-4 md:px-6 pb-8",
+          "mx-auto max-w-2xl px-4 @md:px-6 pb-8",
           showCover ? "-mt-12 relative z-10" : "pt-10",
           layout === "centered" && "flex flex-col items-center text-center",
           layout === "left" && "flex flex-col items-start",

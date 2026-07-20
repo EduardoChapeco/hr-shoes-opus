@@ -65,7 +65,7 @@ export function StoriesRing({ content }: StoriesRingProps) {
 
       {/* Fullscreen Story Viewer */}
       <Dialog open={!!activeStory} onOpenChange={(open) => !open && setActiveStory(null)}>
-        <DialogContent className="max-w-md w-full h-[80vh] md:h-[90vh] p-0 overflow-hidden bg-black border-none rounded-2xl flex flex-col items-center justify-center">
+        <DialogContent className="max-w-md w-full h-[80vh] @md:h-[90vh] p-0 overflow-hidden bg-black border-none rounded-2xl flex flex-col items-center justify-center">
           {activeStory && (() => {
             const isVideo = activeStory.media_url?.split('?')[0].match(/\.(mp4|webm|mov|ogg)$/i) || activeStory.type === "video";
             return (

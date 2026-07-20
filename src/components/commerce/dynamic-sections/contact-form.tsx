@@ -71,12 +71,12 @@ export function ContactForm({ storeId, content }: ContactFormProps) {
 
   return (
     <section className="w-full max-w-xl mx-auto px-4 py-8">
-      <div className="rounded-2xl border border-border bg-card shadow-lg p-6 sm:p-8 space-y-6">
+      <div className="rounded-2xl border border-border bg-card shadow-lg p-6 @sm:p-8 space-y-6">
         <div className="text-center space-y-2">
-          <h2 className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+          <h2 className="text-xl @sm:text-2xl font-black text-foreground tracking-tight">
             {title}
           </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          <p className="text-xs @sm:text-sm text-muted-foreground leading-relaxed">
             {subtitle}
           </p>
         </div>

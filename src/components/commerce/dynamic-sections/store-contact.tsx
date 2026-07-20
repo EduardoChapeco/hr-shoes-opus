@@ -126,7 +126,7 @@ export function StoreContact({ content, design_tokens, transient_data }: StoreCo
         color: design_tokens?.textColor,
       }}
     >
-      <div className="mx-auto max-w-xl px-4 md:px-6">
+      <div className="mx-auto max-w-xl px-4 @md:px-6">
         <h2 className="text-xl font-semibold mb-6">{title}</h2>
 
         {contactItems.length > 0 && (

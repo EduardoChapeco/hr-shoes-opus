@@ -29,7 +29,7 @@ export function InfoCards({ content }: InfoCardsProps) {
           Nenhum cartão de informação cadastrado.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 @sm:grid-cols-2 @lg:grid-cols-3 gap-6">
           {cards.map((card, idx) => {
             const IconComponent = card.icon ? ICON_MAP[card.icon] : HelpCircle;
 

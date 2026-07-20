@@ -7,9 +7,9 @@ export function MosaicBanners({ content }: { content: Record<string, unknown> })
   if (banners.length === 0) return null;
 
   return (
-    <section className="mx-auto max-w-screen-xl px-4 py-8 md:px-6">
+    <section className="mx-auto max-w-screen-xl px-4 py-8 @md:px-6">
       <div
-        className={`grid gap-4 ${banners.length === 1 ? "grid-cols-1" : banners.length === 2 ? "md:grid-cols-2" : "md:grid-cols-3"}`}
+        className={`grid gap-4 ${banners.length === 1 ? "grid-cols-1" : banners.length === 2 ? "@md:grid-cols-2" : "@md:grid-cols-3"}`}
       >
         {banners.slice(0, 3).map((banner, index) => {
           const title = String(banner.title || "");
@@ -17,7 +17,7 @@ export function MosaicBanners({ content }: { content: Record<string, unknown> })
           const link = String(banner.link || "");
 
           const inner = (
-            <div className="group relative aspect-[4/5] md:aspect-square overflow-hidden rounded-2xl bg-muted transition-transform hover:opacity-95">
+            <div className="group relative aspect-[4/5] @md:aspect-square overflow-hidden rounded-2xl bg-muted transition-transform hover:opacity-95">
               {bg_url ? (
                 <img
                   src={bg_url}
@@ -34,7 +34,7 @@ export function MosaicBanners({ content }: { content: Record<string, unknown> })
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-80" />
               {/* Content */}
               {title && (
-                <div className="absolute bottom-0 left-0 p-6 md:p-8">
+                <div className="absolute bottom-0 left-0 p-6 @md:p-8">
                   <h3 className="text-2xl font-semibold text-white drop-shadow-sm">{title}</h3>
                 </div>
               )}

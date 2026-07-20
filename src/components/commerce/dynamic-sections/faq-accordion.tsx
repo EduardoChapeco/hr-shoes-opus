@@ -27,7 +27,7 @@ export function FaqAccordion({ content, design_tokens }: FAQAccordionProps) {
         color: design_tokens?.textColor
       }}
     >
-      <div className="mx-auto max-w-3xl px-4 md:px-6">
+      <div className="mx-auto max-w-3xl px-4 @md:px-6">
         {(content?.title || content?.description) && (
           <div className="mb-8 text-center">
             {content?.title && (

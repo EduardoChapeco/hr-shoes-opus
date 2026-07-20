@@ -23,9 +23,9 @@ export function SocialGrid({ content }: SocialGridProps) {
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b pb-4">
+      <div className="flex flex-col @sm:flex-row @sm:items-center @sm:justify-between gap-2 border-b pb-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-black text-foreground tracking-tight">
+          <h2 className="text-xl @md:text-2xl font-black text-foreground tracking-tight">
             {title}
           </h2>
           <a
@@ -45,7 +45,7 @@ export function SocialGrid({ content }: SocialGridProps) {
           Nenhuma publicação vinculada ao feed social.
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 @sm:grid-cols-3 @md:grid-cols-6 gap-4">
           {posts.slice(0, 6).map((post, idx) => {
             const metrics = { likes: post.likes, comments: post.comments };
             const Wrapper = post.link ? "a" : "div";

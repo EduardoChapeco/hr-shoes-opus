@@ -108,7 +108,7 @@ function StoreLayout() {
         storeName={storeName} 
         logoUrl={store?.logoUrl}
       />
-      <main className="flex-1 pb-20 md:pb-0">
+      <main className="@container flex-1 pb-20 md:pb-0">
         <Outlet />
       </main>
       <PublicFooter menuItems={footerMenu} store={store} />
@@ -117,5 +117,5 @@ function StoreLayout() {
       <SlideOutCart />
     </div>
   );
-}
 
+}
