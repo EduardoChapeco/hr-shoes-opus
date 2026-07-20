@@ -107,7 +107,7 @@ function StoreSettings() {
               <MediaUploader
                 value={form.logoUrl}
                 onChange={(url) => setForm((f) => ({ ...f, logoUrl: url }))}
-                bucket="media-assets"
+                bucket="cms-media"
               />
               <p className="text-xs text-muted-foreground mt-1">Imagem retangular, preferencialmente transparente (PNG/SVG).</p>
             </div>
@@ -116,7 +116,7 @@ function StoreSettings() {
               <MediaUploader
                 value={form.faviconUrl}
                 onChange={(url) => setForm((f) => ({ ...f, faviconUrl: url }))}
-                bucket="media-assets"
+                bucket="cms-media"
               />
               <p className="text-xs text-muted-foreground mt-1">Imagem quadrada, ex: 64x64 (PNG/SVG).</p>
             </div>

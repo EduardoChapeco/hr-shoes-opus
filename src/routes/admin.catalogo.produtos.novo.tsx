@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { ArrowLeft, ImagePlus, X, Box, Tag, Layers, Settings2, CheckCircle2, DollarSign, Plus } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
+import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
+import { Crop } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,6 +64,9 @@ function NewProductPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [files, setFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [currentCropIndex, setCurrentCropIndex] = useState<number | null>(null);
+  const [currentCropSrc, setCurrentCropSrc] = useState<string | null>(null);
   
   // Category Modal State
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -195,6 +200,35 @@ function NewProductPage() {
       const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
       setPreviewUrls((prev) => [...prev, ...newPreviews]);
     }
+  };
+
+  
+  const handleCropComplete = async (croppedBase64: string) => {
+    if (currentCropIndex === null) return;
+    
+    // convert base64 to file
+    const res = await fetch(croppedBase64);
+    const blob = await res.blob();
+    const originalFile = files[currentCropIndex];
+    const newFile = new File([blob], originalFile.name, { type: 'image/jpeg' });
+    
+    setFiles(prev => {
+      const newFiles = [...prev];
+      newFiles[currentCropIndex] = newFile;
+      return newFiles;
+    });
+    
+    setPreviewUrls(prev => {
+      const newUrls = [...prev];
+      newUrls[currentCropIndex] = croppedBase64;
+      return newUrls;
+    });
+  };
+
+  const handleOpenCrop = (index: number) => {
+    setCurrentCropIndex(index);
+    setCurrentCropSrc(previewUrls[index]);
+    setCropModalOpen(true);
   };
 
   const removeFile = (index: number) => {

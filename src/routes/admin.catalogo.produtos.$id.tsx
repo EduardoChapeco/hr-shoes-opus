@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
+import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
+import { Crop } from "lucide-react";
 import { PriceDisplay } from "@/components/commerce/price-display";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

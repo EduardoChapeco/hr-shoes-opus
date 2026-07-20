@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { getBrowserClient } from "@/lib/supabase";
+import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
 
 interface MediaUploaderProps {
   value: string;
@@ -16,27 +17,44 @@ interface MediaUploaderProps {
 export function MediaUploader({ value, onChange, label, bucket = "product-media" }: MediaUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  // Crop state
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [currentImageFile, setCurrentImageFile] = useState<File | null>(null);
+  const [currentImageSrc, setCurrentImageSrc] = useState<string | null>(null);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.type.startsWith("image/")) {
+      setCurrentImageFile(file);
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        setCurrentImageSrc(reader.result as string);
+        setCropModalOpen(true);
+      };
+      reader.onerror = () => toast.error("Erro ao processar imagem local");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    // Video upload fallback (no crop)
+    handleUploadMediaDirectly(file);
+  };
+
+  const handleUploadMediaDirectly = async (file: File) => {
     try {
       setIsUploading(true);
-      
       const reader = new FileReader();
       reader.onload = async (event) => {
         if (event.target?.result) {
           try {
             const base64 = event.target.result as string;
-            // Dinamically import uploadMedia so it doesn't break client bundles
             const { uploadMedia } = await import("@/services/storage.functions");
             const res = await uploadMedia({
-              data: {
-                fileName: file.name,
-                fileBase64: base64,
-                bucket: bucket as any
-              }
+              data: { fileName: file.name, fileBase64: base64, bucket: bucket as any }
             });
 
             if (res.status === "success") {
@@ -52,19 +70,33 @@ export function MediaUploader({ value, onChange, label, bucket = "product-media"
           }
         }
       };
-      reader.onerror = () => {
-        toast.error("Erro ao ler o arquivo");
-        setIsUploading(false);
-      };
       reader.readAsDataURL(file);
-
     } catch (error: any) {
       toast.error(error.message || "Erro ao iniciar upload");
       setIsUploading(false);
     } finally {
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleCropComplete = async (croppedBase64: string) => {
+    if (!currentImageFile) return;
+    setIsUploading(true);
+    try {
+      const { uploadMedia } = await import("@/services/storage.functions");
+      const res = await uploadMedia({
+        data: { fileName: currentImageFile.name, fileBase64: croppedBase64.split(",")[1], bucket: bucket as any }
+      });
+      if (res.status === "success") {
+        onChange(res.url);
+        toast.success("Imagem enviada com sucesso");
+      } else {
+        toast.error(res.message);
       }
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao fazer upload da imagem");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -121,6 +153,12 @@ export function MediaUploader({ value, onChange, label, bucket = "product-media"
         className="hidden"
         ref={fileInputRef}
         onChange={handleUpload}
+      />
+      <ImageCropperDialog
+        open={cropModalOpen}
+        onOpenChange={setCropModalOpen}
+        imageSrc={currentImageSrc}
+        onCropCompleteAction={handleCropComplete}
       />
     </div>
   );

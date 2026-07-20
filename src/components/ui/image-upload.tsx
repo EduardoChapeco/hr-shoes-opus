@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { uploadMedia } from "@/services/storage.functions";
 import { cn } from "@/lib/utils";
+import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
 
 interface ImageUploadProps {
   value?: string | null;
@@ -22,40 +23,47 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Crop state
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [currentImageFile, setCurrentImageFile] = useState<File | null>(null);
+  const [currentImageSrc, setCurrentImageSrc] = useState<string | null>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setCurrentImageFile(file);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      setCurrentImageSrc(reader.result as string);
+      setCropModalOpen(true);
+    };
+    reader.onerror = () => toast.error("Erro ao processar arquivo local");
+    
+    // Reset input
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const handleCropComplete = async (croppedBase64: string) => {
+    if (!currentImageFile) return;
     setIsUploading(true);
     try {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = async () => {
-        const base64 = reader.result as string;
-        const res = await uploadMedia({
-          data: { fileName: file.name, fileBase64: base64, bucket },
-        });
+      const res = await uploadMedia({
+        data: { fileName: currentImageFile.name, fileBase64: croppedBase64.split(",")[1], bucket },
+      });
 
-        if (res.status === "error") {
-          toast.error(res.message);
-        } else {
-          onChange(res.url);
-          toast.success("Imagem enviada com sucesso!");
-        }
-        setIsUploading(false);
-      };
-      reader.onerror = () => {
-        toast.error("Erro ao processar arquivo");
-        setIsUploading(false);
-      };
+      if (res.status === "error") {
+        toast.error(res.message);
+      } else {
+        onChange(res.url);
+        toast.success("Imagem enviada com sucesso!");
+      }
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer upload da imagem");
-      setIsUploading(false);
     } finally {
-      if (inputRef.current) {
-        inputRef.current.value = "";
-      }
+      setIsUploading(false);
     }
   };
 
@@ -103,6 +111,12 @@ export function ImageUpload({
         className="hidden"
         accept="image/png, image/jpeg, image/webp, image/gif, image/svg+xml"
         onChange={handleFileChange}
+      />
+      <ImageCropperDialog
+        open={cropModalOpen}
+        onOpenChange={setCropModalOpen}
+        imageSrc={currentImageSrc}
+        onCropCompleteAction={handleCropComplete}
       />
     </div>
   );
