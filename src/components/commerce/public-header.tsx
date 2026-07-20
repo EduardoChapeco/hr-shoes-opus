@@ -17,10 +17,12 @@ const FALLBACK_NAV = [
 export function PublicHeader({
   menuItems = [],
   storeName,
+  logoUrl,
   cart,
 }: {
   menuItems?: any[];
   storeName?: string;
+  logoUrl?: string;
   cart?: any;
 }) {
   const navItems = menuItems.length > 0 ? menuItems : FALLBACK_NAV;
@@ -59,7 +61,7 @@ export function PublicHeader({
           <SheetContent side="left" className="w-72">
             <SheetHeader>
               <SheetTitle className="sr-only">Menu</SheetTitle>
-              <Logo className="h-7" />
+              <Logo src={logoUrl} className="h-7" />
             </SheetHeader>
             <nav className="mt-6 flex flex-col">
               {navItems.map((item) => (
@@ -81,7 +83,7 @@ export function PublicHeader({
           className="flex items-center gap-2 shrink-0"
           aria-label={`${storeName || "Hr Shoes"} — início`}
         >
-          <Logo />
+          <Logo src={logoUrl} />
           {storeName && (
             <span className="font-bold text-lg tracking-tight hidden lg:inline-block">
               {storeName}

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getStoreSettings, saveStoreSettings } from "@/services/store.functions";
+import { MediaUploader } from "@/components/admin/builder/MediaUploader";
 
 export const Route = createFileRoute("/admin/configuracoes/loja")({
   head: () => ({ meta: [{ title: "Dados da Loja — Hr Shoes" }] }),
@@ -28,6 +29,8 @@ function StoreSettings() {
     city: (store as any)?.city || "",
     state: (store as any)?.state || "",
     zip_code: (store as any)?.zip_code || "",
+    logoUrl: (store as any)?.logoUrl || "",
+    faviconUrl: (store as any)?.faviconUrl || "",
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -90,6 +93,32 @@ function StoreSettings() {
                 placeholder="00.000.000/0001-00"
                 maxLength={18}
               />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset className="space-y-4">
+          <legend className="text-sm font-semibold text-foreground border-b pb-2 w-full">
+            Identidade Visual
+          </legend>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Logotipo da Loja</Label>
+              <MediaUploader
+                value={form.logoUrl}
+                onChange={(url) => setForm((f) => ({ ...f, logoUrl: url }))}
+                bucket="media-assets"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Imagem retangular, preferencialmente transparente (PNG/SVG).</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Ícone da Aba (Favicon)</Label>
+              <MediaUploader
+                value={form.faviconUrl}
+                onChange={(url) => setForm((f) => ({ ...f, faviconUrl: url }))}
+                bucket="media-assets"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Imagem quadrada, ex: 64x64 (PNG/SVG).</p>
             </div>
           </div>
         </fieldset>

@@ -13,6 +13,7 @@ interface CartContextType {
   updateQty: (variantId: string, delta: number) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   initCart: (initialCart: CartDTO | null) => void;
+  setCartData: (cart: CartDTO | null) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -76,6 +77,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateQty,
         removeItem,
         initCart,
+        setCartData: setCart,
       }}
     >
       {children}

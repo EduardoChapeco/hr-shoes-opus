@@ -5,12 +5,12 @@ import { cn } from "@/lib/utils";
 
 /**
  * Brand logo — the real Hr Shoes mark (an image, per DESIGN.md).
- * Do not recreate the wordmark as text.
+ * Uses a dynamic src if provided, otherwise falls back to the default asset.
  */
-export function Logo({ className, ...props }: Omit<ComponentProps<"img">, "src" | "alt">) {
+export function Logo({ src, className, ...props }: Omit<ComponentProps<"img">, "alt">) {
   return (
     <img
-      src={logoAsset.url}
+      src={src || logoAsset.url}
       alt="Hr Shoes — Conforto e Estilo"
       className={cn("h-8 w-auto select-none object-contain", className)}
       width={160}

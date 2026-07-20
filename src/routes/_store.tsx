@@ -98,13 +98,16 @@ function StoreLayout() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <PublicHeader menuItems={headerMenu} storeName={store?.name} cart={cart} />
-      {/* pb accounts for the sticky mobile bottom nav */}
+      <PublicHeader 
+        menuItems={headerMenu} 
+        storeName={storeName} 
+        logoUrl={store?.logoUrl}
+      />
       <main className="flex-1 pb-20 md:pb-0">
         <Outlet />
       </main>

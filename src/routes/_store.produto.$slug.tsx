@@ -29,15 +29,12 @@ import { EmptyState, ErrorState } from "@/components/state/states";
 import { PriceDisplay } from "@/components/commerce/price-display";
 import { getProductBySlug } from "@/services/product.functions";
 import { addToCart } from "@/services/cart.functions";
-import { createProductReview } from "@/services/cms.functions";
-import { calculateShipping } from "@/services/shipping.functions";
-import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions";
-import type { ProductDetailDTO, ProductMediaDTO, VariantDTO } from "@/types/catalog";
-import { formatMoney } from "@/lib/money";
 import { useCartContext } from "@/lib/cart-context";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
+import { getProductReviewStats, getProductReviewsList, getStoreFollowStatus, toggleStoreFollow, submitProductReview } from "@/services/social.functions";
 import {
   Dialog,
   DialogContent,
@@ -278,17 +275,37 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
   );
   const [isAdding, setIsAdding] = useState(false);
   const [activeMedia, setActiveMedia] = useState<ProductMediaDTO | null>(coverImage);
-  const [shippingOrigin, setShippingOrigin] = useState<"national" | "international">("national");
   const [zipcode, setZipcode] = useState("");
   const [shippingRates, setShippingRates] = useState<any[] | null>(null);
   const [loadingShipping, setLoadingShipping] = useState(false);
-  const [isFollowingStore, setIsFollowingStore] = useState(false);
-  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
-  
-  // Review form states
+
+  // Social Stats Queries
+  const { data: reviewStats } = useQuery({
+    queryKey: ["reviewStats", product.id],
+    queryFn: () => getProductReviewStats({ data: { productId: product.id } }),
+    initialData: { average_rating: 0, total_reviews: 0 }
+  });
+
+  const { data: reviewsList, refetch: refetchReviews } = useQuery({
+    queryKey: ["reviewsList", product.id],
+    queryFn: () => getProductReviewsList({ data: { productId: product.id } }),
+    initialData: []
+  });
+
+  const { data: followStatus, refetch: refetchFollowStatus } = useQuery({
+    queryKey: ["storeFollow", product.storeId],
+    queryFn: () => getStoreFollowStatus({ data: { storeId: product.storeId } }),
+    initialData: { following: false }
+  });
+
+  const isFollowingStore = followStatus.following;
+
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [shippingOrigin, setShippingOrigin] = useState<"national" | "international">(
+    product.attributes?.origin === "international" || product.attributes?.is_international === "true" ? "international" : "national"
+  );
 
   // Find the matching variant
   const selectedVariant = product.variants.find((v: VariantDTO) => {
@@ -302,7 +319,7 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
     }
   }, [selectedVariant]);
 
-  const { refreshCart, setIsCartOpen } = useCartContext();
+  const { refreshCart, setIsCartOpen, setCartData } = useCartContext();
 
   const handleAddToCart = async () => {
     if (!selectedVariant) {
@@ -317,9 +334,13 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
 
     setIsAdding(true);
     try {
-      await addToCart({ data: { variantId: selectedVariant.id, quantity: 1 } });
+      const res = await addToCart({ data: { variantId: selectedVariant.id, quantity: 1 } });
       toast.success("Adicionado ao carrinho");
-      await refreshCart();
+      if (res.cart) {
+        setCartData(res.cart as any);
+      } else {
+        await refreshCart();
+      }
       setIsCartOpen(true);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao adicionar ao carrinho.");
@@ -363,26 +384,38 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
     }
     setIsSubmittingReview(true);
     try {
-      const res = await createProductReview({
+      const res = await submitProductReview({
         data: {
+          storeId: product.storeId,
           productId: product.id,
           rating: newRating,
           comment: newComment,
         }
       });
 
-      if (res.status === "success") {
+      if (res.success) {
         toast.success("Avaliação enviada com sucesso!");
         setNewComment("");
         setNewRating(5);
+        refetchReviews();
         router.invalidate();
       } else {
-        toast.error(res.message || "Erro ao enviar avaliação. Faça login primeiro.");
+        toast.error("Erro ao enviar avaliação. Faça login primeiro.");
       }
-    } catch (err) {
-      toast.error("Você precisa estar autenticado como cliente para avaliar.");
+    } catch (err: any) {
+      toast.error(err.message || "Você precisa estar autenticado como cliente para avaliar.");
     } finally {
       setIsSubmittingReview(false);
+    }
+  };
+
+  const handleToggleFollow = async () => {
+    try {
+      const res = await toggleStoreFollow({ data: { storeId: product.storeId } });
+      toast.success(res.following ? "Você agora está seguindo a loja!" : "Você deixou de seguir a loja.");
+      refetchFollowStatus();
+    } catch (err: any) {
+      toast.error(err.message || "Você precisa estar autenticado como cliente para seguir a loja.");
     }
   };
 
@@ -634,32 +667,15 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
               </div>
             )}
 
-            {/* Selector de Origem de Envio ("Enviado por") */}
+            {/* Origem de Envio ("Enviado por") */}
             <div className="space-y-2">
               <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Enviado por</span>
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShippingOrigin("national")}
-                  className={`flex-1 py-2 px-3 border rounded-xl text-xs font-bold transition-all ${
-                    shippingOrigin === "national"
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50"
-                  }`}
+                <div
+                  className={`flex-1 py-2 px-3 border rounded-xl text-xs font-bold transition-all border-primary bg-primary/5 text-primary text-center`}
                 >
-                  Envio Nacional
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShippingOrigin("international")}
-                  className={`flex-1 py-2 px-3 border rounded-xl text-xs font-bold transition-all ${
-                    shippingOrigin === "international"
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50"
-                  }`}
-                >
-                  Internacional
-                </button>
+                  {shippingOrigin === "national" ? "Envio Nacional" : "Envio Internacional"}
+                </div>
               </div>
 
               {shippingOrigin === "international" && (
@@ -789,10 +805,7 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
                 size="sm"
                 variant={isFollowingStore ? "secondary" : "outline"}
                 className="text-xs font-bold"
-                onClick={() => {
-                  setIsFollowingStore(!isFollowingStore);
-                  toast.success(isFollowingStore ? "Você deixou de seguir a loja." : "Você agora está seguindo a loja!");
-                }}
+                onClick={handleToggleFollow}
               >
                 {isFollowingStore ? "Seguindo" : "+ Seguir"}
               </Button>
@@ -819,20 +832,18 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
               <h2 className="text-xl font-bold uppercase tracking-tight text-foreground">Comentários dos Clientes</h2>
               
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-extrabold text-foreground">4.8</span>
+                <span className="text-4xl font-extrabold text-foreground">{reviewStats.average_rating > 0 ? reviewStats.average_rating.toFixed(1) : "-"}</span>
                 <span className="text-sm text-muted-foreground">/ 5.0</span>
               </div>
 
               <div className="flex items-center gap-0.5 text-amber-500">
-                <Star className="size-5 fill-current" />
-                <Star className="size-5 fill-current" />
-                <Star className="size-5 fill-current" />
-                <Star className="size-5 fill-current" />
-                <Star className="size-5 fill-current" />
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star key={star} className={`size-5 ${star <= Math.round(reviewStats.average_rating) ? "fill-current" : "text-muted-foreground/30"}`} />
+                ))}
               </div>
 
               <p className="text-xs text-muted-foreground">
-                Baseado em avaliações de clientes verificados. Compartilhe sua experiência de uso abaixo.
+                Baseado em {reviewStats.total_reviews} avaliações de clientes. Compartilhe sua experiência de uso abaixo.
               </p>
 
               {/* Formulário para Inserir Avaliação Real */}
@@ -875,51 +886,50 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
             </div>
 
             {/* Direita: Lista de Comentários */}
-            <div className="md:col-span-8 space-y-6 text-left">
-              {(!product.reviews || product.reviews.length === 0) ? (
-                <div className="p-10 text-center border border-dashed rounded-2xl bg-card text-xs text-muted-foreground">
-                  Nenhum comentário publicado para este calçado ainda. Seja o primeiro a opinar!
+            <div className="md:col-span-8 flex flex-col gap-5 mt-8 md:mt-0">
+              {reviewsList.length === 0 ? (
+                <div className="p-8 border border-dashed rounded-2xl flex flex-col items-center justify-center text-center gap-3 bg-card/50">
+                  <MessageCircle className="size-10 text-muted-foreground/50" />
+                  <div>
+                    <h4 className="font-bold text-foreground">Nenhuma avaliação ainda</h4>
+                    <p className="text-xs text-muted-foreground max-w-sm mt-1">
+                      Seja o primeiro a compartilhar o que você achou deste produto.
+                    </p>
+                  </div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {product.reviews.map((r: any) => (
-                    <div key={r.id} className="p-4 border rounded-2xl bg-card shadow-2xs space-y-3">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2">
-                          <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <User className="size-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-foreground">Comprador Verificado</p>
-                            <div className="flex items-center gap-0.5 text-amber-500 mt-0.5">
-                              {Array.from({ length: r.rating }).map((_, i) => (
-                                <Star key={i} className="size-3 fill-current" />
-                              ))}
-                            </div>
-                          </div>
+                reviewsList.map((review: any) => (
+                  <div key={review.id} className="p-5 border rounded-2xl bg-card space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase">
+                          {review.userName.substring(0, 2)}
                         </div>
-                        <span className="text-[10px] text-muted-foreground">
-                          {new Date(r.created_at).toLocaleDateString("pt-BR", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
+                        <div>
+                          <p className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                            {review.userName}
+                            <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 text-[9px] uppercase tracking-wider px-1.5 py-0 border-emerald-500/20">
+                              Verificado
+                            </Badge>
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {new Date(review.createdAt).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
                       </div>
-
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {r.comment || "Nenhum comentário detalhado escrito."}
-                      </p>
-
-                      {/* Mock tags extras combinadas */}
-                      <div className="flex flex-wrap gap-2 text-[9px] text-muted-foreground font-semibold">
-                        <Badge variant="outline" className="text-[8px] bg-muted/40 uppercase">Tom de pele: Médio</Badge>
-                        <Badge variant="outline" className="text-[8px] bg-muted/40 uppercase">Tamanho: Normal</Badge>
-                        <Badge variant="outline" className="text-[8px] bg-muted/40 uppercase">Recomendado: Sim</Badge>
+                      <div className="flex items-center gap-0.5 text-amber-500">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star key={star} className={`size-3.5 ${star <= review.rating ? "fill-current" : "text-muted-foreground/30"}`} />
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
+                    {review.comment && (
+                      <p className="text-sm text-foreground leading-relaxed pl-10.5">
+                        "{review.comment}"
+                      </p>
+                    )}
+                  </div>
+                ))
               )}
             </div>
 

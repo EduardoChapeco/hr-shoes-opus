@@ -60,146 +60,154 @@ async function getOrCreateCartId(identity: {
 // Functions
 // ---------------------------------------------------------------------------
 
-export const getCart = createServerFn({ method: "GET" }).handler(
-  async (): Promise<CartDTO | null> => {
-    const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
+export async function fetchCartDTO(identity: {
+  customer_id: string | null;
+  session_token: string | null;
+}): Promise<CartDTO | null> {
+  const supabase = getServerClient();
 
-    let query = supabase
-      .from("carts")
-      .select(
-        `
+  let query = supabase
+    .from("carts")
+    .select(
+      `
+      id,
+      status,
+      coupon_code,
+      discount_cents,
+      shipping_cents,
+      shipping_method,
+      cart_items (
         id,
-        status,
-        coupon_code,
-        discount_cents,
-        shipping_cents,
-        shipping_method,
-        cart_items (
+        variant_id,
+        qty,
+        product_variants (
           id,
-          variant_id,
-          qty,
-          product_variants (
+          price_override_cents,
+          compare_at_cents,
+          stock_on_hand,
+          stock_reserved,
+          sku,
+          attributes,
+          product:products (
             id,
-            price_override_cents,
-            compare_at_cents,
-            stock_on_hand,
-            stock_reserved,
-            sku,
-            attributes,
-            product:products (
-              id,
-              name,
-              slug,
-              price_cents,
-              product_media ( url )
-            )
+            name,
+            slug,
+            price_cents,
+            product_media ( url )
           )
         )
-      `,
       )
-      .eq("status", "active");
+    `,
+    )
+    .eq("status", "active");
 
-    if (identity.customer_id) query = query.eq("customer_id", identity.customer_id);
-    else query = query.eq("session_token", identity.session_token);
+  if (identity.customer_id) query = query.eq("customer_id", identity.customer_id);
+  else query = query.eq("session_token", identity.session_token);
 
-    const { data: cart } = await query.maybeSingle();
+  const { data: cart } = await query.maybeSingle();
 
-    if (!cart) return null;
+  if (!cart) return null;
 
-    interface CartItemRaw {
-      id: string;
-      variant_id: string;
-      qty: number;
-      product_variants: {
-        sku: string;
-        price_override_cents: number | null;
-        compare_at_cents: number | null;
-        stock_on_hand: number;
-        stock_reserved: number;
-        attributes: Record<string, string>;
-        product: {
-          id: string;
-          name: string;
-          slug: string;
-          price_cents: number;
-          product_media?: { url: string }[];
-        };
+  interface CartItemRaw {
+    id: string;
+    variant_id: string;
+    qty: number;
+    product_variants: {
+      sku: string;
+      price_override_cents: number | null;
+      compare_at_cents: number | null;
+      stock_on_hand: number;
+      stock_reserved: number;
+      attributes: Record<string, string>;
+      product: {
+        id: string;
+        name: string;
+        slug: string;
+        price_cents: number;
+        product_media?: { url: string }[];
       };
-    }
+    };
+  }
 
-    // Map to DTO
-    let totalCents = 0;
-    const rawItems = cart.cart_items as unknown as CartItemRaw[];
-    const items = rawItems.map((item) => {
-      const variant = item.product_variants;
-      const product = variant.product;
-      const image = product.product_media?.[0]?.url;
-      const price = variant.price_override_cents ?? product.price_cents;
-      const lineTotal = price * item.qty;
-      totalCents += lineTotal;
-      
-      const availableStock = (variant.stock_on_hand || 0) - (variant.stock_reserved || 0);
-      const isOutOfStock = availableStock < item.qty;
-
-      return {
-        id: item.id,
-        variantId: item.variant_id,
-        qty: item.qty,
-        priceCents: price,
-        lineTotalCents: lineTotal,
-        productTitle: product.name,
-        variantSku: variant.sku,
-        variantAttributes: variant.attributes || {},
-        coverUrl: image,
-        isOutOfStock,
-      };
-    });
-    // Dynamic Recalculation (M-08-F2)
-    // Always recompute the discount based on the latest subtotal if a coupon is present.
-    let dynamicDiscountCents = cart.discount_cents || 0;
-    let currentCouponCode = cart.coupon_code;
-
-    if (currentCouponCode) {
-      const { data: coupon } = await supabase
-        .from("coupons")
-        .select("*")
-        .eq("code", currentCouponCode)
-        .eq("is_active", true)
-        .maybeSingle();
-
-      if (!coupon || (coupon.expires_at && new Date(coupon.expires_at) < new Date()) || (coupon.min_order_cents && totalCents < coupon.min_order_cents)) {
-        // Invalidated by qty change or expiration
-        dynamicDiscountCents = 0;
-        currentCouponCode = null;
-        // Fire-and-forget DB update to clear the invalid coupon
-        supabase.from("carts").update({ coupon_code: null, discount_cents: 0 }).eq("id", cart.id).then();
-      } else {
-        if (coupon.discount_type === "percentage") {
-          dynamicDiscountCents = Math.floor(totalCents * (coupon.discount_value / 100));
-        } else if (coupon.discount_type === "fixed_amount") {
-          dynamicDiscountCents = Math.round(coupon.discount_value * 100);
-          if (dynamicDiscountCents > totalCents) dynamicDiscountCents = totalCents;
-        }
-        
-        // If the recomputed discount differs from the DB, update DB silently
-        if (dynamicDiscountCents !== cart.discount_cents) {
-           supabase.from("carts").update({ discount_cents: dynamicDiscountCents }).eq("id", cart.id).then();
-        }
-      }
-    }
+  // Map to DTO
+  let totalCents = 0;
+  const rawItems = cart.cart_items as unknown as CartItemRaw[];
+  const items = rawItems.map((item) => {
+    const variant = item.product_variants;
+    const product = variant.product;
+    const image = product.product_media?.[0]?.url;
+    const price = variant.price_override_cents ?? product.price_cents;
+    const lineTotal = price * item.qty;
+    totalCents += lineTotal;
+    
+    const availableStock = (variant.stock_on_hand || 0) - (variant.stock_reserved || 0);
+    const isOutOfStock = availableStock < item.qty;
 
     return {
-      id: cart.id,
-      items,
-      subtotalCents: totalCents,
-      totalCents: Math.max(0, totalCents + cart.shipping_cents - dynamicDiscountCents),
-      shippingCents: cart.shipping_cents,
-      shippingMethod: cart.shipping_method,
-      discountCents: dynamicDiscountCents,
-      couponCode: currentCouponCode,
-      itemCount: items.reduce((acc: number, item: { qty: number }) => acc + item.qty, 0),
+      id: item.id,
+      variantId: item.variant_id,
+      qty: item.qty,
+      priceCents: price,
+      compareAtCents: variant.compare_at_cents ?? null,
+      lineTotalCents: lineTotal,
+      productTitle: product.name,
+      variantSku: variant.sku,
+      variantAttributes: variant.attributes || {},
+      coverUrl: image,
+      isOutOfStock,
     };
+  });
+  // Dynamic Recalculation (M-08-F2)
+  // Always recompute the discount based on the latest subtotal if a coupon is present.
+  let dynamicDiscountCents = cart.discount_cents || 0;
+  let currentCouponCode = cart.coupon_code;
+
+  if (currentCouponCode) {
+    const { data: coupon } = await supabase
+      .from("coupons")
+      .select("*")
+      .eq("code", currentCouponCode)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (!coupon || (coupon.expires_at && new Date(coupon.expires_at) < new Date()) || (coupon.min_order_cents && totalCents < coupon.min_order_cents)) {
+      // Invalidated by qty change or expiration
+      dynamicDiscountCents = 0;
+      currentCouponCode = null;
+      // Fire-and-forget DB update to clear the invalid coupon
+      supabase.from("carts").update({ coupon_code: null, discount_cents: 0 }).eq("id", cart.id).then();
+    } else {
+      if (coupon.discount_type === "percentage") {
+        dynamicDiscountCents = Math.floor(totalCents * (coupon.discount_value / 100));
+      } else if (coupon.discount_type === "fixed_amount") {
+        dynamicDiscountCents = Math.round(coupon.discount_value * 100);
+        if (dynamicDiscountCents > totalCents) dynamicDiscountCents = totalCents;
+      }
+      
+      // If the recomputed discount differs from the DB, update DB silently
+      if (dynamicDiscountCents !== cart.discount_cents) {
+         supabase.from("carts").update({ discount_cents: dynamicDiscountCents }).eq("id", cart.id).then();
+      }
+    }
+  }
+
+  return {
+    id: cart.id,
+    items,
+    subtotalCents: totalCents,
+    totalCents: Math.max(0, totalCents + cart.shipping_cents - dynamicDiscountCents),
+    shippingCents: cart.shipping_cents,
+    shippingMethod: cart.shipping_method,
+    discountCents: dynamicDiscountCents,
+    couponCode: currentCouponCode,
+    itemCount: items.reduce((acc: number, item: { qty: number }) => acc + item.qty, 0),
+  };
+}
+
+export const getCart = createServerFn({ method: "GET" }).handler(
+  async (): Promise<CartDTO | null> => {
+    const identity = await getCurrentIdentity();
+    return fetchCartDTO(identity);
   },
 );
 
@@ -294,7 +302,9 @@ export const addToCart = createServerFn({ method: "POST" })
       });
     }
 
-    return { status: "success" };
+    // Fetch and return the updated cart directly to bypass cookie race conditions on the frontend
+    const updatedCart = await fetchCartDTO(identity);
+    return { status: "success", cart: updatedCart };
   });
 
 export const removeFromCart = createServerFn({ method: "POST" })
