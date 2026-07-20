@@ -286,6 +286,8 @@ function BuilderEditorIDE() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [activePanel, setActivePanel] = useState<"sections" | "blocks" | "layers">("sections");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
+  const [dragOverNodeId, setDragOverNodeId] = useState<string | null>(null);
   const [inspectorTab, setInspectorTab] = useState<"content" | "connection" | "design" | "layout">("content");
   const [viewport, setViewport] = useState<"desktop" | "mobile">("desktop");
   const [blockCategory, setBlockCategory] = useState<string>("hero");
@@ -331,6 +333,34 @@ function BuilderEditorIDE() {
     // Apply continuous indexes so we never collide
     setNodes(prev => prev.map(n => {
       if (n.parent_id === node.parent_id) {
+        const siblingIndex = newSiblings.findIndex(sib => sib.id === n.id);
+        return { ...n, sort_order: siblingIndex };
+      }
+      return n;
+    }));
+  }, [nodes]);
+
+  const reorderNodeAbsolute = useCallback((sourceId: string, targetId: string) => {
+    const sourceNode = nodes.find(n => n.id === sourceId);
+    const targetNode = nodes.find(n => n.id === targetId);
+    if (!sourceNode || !targetNode) return;
+    
+    // Simplificando o drag and drop apenas entre elementos do mesmo nível (mesmo parent)
+    if (sourceNode.parent_id !== targetNode.parent_id) return;
+
+    const siblings = nodes.filter(n => n.parent_id === sourceNode.parent_id).sort((a, b) => a.sort_order - b.sort_order);
+    const sourceIdx = siblings.findIndex(n => n.id === sourceId);
+    const targetIdx = siblings.findIndex(n => n.id === targetId);
+    
+    if (sourceIdx === -1 || targetIdx === -1) return;
+
+    // Remove do index original e insere no target index
+    const newSiblings = [...siblings];
+    const [removed] = newSiblings.splice(sourceIdx, 1);
+    newSiblings.splice(targetIdx, 0, removed);
+
+    setNodes(prev => prev.map(n => {
+      if (n.parent_id === sourceNode.parent_id) {
         const siblingIndex = newSiblings.findIndex(sib => sib.id === n.id);
         return { ...n, sort_order: siblingIndex };
       }
@@ -437,13 +467,50 @@ function BuilderEditorIDE() {
 
   const renderLayer = (node: ExperienceNode & { children?: ExperienceNode[] }, depth = 0): React.ReactNode => {
     const isSelected = selectedNodeId === node.id;
+    const isDragged = draggedNodeId === node.id;
+    const isDragOver = dragOverNodeId === node.id;
     const reg = builderRegistry[node.block_type];
+    
     return (
       <div key={node.id}>
         <div
+          draggable
+          onDragStart={(e) => {
+            e.stopPropagation();
+            setDraggedNodeId(node.id);
+            e.dataTransfer.effectAllowed = "move";
+            e.dataTransfer.setData("text/plain", node.id);
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (draggedNodeId && draggedNodeId !== node.id) {
+              setDragOverNodeId(node.id);
+            }
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (dragOverNodeId === node.id) setDragOverNodeId(null);
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setDragOverNodeId(null);
+            if (draggedNodeId && draggedNodeId !== node.id) {
+              reorderNodeAbsolute(draggedNodeId, node.id);
+            }
+            setDraggedNodeId(null);
+          }}
+          onDragEnd={() => {
+            setDraggedNodeId(null);
+            setDragOverNodeId(null);
+          }}
           className={cn(
-            "flex items-center gap-1.5 py-1.5 pr-2 rounded-lg text-sm cursor-pointer transition-colors group select-none",
-            isSelected ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted text-foreground"
+            "flex items-center gap-1.5 py-1.5 pr-2 rounded-lg text-sm cursor-grab active:cursor-grabbing transition-colors group select-none relative",
+            isSelected ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted text-foreground",
+            isDragged && "opacity-50",
+            isDragOver && "border-t-2 border-t-primary" // Feedback visual simples de drop
           )}
           style={{ paddingLeft: `${depth * 14 + 8}px` }}
           onClick={() => setSelectedNodeId(node.id)}
