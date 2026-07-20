@@ -250,6 +250,7 @@ function ExperienceNodeRenderer({ node, transientData, bindings, isEditing, sele
         transientData={transientData}
         bindings={bindings}
         resolvedData={resolvedData}
+        isEditing={isEditing}
       />
     </TrackView>
   );

@@ -67,16 +67,23 @@ export function HeroCarousel({ content, node_id, block_type }: { content: Record
             return (
               <div key={index} className="relative min-w-0 flex-full shrink-0 grow-0 basis-full">
                 {/* Background Image */}
-                <div className="absolute inset-0 z-0">
-                  <picture>
-                    <source media="(max-width: 640px)" srcSet={mobile_bg_url} />
-                    <img
-                      src={bg_url}
-                      alt={title || "Banner"}
-                      loading={index === 0 ? "eager" : "lazy"}
-                      className="size-full object-cover"
-                    />
-                  </picture>
+                <div className="absolute inset-0 z-0 bg-[#222]">
+                  {bg_url ? (
+                    <picture>
+                      <source media="(max-width: 640px)" srcSet={mobile_bg_url} />
+                      <img
+                        src={bg_url}
+                        alt={title || "Banner"}
+                        loading={index === 0 ? "eager" : "lazy"}
+                        className="size-full object-cover"
+                      />
+                    </picture>
+                  ) : (
+                    <div className="size-full bg-gradient-to-tr from-[#1a1a2e] to-[#16213e] flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-4">
+                      <span className="text-white/60 text-sm font-semibold tracking-wide uppercase mb-1">Banner Principal</span>
+                      <span className="text-white/30 text-xs">Arraste/selecione uma imagem ou cole uma URL no painel à direita</span>
+                    </div>
+                  )}
                   {/* Subtle overlay for text readability */}
                   <div className="absolute inset-0 bg-black/30" />
                 </div>

@@ -25,7 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { listExperienceDocuments, createExperienceDocument } from "@/services/builder.functions";
+import { listExperienceDocuments, createExperienceDocument, updateExperienceDocument } from "@/services/builder.functions";
 import type { ExperienceDocument } from "@/lib/builder-types";
 
 export const Route = createFileRoute("/admin/builder/")({
@@ -36,7 +36,10 @@ export const Route = createFileRoute("/admin/builder/")({
     if (res.status === "error" || res.status === "unconfigured") {
       throw new Error("Erro ao carregar documentos do Builder");
     }
-    return { documents: res.data as ExperienceDocument[] };
+    const filtered = (res.data as ExperienceDocument[]).filter(
+      (doc) => doc.document_type !== "storefront"
+    );
+    return { documents: filtered };
   },
   component: BuilderIndex,
 });
@@ -67,6 +70,50 @@ function BuilderIndex() {
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Page Settings Dialog State
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [editingDoc, setEditingDoc] = useState<ExperienceDocument | null>(null);
+  const [settingsTitle, setSettingsTitle] = useState("");
+  const [settingsSlug, setSettingsSlug] = useState("");
+  const [settingsActive, setSettingsActive] = useState(true);
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
+
+  const openSettings = (doc: ExperienceDocument) => {
+    setEditingDoc(doc);
+    setSettingsTitle(doc.title);
+    setSettingsSlug(doc.slug);
+    setSettingsActive(doc.is_active);
+    setIsSettingsOpen(true);
+  };
+
+  const handleUpdateSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDoc) return;
+    
+    setIsUpdatingSettings(true);
+    try {
+      const res = await updateExperienceDocument({
+        data: {
+          id: editingDoc.id,
+          title: settingsTitle,
+          slug: settingsSlug.toLowerCase().trim(),
+          is_active: settingsActive
+        }
+      });
+      if (res.status === "success") {
+        toast.success("Configurações atualizadas!");
+        setIsSettingsOpen(false);
+        navigate({ to: "/admin/builder", search: { type: search.type } as any });
+      } else {
+        toast.error(res.message || "Erro ao atualizar.");
+      }
+    } catch {
+      toast.error("Erro inesperado.");
+    } finally {
+      setIsUpdatingSettings(false);
+    }
+  };
 
   // Filter by type (from ?type=biolink redirect) and search query
   const filteredDocs = documents.filter((doc: ExperienceDocument) => {
@@ -185,7 +232,12 @@ function BuilderIndex() {
                 </span>
                 
                 <div className="flex gap-2">
-                   <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                   <Button 
+                     variant="ghost" 
+                     size="icon" 
+                     className="h-8 w-8 text-muted-foreground"
+                     onClick={() => openSettings(doc)}
+                   >
                      <Settings className="h-4 w-4" />
                    </Button>
                    <Button variant="secondary" size="sm" asChild>
@@ -207,6 +259,61 @@ function BuilderIndex() {
           </div>
         )}
       </div>
+
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Configurações da Página</DialogTitle>
+            <DialogDescription>
+              Atualize o título, o endereço (slug) e a visibilidade desta página extra ou bio link.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdateSettings} className="space-y-4 py-2">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Título da Página</label>
+              <Input 
+                required 
+                placeholder="Ex: Coleção de Verão" 
+                value={settingsTitle} 
+                onChange={e => setSettingsTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground uppercase">Endereço (Slug)</label>
+              <div className="flex items-center">
+                <span className="bg-muted border border-r-0 rounded-l-md px-3 py-2 text-sm text-muted-foreground">/</span>
+                <Input 
+                  required 
+                  pattern="^[a-z0-9-]+$"
+                  title="Apenas letras minúsculas, números e traços."
+                  placeholder="ex: colecao-verao" 
+                  className="rounded-l-none"
+                  value={settingsSlug} 
+                  onChange={e => setSettingsSlug(e.target.value.toLowerCase().replace(/\s+/g, "-"))}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
+              <div>
+                <p className="text-sm font-semibold">Página Ativa</p>
+                <p className="text-xs text-muted-foreground">Se desativada, a página retornará 404 para visitantes.</p>
+              </div>
+              <input 
+                type="checkbox" 
+                checked={settingsActive} 
+                onChange={e => setSettingsActive(e.target.checked)} 
+                className="h-5 w-5 accent-primary cursor-pointer"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsSettingsOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={isUpdatingSettings}>
+                {isUpdatingSettings ? "Salvando..." : "Salvar Configurações"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isTemplateModalOpen} onOpenChange={setIsTemplateModalOpen}>
         <DialogContent className="max-w-3xl">

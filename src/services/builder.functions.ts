@@ -78,11 +78,56 @@ export const getExperienceDocument = createServerFn({ method: "GET" })
         const rawNodes = nodesData as ExperienceNode[];
         nodes = await Promise.all(rawNodes.map(async (node) => {
            const bindings = node.data_bindings || {};
-           if (bindings.type === "product_collection" && bindings.collection_slug) {
+           const bindingType = bindings.type || bindings.source;
+           
+           if (bindingType === "product_collection" && bindings.collection_slug) {
               const { getProductsByCollection } = await import("@/services/catalog.functions");
               const res = await getProductsByCollection({ data: { slug: bindings.collection_slug } }).catch(() => null);
               if (res && res.status === "ok") {
                 return { ...node, transient_data: { products: res.data } };
+              }
+           } else if (bindingType === "latest_products" || bindingType === "dynamic_products") {
+              const dbRef = getServerClient();
+              const limit = bindings.limit || 12;
+              const { data: latest } = await dbRef
+                .from("products")
+                .select("id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)")
+                .eq("status", "active")
+                .order("created_at", { ascending: false })
+                .limit(limit);
+              if (latest) {
+                const formatted = latest.map((p: any) => {
+                  const sortedMedia = p.media ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order) : [];
+                  return {
+                    id: p.id, title: p.title, slug: p.slug,
+                    priceCents: p.price_cents, compareAtCents: p.compare_at_cents,
+                    coverUrl: sortedMedia[0]?.url || null,
+                    hoverUrl: sortedMedia[1]?.url || null,
+                    isOutOfStock: false,
+                  };
+                });
+                return { ...node, transient_data: { products: formatted } };
+              }
+           } else if (bindingType === "dynamic_reviews") {
+              const dbRef = getServerClient();
+              const { data: reviews } = await dbRef
+                .from("reviews")
+                .select("id, rating, comment, profiles(full_name, avatar_url)")
+                .eq("status", "approved")
+                .order("created_at", { ascending: false })
+                .limit(6);
+              if (reviews) {
+                const formatted = reviews.map((r: any) => {
+                  const profile = (r.profiles as any) || {};
+                  return {
+                    author: profile.full_name || "Cliente",
+                    role: "Cliente Verificado",
+                    content: r.comment || "",
+                    rating: r.rating,
+                    avatar_url: profile.avatar_url || null,
+                  };
+                });
+                return { ...node, transient_data: { reviews: formatted } };
               }
            }
            return node;
@@ -364,6 +409,51 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
     } catch (e: unknown) {
       console.error("[builder.functions] createExperienceDocument error:", e);
       return { status: "error" as const, message: "Erro ao criar documento." };
+    }
+  });
+
+export const updateExperienceDocument = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string().uuid(),
+      title: z.string().min(1).max(200),
+      slug: z.string().regex(/^[a-z0-9-]+$/),
+      is_active: z.boolean(),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+
+      // Check slug collision
+      const { data: existing } = await db
+        .from("experience_documents")
+        .select("id")
+        .eq("slug", input.slug)
+        .neq("id", input.id)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (existing) {
+        return { status: "error" as const, message: "Este slug já está em uso por outra página ativa." };
+      }
+
+      const { error } = await db
+        .from("experience_documents")
+        .update({
+          title: input.title,
+          slug: input.slug,
+          is_active: input.is_active,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", input.id);
+
+      if (error) throw error;
+
+      return { status: "success" as const };
+    } catch (e: unknown) {
+      console.error("[builder.functions] updateExperienceDocument error:", e);
+      return { status: "error" as const, message: "Erro ao atualizar configurações." };
     }
   });
 

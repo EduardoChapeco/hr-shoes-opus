@@ -32,7 +32,13 @@ import {
   LifeBuoy,
   Paintbrush,
   Video,
-  Plug
+  Plug,
+  Link2,
+  LayoutTemplate,
+  Palette,
+  ArrowLeftRight,
+  Monitor,
+  Building
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -81,7 +87,13 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Paintbrush,
   Menu,
   Video,
-  Plug
+  Plug,
+  Link2,
+  LayoutTemplate,
+  Palette,
+  ArrowLeftRight,
+  Monitor,
+  Building
 };
 
 function resolveIcon(name: string): LucideIcon {

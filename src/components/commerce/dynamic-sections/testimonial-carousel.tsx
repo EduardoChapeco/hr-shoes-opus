@@ -21,20 +21,27 @@ interface TestimonialCarouselProps {
     testimonials?: Array<any>; // Fallback para conteúdo manual, se não usar dinâmico
   };
   design_tokens?: any;
-  data_bindings?: { source?: string };
+  data_bindings?: { type?: string; source?: string };
+  transientData?: any;
+  resolvedData?: any;
 }
 
-export function TestimonialCarousel({ content, design_tokens, data_bindings }: TestimonialCarouselProps) {
-  // Puxar depoimentos dinâmicos se source não for nulo/estático
-  const isDynamic = data_bindings?.source === "dynamic_reviews" || !content?.testimonials || content.testimonials.length === 0;
+export function TestimonialCarousel({ content, design_tokens, data_bindings, transientData, resolvedData }: TestimonialCarouselProps) {
+  const bindingType = data_bindings?.type || data_bindings?.source;
+  const isDynamic = bindingType === "dynamic_reviews" || !content?.testimonials || content.testimonials.length === 0;
 
-  const { data: result, isLoading } = useQuery({
+  // Use server-side hydrated data if present
+  const serverReviews = resolvedData?.reviews || resolvedData || transientData?.reviews || null;
+
+  const { data: result } = useQuery({
     queryKey: ["builderReviews"],
     queryFn: () => getBuilderReviews(),
-    enabled: isDynamic
+    enabled: isDynamic && !serverReviews
   });
 
-  const testimonials = isDynamic ? (result?.status === "ok" ? result.data : []) : (content?.testimonials || []);
+  const testimonials = isDynamic 
+    ? (serverReviews || (result?.status === "ok" ? result.data : []))
+    : (content?.testimonials || []);
 
   return (
     <div

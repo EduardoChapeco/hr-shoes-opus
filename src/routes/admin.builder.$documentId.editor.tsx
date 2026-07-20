@@ -457,7 +457,7 @@ function BuilderEditorIDE() {
         {/* Left: Back + Title */}
         <div className="flex items-center gap-3 min-w-0">
           <button
-            onClick={() => navigate({ to: "/admin/builder/", search: {} as any })}
+            onClick={() => navigate({ to: "/admin/builder", search: {} as any })}
             className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs transition-colors shrink-0"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -654,33 +654,36 @@ function BuilderEditorIDE() {
           {/* Canvas frame */}
           <div
             className={cn(
-              "bg-white relative transition-all duration-300 mb-8",
+              "bg-white relative transition-all duration-300 mb-8 flex flex-col shadow-2xl",
               viewport === "desktop"
-                ? "w-full min-h-[calc(100vh-120px)] shadow-2xl"
-                : "w-[390px] min-h-[844px] rounded-[2rem] shadow-2xl border-[6px] border-[#333] overflow-hidden"
+                ? "w-full max-w-[1280px] min-h-[calc(100vh-140px)] rounded-xl overflow-hidden"
+                : "w-[390px] h-[780px] rounded-[3rem] border-[12px] border-[#222] overflow-hidden"
             )}
             onClick={() => setSelectedNodeId(null)}
           >
-            {nodes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center min-h-[500px] text-gray-400 gap-4">
-                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Plus className="h-8 w-8 text-gray-300" />
+            {/* Scrollable content wrapper */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden w-full h-full flex flex-col bg-white">
+              {nodes.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center min-h-[400px] text-gray-400 gap-4 p-8 text-center">
+                  <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center">
+                    <Plus className="h-8 w-8 text-gray-300" />
+                  </div>
+                  <div className="max-w-xs">
+                    <p className="font-semibold text-gray-600 text-sm">Canvas vazio</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Adicione seções no painel à esquerda para construir sua página.
+                    </p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="font-medium text-gray-500">Canvas vazio</p>
-                  <p className="text-sm text-gray-400 mt-1">
-                    Adicione seções no painel à esquerda para construir sua página.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <ExperienceRenderer
-                nodes={treeNodes}
-                isEditing
-                selectedNodeId={selectedNodeId}
-                onSelectNode={setSelectedNodeId}
-              />
-            )}
+              ) : (
+                <ExperienceRenderer
+                  nodes={treeNodes}
+                  isEditing
+                  selectedNodeId={selectedNodeId}
+                  onSelectNode={setSelectedNodeId}
+                />
+              )}
+            </div>
           </div>
         </main>
 

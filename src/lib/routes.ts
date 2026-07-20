@@ -962,8 +962,9 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
   {
     title: "Conteúdo & Vitrine",
     items: [
-      { path: "/admin/builder", label: "Construtor (Builder)", icon: "Paintbrush" },
-      { path: "/admin/perfil-publico", label: "Perfil Institucional", icon: "Store" },
+      { path: "/admin/vitrine", label: "Vitrine (Home)", icon: "Monitor" },
+      { path: "/admin/builder", label: "Landing Pages & Bios", icon: "Paintbrush" },
+      { path: "/admin/perfil-publico", label: "Perfil Institucional", icon: "Building" },
       { path: "/admin/link-da-bio", label: "Link da Bio", icon: "Link2" },
       { path: "/admin/destaques", label: "Destaques", icon: "LayoutTemplate" },
       { path: "/admin/marketing/cupons", label: "Marketing & Cupons", icon: "Megaphone" },

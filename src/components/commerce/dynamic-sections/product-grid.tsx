@@ -25,7 +25,8 @@ interface ProductGridProps {
  * NEVER issues its own network requests. Honest empty state when no products.
  */
 export function ProductGrid({ content, design_tokens, transientData, resolvedData }: ProductGridProps) {
-  const products: any[] = resolvedData?.products || transientData?.products || [];
+  // Support both object wrapped products and direct products array
+  const products: any[] = resolvedData?.products || (Array.isArray(resolvedData) ? resolvedData : null) || transientData?.products || [];
   const cols = content?.columns ?? 4;
   const colClass = { 2: "grid-cols-2", 3: "grid-cols-2 md:grid-cols-3", 4: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" }[cols] ?? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
 

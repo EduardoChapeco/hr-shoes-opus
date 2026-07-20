@@ -8,7 +8,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin/link-da-bio")({
   loader: async () => {
-    throw redirect({ to: "/admin/builder/", search: { type: "biolink" } as any });
+    throw redirect({ to: "/admin/builder", search: { type: "biolink" } as any });
   },
   component: () => null,
 });

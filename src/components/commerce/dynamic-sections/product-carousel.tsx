@@ -33,9 +33,8 @@ interface ProductCarouselProps {
  * shows an honest empty state. No mock data, no fallback lists.
  */
 export function ProductCarousel({ content, design_tokens, transientData, resolvedData }: ProductCarouselProps) {
-  // Products are injected server-side via getPublicExperienceDocumentBySlug hydration
-  // OR via the editor's getExperienceDocument hydration (transient_data on the node)
-  const products: any[] = resolvedData?.products || transientData?.products || [];
+  // Support both object wrapped products and direct products array
+  const products: any[] = resolvedData?.products || (Array.isArray(resolvedData) ? resolvedData : null) || transientData?.products || [];
 
   return (
     <div
