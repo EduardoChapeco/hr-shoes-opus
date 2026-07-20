@@ -15,7 +15,11 @@ import {
   UserCheck,
   ChevronRight,
   ChevronLeft,
+  FileText,
+  ShieldCheck,
 } from "lucide-react";
+
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -79,6 +83,8 @@ function CustomersPage() {
     phone: "",
     tagsRaw: "",
     notes: "",
+    taxId: "",
+    isConsentLgpd: false,
   });
 
   const handleCreate = async (e: React.FormEvent) => {

@@ -15,7 +15,7 @@ import { readCookieFromRequest } from "@/lib/http-cookies";
 import { normalizeInternalReturnPath } from "@/lib/return-path";
 import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { mergeGuestCartLogic } from "@/services/cart-helpers";
-import { setResponseHeader, setResponseStatus } from "@tanstack/react-start/server";
+
 
 export const Route = createFileRoute("/api/auth/confirm")({
   server: {
@@ -30,9 +30,10 @@ export const Route = createFileRoute("/api/auth/confirm")({
         const guestSessionToken = readCookieFromRequest(request, "hr_shoes_guest_session");
 
         if (!token_hash || !type) {
-          setResponseHeader("Location", "/entrar?error=link-invalido");
-          setResponseStatus(302);
-          return "";
+          return new Response(null, {
+            status: 302,
+            headers: { Location: "/entrar?error=link-invalido" },
+          }) as any;
         }
 
         const supabase = getSSRClient();
@@ -43,9 +44,10 @@ export const Route = createFileRoute("/api/auth/confirm")({
 
         if (error) {
           console.error("[auth/confirm] verifyOtp error:", error.message);
-          setResponseHeader("Location", `/entrar?error=${encodeURIComponent(error.message)}`);
-          setResponseStatus(302);
-          return "";
+          return new Response(null, {
+            status: 302,
+            headers: { Location: `/entrar?error=${encodeURIComponent(error.message)}` },
+          }) as any;
         }
 
         // Success — get the newly created session and merge guest cart
@@ -63,9 +65,10 @@ export const Route = createFileRoute("/api/auth/confirm")({
         }
 
         // Redirect the user to their intended destination.
-        setResponseHeader("Location", next);
-        setResponseStatus(302);
-        return "";
+        return new Response(null, {
+          status: 302,
+          headers: { Location: next },
+        }) as any;
       },
     },
   },

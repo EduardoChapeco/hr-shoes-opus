@@ -257,9 +257,9 @@ function BuilderEditorIDE() {
                     const sortOrder = nodes.filter(n => !n.parent_id).length;
                     setNodes(prev => [
                       ...prev,
-                      { id: sectionId, document_id: document.id, parent_id: null, sort_order: sortOrder, ...builderRegistry["section"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-                      { id: containerId, document_id: document.id, parent_id: sectionId, sort_order: 0, ...builderRegistry["container"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-                      { id: heroId, document_id: document.id, parent_id: containerId, sort_order: 0, ...builderRegistry["hero_carousel"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+                      { id: sectionId, version_id: version.id, parent_id: null, sort_order: sortOrder, ...builderRegistry["section"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode,
+                      { id: containerId, version_id: version.id, parent_id: sectionId, sort_order: 0, ...builderRegistry["container"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode,
+                      { id: heroId, version_id: version.id, parent_id: containerId, sort_order: 0, ...builderRegistry["hero_carousel"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode
                     ]);
                   }}>
                     <h4 className="font-semibold text-sm">Hero Banner</h4>
@@ -273,9 +273,9 @@ function BuilderEditorIDE() {
                     const sortOrder = nodes.filter(n => !n.parent_id).length;
                     setNodes(prev => [
                       ...prev,
-                      { id: sectionId, document_id: document.id, parent_id: null, sort_order: sortOrder, ...builderRegistry["section"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-                      { id: containerId, document_id: document.id, parent_id: sectionId, sort_order: 0, ...builderRegistry["container"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-                      { id: faqId, document_id: document.id, parent_id: containerId, sort_order: 0, ...builderRegistry["faq_accordion"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+                      { id: sectionId, version_id: version.id, parent_id: null, sort_order: sortOrder, ...builderRegistry["section"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode,
+                      { id: containerId, version_id: version.id, parent_id: sectionId, sort_order: 0, ...builderRegistry["container"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode,
+                      { id: faqId, version_id: version.id, parent_id: containerId, sort_order: 0, ...builderRegistry["faq_accordion"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode
                     ]);
                   }}>
                     <h4 className="font-semibold text-sm">Perguntas Frequentes</h4>
@@ -289,9 +289,9 @@ function BuilderEditorIDE() {
                     const sortOrder = nodes.filter(n => !n.parent_id).length;
                     setNodes(prev => [
                       ...prev,
-                      { id: sectionId, document_id: document.id, parent_id: null, sort_order: sortOrder, ...builderRegistry["section"].defaultProps, design_tokens: { backgroundColor: "#f8fafc" }, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-                      { id: containerId, document_id: document.id, parent_id: sectionId, sort_order: 0, ...builderRegistry["container"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-                      { id: testId, document_id: document.id, parent_id: containerId, sort_order: 0, ...builderRegistry["testimonial_carousel"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+                      { id: sectionId, version_id: version.id, parent_id: null, sort_order: sortOrder, ...builderRegistry["section"].defaultProps, design_tokens: { backgroundColor: "#f8fafc" }, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode,
+                      { id: containerId, version_id: version.id, parent_id: sectionId, sort_order: 0, ...builderRegistry["container"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode,
+                      { id: testId, version_id: version.id, parent_id: containerId, sort_order: 0, ...builderRegistry["testimonial_carousel"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode
                     ]);
                   }}>
                     <h4 className="font-semibold text-sm">Depoimentos</h4>
@@ -318,12 +318,12 @@ function BuilderEditorIDE() {
                          const newNode: ExperienceNode = {
                            id: crypto.randomUUID(),
                            ...block.defaultProps,
-                           document_id: document.id,
+                           version_id: version.id,
                            parent_id: targetParentId,
                            sort_order: nodes.filter(n => n.parent_id === targetParentId).length,
                            created_at: new Date().toISOString(),
                            updated_at: new Date().toISOString(),
-                         };
+                         } as ExperienceNode;
                          setNodes(prev => [...prev, newNode]);
                          setSelectedNodeId(newNode.id);
                        }}

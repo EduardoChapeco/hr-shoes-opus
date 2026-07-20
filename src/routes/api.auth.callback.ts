@@ -3,7 +3,7 @@ import { readCookieFromRequest } from "@/lib/http-cookies";
 import { normalizeInternalReturnPath } from "@/lib/return-path";
 import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { mergeGuestCartLogic } from "@/services/cart-helpers";
-import { setResponseHeader, setResponseStatus } from "@tanstack/react-start/server";
+
 
 export const Route = createFileRoute("/api/auth/callback")({
   server: {
@@ -30,16 +30,18 @@ export const Route = createFileRoute("/api/auth/callback")({
               console.error("Falha ao mesclar carrinho após OAuth (ignorado):", err);
             }
 
-            setResponseHeader("Location", next);
-            setResponseStatus(302);
-            return "";
+            return new Response(null, {
+              status: 302,
+              headers: { Location: next },
+            }) as any;
           }
         }
 
         // Return the user to an error page with instructions
-        setResponseHeader("Location", "/entrar?error=auth-callback-failed");
-        setResponseStatus(302);
-        return "";
+        return new Response(null, {
+          status: 302,
+          headers: { Location: "/entrar?error=auth-callback-failed" },
+        }) as any;
       },
     },
   },

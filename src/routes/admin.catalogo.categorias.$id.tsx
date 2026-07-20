@@ -120,13 +120,13 @@ function EditCategoryPage() {
                   setValue("slug", slug);
                 }}
               />
-              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+              {errors.name?.message && <p className="text-xs text-destructive">{String(errors.name.message)}</p>}
             </div>
 
             <div className="space-y-2">
               <Label>Slug</Label>
               <Input {...register("slug", { required: "Obrigatório" })} />
-              {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
+              {errors.slug?.message && <p className="text-xs text-destructive">{String(errors.slug.message)}</p>}
             </div>
 
             <div className="space-y-2">
