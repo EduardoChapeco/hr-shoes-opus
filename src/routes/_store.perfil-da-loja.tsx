@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
+import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
 import { ErrorState, UnconfiguredState } from "@/components/state/states";
 import { getPublicStoreProfile } from "@/services/catalog.functions";
 import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
+import { getOpenStatus } from "@/lib/datetime";
 
 export const Route = createFileRoute("/_store/perfil-da-loja")({
   head: () => ({
@@ -21,14 +22,15 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
     const [profile, docRes] = await Promise.all([
       getPublicStoreProfile(),
       getPublicExperienceDocumentBySlug({
-        data: { slug: "institucional", document_type: "storefront" }
+        data: { slug: "institucional", document_type: "storefront" },
       }).catch(() => null),
     ]);
     return {
       profile,
-      builderTree: docRes?.status === "ok" && (docRes.data as any).tree?.length > 0
-        ? (docRes.data as any).tree
-        : null,
+      builderTree:
+        docRes?.status === "ok" && (docRes.data as any).tree?.length > 0
+          ? (docRes.data as any).tree
+          : null,
     };
   },
 
@@ -65,7 +67,8 @@ function StorePerfil() {
     );
   }
 
-  // If a published Builder document exists for slug "institucional", use canonical renderer
+  // ── Canonical path: published Builder document for slug "institucional"
+  // The server has already hydrated store_profile bindings (hours, contact, hero)
   if (builderTree) {
     return (
       <main className="w-full flex flex-col gap-0 min-h-screen">
@@ -74,73 +77,153 @@ function StorePerfil() {
     );
   }
 
-  // Honest canonical fallback — shows real store data until admin publishes a Builder page
-  const store = res.data;
+  // ── Honest fallback: no Builder document published yet.
+  // Reads real store data and shows structured info.
+  // Admin banner prompts creating the institutional profile.
+  const store = res.data as any;
+  const settings = store.settings || {};
+  const extendedHours = settings.business_hours_extended || [];
+  const holidayExceptions = settings.holiday_exceptions || [];
+  const actionButtons: any[] = settings.action_buttons || [];
+  const openStatus = extendedHours.length > 0 ? getOpenStatus(extendedHours, holidayExceptions) : null;
 
   return (
     <main className="min-h-screen bg-background">
-      {/* Admin notice: visible only in dev or when not using Builder */}
+      {/* Admin banner — directs admin to create the Builder page */}
       <div className="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs text-center py-2 px-4">
-        Exibindo dados canônicos da loja.{" "}
+        Exibindo perfil canônico da loja.{" "}
         <Link
-          to="/admin/builder"
-          search={{ type: undefined }}
-          className="underline font-medium"
+          to="/admin/perfil-publico"
+          className="underline font-semibold"
         >
-          Crie e publique uma página "institucional" no Builder
-        </Link>{" "}
-        para personalizar este perfil.
+          Personalize este perfil no Editor Visual
+        </Link>
+        {" "}para uma página com design completo.
       </div>
 
-      <div className="mx-auto max-w-screen-xl px-4 md:px-6 py-12">
-        <div className="flex flex-col md:flex-row gap-6 items-start">
-          {store.logoUrl && (
-            <div className="w-24 h-24 rounded-2xl overflow-hidden border-4 border-background shadow-md flex-shrink-0 bg-background">
-              <img src={store.logoUrl} alt={store.name} className="w-full h-full object-contain" />
-            </div>
+      {/* Cover */}
+      {settings.cover_url && (
+        <div className="relative h-40 md:h-64 w-full overflow-hidden">
+          <img src={settings.cover_url} alt="Capa da loja" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
+        </div>
+      )}
+
+      <div className="mx-auto max-w-2xl px-4 md:px-6 py-8">
+        {/* Profile Header */}
+        <div className="flex flex-col items-center text-center gap-3">
+          {(store.logo_url || settings.logoUrl) && (
+            <img
+              src={store.logo_url || settings.logoUrl}
+              alt={store.name}
+              className={`size-24 rounded-full object-cover border-4 border-background shadow-md bg-background ${settings.cover_url ? "-mt-16 relative z-10" : ""}`}
+            />
           )}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">{store.name}</h1>
+          <div>
+            <h1 className="text-2xl font-bold">{store.name}</h1>
+            {store.slug && <p className="text-sm text-muted-foreground">@{store.slug}</p>}
             {store.description && (
-              <p className="mt-2 text-muted-foreground text-sm md:text-base max-w-2xl">{store.description}</p>
+              <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                {store.description}
+              </p>
             )}
           </div>
+
+          {/* Status badge */}
+          {openStatus && (
+            <span
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                openStatus.status === "open"
+                  ? "bg-emerald-500/15 text-emerald-700"
+                  : "bg-destructive/15 text-destructive"
+              }`}
+            >
+              <span className={`size-2 rounded-full ${openStatus.status === "open" ? "bg-emerald-500" : "bg-destructive"}`} />
+              {openStatus.text}
+            </span>
+          )}
+
+          {/* Action buttons */}
+          {actionButtons.length > 0 && (
+            <div className="flex flex-wrap gap-2 justify-center">
+              {actionButtons.map((btn: any) => (
+                <a
+                  key={btn.id}
+                  href={btn.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full border bg-background text-sm font-medium hover:bg-muted transition-colors"
+                >
+                  {btn.label}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Contact Info */}
+        <div className="mt-8 space-y-3">
           {store.phone && (
-            <a href={`tel:${store.phone}`} className="flex items-center gap-3 p-4 rounded-xl border hover:bg-accent/50 transition-colors">
-              <Phone className="h-5 w-5 text-primary flex-shrink-0" />
-              <span className="text-sm font-medium truncate">{store.phone}</span>
-            </a>
-          )}
-          {store.email && (
-            <a href={`mailto:${store.email}`} className="flex items-center gap-3 p-4 rounded-xl border hover:bg-accent/50 transition-colors">
-              <Mail className="h-5 w-5 text-primary flex-shrink-0" />
-              <span className="text-sm font-medium truncate">{store.email}</span>
-            </a>
-          )}
-          {store.instagramHandle && (
             <a
-              href={`https://instagram.com/${store.instagramHandle.replace("@", "")}`}
+              href={`tel:${store.phone}`}
+              className="flex items-center gap-4 p-3 rounded-xl border hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0">
+                <Phone className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Telefone</p>
+                <p className="text-sm font-medium">{store.phone}</p>
+              </div>
+            </a>
+          )}
+          {store.phone && (
+            <a
+              href={`https://wa.me/${store.phone.replace(/\D/g, "")}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 rounded-xl border hover:bg-accent/50 transition-colors"
+              className="flex items-center gap-4 p-3 rounded-xl border hover:bg-muted/50 transition-colors"
             >
-              <MessageCircle className="h-5 w-5 text-pink-500 flex-shrink-0" />
-              <span className="text-sm font-medium">@{store.instagramHandle.replace("@", "")}</span>
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 shrink-0">
+                <MessageCircle className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">WhatsApp</p>
+                <p className="text-sm font-medium">{store.phone}</p>
+              </div>
             </a>
           )}
           {store.address && (
-            <div className="flex items-center gap-3 p-4 rounded-xl border">
-              <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
-              <span className="text-sm text-muted-foreground">{store.address}{store.city ? `, ${store.city}` : ""}{store.state ? `/${store.state}` : ""}</span>
+            <div className="flex items-start gap-4 p-3 rounded-xl border">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary shrink-0 mt-0.5">
+                <MapPin className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Endereço</p>
+                <p className="text-sm font-medium">
+                  {store.address}{store.city ? `, ${store.city}` : ""}{store.state ? `/${store.state}` : ""}
+                </p>
+              </div>
             </div>
           )}
-          {store.businessHours && (
-            <div className="flex items-center gap-3 p-4 rounded-xl border">
-              <Clock className="h-5 w-5 text-primary flex-shrink-0" />
-              <span className="text-sm text-muted-foreground">{store.businessHours}</span>
+          {extendedHours.length > 0 && (
+            <div className="p-4 rounded-xl border">
+              <div className="flex items-center gap-2 mb-3">
+                <Clock className="h-4 w-4 text-primary" />
+                <p className="text-sm font-semibold">Horários de Funcionamento</p>
+              </div>
+              <div className="space-y-1.5">
+                {extendedHours.map((day: any) => (
+                  <div key={day.day} className="flex justify-between text-sm">
+                    <span className={`${!day.open ? "text-muted-foreground" : "font-medium"}`}>
+                      {day.day}
+                    </span>
+                    <span className={`font-mono text-xs ${!day.open ? "text-muted-foreground" : ""}`}>
+                      {day.open ? `${day.openTime} – ${day.closeTime}` : "Fechado"}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

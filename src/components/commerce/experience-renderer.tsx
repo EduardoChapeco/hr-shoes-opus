@@ -23,6 +23,9 @@ import { TimelineHistory } from "./dynamic-sections/timeline-history";
 import { ProductCarousel } from "./dynamic-sections/product-carousel";
 import { ProductGrid } from "./dynamic-sections/product-grid";
 import { SplitBanner } from "./dynamic-sections/split-banner";
+import { StoreProfileHero } from "./dynamic-sections/store-profile-hero";
+import { StoreHours } from "./dynamic-sections/store-hours";
+import { StoreContact } from "./dynamic-sections/store-contact";
 import { TrackView } from "./analytics-provider";
 
 // Mapeamento dinâmico dos componentes React para cada bloco
@@ -47,6 +50,9 @@ const componentMap: Record<string, React.FC<any>> = {
   product_carousel: ProductCarousel,
   product_grid: ProductGrid,
   split_banner: SplitBanner,
+  store_profile_hero: StoreProfileHero,
+  store_hours: StoreHours,
+  store_contact: StoreContact,
 };
 
 interface ExperienceRendererProps {

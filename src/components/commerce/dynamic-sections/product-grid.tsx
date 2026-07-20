@@ -52,7 +52,7 @@ export function ProductGrid({ content, design_tokens, data_bindings, transientDa
     queryKey: ["editorLatestProductsGrid", data_bindings?.limit],
     queryFn: async () => {
       const { listPublishedProducts } = await import("@/services/catalog.functions");
-      const res = await listPublishedProducts({ limit: data_bindings?.limit || 12 });
+      const res = await listPublishedProducts({ data: { limit: data_bindings?.limit || 12 } });
       return res.status === "ok" ? res.data : [];
     },
     enabled: !!(shouldFetchClient && isLatest)

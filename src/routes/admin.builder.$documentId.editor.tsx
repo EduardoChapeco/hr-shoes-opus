@@ -30,6 +30,7 @@ import {
   ArrowLeft,
   ExternalLink,
   Check,
+  Store,
 } from "lucide-react";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
@@ -80,6 +81,12 @@ const BLOCK_CATEGORIES = [
     label: "Conversão",
     icon: Zap,
     blocks: ["countdown_timer", "trust_badges", "faq_accordion", "contact_form"],
+  },
+  {
+    id: "store_profile",
+    label: "Perfil da Loja",
+    icon: Store,
+    blocks: ["store_profile_hero", "store_hours", "store_contact"],
   },
 ];
 

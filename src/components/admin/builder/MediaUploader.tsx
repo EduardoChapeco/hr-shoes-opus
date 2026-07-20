@@ -23,23 +23,35 @@ export function MediaUploader({ value, onChange, label, bucket = "product-media"
 
     try {
       setIsUploading(true);
-      const supabase = getBrowserClient();
       
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
-      const filePath = `builder/${fileName}`;
+      const { createUploadUrl } = await import("@/services/builder.functions");
+      const urlRes = await createUploadUrl({
+        data: {
+          fileName: file.name,
+          mimeType: file.type || "application/octet-stream",
+          fileSize: file.size,
+          bucket
+        }
+      });
 
-      const { error: uploadError, data } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, file);
-
-      if (uploadError) {
-        throw uploadError;
+      if (urlRes.status !== "success") {
+        throw new Error(urlRes.message);
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
+      const { uploadUrl, publicUrl, path } = urlRes.data;
+
+      // Upload directly using the presigned URL
+      const response = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type || "application/octet-stream",
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
 
       onChange(publicUrl);
       toast.success("Mídia carregada com sucesso");

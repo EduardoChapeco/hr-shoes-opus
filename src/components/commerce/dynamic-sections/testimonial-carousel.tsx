@@ -33,7 +33,7 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
   // Use server-side hydrated data if present
   const serverReviews = resolvedData?.reviews || resolvedData || transientData?.reviews || null;
 
-  const { data: result } = useQuery({
+  const { data: result, isLoading } = useQuery({
     queryKey: ["builderReviews"],
     queryFn: () => getBuilderReviews(),
     enabled: isDynamic && !serverReviews
@@ -80,7 +80,7 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
             className="w-full relative"
           >
             <CarouselContent className="-ml-2 md:-ml-4">
-              {testimonials.map((item, idx) => (
+              {testimonials.map((item: any, idx: number) => (
                 <CarouselItem key={idx} className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3">
                   <div className="p-1 h-full">
                     <Card className="h-full border-muted/50 bg-background/50 backdrop-blur shadow-sm">

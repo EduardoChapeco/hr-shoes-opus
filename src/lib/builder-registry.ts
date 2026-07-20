@@ -723,5 +723,115 @@ export const builderRegistry: Record<string, BlockManifest> = {
       block_type: "split_banner",
       content: { title: "Nova Coleção", description: "Descubra os novos modelos.", button_text: "Comprar Agora", image_position: "left" }
     }
-  }
+  },
+
+  // ─── Perfil Institucional — Blocos Canônicos ─────────────────────────────
+
+  store_profile_hero: {
+    type: "store_profile_hero",
+    version: "1.0.0",
+    name: "Cabeçalho do Perfil da Loja",
+    description: "Capa, logo, nome e descrição — dados reais da loja",
+    category: "content",
+    icon: "Store",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["section", "container"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      show_description: z.boolean().default(true),
+      show_logo: z.boolean().default(true),
+      show_cover: z.boolean().default(true),
+      layout: z.enum(["centered", "left", "instagram"]).default("centered"),
+    }),
+    inspector: {
+      content: [
+        { name: "layout", label: "Layout", type: "select", options: [
+          { label: "Centralizado", value: "centered" },
+          { label: "Esquerda", value: "left" },
+          { label: "Instagram", value: "instagram" },
+        ]},
+        { name: "show_cover", label: "Exibir Capa", type: "boolean" },
+        { name: "show_logo", label: "Exibir Logo", type: "boolean" },
+        { name: "show_description", label: "Exibir Descrição", type: "boolean" },
+      ]
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "store_profile_hero",
+      content: { show_description: true, show_logo: true, show_cover: true, layout: "centered" },
+      data_bindings: { source: "store_profile" },
+    }
+  },
+
+  store_hours: {
+    type: "store_hours",
+    version: "1.0.0",
+    name: "Horários de Funcionamento",
+    description: "Horários reais da loja + status aberto/fechado calculado no servidor",
+    category: "content",
+    icon: "Clock",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      show_status_badge: z.boolean().default(true),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Seção", type: "text" },
+        { name: "show_status_badge", label: "Exibir status Aberto/Fechado", type: "boolean" },
+      ]
+    },
+    defaultProps: {
+      node_type: "element",
+      block_type: "store_hours",
+      content: { title: "Horários de Funcionamento", show_status_badge: true },
+      data_bindings: { source: "store_profile" },
+    }
+  },
+
+  store_contact: {
+    type: "store_contact",
+    version: "1.0.0",
+    name: "Contato e Localização",
+    description: "Telefone, WhatsApp, e-mail, endereço e botões de ação reais da loja",
+    category: "content",
+    icon: "MapPin",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      show_map_link: z.boolean().default(true),
+      show_address: z.boolean().default(true),
+      show_phone: z.boolean().default(true),
+      show_whatsapp: z.boolean().default(true),
+      show_email: z.boolean().default(true),
+      show_action_buttons: z.boolean().default(true),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Seção", type: "text" },
+        { name: "show_whatsapp", label: "Exibir WhatsApp", type: "boolean" },
+        { name: "show_phone", label: "Exibir Telefone", type: "boolean" },
+        { name: "show_email", label: "Exibir E-mail", type: "boolean" },
+        { name: "show_address", label: "Exibir Endereço", type: "boolean" },
+        { name: "show_map_link", label: "Link para o Mapa", type: "boolean" },
+        { name: "show_action_buttons", label: "Exibir Botões de Ação", type: "boolean" },
+      ]
+    },
+    defaultProps: {
+      node_type: "element",
+      block_type: "store_contact",
+      content: {
+        title: "Fale Conosco",
+        show_map_link: true, show_address: true,
+        show_phone: true, show_whatsapp: true,
+        show_email: true, show_action_buttons: true,
+      },
+      data_bindings: { source: "store_profile" },
+    }
+  },
 };
+
