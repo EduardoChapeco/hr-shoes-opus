@@ -698,7 +698,11 @@ export const createReview = createServerFn({ method: "POST" })
       const { data: { user } } = await ssrClient.auth.getUser();
       if (!user) throw new Error("Não autenticado");
 
+      const { data: product } = await ssrClient.from("products").select("store_id").eq("id", productId).single();
+      if (!product) throw new Error("Produto não encontrado.");
+
       const { error } = await ssrClient.from("reviews").insert({
+        store_id: product.store_id,
         product_id: productId,
         user_id: user.id,
         rating,

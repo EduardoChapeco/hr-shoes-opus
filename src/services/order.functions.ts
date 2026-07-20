@@ -358,7 +358,7 @@ export const requestOrderReturn = createServerFn({ method: "POST" })
       // Verify ownership and status
       const { data: order, error: orderError } = await ssrClient
         .from("orders")
-        .select("id, status")
+        .select("id, status, store_id")
         .eq("id", orderId)
         .eq("customer_id", user.id)
         .single();
@@ -376,6 +376,7 @@ export const requestOrderReturn = createServerFn({ method: "POST" })
       
       // Optionally create a note for the admin
       await db.from("customer_notes").insert({
+        store_id: order.store_id,
         customer_id: user.id,
         content: "Solicitação de Devolução/Troca (Pedido: " + orderId + ") - Motivo: " + reason
       });
