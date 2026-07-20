@@ -103,6 +103,7 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
       title: z.string().min(1).max(200),
       slug: z.string().regex(/^[a-z0-9-]+$/),
       document_type: z.enum(["storefront", "biolink", "pwa", "campaign", "seller_showcase"]),
+      template_id: z.string().optional(),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -139,6 +140,167 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
         .single();
         
       if (versionError) throw versionError;
+
+      // 3. Inject Seed Template if provided
+      if (input.template_id && input.template_id !== "blank") {
+        const { randomUUID } = await import("crypto");
+        let seedNodes: Partial<ExperienceNode>[] = [];
+        
+        if (input.template_id === "biolink_classic") {
+          const sectionId = randomUUID();
+          const containerId = randomUUID();
+          
+          seedNodes = [
+            {
+              id: sectionId,
+              node_type: "section",
+              block_type: "section",
+              parent_id: null,
+              sort_order: 0,
+              design_tokens: { backgroundColor: "#f8fafc" },
+            },
+            {
+              id: containerId,
+              node_type: "container",
+              block_type: "container",
+              parent_id: sectionId,
+              sort_order: 0,
+              layout_rules: { maxWidth: "sm", display: "flex", flexDirection: "col", gap: "md", paddingX: "md", paddingY: "xl" },
+            },
+            {
+              id: randomUUID(),
+              node_type: "element",
+              block_type: "rich_text",
+              parent_id: containerId,
+              sort_order: 0,
+              content: { html: "<div style='text-align:center'><img src='https://github.com/shadcn.png' style='width:96px;height:96px;border-radius:50%;margin:0 auto;'/><h3>Meu Nome</h3><p>Minha biografia incrível</p></div>" },
+            },
+            {
+              id: randomUUID(),
+              node_type: "composition",
+              block_type: "social_grid",
+              parent_id: containerId,
+              sort_order: 1,
+              content: { items: [
+                { title: "Comprar Agora", link: "/", icon: "ShoppingBag" },
+                { title: "WhatsApp", link: "https://wa.me/5511999999999", icon: "Smartphone" }
+              ]}
+            }
+          ];
+        } else if (input.template_id === "landing_page") {
+          const sectionId = randomUUID();
+          const containerId = randomUUID();
+          
+          seedNodes = [
+            {
+              id: sectionId,
+              node_type: "section",
+              block_type: "section",
+              parent_id: null,
+              sort_order: 0,
+            },
+            {
+              id: containerId,
+              node_type: "container",
+              block_type: "container",
+              parent_id: sectionId,
+              sort_order: 0,
+              layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "lg", paddingX: "md", paddingY: "lg" },
+            },
+            {
+              id: randomUUID(),
+              node_type: "composition",
+              block_type: "hero_carousel",
+              parent_id: containerId,
+              sort_order: 0,
+              content: { autoPlay: true, interval: 5, banners: [{ image_url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff" }] }
+            },
+            {
+              id: randomUUID(),
+              node_type: "element",
+              block_type: "countdown_timer",
+              parent_id: containerId,
+              sort_order: 1,
+              content: { target_date: new Date(Date.now() + 86400000).toISOString(), title: "Oferta Encerra em" }
+            },
+            {
+              id: randomUUID(),
+              node_type: "composition",
+              block_type: "product_rail",
+              parent_id: containerId,
+              sort_order: 2,
+              content: { title: "Destaques da Coleção", layout: "carousel" },
+              data_bindings: { type: "latest_products" }
+            }
+          ];
+        } else if (input.template_id === "institutional_profile") {
+          const sectionId = randomUUID();
+          const containerId = randomUUID();
+          
+          seedNodes = [
+            {
+              id: sectionId,
+              node_type: "section",
+              block_type: "section",
+              parent_id: null,
+              sort_order: 0,
+              design_tokens: { backgroundColor: "#ffffff" },
+            },
+            {
+              id: containerId,
+              node_type: "container",
+              block_type: "container",
+              parent_id: sectionId,
+              sort_order: 0,
+              layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "xl", paddingX: "md", paddingY: "2xl" },
+            },
+            {
+              id: randomUUID(),
+              node_type: "element",
+              block_type: "rich_text",
+              parent_id: containerId,
+              sort_order: 0,
+              content: { html: "<div style='text-align:center'><h1 style='font-size:3rem;font-weight:bold;margin-bottom:1rem;'>Nossa Essência</h1><p style='color:#64748b;font-size:1.25rem;max-width:40rem;margin:0 auto;'>Conectando você ao melhor do design e conforto desde o primeiro passo.</p></div>" },
+            },
+            {
+              id: randomUUID(),
+              node_type: "composition",
+              block_type: "timeline_history",
+              parent_id: containerId,
+              sort_order: 1,
+              content: { 
+                title: "Como tudo começou", 
+                events: [
+                  { year: "2015", title: "Fundação", description: "Início da nossa jornada vendendo sapatos artesanais." },
+                  { year: "2020", title: "Expansão Nacional", description: "Chegamos a todos os estados do Brasil." }
+                ] 
+              }
+            },
+            {
+              id: randomUUID(),
+              node_type: "composition",
+              block_type: "testimonial_carousel",
+              parent_id: containerId,
+              sort_order: 2,
+              content: { 
+                title: "O que dizem de nós",
+                testimonials: [
+                  { author: "Maria S.", content: "Melhor loja da vida!", rating: 5 },
+                  { author: "João P.", content: "Atendimento impecável.", rating: 5 }
+                ]
+              }
+            }
+          ];
+        }
+
+        if (seedNodes.length > 0) {
+          const nodesToInsert = seedNodes.map(n => ({
+            ...n,
+            version_id: version.id,
+          }));
+          await db.from("experience_nodes").insert(nodesToInsert);
+        }
+      }
 
       return { status: "success" as const, data: { document: doc, version } };
     } catch (e: unknown) {
@@ -256,13 +418,28 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
       // Iterate through nodes and resolve bindings (e.g. products, collections)
       const hydratedNodes = await Promise.all(nodes.map(async (node) => {
          const bindings = node.data_bindings || {};
-         if (bindings.type === "product_collection" && bindings.collection_slug) {
+         const bindingType = bindings.type || bindings.source; // accommodate old blocks
+         
+         if (bindingType === "product_collection" && bindings.collection_slug) {
             // Server-side fetching of catalog data directly into the node state
             const { getProductsByCollection } = await import("@/services/catalog.functions");
             const res = await getProductsByCollection({ data: { slug: bindings.collection_slug } }).catch(() => null);
             if (res && res.status === "ok") {
               // Inject the resolved data into the node's transient state
               return { ...node, transient_data: { products: res.data } };
+            }
+         } else if (bindingType === "latest_products") {
+            const dbRef = getServerClient();
+            // Just get the 12 most recently added active products
+            const { data: latest } = await dbRef
+              .from("products")
+              .select("*, variants:product_variants(id,price,promotional_price,stock_quantity,sku)")
+              .eq("is_active", true)
+              .order("created_at", { ascending: false })
+              .limit(12);
+              
+            if (latest) {
+               return { ...node, transient_data: { products: latest } };
             }
          }
          return node;

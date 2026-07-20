@@ -17,6 +17,9 @@ import { GalleryGrid } from "./dynamic-sections/gallery-grid";
 import { InfoCards } from "./dynamic-sections/info-cards";
 import { MosaicBanners } from "./dynamic-sections/mosaic-banners";
 import { SocialGrid } from "./dynamic-sections/social-grid";
+import { FaqAccordion } from "./dynamic-sections/faq-accordion";
+import { TestimonialCarousel } from "./dynamic-sections/testimonial-carousel";
+import { TimelineHistory } from "./dynamic-sections/timeline-history";
 import { TrackView } from "./analytics-provider";
 
 // Mapeamento dinâmico dos componentes React para cada bloco
@@ -35,20 +38,34 @@ const componentMap: Record<string, React.FC<any>> = {
   info_cards: InfoCards,
   mosaic_banners: MosaicBanners,
   social_grid: SocialGrid,
+  faq_accordion: FaqAccordion,
+  testimonial_carousel: TestimonialCarousel,
+  timeline_history: TimelineHistory,
 };
 
 interface ExperienceRendererProps {
   nodes: any[];
   bindings?: any;
   transientData?: any;
+  isEditing?: boolean;
+  selectedNodeId?: string | null;
+  onSelectNode?: (id: string) => void;
 }
 
-export function ExperienceRenderer({ nodes, bindings, transientData }: ExperienceRendererProps) {
+export function ExperienceRenderer({ nodes, bindings, transientData, isEditing, selectedNodeId, onSelectNode }: ExperienceRendererProps) {
   if (!nodes || nodes.length === 0) return null;
   return (
     <>
       {nodes.map((node) => (
-        <ExperienceNodeRenderer key={node.id} node={node} transientData={transientData} bindings={bindings} />
+        <ExperienceNodeRenderer 
+          key={node.id} 
+          node={node} 
+          transientData={transientData} 
+          bindings={bindings} 
+          isEditing={isEditing}
+          selectedNodeId={selectedNodeId}
+          onSelectNode={onSelectNode}
+        />
       ))}
     </>
   );
@@ -58,9 +75,12 @@ interface ExperienceNodeRendererProps {
   node: ExperienceNode;
   transientData?: any;
   bindings?: any;
+  isEditing?: boolean;
+  selectedNodeId?: string | null;
+  onSelectNode?: (id: string) => void;
 }
 
-function ExperienceNodeRenderer({ node, transientData, bindings }: ExperienceNodeRendererProps) {
+function ExperienceNodeRenderer({ node, transientData, bindings, isEditing, selectedNodeId, onSelectNode }: ExperienceNodeRendererProps) {
   const manifest = builderRegistry[node.block_type];
   
   if (!manifest) {
@@ -68,11 +88,37 @@ function ExperienceNodeRenderer({ node, transientData, bindings }: ExperienceNod
     return <div className="p-4 border border-dashed border-red-500 bg-red-50 text-red-900 text-sm">Bloco não suportado: {node.block_type}</div>;
   }
 
+  // Helper for interactive wrapper
+  const wrapInteractive = (children: React.ReactNode, className: string = "") => {
+    if (!isEditing) return children;
+    const isSelected = selectedNodeId === node.id;
+    return (
+      <div 
+        className={cn(
+          "relative group cursor-pointer transition-all outline-none",
+          isSelected ? "ring-2 ring-primary ring-inset z-10" : "hover:ring-2 hover:ring-primary/50 hover:ring-inset z-0",
+          className
+        )}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (onSelectNode) onSelectNode(node.id);
+        }}
+      >
+        {children}
+        {isSelected && (
+          <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] px-2 py-1 font-mono z-20 rounded-bl-md shadow-sm">
+            {manifest.name}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Se o node for de layout estrutural base
   if (node.node_type === "section") {
     const bg = node.design_tokens?.backgroundColor;
     const bgImage = node.design_tokens?.backgroundImage;
-    return (
+    return wrapInteractive(
       <section 
         className={cn("w-full relative")}
         style={{ 
@@ -83,7 +129,17 @@ function ExperienceNodeRenderer({ node, transientData, bindings }: ExperienceNod
         }}
       >
         {node.children && node.children.length > 0 ? (
-          node.children.map(child => <ExperienceNodeRenderer key={child.id} node={child} transientData={transientData} bindings={bindings} />)
+          node.children.map(child => (
+            <ExperienceNodeRenderer 
+              key={child.id} 
+              node={child} 
+              transientData={transientData} 
+              bindings={bindings} 
+              isEditing={isEditing}
+              selectedNodeId={selectedNodeId}
+              onSelectNode={onSelectNode}
+            />
+          ))
         ) : (
           <div className="p-8 text-center border-2 border-dashed border-border/50 text-muted-foreground text-sm">Seção Vazia</div>
         )}
@@ -135,10 +191,20 @@ function ExperienceNodeRenderer({ node, transientData, bindings }: ExperienceNod
       "2xl": "py-24"
     }[rules.paddingY as string] || "py-16";
 
-    return (
+    return wrapInteractive(
       <div className={cn("mx-auto w-full", maxWidthClass, displayClass, flexDirClass, gapClass, pxClass, pyClass)}>
         {node.children && node.children.length > 0 ? (
-          node.children.map(child => <ExperienceNodeRenderer key={child.id} node={child} transientData={transientData} bindings={bindings} />)
+          node.children.map(child => (
+            <ExperienceNodeRenderer 
+              key={child.id} 
+              node={child} 
+              transientData={transientData} 
+              bindings={bindings}
+              isEditing={isEditing}
+              selectedNodeId={selectedNodeId}
+              onSelectNode={onSelectNode}
+            />
+          ))
         ) : (
           <div className="p-4 text-center border border-dashed border-border/50 text-muted-foreground text-sm w-full">Container Vazio</div>
         )}
@@ -153,12 +219,20 @@ function ExperienceNodeRenderer({ node, transientData, bindings }: ExperienceNod
   }
 
   let resolvedData = null;
-  if (node.data_bindings && (node.data_bindings as any).source && bindings) {
-    const bindingKey = `${node.id}_${(node.data_bindings as any).source}`;
+  
+  // 1. Prioritize transient_data injected by the backend (e.g. products)
+  if ((node as any).transient_data) {
+    // If it's a collection or latest products, it's usually injected as 'products'
+    resolvedData = (node as any).transient_data.products || (node as any).transient_data;
+  } 
+  // 2. Fallback to external bindings if provided
+  else if (node.data_bindings && ((node.data_bindings as any).type || (node.data_bindings as any).source) && bindings) {
+    const bindingType = (node.data_bindings as any).type || (node.data_bindings as any).source;
+    const bindingKey = `${node.id}_${bindingType}`;
     resolvedData = bindings[bindingKey];
   }
 
-  return (
+  return wrapInteractive(
     <TrackView nodeId={node.id} blockType={node.block_type}>
       <Component 
         node_id={node.id}

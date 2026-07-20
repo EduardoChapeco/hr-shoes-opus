@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Plus, GripVertical, Settings2, Eye, Laptop, Smartphone, Save, PanelLeftClose, PanelRightClose, Layers, Braces, AlignLeft } from "lucide-react";
+import { Plus, GripVertical, Settings2, Eye, Laptop, Smartphone, Save, PanelLeftClose, PanelRightClose, Layers, Braces, AlignLeft, Trash2, ChevronUp, ChevronDown, LayoutTemplate } from "lucide-react";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
@@ -8,6 +8,9 @@ import { getExperienceDocument, saveBuilderNodes } from "@/services/builder.func
 import type { ExperienceNode } from "@/lib/builder-types";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
 import { builderRegistry } from "@/lib/builder-registry";
+import { MediaUploader } from "@/components/admin/builder/MediaUploader";
+import { ColorPicker } from "@/components/admin/builder/ColorPicker";
+import { ArrayBuilder } from "@/components/admin/builder/ArrayBuilder";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -34,7 +37,7 @@ function BuilderEditorIDE() {
   
   const [nodes, setNodes] = useState<ExperienceNode[]>(initialNodes);
   const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"layers" | "blocks">("layers");
+  const [activeTab, setActiveTab] = useState<"layers" | "blocks" | "sections">("layers");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [inspectorTab, setInspectorTab] = useState<"content" | "connection" | "design" | "layout">("content");
 
@@ -89,6 +92,73 @@ function BuilderEditorIDE() {
 
   const treeNodes = buildTree(nodes);
 
+  const deleteNode = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const idsToDelete = new Set([id]);
+    let currentSize = 0;
+    while (idsToDelete.size > currentSize) {
+      currentSize = idsToDelete.size;
+      nodes.forEach(n => {
+        if (n.parent_id && idsToDelete.has(n.parent_id)) {
+          idsToDelete.add(n.id);
+        }
+      });
+    }
+    setNodes(prev => prev.filter(n => !idsToDelete.has(n.id)));
+    if (selectedNodeId && idsToDelete.has(selectedNodeId)) {
+      setSelectedNodeId(null);
+    }
+  };
+
+  const moveNode = (id: string, direction: -1 | 1, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nodeIndex = nodes.findIndex(n => n.id === id);
+    if (nodeIndex === -1) return;
+    const node = nodes[nodeIndex];
+    
+    const siblings = nodes.filter(n => n.parent_id === node.parent_id).sort((a, b) => a.sort_order - b.sort_order);
+    const currentIndex = siblings.findIndex(n => n.id === id);
+    if (currentIndex === -1) return;
+    
+    const targetIndex = currentIndex + direction;
+    if (targetIndex < 0 || targetIndex >= siblings.length) return; 
+    
+    const siblingToSwap = siblings[targetIndex];
+    
+    setNodes(prev => prev.map(n => {
+      if (n.id === node.id) return { ...n, sort_order: siblingToSwap.sort_order };
+      if (n.id === siblingToSwap.id) return { ...n, sort_order: node.sort_order };
+      return n;
+    }));
+  };
+
+  const renderLayer = (node: ExperienceNode, depth = 0) => {
+    return (
+      <div key={node.id} className="flex flex-col gap-1">
+        <div 
+          className={`text-sm py-1.5 pr-2 rounded-md flex items-center justify-between cursor-pointer group ${selectedNodeId === node.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted'}`}
+          style={{ paddingLeft: `${(depth * 12) + 8}px` }}
+          onClick={() => setSelectedNodeId(node.id)}
+        >
+          <div className="flex items-center gap-2 overflow-hidden">
+            <GripVertical className="h-3 w-3 opacity-50 shrink-0" />
+            <span className="truncate">{builderRegistry[node.block_type]?.name || node.block_type}</span>
+          </div>
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onClick={(e) => moveNode(node.id, -1, e)} className="p-1 hover:bg-muted-foreground/20 rounded"><ChevronUp className="h-3 w-3" /></button>
+            <button onClick={(e) => moveNode(node.id, 1, e)} className="p-1 hover:bg-muted-foreground/20 rounded"><ChevronDown className="h-3 w-3" /></button>
+            <button onClick={(e) => deleteNode(node.id, e)} className="p-1 hover:bg-destructive/20 text-destructive rounded"><Trash2 className="h-3 w-3" /></button>
+          </div>
+        </div>
+        {(node as any).children && (node as any).children.length > 0 && (
+          <div className="flex flex-col gap-1 mt-1">
+            {(node as any).children.map((child: any) => renderLayer(child, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background">
       {/* Top Navbar - IDE Controls */}
@@ -138,20 +208,29 @@ function BuilderEditorIDE() {
             <Button 
               variant={activeTab === "layers" ? "secondary" : "ghost"} 
               size="sm" 
-              className="flex-1 rounded-sm justify-center"
+              className="flex-1 rounded-sm justify-center px-1"
               onClick={() => setActiveTab("layers")}
             >
-              <Layers className="h-4 w-4 mr-2" />
+              <Layers className="h-4 w-4 mr-1" />
               Camadas
+            </Button>
+            <Button 
+              variant={activeTab === "sections" ? "secondary" : "ghost"} 
+              size="sm" 
+              className="flex-1 rounded-sm justify-center px-1"
+              onClick={() => setActiveTab("sections")}
+            >
+              <LayoutTemplate className="h-4 w-4 mr-1" />
+              Seções
             </Button>
             <Button 
               variant={activeTab === "blocks" ? "secondary" : "ghost"} 
               size="sm" 
-              className="flex-1 rounded-sm justify-center"
+              className="flex-1 rounded-sm justify-center px-1"
               onClick={() => setActiveTab("blocks")}
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar
+              <Plus className="h-4 w-4 mr-1" />
+              Primitivos
             </Button>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
@@ -162,18 +241,63 @@ function BuilderEditorIDE() {
                   <p className="text-sm text-muted-foreground text-center py-8">A árvore está vazia.</p>
                 ) : (
                   <div className="flex flex-col gap-1">
-                    {treeNodes.map(node => (
-                      <div 
-                        key={node.id} 
-                        className={`text-sm py-1.5 px-2 rounded-md flex items-center cursor-pointer ${selectedNodeId === node.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted'}`}
-                        onClick={() => setSelectedNodeId(node.id)}
-                      >
-                        <GripVertical className="h-3 w-3 mr-2 opacity-50" />
-                        {builderRegistry[node.block_type]?.name || node.block_type}
-                      </div>
-                    ))}
+                    {treeNodes.map(node => renderLayer(node, 0))}
                   </div>
                 )}
+              </div>
+            ) : activeTab === "sections" ? (
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Seções Prontas</p>
+                <div className="grid grid-cols-1 gap-3">
+                  {/* Hero Completo */}
+                  <div className="border rounded-md p-3 bg-muted/30 cursor-pointer hover:border-primary transition-colors" onClick={() => {
+                    const sectionId = crypto.randomUUID();
+                    const containerId = crypto.randomUUID();
+                    const heroId = crypto.randomUUID();
+                    const sortOrder = nodes.filter(n => !n.parent_id).length;
+                    setNodes(prev => [
+                      ...prev,
+                      { id: sectionId, document_id: document.id, parent_id: null, sort_order: sortOrder, ...builderRegistry["section"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: containerId, document_id: document.id, parent_id: sectionId, sort_order: 0, ...builderRegistry["container"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: heroId, document_id: document.id, parent_id: containerId, sort_order: 0, ...builderRegistry["hero_carousel"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+                    ]);
+                  }}>
+                    <h4 className="font-semibold text-sm">Hero Banner</h4>
+                    <p className="text-xs text-muted-foreground mt-1">Sessão completa de banner principal.</p>
+                  </div>
+                  {/* FAQ */}
+                  <div className="border rounded-md p-3 bg-muted/30 cursor-pointer hover:border-primary transition-colors" onClick={() => {
+                    const sectionId = crypto.randomUUID();
+                    const containerId = crypto.randomUUID();
+                    const faqId = crypto.randomUUID();
+                    const sortOrder = nodes.filter(n => !n.parent_id).length;
+                    setNodes(prev => [
+                      ...prev,
+                      { id: sectionId, document_id: document.id, parent_id: null, sort_order: sortOrder, ...builderRegistry["section"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: containerId, document_id: document.id, parent_id: sectionId, sort_order: 0, ...builderRegistry["container"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: faqId, document_id: document.id, parent_id: containerId, sort_order: 0, ...builderRegistry["faq_accordion"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+                    ]);
+                  }}>
+                    <h4 className="font-semibold text-sm">Perguntas Frequentes</h4>
+                    <p className="text-xs text-muted-foreground mt-1">Grid de respostas e quebra de objeções.</p>
+                  </div>
+                  {/* Testemunhos */}
+                  <div className="border rounded-md p-3 bg-muted/30 cursor-pointer hover:border-primary transition-colors" onClick={() => {
+                    const sectionId = crypto.randomUUID();
+                    const containerId = crypto.randomUUID();
+                    const testId = crypto.randomUUID();
+                    const sortOrder = nodes.filter(n => !n.parent_id).length;
+                    setNodes(prev => [
+                      ...prev,
+                      { id: sectionId, document_id: document.id, parent_id: null, sort_order: sortOrder, ...builderRegistry["section"].defaultProps, design_tokens: { backgroundColor: "#f8fafc" }, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: containerId, document_id: document.id, parent_id: sectionId, sort_order: 0, ...builderRegistry["container"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+                      { id: testId, document_id: document.id, parent_id: containerId, sort_order: 0, ...builderRegistry["testimonial_carousel"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }
+                    ]);
+                  }}>
+                    <h4 className="font-semibold text-sm">Depoimentos</h4>
+                    <p className="text-xs text-muted-foreground mt-1">Carrossel de provas sociais.</p>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="space-y-1">
@@ -185,12 +309,18 @@ function BuilderEditorIDE() {
                        variant="outline" 
                        className="h-20 flex-col gap-2 p-2"
                        onClick={() => {
+                         const parentNode = nodes.find(n => n.id === selectedNodeId);
+                         let targetParentId = null;
+                         if (parentNode && (parentNode.block_type === "container" || parentNode.block_type === "section")) {
+                           targetParentId = parentNode.id;
+                         }
+
                          const newNode: ExperienceNode = {
                            id: crypto.randomUUID(),
                            ...block.defaultProps,
                            document_id: document.id,
-                           parent_id: null,
-                           sort_order: nodes.length,
+                           parent_id: targetParentId,
+                           sort_order: nodes.filter(n => n.parent_id === targetParentId).length,
                            created_at: new Date().toISOString(),
                            updated_at: new Date().toISOString(),
                          };
@@ -210,7 +340,12 @@ function BuilderEditorIDE() {
         {/* Canvas Area */}
         <main className="flex-1 bg-muted/30 overflow-y-auto flex justify-center p-8">
           <div className="bg-background shadow-xl border w-full max-w-7xl min-h-[800px] flex flex-col relative transition-all">
-             <ExperienceRenderer nodes={treeNodes} />
+             <ExperienceRenderer 
+               nodes={treeNodes} 
+               isEditing={true}
+               selectedNodeId={selectedNodeId}
+               onSelectNode={setSelectedNodeId}
+             />
              {nodes.length === 0 && (
                <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
                  <Plus className="h-12 w-12 mb-4 opacity-20" />
@@ -274,6 +409,23 @@ function BuilderEditorIDE() {
                              value={selectedNode.content?.[field.name] || ""}
                              onChange={(e) => updateSelectedNode("content", field.name, e.target.value)}
                            />
+                         ) : field.type === "json" || field.type === "array" ? (
+                            <ArrayBuilder
+                              label={field.label}
+                              value={Array.isArray(selectedNode.content?.[field.name]) ? selectedNode.content[field.name] : []}
+                              onChange={(val) => updateSelectedNode("content", field.name, val)}
+                              arrayFields={field.arrayFields || []}
+                            />
+                          ) : field.type === "image" ? (
+                            <MediaUploader
+                              value={selectedNode.content?.[field.name] || ""}
+                              onChange={(val) => updateSelectedNode("content", field.name, val)}
+                            />
+                          ) : field.type === "color" ? (
+                            <ColorPicker
+                              value={selectedNode.content?.[field.name] || ""}
+                              onChange={(val) => updateSelectedNode("content", field.name, val)}
+                            />
                          ) : field.type === "boolean" ? (
                            <input 
                              type="checkbox"
@@ -369,13 +521,17 @@ function BuilderEditorIDE() {
                      {blockManifest.inspector.design.map(field => (
                        <div key={field.name} className="space-y-1.5">
                          <label className="text-xs font-medium">{field.label}</label>
-                         {field.type === "color" || field.type === "image" ? (
-                           <Input 
-                             className="h-8 text-sm bg-background"
-                             value={selectedNode.design_tokens?.[field.name] || ""}
-                             onChange={(e) => updateSelectedNode("design_tokens", field.name, e.target.value)}
-                           />
-                         ) : null}
+                          {field.type === "color" ? (
+                            <ColorPicker 
+                              value={selectedNode.design_tokens?.[field.name] || ""}
+                              onChange={(val) => updateSelectedNode("design_tokens", field.name, val)}
+                            />
+                          ) : field.type === "image" ? (
+                            <MediaUploader 
+                              value={selectedNode.design_tokens?.[field.name] || ""}
+                              onChange={(val) => updateSelectedNode("design_tokens", field.name, val)}
+                            />
+                          ) : null}
                        </div>
                      ))}
                    </div>

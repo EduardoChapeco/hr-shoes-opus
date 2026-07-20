@@ -63,7 +63,7 @@ function AdminProductsPage() {
   const initialProducts = Route.useLoaderData();
   const [products, setProducts] = useState<AdminProductRow[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("active");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
@@ -76,7 +76,7 @@ function AdminProductsPage() {
         p.slug.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus =
-        statusFilter === "all" ? true : p.status === statusFilter;
+        statusFilter === "active" ? p.status !== "archived" : p.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -195,10 +195,10 @@ function AdminProductsPage() {
 
       {/* Toolbar & Filtros */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        <Tabs defaultValue="all" value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
+        <Tabs defaultValue="active" value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
           <TabsList className="grid grid-cols-4 w-full sm:w-auto">
-            <TabsTrigger value="all" className="text-xs">
-              Todos ({products.length})
+            <TabsTrigger value="active" className="text-xs">
+              Ativos ({products.filter(p => p.status !== "archived").length})
             </TabsTrigger>
             <TabsTrigger value="published" className="text-xs">
               Publicados ({products.filter((p) => p.status === "published").length})
@@ -207,7 +207,7 @@ function AdminProductsPage() {
               Rascunhos ({products.filter((p) => p.status === "draft").length})
             </TabsTrigger>
             <TabsTrigger value="archived" className="text-xs">
-              Arquivados ({products.filter((p) => p.status === "archived").length})
+              Arquivo Morto ({products.filter((p) => p.status === "archived").length})
             </TabsTrigger>
           </TabsList>
         </Tabs>

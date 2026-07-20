@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Plus, LayoutTemplate, Link2, Smartphone, FileText, Settings, Search, Edit3, BarChart3 } from "lucide-react";
+import { FileText, Plus, Search, Settings, MoreVertical, Link2, LayoutTemplate, Edit3, Trash2, Globe, FileCode, SearchIcon, Sparkles, Building, Smartphone, BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -17,6 +17,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import { listExperienceDocuments, createExperienceDocument } from "@/services/builder.functions";
 import type { ExperienceDocument } from "@/lib/builder-types";
@@ -61,18 +68,30 @@ function BuilderIndex() {
   const { documents } = Route.useLoaderData();
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
+  
+  // Template Modal State
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [selectedDocType, setSelectedDocType] = useState<"biolink" | "campaign" | null>(null);
 
-  const handleCreateDocument = async (type: "biolink" | "campaign") => {
+  const openTemplateModal = (type: "biolink" | "campaign") => {
+    setSelectedDocType(type);
+    setIsTemplateModalOpen(true);
+  };
+
+  const handleCreateDocument = async (templateId: string) => {
+    if (!selectedDocType) return;
+    
     setIsCreating(true);
     try {
-      const title = type === "biolink" ? "Novo Bio Link" : "Nova Campanha";
-      const slug = type === "biolink" ? `link-${Date.now()}` : `promo-${Date.now()}`;
+      const title = selectedDocType === "biolink" ? "Novo Bio Link" : "Nova Campanha";
+      const slug = selectedDocType === "biolink" ? `link-${Date.now()}` : `promo-${Date.now()}`;
       
       const res = await createExperienceDocument({
         data: {
           title,
           slug,
-          document_type: type,
+          document_type: selectedDocType,
+          template_id: templateId
         }
       });
       
@@ -110,11 +129,11 @@ function BuilderIndex() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>O que você quer criar?</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleCreateDocument("biolink")}>
+              <DropdownMenuItem onClick={() => openTemplateModal("biolink")}>
                 <Link2 className="mr-2 h-4 w-4" />
                 <span>Bio Link (Afiliados/Redes)</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleCreateDocument("campaign")}>
+              <DropdownMenuItem onClick={() => openTemplateModal("campaign")}>
                 <FileText className="mr-2 h-4 w-4" />
                 <span>Página de Campanha (Ofertas)</span>
               </DropdownMenuItem>
@@ -170,6 +189,55 @@ function BuilderIndex() {
           </div>
         )}
       </div>
+
+      <Dialog open={isTemplateModalOpen} onOpenChange={setIsTemplateModalOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Escolha um Template</DialogTitle>
+            <DialogDescription>
+              Selecione um ponto de partida estrutural para sua nova página ou crie do zero.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 py-4">
+            <Card className="cursor-pointer hover:border-primary transition-all overflow-hidden flex flex-col" onClick={() => handleCreateDocument("blank")}>
+              <div className="h-32 bg-muted flex items-center justify-center">
+                <FileText className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div className="p-4">
+                <h4 className="font-semibold text-sm">Página em Branco</h4>
+                <p className="text-xs text-muted-foreground mt-1">Comece do absoluto zero, com um canvas limpo.</p>
+              </div>
+            </Card>
+            <Card className="cursor-pointer hover:border-primary transition-all overflow-hidden flex flex-col" onClick={() => handleCreateDocument("institutional_profile")}>
+              <div className="h-32 bg-indigo-50 flex items-center justify-center border-b">
+                <Building className="h-8 w-8 text-indigo-400" />
+              </div>
+              <div className="p-4">
+                <h4 className="font-semibold text-sm">Perfil Institucional</h4>
+                <p className="text-xs text-muted-foreground mt-1">História, depoimentos e presença da sua marca.</p>
+              </div>
+            </Card>
+            <Card className="cursor-pointer hover:border-primary transition-all overflow-hidden flex flex-col" onClick={() => handleCreateDocument("biolink_classic")}>
+              <div className="h-32 bg-slate-100 flex items-center justify-center border-b">
+                <Link2 className="h-8 w-8 text-slate-400" />
+              </div>
+              <div className="p-4">
+                <h4 className="font-semibold text-sm">Biolink Clássico</h4>
+                <p className="text-xs text-muted-foreground mt-1">Foto de perfil, título, bio e grade de links.</p>
+              </div>
+            </Card>
+            <Card className="cursor-pointer hover:border-primary transition-all overflow-hidden flex flex-col" onClick={() => handleCreateDocument("landing_page")}>
+              <div className="h-32 bg-amber-50 flex items-center justify-center border-b">
+                <LayoutTemplate className="h-8 w-8 text-amber-400" />
+              </div>
+              <div className="p-4">
+                <h4 className="font-semibold text-sm">Oferta Relâmpago</h4>
+                <p className="text-xs text-muted-foreground mt-1">Banner, cronômetro e destaques da coleção.</p>
+              </div>
+            </Card>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

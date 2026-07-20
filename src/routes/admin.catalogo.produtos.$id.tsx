@@ -54,6 +54,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 
 import {
@@ -65,6 +66,7 @@ import {
   updateProductMediaMetadata,
   reorderProductMedia,
   listCategories,
+  createCategory,
 } from "@/services/admin-catalog.functions";
 import { formatMoney } from "@/lib/money";
 import { adjustStock } from "@/services/stock.functions";
@@ -323,6 +325,11 @@ function GeneralForm({
   const initialCategoryId = product.product_categories?.[0]?.category_id || "";
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategoryId);
 
+  // Category Modal State
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -445,6 +452,34 @@ function GeneralForm({
     }
   };
 
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    setIsCreatingCategory(true);
+    try {
+      const slug = newCategoryName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+      const res = await createCategory({
+        data: {
+          name: newCategoryName,
+          slug,
+          status: "active"
+        }
+      });
+      if (res.status === "success") {
+        toast.success("Categoria criada!");
+        categories.push(res.data);
+        setSelectedCategory(res.data.id);
+        setIsCategoryModalOpen(false);
+        setNewCategoryName("");
+      } else {
+        toast.error("Erro ao criar categoria");
+      }
+    } catch {
+      toast.error("Erro inesperado");
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <Card>
@@ -468,13 +503,44 @@ function GeneralForm({
               <Input {...register("brand")} placeholder="Ex: Hr Shoes, Vizzano, Beira Rio..." />
             </div>
             <div className="space-y-2">
-              <Label>Categoria Principal</Label>
+              <div className="flex justify-between items-center">
+                <Label>Categoria Principal</Label>
+                <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+                  <DialogTrigger asChild>
+                    <button type="button" className="text-xs text-primary hover:underline font-medium">
+                      + Nova Categoria
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Criar Nova Categoria</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Nome da Categoria</Label>
+                        <Input 
+                          value={newCategoryName} 
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          placeholder="Ex: Lançamentos"
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsCategoryModalOpen(false)}>Cancelar</Button>
+                      <Button type="button" onClick={handleCreateCategory} disabled={isCreatingCategory || !newCategoryName.trim()}>
+                        {isCreatingCategory ? "Criando..." : "Criar Categoria"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sem Categoria</SelectItem>
+                  <SelectItem value="none">Sem Categoria</SelectItem>
                   {categories.map((c: any) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}

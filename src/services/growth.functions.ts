@@ -142,7 +142,7 @@ export const listIntegrations = createServerFn({ method: "GET" }).handler(async 
 export const upsertIntegration = createServerFn({ method: "POST" })
   .validator(
     z.object({
-      provider: z.enum(["meta_pixel", "google_analytics", "melhor_envio", "nuvemshop", "webhook"]),
+      provider: z.enum(["meta_pixel", "google_analytics", "melhor_envio", "nuvemshop", "webhook", "google_merchant_center"]),
       credentials: z.record(z.any()),
       is_active: z.boolean(),
     }),

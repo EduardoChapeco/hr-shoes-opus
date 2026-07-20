@@ -145,7 +145,12 @@ export const builderRegistry: Record<string, BlockManifest> = {
     inspector: {
       content: [
         { name: "autoPlay", label: "Autoplay", type: "boolean" },
-        { name: "interval", label: "Intervalo (segundos)", type: "number" }
+        { name: "interval", label: "Intervalo (segundos)", type: "number" },
+        { name: "banners", label: "Banners (Array)", type: "array", arrayFields: [
+          { name: "image_url", label: "Imagem (Upload)", type: "image" },
+          { name: "link", label: "Link do Banner", type: "text" },
+          { name: "alt_text", label: "Texto Alt", type: "text" }
+        ] }
       ]
     },
     
@@ -170,7 +175,18 @@ export const builderRegistry: Record<string, BlockManifest> = {
       title: z.string().optional(),
       items: z.array(z.any())
     }),
-    inspector: { content: [] },
+    inspector: { 
+      content: [
+        { name: "title", label: "Título do Bento Grid", type: "text" },
+        { name: "items", label: "Itens do Grid", type: "array", arrayFields: [
+          { name: "title", label: "Título do Item", type: "text" },
+          { name: "description", label: "Descrição", type: "textarea" },
+          { name: "image", label: "Imagem (Upload)", type: "image" },
+          { name: "link", label: "Link de Destino", type: "text" },
+          { name: "col_span", label: "Colunas ocupadas (1-3)", type: "number" }
+        ] }
+      ]
+    },
     defaultProps: {
       node_type: "composition",
       block_type: "bento_grid",
@@ -193,7 +209,13 @@ export const builderRegistry: Record<string, BlockManifest> = {
       target_date: z.string(),
       expired_message: z.string().optional()
     }),
-    inspector: { content: [] },
+    inspector: { 
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "target_date", label: "Data Alvo (ISO)", type: "text" },
+        { name: "expired_message", label: "Mensagem Expirado", type: "text" }
+      ]
+    },
     defaultProps: {
       node_type: "element",
       block_type: "countdown_timer",
@@ -214,7 +236,16 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       stories: z.array(z.any())
     }),
-    inspector: { content: [] },
+    inspector: { 
+      content: [
+        { name: "stories", label: "Histórias", type: "array", arrayFields: [
+          { name: "title", label: "Título da Bolha", type: "text" },
+          { name: "thumb", label: "Thumbnail", type: "image" },
+          { name: "media_url", label: "Mídia Completa (Vídeo/Img)", type: "image" },
+          { name: "link", label: "Link Produto", type: "text" }
+        ] }
+      ]
+    },
     defaultProps: {
       node_type: "composition",
       block_type: "stories_ring",
@@ -235,7 +266,15 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       badges: z.array(z.any())
     }),
-    inspector: { content: [] },
+    inspector: { 
+      content: [
+        { name: "badges", label: "Emblemas", type: "array", arrayFields: [
+          { name: "icon", label: "Ícone SVG ou Imagem", type: "image" },
+          { name: "title", label: "Título do Emblema", type: "text" },
+          { name: "subtitle", label: "Subtítulo (Opcional)", type: "text" }
+        ] }
+      ]
+    },
     defaultProps: {
       node_type: "composition",
       block_type: "trust_badges",
@@ -274,7 +313,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
       node_type: "composition",
       block_type: "product_rail",
       content: { title: "Destaques", layout: "carousel" },
-      data_bindings: { source: "latest_products" }
+      data_bindings: { type: "latest_products" }
     }
   },
 
@@ -387,7 +426,11 @@ export const builderRegistry: Record<string, BlockManifest> = {
     }),
     inspector: { 
       content: [
-        { name: "title", label: "Título da Galeria", type: "text" }
+        { name: "title", label: "Título da Galeria", type: "text" },
+        { name: "images", label: "Imagens", type: "array", arrayFields: [
+          { name: "url", label: "Upload da Imagem", type: "image" },
+          { name: "alt", label: "Texto Alternativo", type: "text" }
+        ] }
       ]
     },
     defaultProps: {
@@ -410,7 +453,15 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       cards: z.array(z.any())
     }),
-    inspector: { content: [] },
+    inspector: { 
+      content: [
+        { name: "cards", label: "Cartões", type: "array", arrayFields: [
+          { name: "title", label: "Título do Cartão", type: "text" },
+          { name: "description", label: "Texto", type: "textarea" },
+          { name: "icon", label: "Ícone (Imagem)", type: "image" }
+        ] }
+      ]
+    },
     defaultProps: {
       node_type: "composition",
       block_type: "info_cards",
@@ -431,7 +482,15 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       banners: z.array(z.any())
     }),
-    inspector: { content: [] },
+    inspector: { 
+      content: [
+        { name: "banners", label: "Banners (Mosaico)", type: "array", arrayFields: [
+          { name: "image_url", label: "Upload da Imagem", type: "image" },
+          { name: "link", label: "Link de Ação", type: "text" },
+          { name: "title", label: "Texto de Overlay", type: "text" }
+        ] }
+      ]
+    },
     defaultProps: {
       node_type: "composition",
       block_type: "mosaic_banners",
@@ -457,13 +516,117 @@ export const builderRegistry: Record<string, BlockManifest> = {
     inspector: { 
       content: [
         { name: "title", label: "Título do Feed", type: "text" },
-        { name: "handle", label: "Usuário (@)", type: "text" }
+        { name: "handle", label: "Usuário (@)", type: "text" },
+        { name: "images", label: "Posts do Feed", type: "array", arrayFields: [
+          { name: "url", label: "Imagem do Post", type: "image" },
+          { name: "link", label: "Link para o Instagram", type: "text" }
+        ] }
       ]
     },
     defaultProps: {
       node_type: "composition",
       block_type: "social_grid",
       content: { title: "Siga-nos", handle: "@lojahrshoes", images: [] }
+    }
+  },
+
+  faq_accordion: {
+    type: "faq_accordion",
+    version: "1.0.0",
+    name: "Perguntas Frequentes",
+    description: "Lista de perguntas expansíveis",
+    category: "marketing",
+    icon: "HelpCircle",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      description: z.string().optional(),
+      faqs: z.array(z.any())
+    }),
+    inspector: { 
+      content: [
+        { name: "title", label: "Título do FAQ", type: "text" },
+        { name: "description", label: "Descrição Curta", type: "textarea" },
+        { name: "faqs", label: "Perguntas", type: "array", arrayFields: [
+          { name: "question", label: "Pergunta", type: "text" },
+          { name: "answer", label: "Resposta", type: "textarea" }
+        ] }
+      ]
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "faq_accordion",
+      content: { title: "Dúvidas Comuns", faqs: [] }
+    }
+  },
+
+  testimonial_carousel: {
+    type: "testimonial_carousel",
+    version: "1.0.0",
+    name: "Depoimentos de Clientes",
+    description: "Carrossel de avaliações e provas sociais",
+    category: "marketing",
+    icon: "Star",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      testimonials: z.array(z.any())
+    }),
+    inspector: { 
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "textarea" },
+        { name: "testimonials", label: "Depoimentos", type: "array", arrayFields: [
+          { name: "author", label: "Nome do Cliente", type: "text" },
+          { name: "content", label: "O que disse?", type: "textarea" },
+          { name: "rating", label: "Nota (1-5)", type: "number" },
+          { name: "avatar_url", label: "Foto do Cliente (Opcional)", type: "image" }
+        ] }
+      ]
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "testimonial_carousel",
+      content: { title: "O que dizem nossos clientes", testimonials: [] }
+    }
+  },
+
+  timeline_history: {
+    type: "timeline_history",
+    version: "1.0.0",
+    name: "Timeline (História)",
+    description: "Linha do tempo vertical para marcos da marca",
+    category: "marketing",
+    icon: "Clock",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      events: z.array(z.any())
+    }),
+    inspector: { 
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "textarea" },
+        { name: "events", label: "Marcos Históricos", type: "array", arrayFields: [
+          { name: "year", label: "Ano ou Data", type: "text" },
+          { name: "title", label: "Título do Marco", type: "text" },
+          { name: "description", label: "Descrição Histórica", type: "textarea" },
+          { name: "image_url", label: "Foto Histórica (Upload)", type: "image" }
+        ] }
+      ]
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "timeline_history",
+      content: { title: "Nossa História", events: [] }
     }
   }
 };

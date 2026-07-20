@@ -26,8 +26,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ErrorState, UnconfiguredState } from "@/components/state/states";
 import { getPublicStoreProfile } from "@/services/catalog.functions";
-import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions";
-import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
 import type { PublicStoreProfileDTO } from "@/services/catalog.functions";
 import { getUserSession } from "@/services/auth.functions";
 import { getOpenStatus } from "@/lib/datetime";
@@ -44,23 +42,18 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
       },
     ],
   }),
-  
   loader: async () => {
-    const [profile, session, docReq] = await Promise.all([
+    const [profile, session] = await Promise.all([
       getPublicStoreProfile(),
       getUserSession().catch(() => null),
-      getPublicExperienceDocumentBySlug({ 
-        data: { slug: "institucional", document_type: "storefront" } 
-      }).catch(() => null)
     ]);
-    return { profile, session, builderDoc: docReq?.status === "success" ? docReq.data : null };
+    return { profile, session };
   },
-
   component: StorePerfil,
 });
 
 function StorePerfil() {
-  const { profile: res, session, builderDoc } = Route.useLoaderData() as any;
+  const { profile: res, session } = Route.useLoaderData() as any;
 
   if (res.status === "unconfigured") {
     return (
@@ -91,7 +84,7 @@ function StorePerfil() {
 
   const store = res.data;
 
-  return <PerfilView store={store} session={session} builderDoc={builderDoc} />;
+  return <PerfilView store={store} session={session} />;
 }
 
 

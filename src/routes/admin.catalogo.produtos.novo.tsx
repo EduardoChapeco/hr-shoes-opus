@@ -19,11 +19,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import {
   listProductTypes,
   createProduct,
   uploadProductMedia,
   listCategories,
+  createCategory,
 } from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/novo")({
@@ -61,11 +63,23 @@ function NewProductPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   
+  // Category Modal State
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  
   // Variações Dinâmicas
   const [variants, setVariants] = useState<{ sku: string; attributes: Record<string, string>; stock: number }[]>([
     { sku: "", attributes: {}, stock: 0 }
   ]);
   const [selectedVariantOptions, setSelectedVariantOptions] = useState<Record<string, string[]>>({});
+  
+  // Custom Dynamic Attributes
+  const [customVariantGroups, setCustomVariantGroups] = useState<{name: string, options: string[]}[]>([]);
+  const [newCustomGroupName, setNewCustomGroupName] = useState("");
+  const [customOptionInput, setCustomOptionInput] = useState<Record<string, string>>({});
+
+  const [customAttributes, setCustomAttributes] = useState<{name: string, value: string}[]>([]);
 
   const [activeTab, setActiveTab] = useState("general");
 
@@ -114,9 +128,13 @@ function NewProductPage() {
 
   // Re-calculate Cartesian Product when Variant Options change
   useEffect(() => {
-    if (variantGroups.length === 0) return;
+    const allGroups = [...variantGroups, ...customVariantGroups];
+    if (allGroups.length === 0) {
+      setVariants([{ sku: "", attributes: {}, stock: 0 }]);
+      return;
+    }
 
-    const groupNames = variantGroups.map(g => g.name);
+    const groupNames = allGroups.map(g => g.name);
     const arraysToMultiply = groupNames.map(name => selectedVariantOptions[name] || []);
     
     // Check if at least one group has selections
@@ -269,6 +287,33 @@ function NewProductPage() {
     }
   };
 
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    setIsCreatingCategory(true);
+    try {
+      const res = await createCategory({
+        data: {
+          name: newCategoryName,
+          slug: slugify(newCategoryName),
+          status: "active"
+        }
+      });
+      if (res.status === "success") {
+        toast.success("Categoria criada!");
+        categories.push(res.data);
+        setSelectedCategory(res.data.id);
+        setIsCategoryModalOpen(false);
+        setNewCategoryName("");
+      } else {
+        toast.error("Erro ao criar categoria");
+      }
+    } catch {
+      toast.error("Erro inesperado");
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-[1200px] pb-12">
       <PageHeader
@@ -352,14 +397,40 @@ function NewProductPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <Label className="text-sm font-semibold">Categoria Principal</Label>
-                        <Link to="/admin/catalogo/categorias" className="text-xs text-primary hover:underline">
-                          + Gerenciar
-                        </Link>
+                        <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
+                          <DialogTrigger asChild>
+                            <button type="button" className="text-xs text-primary hover:underline font-medium">
+                              + Nova Categoria
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Criar Nova Categoria</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div className="space-y-2">
+                                <Label>Nome da Categoria</Label>
+                                <Input 
+                                  value={newCategoryName} 
+                                  onChange={(e) => setNewCategoryName(e.target.value)}
+                                  placeholder="Ex: Lançamentos"
+                                  autoFocus
+                                />
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <Button variant="outline" onClick={() => setIsCategoryModalOpen(false)}>Cancelar</Button>
+                              <Button onClick={handleCreateCategory} disabled={isCreatingCategory || !newCategoryName.trim()}>
+                                {isCreatingCategory ? "Criando..." : "Criar Categoria"}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
                       </div>
                       <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                         <SelectTrigger className="h-11"><SelectValue placeholder="Selecione uma categoria" /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sem Categoria</SelectItem>
+                          <SelectItem value="none">Sem Categoria</SelectItem>
                           {categories.map((c: any) => (
                             <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                           ))}
@@ -481,12 +552,17 @@ function NewProductPage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   
-                  {variantGroups.length > 0 ? (
+                  {([...variantGroups, ...customVariantGroups]).length > 0 ? (
                     <div className="space-y-6 mb-8 p-4 bg-muted/20 border rounded-xl">
-                      {variantGroups.map(group => (
-                        <div key={group.name} className="space-y-3">
-                          <Label className="text-sm font-semibold text-primary">{group.name}</Label>
-                          <div className="flex flex-wrap gap-2">
+                      {([...variantGroups, ...customVariantGroups]).map(group => (
+                        <div key={group.name} className="space-y-3 pb-3 border-b last:border-0">
+                          <div className="flex justify-between items-center">
+                            <Label className="text-sm font-semibold text-primary">{group.name}</Label>
+                            {customVariantGroups.find(cg => cg.name === group.name) && (
+                              <button type="button" onClick={() => setCustomVariantGroups(prev => prev.filter(g => g.name !== group.name))} className="text-[10px] text-destructive hover:underline">Remover Atributo</button>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-2 items-center">
                             {group.options?.map(opt => {
                               const isSelected = (selectedVariantOptions[group.name] || []).includes(opt);
                               return (
@@ -500,15 +576,58 @@ function NewProductPage() {
                                 </Badge>
                               );
                             })}
+                            <div className="flex items-center gap-2">
+                              <Input 
+                                placeholder="+ valor (ex: Azul)" 
+                                className="h-7 w-32 text-xs"
+                                value={customOptionInput[group.name] || ""}
+                                onChange={(e) => setCustomOptionInput(prev => ({...prev, [group.name]: e.target.value}))}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    const val = customOptionInput[group.name]?.trim();
+                                    if (val) {
+                                      // If it's a custom group
+                                      setCustomVariantGroups(prev => prev.map(g => g.name === group.name && !g.options.includes(val) ? { ...g, options: [...g.options, val] } : g));
+                                      // Or if it's a type group we need to just toggle it as selected directly since we can't mutate the type
+                                      toggleVariantOption(group.name, val);
+                                      setCustomOptionInput(prev => ({...prev, [group.name]: ""}));
+                                    }
+                                  }
+                                }}
+                              />
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="p-4 bg-yellow-500/10 text-yellow-600 rounded-xl text-sm mb-6 border border-yellow-500/20">
-                      O Tipo de Produto atual não possui Grupos de Variação definidos. Mude o "Tipo de Produto" na aba Especificações para ativar a matriz cartesiana, ou cadastre uma única variação manual abaixo.
+                      Nenhuma opção de variação definida. Adicione opções customizadas abaixo ou mude o "Tipo de Produto" na aba Especificações.
                     </div>
                   )}
+
+                  <div className="flex items-center gap-3 mb-6 p-4 border rounded-xl bg-muted/10">
+                    <Input 
+                      placeholder="Novo Atributo Customizado (ex: Tamanho da Palmilha)" 
+                      value={newCustomGroupName} 
+                      onChange={e => setNewCustomGroupName(e.target.value)} 
+                      className="max-w-xs h-9 text-sm"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={() => {
+                        if (newCustomGroupName.trim() && !customVariantGroups.find(g => g.name === newCustomGroupName.trim())) {
+                          setCustomVariantGroups(prev => [...prev, { name: newCustomGroupName.trim(), options: [] }]);
+                          setNewCustomGroupName("");
+                        }
+                      }}
+                    >
+                      <Plus className="size-4 mr-1"/> Adicionar Opção
+                    </Button>
+                  </div>
 
                   <div className="border rounded-xl overflow-hidden">
                     <div className="grid grid-cols-[2fr_2fr_1fr_40px] gap-4 bg-muted/50 p-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
