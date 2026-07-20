@@ -112,7 +112,7 @@ function CustomersPage() {
       if (res.status === "success") {
         toast.success("Cliente cadastrado com sucesso!");
         setIsOpen(false);
-        setForm({ fullName: "", email: "", phone: "", tagsRaw: "", notes: "" });
+        setForm({ fullName: "", email: "", phone: "", tagsRaw: "", notes: "", taxId: "", isConsentLgpd: false });
         router.invalidate();
       } else {
         toast.error(res.message || "Erro ao cadastrar");

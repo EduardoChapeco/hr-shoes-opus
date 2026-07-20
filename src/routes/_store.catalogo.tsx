@@ -87,13 +87,13 @@ function FilterChips({
     const cat = categories.find((c) => c.slug === search.categoria);
     chips.push({
       label: cat?.name ?? search.categoria,
-      onRemove: () => navigate({ search: (s) => ({ ...s, categoria: undefined }) }),
+      onRemove: () => navigate({ to: Route.fullPath, search: (s) => ({ ...s, categoria: undefined }) }),
     });
   }
   if (search.sort && search.sort !== "newest") {
     chips.push({
       label: SORT_LABELS[search.sort],
-      onRemove: () => navigate({ search: (s) => ({ ...s, sort: undefined }) }),
+      onRemove: () => navigate({ to: Route.fullPath, search: (s) => ({ ...s, sort: undefined }) }),
     });
   }
   if (search.minCents != null || search.maxCents != null) {
@@ -103,7 +103,7 @@ function FilterChips({
     chips.push({
       label: range?.label ?? `Faixa de preço`,
       onRemove: () =>
-        navigate({ search: (s) => ({ ...s, minCents: undefined, maxCents: undefined }) }),
+        navigate({ to: Route.fullPath, search: (s) => ({ ...s, minCents: undefined, maxCents: undefined }) }),
     });
   }
 
@@ -125,8 +125,7 @@ function FilterChips({
       ))}
       <button
         onClick={() =>
-          navigate({
-            search: {},
+          navigate({ to: Route.fullPath, search: {},
           })
         }
         className="text-xs text-muted-foreground underline hover:text-foreground"
@@ -150,7 +149,7 @@ function FilterPanel({
   const navigate = useNavigate();
 
   const applyFilter = (patch: Partial<CatalogSearch>) => {
-    navigate({ search: (s) => ({ ...s, ...patch }) });
+    navigate({ to: Route.fullPath, search: (s) => ({ ...s, ...patch }) });
     onClose?.();
   };
 
@@ -302,7 +301,7 @@ function CatalogPage() {
                 key={value}
                 id={`sort-${value}`}
                 onClick={() =>
-                  navigate({ search: (s) => ({ ...s, sort: value as CatalogSearch["sort"] }) })
+                  navigate({ to: Route.fullPath, search: (s) => ({ ...s, sort: value as CatalogSearch["sort"] }) })
                 }
                 className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${
                   (search.sort ?? "newest") === value
@@ -354,7 +353,7 @@ function CatalogPage() {
         {/* Product grid */}
         <div className="flex-1">
           {result.status === "error" && <ErrorState description={result.message} />}
-          {result.status === "unconfigured" && <UnconfiguredState reason={result.reason} />}
+          {result.status === "unconfigured" && <ErrorState description={result.description} />}
           {result.status === "empty" && (
             <EmptyState
               title="Nenhum produto encontrado"
@@ -367,7 +366,7 @@ function CatalogPage() {
                 activeFiltersCount > 0 ? (
                   <Button
                     variant="outline"
-                    onClick={() => navigate({ search: {} })}
+                    onClick={() => navigate({ to: Route.fullPath, search: {} })}
                   >
                     Limpar filtros
                   </Button>

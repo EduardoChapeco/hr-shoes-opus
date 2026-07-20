@@ -55,7 +55,7 @@ export interface ExperienceNode {
 export type InspectorFieldType = 
   | "text" | "textarea" | "number" | "boolean" | "color" 
   | "image" | "video" | "select" | "radio" | "slider"
-  | "data_binding" | "action_selector" | "collection" | "product";
+  | "data_binding" | "action_selector" | "collection" | "product" | "json" | "array";
 
 export interface InspectorField {
   name: string;
@@ -65,6 +65,7 @@ export interface InspectorField {
   defaultValue?: any;
   helpText?: string;
   required?: boolean;
+  arrayFields?: InspectorField[];
 }
 
 export type BlockCategory = 

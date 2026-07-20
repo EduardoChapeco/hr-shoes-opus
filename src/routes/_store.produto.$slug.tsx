@@ -165,7 +165,7 @@ function SizeGuideDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
 
 export const Route = createFileRoute("/_store/produto/$slug")({
   head: ({ loaderData }) => {
-    const result = loaderData?.productResult;
+    const result = (loaderData as any)?.productResult;
     if (!result || result.status !== "ok") {
       return { meta: [{ title: "Produto — Hr Shoes" }] };
     }

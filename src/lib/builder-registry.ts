@@ -325,7 +325,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
     category: "marketing",
     icon: "Megaphone",
     allowedBuilderProfiles: "all",
-    allowedParentTypes: ["none", "section"],
+    allowedParentTypes: ["section"],
     allowedChildTypes: "none",
     contentSchema: z.object({
       text: z.string(),

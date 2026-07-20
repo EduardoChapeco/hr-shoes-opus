@@ -46,12 +46,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQty = async (variantId: string, delta: number) => {
     setIsCartUpdating(true);
     try {
-      const res = await updateCartItemQty({ data: { variantId, delta } });
-      if (res.status === "error") {
-        toast.error(res.message || "Erro ao atualizar quantidade");
-      }
-    } catch (e) {
-      toast.error("Erro inesperado ao atualizar carrinho");
+      await updateCartItemQty({ data: { variantId, delta } });
+    } catch (e: any) {
+      toast.error(e.message || "Erro inesperado ao atualizar carrinho");
     } finally {
       await refreshCart();
     }
@@ -60,14 +57,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const removeItem = async (itemId: string) => {
     setIsCartUpdating(true);
     try {
-      const res = await removeFromCart({ data: { itemId } });
-      if (res.status === "error") {
-        toast.error(res.message || "Erro ao remover item");
-      } else {
-        toast.success("Item removido");
-      }
-    } catch (e) {
-      toast.error("Erro inesperado ao remover item");
+      await removeFromCart({ data: { itemId } });
+    } catch (e: any) {
+      toast.error(e.message || "Erro inesperado ao remover item");
     } finally {
       await refreshCart();
     }

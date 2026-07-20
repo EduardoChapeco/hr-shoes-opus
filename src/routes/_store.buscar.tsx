@@ -57,7 +57,7 @@ function SearchPage() {
 
     setIsSearching(true);
     // Update URL
-    navigate({ search: { q: trimmed } });
+    navigate({ to: Route.fullPath, search: { q: trimmed } });
 
     try {
       const res = await searchProducts({ data: { query: trimmed } });
@@ -77,7 +77,7 @@ function SearchPage() {
   const handleClear = () => {
     setInput("");
     setResult(null);
-    navigate({ search: {} });
+    navigate({ to: Route.fullPath, search: {} });
     inputRef.current?.focus();
   };
 
