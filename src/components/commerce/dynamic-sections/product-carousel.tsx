@@ -75,27 +75,27 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
 
   return (
     <div
-      className={cn("w-full py-12 @@md:py-24 overflow-hidden", design_tokens?.className)}
+      className={cn("w-full py-12 @md:py-24 overflow-hidden", design_tokens?.className)}
       style={{
         backgroundColor: design_tokens?.backgroundColor,
         color: design_tokens?.textColor,
       }}
     >
-      <div className="mx-auto max-w-[1400px] px-4 @@md:px-8">
-        <div className="flex items-end justify-between mb-8 @@md:mb-12">
+      <div className="mx-auto max-w-[1400px] px-4 @md:px-8">
+        <div className="flex items-end justify-between mb-8 @md:mb-12">
           <div>
             {content?.title && (
-              <h2 className="text-2xl @@md:text-4xl font-bold tracking-tight mb-2">
+              <h2 className="text-2xl @md:text-4xl font-bold tracking-tight mb-2">
                 {content.title}
               </h2>
             )}
             {content?.subtitle && (
-              <p className="text-muted-foreground text-sm @@md:text-lg">
+              <p className="text-muted-foreground text-sm @md:text-lg">
                 {content.subtitle}
               </p>
             )}
           </div>
-          <Button variant="ghost" className="hidden @@md:flex gap-2 group" asChild>
+          <Button variant="ghost" className="hidden @md:flex gap-2 group" asChild>
             <Link to="/catalogo">
               Ver Todos
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -123,15 +123,15 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
             opts={{ align: "start", loop: true }}
             className="w-full relative"
           >
-            <CarouselContent className="-ml-2 @@md:-ml-4">
+            <CarouselContent className="-ml-2 @md:-ml-4">
               {activeProducts.map((product: any) => (
-                <CarouselItem key={product.id} className="pl-2 @@md:pl-4 basis-4/5 @@md:basis-1/3 @@lg:basis-1/4">
+                <CarouselItem key={product.id} className="pl-2 @md:pl-4 basis-4/5 @md:basis-1/3 @lg:basis-1/4">
                   <ProductCard product={product} />
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="hidden @@md:flex -left-6" />
-            <CarouselNext className="hidden @@md:flex -right-6" />
+            <CarouselPrevious className="hidden @md:flex -left-6" />
+            <CarouselNext className="hidden @md:flex -right-6" />
           </Carousel>
         )}
       </div>

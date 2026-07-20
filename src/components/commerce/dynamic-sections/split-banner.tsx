@@ -28,11 +28,11 @@ export function SplitBanner({ content, design_tokens }: SplitBannerProps) {
         color: design_tokens?.textColor,
       }}
     >
-      <div className="grid @@md:grid-cols-2 min-h-[500px] @@lg:min-h-[600px]">
+      <div className="grid @md:grid-cols-2 min-h-[500px] @lg:min-h-[600px]">
         {/* Content Side */}
-        <div className={cn("flex flex-col justify-center p-8 @@md:p-16 @@lg:p-24", isImageLeft ? "@@md:order-last" : "")}>
+        <div className={cn("flex flex-col justify-center p-8 @md:p-16 @lg:p-24", isImageLeft ? "@md:order-last" : "")}>
           {content?.title && (
-            <h2 className="text-3xl @@md:text-5xl font-bold tracking-tight mb-4">
+            <h2 className="text-3xl @md:text-5xl font-bold tracking-tight mb-4">
               {content.title}
             </h2>
           )}
@@ -51,15 +51,15 @@ export function SplitBanner({ content, design_tokens }: SplitBannerProps) {
         </div>
 
         {/* Image Side */}
-        <div className="relative w-full @@md:h-auto bg-muted flex items-center justify-center overflow-hidden">
+        <div className="relative w-full @md:h-auto bg-muted flex items-center justify-center overflow-hidden">
           {content?.image_url ? (
             <img 
               src={content.image_url} 
               alt={content?.title || "Banner"} 
-              className="w-full h-auto object-cover @@md:absolute @@md:inset-0 @@md:h-full"
+              className="w-full h-auto object-cover @md:absolute @md:inset-0 @md:h-full"
             />
           ) : (
-            <div className="w-full aspect-square @@md:absolute @@md:inset-0 flex items-center justify-center text-muted-foreground bg-muted/50">
+            <div className="w-full aspect-square @md:absolute @md:inset-0 flex items-center justify-center text-muted-foreground bg-muted/50">
               [Imagem não configurada]
             </div>
           )}

@@ -88,14 +88,14 @@ export function HeroCarousel({ content, node_id, block_type }: { content: Record
                 <div className="absolute inset-0 bg-black/30 pointer-events-none" />
 
                 {/* Content Overlay */}
-                <div className="absolute inset-0 z-10 mx-auto flex w-full max-w-screen-xl flex-col items-start justify-center px-6 py-8 @@md:px-12 pointer-events-none">
+                <div className="absolute inset-0 z-10 mx-auto flex w-full max-w-screen-xl flex-col items-start justify-center px-6 py-8 @md:px-12 pointer-events-none">
                   {title && (
-                    <h2 className="text-editorial text-4xl text-white @@sm:text-5xl @@lg:text-6xl drop-shadow-md max-w-2xl pointer-events-auto">
+                    <h2 className="text-editorial text-4xl text-white @sm:text-5xl @lg:text-6xl drop-shadow-md max-w-2xl pointer-events-auto">
                       {title}
                     </h2>
                   )}
                   {button_link && button_text && (
-                    <div className="mt-4 @@md:mt-8 pointer-events-auto">
+                    <div className="mt-4 @md:mt-8 pointer-events-auto">
                       <Button size="lg" className="bg-white text-black hover:bg-white/90" asChild>
                         <Link 
                           to={button_link as never}
@@ -130,14 +130,14 @@ export function HeroCarousel({ content, node_id, block_type }: { content: Record
           </div>
           <button
             onClick={scrollPrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/20 p-2 text-white backdrop-blur hover:bg-black/40 z-20 hidden @@md:block transition-all"
+            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/20 p-2 text-white backdrop-blur hover:bg-black/40 z-20 hidden @md:block transition-all"
             aria-label="Anterior"
           >
             <ChevronLeft className="size-6" />
           </button>
           <button
             onClick={scrollNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/20 p-2 text-white backdrop-blur hover:bg-black/40 z-20 hidden @@md:block transition-all"
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/20 p-2 text-white backdrop-blur hover:bg-black/40 z-20 hidden @md:block transition-all"
             aria-label="Próximo"
           >
             <ChevronRight className="size-6" />

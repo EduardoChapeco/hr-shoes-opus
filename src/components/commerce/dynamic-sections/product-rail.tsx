@@ -33,10 +33,10 @@ export function ProductRail({
 
   if (layout === "grid") {
     return (
-      <section className="mx-auto max-w-screen-xl px-4 py-8 @@md:px-6">
+      <section className="mx-auto max-w-screen-xl px-4 py-8 @md:px-6">
         <div className="mb-5 flex items-end justify-between gap-3">
           <div>
-            <h2 className="text-editorial mt-1 text-2xl text-foreground @@sm:text-3xl">{title}</h2>
+            <h2 className="text-editorial mt-1 text-2xl text-foreground @sm:text-3xl">{title}</h2>
           </div>
           {slug && (
             <Button variant="ghost" size="sm" asChild>
@@ -47,7 +47,7 @@ export function ProductRail({
             </Button>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-4 @@sm:grid-cols-3 @@lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 @sm:grid-cols-3 @lg:grid-cols-4">
           {productsToDisplay.slice(0, 8).map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -83,20 +83,20 @@ export function ProductRail({
   }, [emblaApi, onSelect]);
 
   return (
-    <section className="mx-auto max-w-screen-xl px-4 py-8 @@md:px-6">
+    <section className="mx-auto max-w-screen-xl px-4 py-8 @md:px-6">
       <div className="mb-5 flex items-end justify-between gap-3">
         <div>
-          <h2 className="text-editorial mt-1 text-2xl text-foreground @@sm:text-3xl">{title}</h2>
+          <h2 className="text-editorial mt-1 text-2xl text-foreground @sm:text-3xl">{title}</h2>
         </div>
         <div className="flex items-center gap-2">
           {slug && (
-            <Button variant="link" size="sm" asChild className="hidden @@sm:inline-flex">
+            <Button variant="link" size="sm" asChild className="hidden @sm:inline-flex">
               <Link to="/colecao/$slug" params={{ slug }}>
                 Ver coleção completa
               </Link>
             </Button>
           )}
-          <div className="hidden @@sm:flex items-center gap-1">
+          <div className="hidden @sm:flex items-center gap-1">
             <Button
               variant="outline"
               size="icon"
@@ -123,7 +123,7 @@ export function ProductRail({
           {productsToDisplay.slice(0, 12).map((product) => (
             <div
               key={product.id}
-              className="pl-4 min-w-0 flex-[0_0_80%] @@sm:flex-[0_0_40%] @@md:flex-[0_0_33.33%] @@lg:flex-[0_0_25%]"
+              className="pl-4 min-w-0 flex-[0_0_80%] @sm:flex-[0_0_40%] @md:flex-[0_0_33.33%] @lg:flex-[0_0_25%]"
             >
               <ProductCard product={product} />
             </div>
