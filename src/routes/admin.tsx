@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useLoaderData } from "@tanstack/react-router";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { getUserSession } from "@/services/auth.functions";
@@ -39,6 +39,7 @@ function AdminLayout() {
   const navigate = Route.useNavigate();
 
   const { session } = Route.useRouteContext();
+  const { store } = useLoaderData({ from: "__root__" }) as any;
 
   useEffect(() => {
     if (search.error === "unauthorized") {
@@ -49,7 +50,7 @@ function AdminLayout() {
   }, [search.error, navigate]);
 
   return (
-    <AdminShell session={session}>
+    <AdminShell session={session} logoUrl={store?.logoUrl}>
       <Outlet />
     </AdminShell>
   );

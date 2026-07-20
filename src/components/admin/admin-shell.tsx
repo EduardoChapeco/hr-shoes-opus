@@ -215,7 +215,7 @@ function HeaderRightIsland() {
 // ---------------------------------------------------------------------------
 // AdminShell
 // ---------------------------------------------------------------------------
-export function AdminShell({ children, session }: { children: ReactNode; session: any }) {
+export function AdminShell({ children, session, logoUrl }: { children: ReactNode; session: any; logoUrl?: string }) {
   const [collapsed, setCollapsed] = useState(true);
   const router = useRouter();
   const pathname = router.state.location.pathname;
@@ -302,7 +302,7 @@ export function AdminShell({ children, session }: { children: ReactNode; session
                 </div>
               ) : (
                 <Link to="/admin" className="flex items-center">
-                  <Logo className="h-6" />
+                  <Logo className="h-6" src={logoUrl} />
                 </Link>
               )}
             </div>
@@ -448,7 +448,7 @@ export function AdminShell({ children, session }: { children: ReactNode; session
             <SheetContent side="left" className="w-72 bg-sidebar p-0">
               <SheetHeader className="h-16 justify-center border-b border-sidebar-border px-4">
                 <SheetTitle className="sr-only">Menu do painel</SheetTitle>
-                <Logo className="h-6" />
+                <Logo className="h-6" src={logoUrl} />
               </SheetHeader>
               <ScrollArea className="h-[calc(100vh-4rem)] px-3 py-4">
                 <div className="space-y-6">

@@ -18,11 +18,11 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:flex-wrap sm:items-center sm:justify-between",
+        "flex flex-col items-start gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between",
         className,
       )}
     >
-      <div className="min-w-0">
+      <div className="min-w-0 w-full sm:w-auto">
         {eyebrow ? <p className="eyebrow mb-2 text-primary">{eyebrow}</p> : null}
         <h1 className="text-editorial text-3xl text-foreground sm:text-4xl">{title}</h1>
         {description ? (

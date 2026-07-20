@@ -221,12 +221,17 @@ export const getPublicStoreSettings = createServerFn({ method: "GET" }).handler(
     const { data: store, error } = await db
       .from("stores")
       .select(
-        "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, seo_title, seo_description, seo_keywords",
+        "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, seo_title, seo_description, seo_keywords, settings",
       )
       .limit(1)
       .single();
     if (error || !store) return { status: "not_found" as const };
-    return { status: "ok" as const, data: store };
+    
+    // Map settings to root level for convenience
+    const logoUrl = store.settings?.logoUrl;
+    const faviconUrl = store.settings?.faviconUrl;
+    
+    return { status: "ok" as const, data: { ...store, logoUrl, faviconUrl } };
   } catch {
     return { status: "error" as const, message: "Erro ao carregar dados da loja." };
   }

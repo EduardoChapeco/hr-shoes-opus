@@ -21,7 +21,7 @@ async function hydrateStoreProfileForNode(db: ReturnType<typeof getServerClient>
   try {
     const { data: store } = await db
       .from("stores")
-      .select("name, slug, description, logo_url, address, city, state, phone, email, settings")
+      .select("name, slug, description, address, city, state, phone, email, settings")
       .limit(1)
       .single();
 
@@ -39,7 +39,7 @@ async function hydrateStoreProfileForNode(db: ReturnType<typeof getServerClient>
         name: store.name,
         slug: store.slug,
         description: store.description,
-        logo_url: store.logo_url || settings.logoUrl || null,
+        logo_url: settings.logoUrl || null,
         cover_url: settings.cover_url || null,
       },
       store_contact: {

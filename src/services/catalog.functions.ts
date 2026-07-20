@@ -638,7 +638,7 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
 
       const { data, error } = await db
         .from("stores")
-        .select("id, name, slug, description, phone, email, address, city, state, logo_url, business_hours, social_links, settings, pix_key, payment_instructions")
+        .select("id, name, slug, description, phone, email, address, city, state, settings")
         .order("created_at", { ascending: true })
         .limit(1)
         .single();
@@ -659,12 +659,12 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
         address: (data.address as string | null) ?? null,
         city: (data.city as string | null) ?? null,
         state: (data.state as string | null) ?? null,
-        logoUrl: (data.logo_url as string | null) ?? (typeof settings.logoUrl === "string" ? settings.logoUrl : null),
-        instagramHandle: ((data.social_links as any)?.instagram as string | null) ?? (typeof settings.instagramHandle === "string" ? settings.instagramHandle : null),
-        businessHours: (data.business_hours as string | null) ?? (typeof settings.businessHours === "string" ? settings.businessHours : null),
+        logoUrl: (typeof settings.logoUrl === "string" ? settings.logoUrl : null),
+        instagramHandle: (typeof settings.instagramHandle === "string" ? settings.instagramHandle : null),
+        businessHours: (typeof settings.businessHours === "string" ? settings.businessHours : null),
         settings,
-        pixKey: (data.pix_key as string | null) ?? null,
-        paymentInstructions: (data.payment_instructions as string | null) ?? null,
+        pixKey: (typeof settings.pixKey === "string" ? settings.pixKey : null),
+        paymentInstructions: (typeof settings.paymentInstructions === "string" ? settings.paymentInstructions : null),
       };
 
       return { status: "ok", data: profile };

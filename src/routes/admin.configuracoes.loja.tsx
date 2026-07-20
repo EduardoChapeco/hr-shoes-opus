@@ -29,8 +29,8 @@ function StoreSettings() {
     city: (store as any)?.city || "",
     state: (store as any)?.state || "",
     zip_code: (store as any)?.zip_code || "",
-    logoUrl: (store as any)?.logoUrl || "",
-    faviconUrl: (store as any)?.faviconUrl || "",
+    logoUrl: (store as any)?.settings?.logoUrl || "",
+    faviconUrl: (store as any)?.settings?.faviconUrl || "",
   });
   const [isSaving, setIsSaving] = useState(false);
 

@@ -195,29 +195,29 @@ function AdminProductsPage() {
 
       {/* Toolbar & Filtros */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        <Tabs defaultValue="active" value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
-          <TabsList className="grid grid-cols-4 w-full sm:w-auto">
-            <TabsTrigger value="active" className="text-xs">
+        <Tabs defaultValue="active" value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto overflow-hidden">
+          <TabsList className="flex w-full overflow-x-auto no-scrollbar sm:w-auto h-auto py-1">
+            <TabsTrigger value="active" className="text-xs shrink-0">
               Ativos ({products.filter(p => p.status !== "archived").length})
             </TabsTrigger>
-            <TabsTrigger value="published" className="text-xs">
+            <TabsTrigger value="published" className="text-xs shrink-0">
               Publicados ({products.filter((p) => p.status === "published").length})
             </TabsTrigger>
-            <TabsTrigger value="draft" className="text-xs">
+            <TabsTrigger value="draft" className="text-xs shrink-0">
               Rascunhos ({products.filter((p) => p.status === "draft").length})
             </TabsTrigger>
-            <TabsTrigger value="archived" className="text-xs">
+            <TabsTrigger value="archived" className="text-xs shrink-0">
               Arquivo Morto ({products.filter((p) => p.status === "archived").length})
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 max-w-sm w-full">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden />
           <Input
             type="search"
             placeholder="Buscar por título ou SKU..."
-            className="pl-9 text-xs"
+            className="pl-9 text-xs w-full"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -226,52 +226,52 @@ function AdminProductsPage() {
 
       {/* Barra Flutuante de Ações em Lote */}
       {selectedIds.length > 0 && (
-        <div className="flex items-center justify-between p-3 rounded-lg border border-primary/30 bg-primary/10 dark:bg-primary/20 animate-in fade-in-50">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-lg border border-primary/30 bg-primary/10 dark:bg-primary/20 animate-in fade-in-50 gap-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
             <Badge variant="default" className="font-bold">
               {selectedIds.length}
             </Badge>
             <span>produto(s) selecionado(s)</span>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
-              className="text-xs"
+              className="text-xs flex-1 sm:flex-none justify-center"
               disabled={isProcessing}
               onClick={() => handleBulkAction("published")}
             >
-              <CheckCircle2 className="size-3.5 mr-1 text-emerald-600" />
+              <CheckCircle2 className="size-3.5 mr-1 text-emerald-600 shrink-0" />
               Publicar
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="text-xs"
+              className="text-xs flex-1 sm:flex-none justify-center"
               disabled={isProcessing}
               onClick={() => handleBulkAction("draft")}
             >
-              <FileText className="size-3.5 mr-1 text-amber-600" />
-              Tornar Rascunho
+              <FileText className="size-3.5 mr-1 text-amber-600 shrink-0" />
+              Rascunho
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="text-xs"
+              className="text-xs flex-1 sm:flex-none justify-center"
               disabled={isProcessing}
               onClick={() => handleBulkAction("archived")}
             >
-              <Archive className="size-3.5 mr-1 text-muted-foreground" />
+              <Archive className="size-3.5 mr-1 text-muted-foreground shrink-0" />
               Arquivar
             </Button>
             <Button
               variant="destructive"
               size="sm"
-              className="text-xs"
+              className="text-xs flex-1 sm:flex-none justify-center"
               disabled={isProcessing}
               onClick={() => handleBulkAction("delete")}
             >
-              <Trash2 className="size-3.5 mr-1" />
+              <Trash2 className="size-3.5 mr-1 shrink-0" />
               Excluir
             </Button>
           </div>
@@ -283,7 +283,7 @@ function AdminProductsPage() {
         <EmptyState
           title="Nenhum produto encontrado"
           description={
-            searchQuery || statusFilter !== "all"
+            searchQuery || statusFilter !== "active"
               ? "Tente alterar os termos de busca ou filtros aplicados."
               : "Cadastre seu primeiro produto com fotos, variações e preços para vender."
           }
@@ -297,7 +297,8 @@ function AdminProductsPage() {
           }
         />
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+        <div className="rounded-xl border border-border bg-card shadow-xs">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40">
@@ -455,6 +456,7 @@ function AdminProductsPage() {
               })}
             </TableBody>
           </Table>
+          </div>
         </div>
       )}
     </div>

@@ -12,7 +12,7 @@ export async function getStoreSettingsHandler() {
   const db = getServerClient();
   const { data: store, error } = await db
     .from("stores")
-    .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, description")
+    .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, settings")
     .eq("id", identity.store_id)
     .single();
 
@@ -35,14 +35,22 @@ export const saveStoreSettingsSchema = z.object({
   state: z.string().max(2).optional(),
   zip_code: z.string().max(9).optional(),
   description: z.string().max(500).optional(),
+  logoUrl: z.string().optional(),
+  faviconUrl: z.string().optional(),
 });
 
 export async function saveStoreSettingsHandler(data: z.infer<typeof saveStoreSettingsSchema>) {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin"]);
 
+  const { logoUrl, faviconUrl, ...columns } = data;
   const db = getServerClient();
-  const { error } = await db.from("stores").update(data).eq("id", identity.store_id);
+  
+  // Get current settings to merge
+  const { data: currentStore } = await db.from("stores").select("settings").eq("id", identity.store_id).single();
+  const settings = { ...(currentStore?.settings || {}), logoUrl, faviconUrl };
+
+  const { error } = await db.from("stores").update({ ...columns, settings }).eq("id", identity.store_id);
 
   if (error) {
     throw new Error("Erro ao salvar dados da loja: " + error.message);
