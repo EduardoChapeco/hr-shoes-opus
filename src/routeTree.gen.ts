@@ -62,6 +62,7 @@ import { Route as ApiAuthConfirmRouteImport } from './routes/api.auth.confirm'
 import { Route as ApiAuthCallbackRouteImport } from './routes/api.auth.callback'
 import { Route as AdminPedidosTrocasRouteImport } from './routes/admin.pedidos.trocas'
 import { Route as AdminPedidosIdRouteImport } from './routes/admin.pedidos.$id'
+import { Route as AdminMarketingSeguidoresRouteImport } from './routes/admin.marketing.seguidores'
 import { Route as AdminMarketingOfertasCheckoutRouteImport } from './routes/admin.marketing.ofertas-checkout'
 import { Route as AdminMarketingNotificacoesRouteImport } from './routes/admin.marketing.notificacoes'
 import { Route as AdminMarketingGiftCardsRouteImport } from './routes/admin.marketing.gift-cards'
@@ -383,6 +384,12 @@ const AdminPedidosIdRoute = AdminPedidosIdRouteImport.update({
   path: '/pedidos/$id',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMarketingSeguidoresRoute =
+  AdminMarketingSeguidoresRouteImport.update({
+    id: '/marketing/seguidores',
+    path: '/marketing/seguidores',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminMarketingOfertasCheckoutRoute =
   AdminMarketingOfertasCheckoutRouteImport.update({
     id: '/marketing/ofertas-checkout',
@@ -760,6 +767,7 @@ export interface FileRoutesByFullPath {
   '/admin/marketing/gift-cards': typeof AdminMarketingGiftCardsRoute
   '/admin/marketing/notificacoes': typeof AdminMarketingNotificacoesRoute
   '/admin/marketing/ofertas-checkout': typeof AdminMarketingOfertasCheckoutRoute
+  '/admin/marketing/seguidores': typeof AdminMarketingSeguidoresRoute
   '/admin/pedidos/$id': typeof AdminPedidosIdRoute
   '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
@@ -868,6 +876,7 @@ export interface FileRoutesByTo {
   '/admin/marketing/gift-cards': typeof AdminMarketingGiftCardsRoute
   '/admin/marketing/notificacoes': typeof AdminMarketingNotificacoesRoute
   '/admin/marketing/ofertas-checkout': typeof AdminMarketingOfertasCheckoutRoute
+  '/admin/marketing/seguidores': typeof AdminMarketingSeguidoresRoute
   '/admin/pedidos/$id': typeof AdminPedidosIdRoute
   '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
@@ -980,6 +989,7 @@ export interface FileRoutesById {
   '/admin/marketing/gift-cards': typeof AdminMarketingGiftCardsRoute
   '/admin/marketing/notificacoes': typeof AdminMarketingNotificacoesRoute
   '/admin/marketing/ofertas-checkout': typeof AdminMarketingOfertasCheckoutRoute
+  '/admin/marketing/seguidores': typeof AdminMarketingSeguidoresRoute
   '/admin/pedidos/$id': typeof AdminPedidosIdRoute
   '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
@@ -1092,6 +1102,7 @@ export interface FileRouteTypes {
     | '/admin/marketing/gift-cards'
     | '/admin/marketing/notificacoes'
     | '/admin/marketing/ofertas-checkout'
+    | '/admin/marketing/seguidores'
     | '/admin/pedidos/$id'
     | '/admin/pedidos/trocas'
     | '/api/auth/callback'
@@ -1200,6 +1211,7 @@ export interface FileRouteTypes {
     | '/admin/marketing/gift-cards'
     | '/admin/marketing/notificacoes'
     | '/admin/marketing/ofertas-checkout'
+    | '/admin/marketing/seguidores'
     | '/admin/pedidos/$id'
     | '/admin/pedidos/trocas'
     | '/api/auth/callback'
@@ -1311,6 +1323,7 @@ export interface FileRouteTypes {
     | '/admin/marketing/gift-cards'
     | '/admin/marketing/notificacoes'
     | '/admin/marketing/ofertas-checkout'
+    | '/admin/marketing/seguidores'
     | '/admin/pedidos/$id'
     | '/admin/pedidos/trocas'
     | '/api/auth/callback'
@@ -1723,6 +1736,13 @@ declare module '@tanstack/react-router' {
       path: '/pedidos/$id'
       fullPath: '/admin/pedidos/$id'
       preLoaderRoute: typeof AdminPedidosIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/marketing/seguidores': {
+      id: '/admin/marketing/seguidores'
+      path: '/marketing/seguidores'
+      fullPath: '/admin/marketing/seguidores'
+      preLoaderRoute: typeof AdminMarketingSeguidoresRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/marketing/ofertas-checkout': {
@@ -2263,6 +2283,7 @@ interface AdminRouteChildren {
   AdminMarketingGiftCardsRoute: typeof AdminMarketingGiftCardsRoute
   AdminMarketingNotificacoesRoute: typeof AdminMarketingNotificacoesRoute
   AdminMarketingOfertasCheckoutRoute: typeof AdminMarketingOfertasCheckoutRoute
+  AdminMarketingSeguidoresRoute: typeof AdminMarketingSeguidoresRoute
   AdminPedidosIdRoute: typeof AdminPedidosIdRoute
   AdminPedidosTrocasRoute: typeof AdminPedidosTrocasRoute
   AdminBuilderIndexRoute: typeof AdminBuilderIndexRoute
@@ -2327,6 +2348,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminMarketingGiftCardsRoute: AdminMarketingGiftCardsRoute,
   AdminMarketingNotificacoesRoute: AdminMarketingNotificacoesRoute,
   AdminMarketingOfertasCheckoutRoute: AdminMarketingOfertasCheckoutRoute,
+  AdminMarketingSeguidoresRoute: AdminMarketingSeguidoresRoute,
   AdminPedidosIdRoute: AdminPedidosIdRoute,
   AdminPedidosTrocasRoute: AdminPedidosTrocasRoute,
   AdminBuilderIndexRoute: AdminBuilderIndexRoute,

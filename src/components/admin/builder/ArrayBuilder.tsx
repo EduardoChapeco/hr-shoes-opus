@@ -10,6 +10,7 @@ interface ArrayField {
   name: string;
   label: string;
   type: string;
+  options?: { label: string; value: string }[];
 }
 
 interface ArrayBuilderProps {
@@ -101,20 +102,37 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
                         onChange={(val) => handleUpdateItem(index, field.name, val)}
                       />
                     ) : field.type === "color" ? (
-                      <ColorPicker
-                        label={field.label}
-                        value={item[field.name] || ""}
-                        onChange={(val) => handleUpdateItem(index, field.name, val)}
-                      />
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold uppercase text-muted-foreground">{field.label}</label>
+                        <ColorPicker
+                          value={item[field.name] || ""}
+                          onChange={(val) => handleUpdateItem(index, field.name, val)}
+                        />
+                      </div>
                     ) : field.type === "boolean" ? (
-                       <label className="flex items-center gap-2 text-xs">
-                         <input 
-                           type="checkbox" 
-                           checked={item[field.name] || false}
-                           onChange={(e) => handleUpdateItem(index, field.name, e.target.checked)}
-                         />
-                         {field.label}
-                       </label>
+                      <label className="flex items-center gap-2 text-xs">
+                        <input
+                          type="checkbox"
+                          checked={item[field.name] || false}
+                          onChange={(e) => handleUpdateItem(index, field.name, e.target.checked)}
+                          className="w-4 h-4"
+                        />
+                        {field.label}
+                      </label>
+                    ) : field.type === "select" && field.options ? (
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold uppercase text-muted-foreground">{field.label}</label>
+                        <select
+                          className="w-full text-sm p-2 rounded-lg border bg-background"
+                          value={item[field.name] || ""}
+                          onChange={(e) => handleUpdateItem(index, field.name, e.target.value)}
+                        >
+                          <option value="">Selecione...</option>
+                          {field.options.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                      </div>
                     ) : field.type === "textarea" ? (
                       <textarea
                         className="w-full text-sm p-2 border rounded-md bg-background min-h-[80px]"

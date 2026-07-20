@@ -1,0 +1,30 @@
+
+export const listStoreFollowers = createServerFn({ method: "GET" })
+  .handler(async () => {
+    try {
+      const ssrClient = getServerClient();
+      const { data: { user } } = await ssrClient.auth.getUser();
+      if (!user) throw new Error("Não autenticado");
+
+      const { data: profile } = await ssrClient
+        .from("profiles")
+        .select("store_id")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.store_id) return { status: "ok" as const, data: [] };
+
+      const { data, error } = await ssrClient
+        .from("store_followers")
+        .select("created_at, customer:auth.users(id, raw_user_meta_data)")
+        .eq("store_id", profile.store_id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      return { status: "ok" as const, data };
+    } catch (e: any) {
+      console.error("[social.functions] listStoreFollowers:", e);
+      return { status: "error" as const, message: e.message || "Erro ao listar seguidores" };
+    }
+  });

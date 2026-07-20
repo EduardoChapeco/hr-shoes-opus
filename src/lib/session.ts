@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 
 import { appendResponseCookie, readCookieFromRequest } from "./http-cookies";
 
-const GUEST_SESSION_COOKIE = "hr_shoes_guest_session";
+export const GUEST_SESSION_COOKIE = "hr_shoes_guest_session";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 /**

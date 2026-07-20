@@ -336,6 +336,9 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
     try {
       const res = await addToCart({ data: { variantId: selectedVariant.id, quantity: 1 } });
       toast.success("Adicionado ao carrinho");
+      if (res.session_token) {
+        document.cookie = `hr_shoes_guest_session=${res.session_token}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
+      }
       if (res.cart) {
         setCartData(res.cart as any);
       } else {

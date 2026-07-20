@@ -322,9 +322,18 @@ function BuilderEditorIDE() {
     const idx = siblings.findIndex(n => n.id === id);
     const target = siblings[idx + dir];
     if (!target) return;
+
+    // Swap items in the sibling array
+    const newSiblings = [...siblings];
+    newSiblings[idx] = target;
+    newSiblings[idx + dir] = node;
+
+    // Apply continuous indexes so we never collide
     setNodes(prev => prev.map(n => {
-      if (n.id === node.id) return { ...n, sort_order: target.sort_order };
-      if (n.id === target.id) return { ...n, sort_order: node.sort_order };
+      if (n.parent_id === node.parent_id) {
+        const siblingIndex = newSiblings.findIndex(sib => sib.id === n.id);
+        return { ...n, sort_order: siblingIndex };
+      }
       return n;
     }));
   }, [nodes]);

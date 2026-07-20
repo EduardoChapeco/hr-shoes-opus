@@ -722,11 +722,28 @@ function NewProductPage() {
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold">Prazo de preparação (dias)</Label>
-                    <Input {...register("preparation_time_days")} type="number" placeholder="Ex: 0 (Pronta entrega)" />
-                    <p className="text-xs text-muted-foreground">Dias adicionados ao prazo de frete padrão.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold">Prazo de preparação (dias)</Label>
+                      <Input {...register("preparation_time_days")} type="number" placeholder="Ex: 2" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold">Origem de Envio</Label>
+                      <Select
+                        onValueChange={(val) => {
+                          const currentAttr = getValues("attributes") || {};
+                          setValue("attributes", { ...currentAttr, origin: val });
+                        }}
+                      >
+                        <SelectTrigger className="h-11"><SelectValue placeholder="Selecione a origem..." /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="national">Nacional (Brasil)</SelectItem>
+                          <SelectItem value="international">Internacional (Importação)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
+                  <p className="text-xs text-muted-foreground">Dias adicionados ao prazo de frete padrão.</p>
                 </CardContent>
               </Card>
             </TabsContent>

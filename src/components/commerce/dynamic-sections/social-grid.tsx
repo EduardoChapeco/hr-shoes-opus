@@ -7,6 +7,8 @@ interface SocialGridProps {
     posts?: Array<{
       image_url: string;
       link?: string;
+      likes?: string;
+      comments?: string;
     }>;
   };
 }
@@ -16,15 +18,8 @@ export function SocialGrid({ content }: SocialGridProps) {
   const title = content.title || "Siga-nos no Instagram";
   const username = content.username || "hrshoes";
 
-  // Mock likes/comments numbers for a premium lively feel (wix hopp style)
-  const mockMetrics = [
-    { likes: "124", comments: "12" },
-    { likes: "89", comments: "5" },
-    { likes: "241", comments: "19" },
-    { likes: "156", comments: "14" },
-    { likes: "98", comments: "8" },
-    { likes: "312", comments: "27" },
-  ];
+  // As métricas de engajamento agora vêm diretamente dos campos definidos no painel
+  // de administração (via CMS Builder), permitindo total flexibilidade sem mock data.
 
   return (
     <section className="w-full max-w-7xl mx-auto px-4 py-8 space-y-6">
@@ -52,7 +47,7 @@ export function SocialGrid({ content }: SocialGridProps) {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
           {posts.slice(0, 6).map((post, idx) => {
-            const metrics = mockMetrics[idx % mockMetrics.length];
+            const metrics = { likes: post.likes, comments: post.comments };
             const Wrapper = post.link ? "a" : "div";
             const wrapperProps = post.link
               ? { href: post.link, target: "_blank", rel: "noopener noreferrer" }
@@ -62,25 +57,32 @@ export function SocialGrid({ content }: SocialGridProps) {
               <Wrapper
                 key={idx}
                 {...wrapperProps}
-                className="relative group aspect-square rounded-xl overflow-hidden border border-border bg-muted flex items-center justify-center cursor-pointer shadow-xs"
+                className="group relative aspect-square overflow-hidden rounded-xl bg-muted block border border-border"
               >
                 <img
                   src={post.image_url}
-                  alt={`Instagram Post ${idx + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
+                  alt={`Instagram post ${idx + 1}`}
+                  className="size-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  loading="lazy"
                 />
-
-                {/* Overlaid Instagram Hover Actions (Wix Studio / premium feel) */}
-                <div className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4 text-white text-xs font-bold">
-                  <span className="flex items-center gap-1">
-                    <Heart className="size-4 fill-white" />
-                    {metrics.likes}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MessageCircle className="size-4 fill-white" />
-                    {metrics.comments}
-                  </span>
-                </div>
+                
+                {/* Overlay Hover para Engajamento */}
+                {(metrics.likes || metrics.comments) && (
+                  <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex items-center justify-center gap-4 text-white">
+                    {metrics.likes && (
+                      <div className="flex items-center gap-1.5 text-sm font-semibold">
+                        <Heart className="size-5 fill-white" />
+                        <span>{metrics.likes}</span>
+                      </div>
+                    )}
+                    {metrics.comments && (
+                      <div className="flex items-center gap-1.5 text-sm font-semibold">
+                        <MessageCircle className="size-5 fill-white" />
+                        <span>{metrics.comments}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </Wrapper>
             );
           })}

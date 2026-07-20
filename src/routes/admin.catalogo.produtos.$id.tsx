@@ -627,9 +627,31 @@ function GeneralForm({
               <Input {...register("length_cm")} type="number" step="0.01" placeholder="Ex: 30" />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label>Prazo de Preparação (dias)</Label>
-            <Input {...register("preparation_time_days")} type="number" placeholder="Ex: 0" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Prazo de Preparação (dias)</Label>
+              <Input {...register("preparation_time_days")} type="number" placeholder="Ex: 0" />
+            </div>
+            <div className="space-y-2">
+              <Label>Origem de Envio</Label>
+              <Select
+                defaultValue={(product.attributes as any)?.origin || "national"}
+                onValueChange={async (val) => {
+                  const currentAttr = (product.attributes as any) || {};
+                  const newAttr = { ...currentAttr, origin: val };
+                  await updateProduct({ data: { id: product.id, updates: { attributes: newAttr } } });
+                  toast.success("Origem atualizada com sucesso!");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a origem..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="national">Nacional (Brasil)</SelectItem>
+                  <SelectItem value="international">Internacional (Importação)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>

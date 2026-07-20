@@ -701,6 +701,14 @@ export const ADMIN_ROUTES: RouteEntry[] = [
     phase: 5,
   },
   {
+    path: "/admin/marketing/seguidores",
+    label: "Seguidores da Loja",
+    description: "Lista de clientes seguindo a loja",
+    audience: "admin",
+    roles: ["owner", "admin", "manager"],
+    phase: 5,
+  },
+  {
     path: "/admin/marketing/ofertas-checkout",
     label: "Ofertas de Checkout",
     description: "Configuração de regras de Upsell no checkout",
@@ -954,6 +962,7 @@ export const ADMIN_SIDEBAR_NAV: AdminNavGroup[] = [
     title: "Relacionamento",
     items: [
       { path: "/admin/clientes", label: "Clientes", icon: "Users" },
+      { path: "/admin/marketing/seguidores", label: "Seguidores da Loja", icon: "Users" },
       { path: "/admin/conversas", label: "Conversas", icon: "MessagesSquare" },
       { path: "/admin/pedidos/trocas", label: "Trocas e Devoluções", icon: "ArrowLeftRight" },
       { path: "/admin/suporte", label: "Suporte", icon: "LifeBuoy" },

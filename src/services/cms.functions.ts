@@ -714,3 +714,47 @@ export const createReview = createServerFn({ method: "POST" })
     }
   });
 
+
+export const createManualReview = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      productId: z.string().uuid(),
+      rating: z.number().min(1).max(5),
+      comment: z.string().max(1000).optional(),
+      reviewerName: z.string().min(2),
+    })
+  )
+  .handler(async ({ data: { productId, rating, comment, reviewerName } }) => {
+    try {
+      const ssrClient = getServerClient();
+      const { data: { user } } = await ssrClient.auth.getUser();
+      if (!user) throw new Error("Não autenticado");
+
+      // Verify user is store admin/owner
+      const { data: profile } = await ssrClient
+        .from("profiles")
+        .select("role, store_id")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile || !["owner", "admin", "manager"].includes(profile.role)) {
+        throw new Error("Sem permissão para adicionar avaliações manuais.");
+      }
+
+      const { error } = await ssrClient.from("reviews").insert({
+        store_id: profile.store_id,
+        product_id: productId,
+        user_id: user.id, // we tie it to the admin who created it
+        rating,
+        comment: comment || null,
+        status: "approved", // manual reviews are pre-approved
+        reviewer_name: reviewerName
+      });
+
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[cms.functions] createManualReview:", e);
+      return { status: "error" as const, message: e.message || "Erro ao inserir avaliação manual." };
+    }
+  });

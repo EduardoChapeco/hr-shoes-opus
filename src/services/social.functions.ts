@@ -105,7 +105,7 @@ export const getProductReviewsList = createServerFn({ method: "GET" })
     const supabase = getServerClient();
     const { data, error } = await supabase
       .from("reviews")
-      .select("id, rating, comment, created_at, user:auth.users(id, raw_user_meta_data)")
+      .select("id, rating, comment, created_at, reviewer_name, user:auth.users(id, raw_user_meta_data)")
       .eq("product_id", productId)
       .eq("status", "approved")
       .order("created_at", { ascending: false })
@@ -118,6 +118,36 @@ export const getProductReviewsList = createServerFn({ method: "GET" })
       rating: d.rating,
       comment: d.comment,
       createdAt: d.created_at,
-      userName: d.user?.raw_user_meta_data?.full_name || "Cliente Anonimo"
+      userName: d.reviewer_name || d.user?.raw_user_meta_data?.full_name || "Cliente Anonimo"
     }));
+  });
+
+export const listStoreFollowers = createServerFn({ method: "GET" })
+  .handler(async () => {
+    try {
+      const ssrClient = getServerClient();
+      const { data: { user } } = await ssrClient.auth.getUser();
+      if (!user) throw new Error("Não autenticado");
+
+      const { data: profile } = await ssrClient
+        .from("profiles")
+        .select("store_id")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.store_id) return { status: "ok" as const, data: [] };
+
+      const { data, error } = await ssrClient
+        .from("store_followers")
+        .select("created_at, customer:auth.users(id, raw_user_meta_data)")
+        .eq("store_id", profile.store_id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      return { status: "ok" as const, data };
+    } catch (e: any) {
+      console.error("[social.functions] listStoreFollowers:", e);
+      return { status: "error" as const, message: e.message || "Erro ao listar seguidores" };
+    }
   });

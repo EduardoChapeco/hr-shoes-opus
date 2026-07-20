@@ -180,10 +180,15 @@ export const builderRegistry: Record<string, BlockManifest> = {
         { name: "title", label: "Título do Bento Grid", type: "text" },
         { name: "items", label: "Itens do Grid", type: "array", arrayFields: [
           { name: "title", label: "Título do Item", type: "text" },
-          { name: "description", label: "Descrição", type: "textarea" },
+          { name: "subtitle", label: "Subtítulo (Destaque)", type: "text" },
           { name: "image", label: "Imagem (Upload)", type: "image" },
           { name: "link", label: "Link de Destino", type: "text" },
-          { name: "col_span", label: "Colunas ocupadas (1-3)", type: "number" }
+          { name: "size", label: "Tamanho do Card", type: "select", options: [
+            { label: "Pequeno (1x1)", value: "small" },
+            { label: "Largo (2x1)", value: "wide" },
+            { label: "Alto (1x2)", value: "tall" },
+            { label: "Grande (2x2)", value: "large" }
+          ]}
         ] }
       ]
     },
@@ -242,7 +247,11 @@ export const builderRegistry: Record<string, BlockManifest> = {
           { name: "title", label: "Título da Bolha", type: "text" },
           { name: "thumb", label: "Thumbnail", type: "image" },
           { name: "media_url", label: "Mídia Completa (Vídeo/Img)", type: "image" },
-          { name: "link", label: "Link Produto", type: "text" }
+          { name: "link", label: "Link Produto", type: "text" },
+          { name: "type", label: "Tipo de Mídia", type: "select", options: [
+            { label: "Imagem", value: "image" },
+            { label: "Vídeo", value: "video" }
+          ]}
         ] }
       ]
     },
@@ -458,7 +467,14 @@ export const builderRegistry: Record<string, BlockManifest> = {
         { name: "cards", label: "Cartões", type: "array", arrayFields: [
           { name: "title", label: "Título do Cartão", type: "text" },
           { name: "description", label: "Texto", type: "textarea" },
-          { name: "icon", label: "Ícone (Imagem)", type: "image" }
+          { name: "icon", label: "Ícone (Lucide)", type: "select", options: [
+            { label: "Caminhão (Frete)", value: "truck" },
+            { label: "Troca/Retorno", value: "rotate-ccw" },
+            { label: "Escudo (Segurança)", value: "shield" },
+            { label: "Cartão (Pagamento)", value: "credit-card" },
+            { label: "Tag (Oferta)", value: "tag" },
+            { label: "Estrela (Qualidade)", value: "star" }
+          ]}
         ] }
       ]
     },
@@ -516,10 +532,12 @@ export const builderRegistry: Record<string, BlockManifest> = {
     inspector: { 
       content: [
         { name: "title", label: "Título do Feed", type: "text" },
-        { name: "handle", label: "Usuário (@)", type: "text" },
-        { name: "images", label: "Posts do Feed", type: "array", arrayFields: [
-          { name: "url", label: "Imagem do Post", type: "image" },
-          { name: "link", label: "Link para o Instagram", type: "text" }
+        { name: "username", label: "Usuário (@)", type: "text" },
+        { name: "posts", label: "Posts do Feed", type: "array", arrayFields: [
+          { name: "image_url", label: "Imagem do Post", type: "image" },
+          { name: "link", label: "Link para o Instagram", type: "text" },
+          { name: "likes", label: "Curtidas", type: "text" },
+          { name: "comments", label: "Comentários", type: "text" }
         ] }
       ]
     },

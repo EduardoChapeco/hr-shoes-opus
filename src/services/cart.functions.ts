@@ -304,7 +304,7 @@ export const addToCart = createServerFn({ method: "POST" })
 
     // Fetch and return the updated cart directly to bypass cookie race conditions on the frontend
     const updatedCart = await fetchCartDTO(identity);
-    return { status: "success", cart: updatedCart };
+    return { status: "success", cart: updatedCart, session_token: identity.session_token };
   });
 
 export const removeFromCart = createServerFn({ method: "POST" })

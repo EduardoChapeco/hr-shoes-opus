@@ -8,16 +8,8 @@ export function PublicFooter({ menuItems = [], store }: { menuItems?: any[]; sto
     store?.description ||
     "Moda feminina contemporânea com conforto e estilo. Curadoria da Hr Shoes.";
 
-  // Agrupa a lista plana de itens em colunas de até 4 links para simular o layout anterior
-  const navItems =
-    menuItems.length > 0
-      ? menuItems
-      : [
-          { url: "/catalogo", label: "Catálogo" },
-          { url: "/perfil-da-loja", label: "Sobre a Loja" },
-          { url: "/contato", label: "Contato" },
-          { url: "/termos", label: "Termos e Condições" },
-        ];
+  // Agrupa a lista plana de itens em colunas de até 4 links
+  const navItems = menuItems;
 
   const colSize = Math.ceil(navItems.length / 2) || 1;
   const col1 = navItems.slice(0, colSize);
