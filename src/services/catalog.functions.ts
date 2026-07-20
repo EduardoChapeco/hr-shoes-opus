@@ -31,19 +31,7 @@ import type {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Resolve the default store_id from the store config table (single-tenant for now). */
-async function resolveDefaultStoreId(): Promise<string | null> {
-  const db = getAnonServerClient();
-  const { data, error } = await db
-    .from("stores")
-    .select("id")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .single();
-
-  if (error || !data) return null;
-  return data.id as string;
-}
+import { resolveTenantStoreId } from "@/lib/tenant";
 
 /** 
  * Helper to map Supabase joined row into ProductCardDTO, 
@@ -121,7 +109,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
   .handler(async ({ data: params }): Promise<ProductListResult> => {
     try {
       const db = getAnonServerClient();
-      const storeId = await resolveDefaultStoreId();
+      const storeId = await resolveTenantStoreId();
 
       if (!storeId) {
         return {
@@ -218,7 +206,7 @@ export const listPublishedCategories = createServerFn({ method: "GET" }).handler
   async (): Promise<CategoryListResult> => {
     try {
       const db = getAnonServerClient();
-      const storeId = await resolveDefaultStoreId();
+      const storeId = await resolveTenantStoreId();
 
       if (!storeId) {
         return {

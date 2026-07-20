@@ -232,7 +232,10 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
     try {
       const db = getServerClient();
 
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+      const storeData = { id: identity.store_id };
       if (!storeData) throw new Error("No store found");
 
       // 1. Create Document
@@ -494,7 +497,10 @@ export const listMediaAssets = createServerFn({ method: "GET" })
     try {
       const db = getServerClient();
       
-      const { data: store } = await db.from("stores").select("id").limit(1).single();
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+      const store = { id: identity.store_id };
       if (!store) throw new Error("No store found");
 
       const { data, error } = await db
@@ -650,7 +656,10 @@ export const getOrCreateHomeDocument = createServerFn({ method: "POST" })
       }
 
       // 2. If not, create it
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+      const storeData = { id: identity.store_id };
       if (!storeData) throw new Error("No store found");
 
       const { data: newDoc, error: newDocError } = await db
@@ -824,7 +833,10 @@ export const getOrCreateInstitutionalDocument = createServerFn({ method: "POST" 
       }
 
       // 2. Create document
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+      const storeData = { id: identity.store_id };
       if (!storeData) throw new Error("No store found");
 
       const { data: newDoc, error: newDocError } = await db

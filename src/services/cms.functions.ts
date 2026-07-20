@@ -217,13 +217,17 @@ export const getPublicPageBySlug = createServerFn({ method: "GET" })
 
 export const getPublicStoreSettings = createServerFn({ method: "GET" }).handler(async () => {
   try {
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) return { status: "not_found" as const };
+
     const db = getServerClient();
     const { data: store, error } = await db
       .from("stores")
       .select(
         "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, seo_title, seo_description, seo_keywords, settings",
       )
-      .limit(1)
+      .eq("id", storeId)
       .single();
     if (error || !store) return { status: "not_found" as const };
     
