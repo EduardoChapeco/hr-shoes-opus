@@ -32,7 +32,7 @@ export function VideoSection({ content }: VideoSectionProps) {
   const ytId = getYouTubeId(videoUrl);
   const vimeoId = getVimeoId(videoUrl);
 
-  const isMp4 = videoUrl.endsWith(".mp4") || videoUrl.includes(".mp4?");
+  const isMp4 = videoUrl ? !!videoUrl.split('?')[0].match(/\.(mp4|webm|mov|ogg)$/i) : false;
 
   const renderVideoPlayer = () => {
     if (ytId) {

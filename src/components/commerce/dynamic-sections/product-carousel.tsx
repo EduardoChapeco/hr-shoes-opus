@@ -2,6 +2,7 @@ import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ShoppingBag } from "lucide-react";
 import { ProductCard } from "@/components/commerce/product-card";
+import { useQuery } from "@tanstack/react-query";
 import {
   Carousel,
   CarouselContent,
@@ -25,6 +26,7 @@ interface ProductCarouselProps {
   transientData?: any;
   // resolvedData is injected by ExperienceRenderer from node.transient_data
   resolvedData?: any;
+  isEditing?: boolean;
 }
 
 /**
@@ -32,13 +34,45 @@ interface ProductCarouselProps {
  * NEVER issues its own network requests. If transient_data is absent,
  * shows an honest empty state. No mock data, no fallback lists.
  */
-export function ProductCarousel({ content, design_tokens, transientData, resolvedData }: ProductCarouselProps) {
+export function ProductCarousel({ content, design_tokens, data_bindings, transientData, resolvedData, isEditing }: ProductCarouselProps) {
   // Support both object wrapped products and direct products array
   const products: any[] = resolvedData?.products || (Array.isArray(resolvedData) ? resolvedData : null) || transientData?.products || [];
 
+  const bindingType = data_bindings?.type || data_bindings?.source;
+  const collectionSlug = data_bindings?.collection_slug || content?.collection_slug;
+
+  const isCollection = bindingType === "product_collection" && collectionSlug;
+  const isLatest = bindingType === "latest_products" || bindingType === "dynamic_products" || (!bindingType && products.length === 0);
+
+  const shouldFetchClient = !!isEditing && products.length === 0;
+
+  const { data: clientCollectionProducts } = useQuery({
+    queryKey: ["editorCollectionProducts", collectionSlug],
+    queryFn: async () => {
+      const { getProductsByCollection } = await import("@/services/catalog.functions");
+      const res = await getProductsByCollection({ data: { slug: collectionSlug! } });
+      return res.status === "ok" ? res.data : [];
+    },
+    enabled: !!(shouldFetchClient && isCollection)
+  });
+
+  const { data: clientLatestProducts } = useQuery({
+    queryKey: ["editorLatestProducts", data_bindings?.limit],
+    queryFn: async () => {
+      const { listPublishedProducts } = await import("@/services/catalog.functions");
+      const res = await listPublishedProducts({ limit: data_bindings?.limit || 12 });
+      return res.status === "ok" ? res.data : [];
+    },
+    enabled: !!(shouldFetchClient && isLatest)
+  });
+
+  const activeProducts = products.length > 0
+    ? products
+    : (isCollection ? (clientCollectionProducts || []) : (clientLatestProducts || []));
+
   return (
     <div
-      className={cn("w-full py-12 md:py-24", design_tokens?.className)}
+      className={cn("w-full py-12 md:py-24 overflow-hidden", design_tokens?.className)}
       style={{
         backgroundColor: design_tokens?.backgroundColor,
         color: design_tokens?.textColor,
@@ -66,7 +100,7 @@ export function ProductCarousel({ content, design_tokens, transientData, resolve
           </Button>
         </div>
 
-        {products.length === 0 ? (
+        {activeProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-lg">
             <ShoppingBag className="h-10 w-10 opacity-30" />
             <div>
@@ -80,7 +114,7 @@ export function ProductCarousel({ content, design_tokens, transientData, resolve
             className="w-full relative"
           >
             <CarouselContent className="-ml-2 md:-ml-4">
-              {products.map((product: any) => (
+              {activeProducts.map((product: any) => (
                 <CarouselItem key={product.id} className="pl-2 md:pl-4 basis-4/5 md:basis-1/3 lg:basis-1/4">
                   <ProductCard product={product} />
                 </CarouselItem>

@@ -2,6 +2,7 @@ import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ShoppingBag } from "lucide-react";
 import { ProductCard } from "@/components/commerce/product-card";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -18,21 +19,55 @@ interface ProductGridProps {
   data_bindings?: any;
   transientData?: any;
   resolvedData?: any;
+  isEditing?: boolean;
 }
 
 /**
  * ProductGrid — reads products from server-resolved transient_data.
  * NEVER issues its own network requests. Honest empty state when no products.
  */
-export function ProductGrid({ content, design_tokens, transientData, resolvedData }: ProductGridProps) {
+export function ProductGrid({ content, design_tokens, data_bindings, transientData, resolvedData, isEditing }: ProductGridProps) {
   // Support both object wrapped products and direct products array
   const products: any[] = resolvedData?.products || (Array.isArray(resolvedData) ? resolvedData : null) || transientData?.products || [];
+  
+  const bindingType = data_bindings?.type || data_bindings?.source;
+  const collectionSlug = data_bindings?.collection_slug || content?.collection_slug;
+
+  const isCollection = bindingType === "product_collection" && collectionSlug;
+  const isLatest = bindingType === "latest_products" || bindingType === "dynamic_products" || (!bindingType && products.length === 0);
+
+  const shouldFetchClient = !!isEditing && products.length === 0;
+
+  const { data: clientCollectionProducts } = useQuery({
+    queryKey: ["editorCollectionProductsGrid", collectionSlug],
+    queryFn: async () => {
+      const { getProductsByCollection } = await import("@/services/catalog.functions");
+      const res = await getProductsByCollection({ data: { slug: collectionSlug! } });
+      return res.status === "ok" ? res.data : [];
+    },
+    enabled: !!(shouldFetchClient && isCollection)
+  });
+
+  const { data: clientLatestProducts } = useQuery({
+    queryKey: ["editorLatestProductsGrid", data_bindings?.limit],
+    queryFn: async () => {
+      const { listPublishedProducts } = await import("@/services/catalog.functions");
+      const res = await listPublishedProducts({ limit: data_bindings?.limit || 12 });
+      return res.status === "ok" ? res.data : [];
+    },
+    enabled: !!(shouldFetchClient && isLatest)
+  });
+
+  const activeProducts = products.length > 0
+    ? products
+    : (isCollection ? (clientCollectionProducts || []) : (clientLatestProducts || []));
+
   const cols = content?.columns ?? 4;
   const colClass = { 2: "grid-cols-2", 3: "grid-cols-2 md:grid-cols-3", 4: "grid-cols-2 md:grid-cols-3 lg:grid-cols-4" }[cols] ?? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
 
   return (
     <div
-      className={cn("w-full py-12 md:py-24", design_tokens?.className)}
+      className={cn("w-full py-12 md:py-24 overflow-hidden", design_tokens?.className)}
       style={{
         backgroundColor: design_tokens?.backgroundColor,
         color: design_tokens?.textColor,
@@ -60,7 +95,7 @@ export function ProductGrid({ content, design_tokens, transientData, resolvedDat
           </Button>
         </div>
 
-        {products.length === 0 ? (
+        {activeProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-lg">
             <ShoppingBag className="h-10 w-10 opacity-30" />
             <div>
@@ -70,13 +105,13 @@ export function ProductGrid({ content, design_tokens, transientData, resolvedDat
           </div>
         ) : (
           <div className={cn("grid gap-4 md:gap-6 lg:gap-8", colClass)}>
-            {products.map((product: any) => (
+            {activeProducts.map((product: any) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}
 
-        {products.length > 0 && (
+        {activeProducts.length > 0 && (
           <Button variant="outline" className="w-full mt-8 md:hidden" asChild>
             <Link to="/catalogo">Ver Todos</Link>
           </Button>

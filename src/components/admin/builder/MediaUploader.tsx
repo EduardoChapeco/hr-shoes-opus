@@ -13,7 +13,7 @@ interface MediaUploaderProps {
   bucket?: string;
 }
 
-export function MediaUploader({ value, onChange, label, bucket = "public" }: MediaUploaderProps) {
+export function MediaUploader({ value, onChange, label, bucket = "product-media" }: MediaUploaderProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -53,13 +53,15 @@ export function MediaUploader({ value, onChange, label, bucket = "public" }: Med
     }
   };
 
+  const isVideo = value ? !!value.split('?')[0].match(/\.(mp4|webm|mov|ogg)$/i) : false;
+
   return (
     <div className="flex flex-col gap-2">
       {label && <label className="text-xs font-medium">{label}</label>}
       
       {value ? (
         <div className="relative rounded-md overflow-hidden border group bg-muted flex items-center justify-center">
-          {value.match(/\.(mp4|webm)$/i) ? (
+          {isVideo ? (
             <video src={value} className="w-full h-32 object-cover" muted />
           ) : (
             <img src={value} alt="Media preview" className="w-full h-32 object-cover" />

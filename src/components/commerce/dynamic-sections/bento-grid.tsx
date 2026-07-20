@@ -4,7 +4,8 @@ import { useBuilderClickTracking } from "../analytics-provider";
 interface BentoItem {
   title?: string;
   subtitle?: string;
-  image_url: string;
+  image_url?: string;
+  image?: string;
   link?: string;
   size?: "small" | "wide" | "tall" | "large";
 }
@@ -54,6 +55,7 @@ export function BentoGrid({ content, node_id, block_type }: BentoGridProps) {
             const sizeClass = getSizeClasses(item.size);
             const CardWrapper = item.link ? "a" : "div";
             const wrapperProps = item.link ? { href: item.link } : {};
+            const imgUrl = item.image || item.image_url || "";
 
             return (
               <CardWrapper
@@ -68,11 +70,17 @@ export function BentoGrid({ content, node_id, block_type }: BentoGridProps) {
               >
                 {/* Background Image */}
                 <div className="absolute inset-0 z-0">
-                  <img
-                    src={item.image_url}
-                    alt={item.title || ""}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  {imgUrl ? (
+                    <img
+                      src={imgUrl}
+                      alt={item.title || ""}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-xs">
+                      [Sem imagem]
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent" />
                 </div>
 

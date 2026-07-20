@@ -45,7 +45,7 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
 
   return (
     <div
-      className={cn("w-full py-12 md:py-24", design_tokens?.className)}
+      className={cn("w-full py-12 md:py-24 overflow-hidden", design_tokens?.className)}
       style={{
         backgroundColor: design_tokens?.backgroundColor,
         color: design_tokens?.textColor,
