@@ -130,7 +130,10 @@ export async function deleteShippingRateHandler(id: string) {
 
 export async function calculateShippingHandler(zipcode: string) {
   const db = getServerClient();
-  const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+  const { resolveTenantStoreId } = await import("@/lib/tenant");
+  const storeId = await resolveTenantStoreId();
+  if (!storeId) throw new Error("Loja nÃ£o encontrada");
+  const storeData = { id: storeId };
   if (!storeData) throw new Error("Loja não encontrada");
 
   // Fetch all active zones and their active rates

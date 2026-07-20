@@ -37,7 +37,10 @@ async function getOrCreateCartId(identity: {
   if (existing) return existing.id;
 
   // 2. Fetch the default store. In a multi-tenant setup, this would be derived from the Host or domain.
-  const { data: store } = await supabase.from("stores").select("id").limit(1).single();
+  const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) throw new Error("Loja nÃ£o configurada");
+    const store = { id: storeId };
   if (!store) throw new Error("Loja não encontrada na base");
 
   // 3. Create a new cart
@@ -225,7 +228,10 @@ export const addToCart = createServerFn({ method: "POST" })
     const activeSellerId = sellerId || getSellerRefCookie();
 
     // Check if store exists to use for cart
-    const { data: store } = await supabase.from("stores").select("id").limit(1).single();
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) throw new Error("Loja nÃ£o configurada");
+    const store = { id: storeId };
     if (!store) throw new Error("Loja não configurada");
 
     // 1. Get or create cart
@@ -435,7 +441,10 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
     if (!cartDetails) throw new Error("Erro ao buscar detalhes do carrinho");
 
     // Search for coupon
-    const { data: store } = await supabase.from("stores").select("id").limit(1).single();
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) throw new Error("Loja nÃ£o configurada");
+    const store = { id: storeId };
     if (!store) throw new Error("Loja não configurada");
 
     const { data: coupon } = await supabase

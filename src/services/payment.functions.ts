@@ -470,7 +470,10 @@ export const deleteManualPaymentMethod = createServerFn({ method: "POST" })
 export const getPublicPaymentMethods = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const db = getServerClient();
-    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) throw new Error("Loja nÃ£o encontrada");
+    const storeData = { id: storeId };
     if (!storeData) throw new Error("Loja não encontrada");
 
     const { data, error } = await db
