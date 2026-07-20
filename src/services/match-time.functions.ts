@@ -16,7 +16,9 @@ export const startMatchTimeSession = createServerFn({ method: "POST" }).handler(
 
     const db = getServerClient();
 
-    const { data: store } = await db.from("stores").select("id").limit(1).single();
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    const store = storeId ? { id: storeId } : null;
     if (!store) return { status: "error" as const, message: "Loja não encontrada." };
 
     // Verifica se há sessão ativa (sem ended_at)
@@ -86,7 +88,9 @@ export const getNextProductsForSwipe = createServerFn({ method: "GET" }).handler
 
     const db = getServerClient();
 
-    const { data: store } = await db.from("stores").select("id").limit(1).single();
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    const store = storeId ? { id: storeId } : null;
     if (!store) return { status: "error" as const, message: "Loja não encontrada." };
 
     const { data: swiped } = await db
@@ -145,7 +149,9 @@ export const generateMatchTimeOffer = createServerFn({ method: "POST" })
       if (!user) return { status: "error" as const, message: "Não autorizado" };
 
       const db = getServerClient();
-      const { data: store } = await db.from("stores").select("id").limit(1).single();
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      const store = storeId ? { id: storeId } : null;
       if (!store) return { status: "error" as const, message: "Loja não encontrada." };
 
       // 1. Create the offer for 15 minutes (50% off for testing, in a real app this comes from a rules table)
@@ -199,7 +205,9 @@ export const recordSwipe = createServerFn({ method: "POST" })
       if (!user) return { status: "error" as const, message: "Não autorizado" };
 
       const db = getServerClient();
-      const { data: store } = await db.from("stores").select("id").limit(1).single();
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      const store = storeId ? { id: storeId } : null;
       if (!store) return { status: "error" as const, message: "Loja não encontrada." };
 
       const { error } = await db.from("match_time_swipes").insert({
@@ -236,7 +244,9 @@ export const getCustomerAffinityRecommendations = createServerFn({ method: "GET"
       if (!user) return { status: "error" as const, message: "Não autenticado." };
 
       const db = getServerClient();
-      const { data: store } = await db.from("stores").select("id").limit(1).single();
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      const store = storeId ? { id: storeId } : null;
       if (!store) return { status: "error" as const, message: "Loja não encontrada." };
 
       // 1. Obter todos os swipes do cliente
@@ -339,7 +349,10 @@ export const getMatchTimeReport = createServerFn({ method: "GET" }).handler(asyn
   try {
     const db = getServerClient();
 
-    const { data: store } = await db.from("stores").select("id").limit(1).single();
+    const { getServerIdentity } = await import("@/lib/identity");
+    const { store_id } = await getServerIdentity();
+    if (!store_id) return { status: "error" as const, message: "Loja não encontrada." };
+    const store = { id: store_id };
     if (!store) return { status: "error" as const, message: "Loja não encontrada." };
 
     // 1. Buscar todos os swipes com joins

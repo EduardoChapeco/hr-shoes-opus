@@ -325,9 +325,10 @@ export const searchProducts = createServerFn({ method: "GET" })
   .handler(async ({ data: { query } }): Promise<ProductListResult> => {
     try {
       const db = await getAnonServerClient();
-      const { data: store } = await db.from("stores").select("id").limit(1).single();
-
-      if (!store) {
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      const store = { id: storeId };
+      if (!storeId) {
         return { status: "unconfigured", reason: "Loja não encontrada." };
       }
 
@@ -396,9 +397,10 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
   .handler(async ({ data: { slug } }): Promise<ProductListResult> => {
     try {
       const db = await getAnonServerClient();
-      const { data: store } = await db.from("stores").select("id").limit(1).single();
-
-      if (!store) {
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      const store = { id: storeId };
+      if (!storeId) {
         return { status: "unconfigured", reason: "Loja não encontrada." };
       }
 
@@ -467,9 +469,10 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
   async (): Promise<ProductListResult> => {
     try {
       const db = await getAnonServerClient();
-      const { data: store } = await db.from("stores").select("id").limit(1).single();
-
-      if (!store) {
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      const store = { id: storeId };
+      if (!storeId) {
         return { status: "unconfigured", reason: "Loja não encontrada." };
       }
 

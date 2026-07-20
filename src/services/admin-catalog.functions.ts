@@ -225,7 +225,10 @@ export async function createProductHandler(input: {
 }) {
   const db = getServerClient();
 
-  const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+  const { getServerIdentity } = await import("@/lib/identity");
+  const { store_id } = await getServerIdentity();
+  if (!store_id) throw new Error("No store found");
+  const storeData = { id: store_id };
   if (!storeData) throw new Error("No store found");
 
   const { media_urls, variants, category_ids, ...productInput } = input;
@@ -390,7 +393,10 @@ export async function createCategoryHandler(input: {
 }) {
   const db = getServerClient();
 
-  const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+  const { getServerIdentity } = await import("@/lib/identity");
+  const { store_id } = await getServerIdentity();
+  if (!store_id) throw new Error("No store found");
+  const storeData = { id: store_id };
   if (!storeData) throw new Error("No store found");
 
   const { data, error } = await db
@@ -519,7 +525,10 @@ export async function createCollectionHandler(input: {
 }) {
   const db = getServerClient();
 
-  const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+  const { getServerIdentity } = await import("@/lib/identity");
+  const { store_id } = await getServerIdentity();
+  if (!store_id) throw new Error("No store found");
+  const storeData = { id: store_id };
   if (!storeData) throw new Error("No store found");
 
   const { data, error } = await db

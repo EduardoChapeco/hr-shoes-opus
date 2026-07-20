@@ -59,7 +59,9 @@ export const uploadMedia = createServerFn({ method: "POST" })
 
       // Register asset in media_assets tracking table if possible
       try {
-        const { data: store } = await supabase.from("stores").select("id").limit(1).single();
+        const { getServerIdentity } = await import("@/lib/identity");
+        const { store_id } = await getServerIdentity();
+        const store = store_id ? { id: store_id } : null;
         const { data: user } = await supabase.auth.getUser();
         if (store && user.user) {
           await supabase.from("media_assets").insert({

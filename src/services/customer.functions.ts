@@ -36,7 +36,9 @@ export const addCustomerAddress = createServerFn({ method: "POST" })
       data: { user },
     } = await ssrClient.auth.getUser();
     if (!user) throw new Error("Não autorizado");
-    const { data: store } = await ssrClient.from("stores").select("id").limit(1).single();
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    const store = storeId ? { id: storeId } : null;
     if (!store) throw new Error("Loja não encontrada");
 
     // Check if it's the first address to make it default

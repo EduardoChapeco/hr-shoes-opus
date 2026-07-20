@@ -79,7 +79,10 @@ export const createPage = createServerFn({ method: "POST" })
     try {
       const db = getServerClient();
 
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { getServerIdentity } = await import("@/lib/identity");
+      const { store_id } = await getServerIdentity();
+      if (!store_id) throw new Error("No store found");
+      const storeData = { id: store_id };
       if (!storeData) throw new Error("No store found");
 
       const { data, error } = await db
@@ -182,7 +185,9 @@ export const getPublicPageBySlug = createServerFn({ method: "GET" })
     try {
       const db = getServerClient();
 
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      const storeData = storeId ? { id: storeId } : null;
       if (!storeData) return { status: "unconfigured" as const, reason: "Sem loja configurada" };
 
       const { data: page, error: pageError } = await db
@@ -249,7 +254,9 @@ export const getThemeSettings = createServerFn({ method: "GET" }).handler(async 
   try {
     const db = getServerClient();
 
-    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      const storeData = storeId ? { id: storeId } : null;
     if (!storeData) throw new Error("No store found");
 
     const { data, error } = await db
@@ -297,7 +304,10 @@ export const updateThemeSettings = createServerFn({ method: "POST" })
     try {
       const db = getServerClient();
 
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { getServerIdentity } = await import("@/lib/identity");
+      const { store_id } = await getServerIdentity();
+      if (!store_id) throw new Error("No store found");
+      const storeData = { id: store_id };
       if (!storeData) throw new Error("No store found");
 
       const { data, error } = await db
@@ -323,7 +333,9 @@ export const getNavigationMenus = createServerFn({ method: "GET" }).handler(asyn
   try {
     const db = getServerClient();
 
-    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      const storeData = storeId ? { id: storeId } : null;
     if (!storeData) throw new Error("No store found");
 
     const { data, error } = await db
@@ -354,7 +366,10 @@ export const upsertNavigationMenu = createServerFn({ method: "POST" })
     try {
       const db = getServerClient();
 
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { getServerIdentity } = await import("@/lib/identity");
+      const { store_id } = await getServerIdentity();
+      if (!store_id) throw new Error("No store found");
+      const storeData = { id: store_id };
       if (!storeData) throw new Error("No store found");
 
       const payload = {
@@ -489,7 +504,9 @@ export const getLinkInBio = createServerFn({ method: "GET" }).handler(async () =
   try {
     const db = getServerClient();
 
-    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      const storeData = storeId ? { id: storeId } : null;
     if (!storeData) throw new Error("No store found");
 
     const { data, error } = await db
@@ -533,7 +550,10 @@ export const upsertLinkInBio = createServerFn({ method: "POST" })
     try {
       const db = getServerClient();
 
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { getServerIdentity } = await import("@/lib/identity");
+      const { store_id } = await getServerIdentity();
+      if (!store_id) throw new Error("No store found");
+      const storeData = { id: store_id };
       if (!storeData) throw new Error("No store found");
 
       const { data, error } = await db
@@ -559,7 +579,10 @@ export const listAdminStories = createServerFn({ method: "GET" }).handler(async 
   try {
     const db = getServerClient();
 
-    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { getServerIdentity } = await import("@/lib/identity");
+      const { store_id } = await getServerIdentity();
+      if (!store_id) throw new Error("No store found");
+      const storeData = { id: store_id };
     if (!storeData) throw new Error("No store found");
 
     const { data, error } = await db
@@ -591,7 +614,10 @@ export const upsertStory = createServerFn({ method: "POST" })
     try {
       const db = getServerClient();
 
-      const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { getServerIdentity } = await import("@/lib/identity");
+      const { store_id } = await getServerIdentity();
+      if (!store_id) throw new Error("No store found");
+      const storeData = { id: store_id };
       if (!storeData) throw new Error("No store found");
 
       const payload = {
@@ -639,7 +665,9 @@ export const listPublicStories = createServerFn({ method: "GET" }).handler(async
   try {
     const db = getServerClient();
 
-    const { data: storeData } = await db.from("stores").select("id").limit(1).single();
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      const storeData = storeId ? { id: storeId } : null;
     if (!storeData) throw new Error("No store found");
 
     const { data, error } = await db
@@ -665,7 +693,9 @@ export const getPageBySlug = createServerFn({ method: "GET" })
       const db = getServerClient();
 
       // Get the first store id
-      const { data: store } = await db.from("stores").select("id").limit(1).single();
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      const store = storeId ? { id: storeId } : null;
       if (!store) return { status: "error" as const, message: "Loja não encontrada." };
 
       const { data: page, error } = await db
