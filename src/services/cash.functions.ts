@@ -348,8 +348,33 @@ export async function processPOSSaleHandler(input: {
     throw new Error("O carrinho do PDV não possui itens.");
   }
 
-  // 2. Compute totals
-  const subtotalCents = input.items.reduce(
+  // 2. Fetch canonical prices from the database (Rule #2: no client-side price calculation)
+  const variantIds = input.items.map((i) => i.variantId);
+  const { data: dbProducts, error: prodErr } = await supabase
+    .from("products")
+    .select("id, price_cents")
+    .in("id", variantIds)
+    .eq("store_id", identity.store_id);
+
+  if (prodErr || !dbProducts) {
+    throw new Error("Erro ao validar preços dos produtos.");
+  }
+
+  const priceMap = new Map(dbProducts.map((p) => [p.id, p.price_cents]));
+
+  const canonicalItems = input.items.map((item) => {
+    const canonicalPrice = priceMap.get(item.variantId);
+    if (canonicalPrice === undefined) {
+      throw new Error(`Produto não encontrado ou não pertence a esta loja: ${item.title}`);
+    }
+    return {
+      ...item,
+      priceCents: canonicalPrice,
+    };
+  });
+
+  // 3. Compute totals server-side
+  const subtotalCents = canonicalItems.reduce(
     (acc, item) => acc + item.priceCents * item.qty,
     0,
   );
@@ -368,7 +393,7 @@ export async function processPOSSaleHandler(input: {
     p_customer_id: input.customerId || null,
     p_payment_method: input.paymentMethod,
     p_discount_cents: discountCents,
-    p_items: input.items.map(item => ({
+    p_items: canonicalItems.map(item => ({
       variantId: item.variantId,
       qty: item.qty,
       priceCents: item.priceCents,

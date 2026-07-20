@@ -6,9 +6,11 @@ interface GalleryGridProps {
     columns?: "2" | "3" | "4";
     gap?: number;
     images?: Array<{
-      image_url: string;
+      image_url?: string;
+      url?: string;
       link?: string;
       caption?: string;
+      alt?: string;
     }>;
   };
 }
@@ -58,17 +60,17 @@ export function GalleryGrid({ content }: GalleryGridProps) {
                 className="relative group aspect-square rounded-xl overflow-hidden border border-border bg-muted flex items-center justify-center cursor-pointer shadow-xs hover:shadow-md transition-all duration-300"
               >
                 <img
-                  src={img.image_url}
-                  alt={img.caption || ""}
+                  src={img.url || img.image_url}
+                  alt={img.alt || img.caption || ""}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
 
                 {/* Hover overlay with caption/zoom */}
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-4 text-center text-white">
                   <ZoomIn className="size-6 mb-2 scale-75 group-hover:scale-100 transition-transform duration-300" />
-                  {img.caption && (
+                  {(img.caption || img.alt) && (
                     <p className="text-xs font-semibold leading-relaxed line-clamp-3">
-                      {img.caption}
+                      {img.caption || img.alt}
                     </p>
                   )}
                 </div>

@@ -34,6 +34,9 @@ interface ProductCarouselProps {
  * NEVER issues its own network requests. If transient_data is absent,
  * shows an honest empty state. No mock data, no fallback lists.
  */
+import { listPublishedProducts, getProductsByCollection } from "@/services/catalog.functions";
+import { Loader2 } from "lucide-react";
+
 export function ProductCarousel({ content, design_tokens, data_bindings, transientData, resolvedData, isEditing }: ProductCarouselProps) {
   // Support both object wrapped products and direct products array
   const products: any[] = resolvedData?.products || (Array.isArray(resolvedData) ? resolvedData : null) || transientData?.products || [];
@@ -46,25 +49,25 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
 
   const shouldFetchClient = !!isEditing && products.length === 0;
 
-  const { data: clientCollectionProducts } = useQuery({
+  const { data: clientCollectionProducts, isLoading: isCollectionLoading } = useQuery({
     queryKey: ["editorCollectionProducts", collectionSlug],
     queryFn: async () => {
-      const { getProductsByCollection } = await import("@/services/catalog.functions");
       const res = await getProductsByCollection({ data: { slug: collectionSlug! } });
       return res.status === "ok" ? res.data : [];
     },
     enabled: !!(shouldFetchClient && isCollection)
   });
 
-  const { data: clientLatestProducts } = useQuery({
+  const { data: clientLatestProducts, isLoading: isLatestLoading } = useQuery({
     queryKey: ["editorLatestProducts", data_bindings?.limit],
     queryFn: async () => {
-      const { listPublishedProducts } = await import("@/services/catalog.functions");
       const res = await listPublishedProducts({ data: { limit: data_bindings?.limit || 12 } });
       return res.status === "ok" ? res.data : [];
     },
     enabled: !!(shouldFetchClient && isLatest)
   });
+
+  const isLoading = shouldFetchClient && (isCollectionLoading || isLatestLoading);
 
   const activeProducts = products.length > 0
     ? products
@@ -100,7 +103,14 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
           </Button>
         </div>
 
-        {activeProducts.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-lg">
+            <Loader2 className="h-10 w-10 animate-spin opacity-50" />
+            <div>
+              <p className="font-medium">Carregando produtos...</p>
+            </div>
+          </div>
+        ) : activeProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-lg">
             <ShoppingBag className="h-10 w-10 opacity-30" />
             <div>

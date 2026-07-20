@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { FileText, Plus, Search, Settings, MoreVertical, Link2, LayoutTemplate, Edit3, Trash2, Globe, FileCode, SearchIcon, Sparkles, Building, Smartphone, BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -87,6 +87,8 @@ function BuilderIndex() {
     setIsSettingsOpen(true);
   };
 
+  const router = useRouter();
+
   const handleUpdateSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingDoc) return;
@@ -104,7 +106,7 @@ function BuilderIndex() {
       if (res.status === "success") {
         toast.success("Configurações atualizadas!");
         setIsSettingsOpen(false);
-        navigate({ to: "/admin/builder", search: { type: search.type } as any });
+        await router.invalidate();
       } else {
         toast.error(res.message || "Erro ao atualizar.");
       }

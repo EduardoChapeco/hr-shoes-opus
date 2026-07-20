@@ -427,6 +427,29 @@ function CheckoutPage() {
         }
         setSuccessToken(res.orderToken);
         toast.success("Pedido realizado com sucesso!");
+
+        // Phase 5 Analytics: Trigger Purchase Event
+        if (typeof window !== "undefined") {
+          try {
+            (window as any).dataLayer = (window as any).dataLayer || [];
+            (window as any).dataLayer.push({
+              event: "purchase",
+              ecommerce: {
+                transaction_id: res.orderToken,
+                value: checkoutTotalCents / 100,
+                currency: "BRL",
+                items: cart.items.map((item) => ({
+                  item_id: item.variantId,
+                  item_name: item.title,
+                  price: item.priceCents / 100,
+                  quantity: item.qty,
+                })),
+              },
+            });
+          } catch (e) {
+            console.error("Erro ao registrar conversão no analytics", e);
+          }
+        }
       } else {
         toast.error(res.message || "Falha ao processar checkout.");
       }

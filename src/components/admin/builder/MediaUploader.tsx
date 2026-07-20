@@ -24,37 +24,19 @@ export function MediaUploader({ value, onChange, label, bucket = "product-media"
     try {
       setIsUploading(true);
       
-      const { createUploadUrl } = await import("@/services/builder.functions");
-      const urlRes = await createUploadUrl({
-        data: {
-          fileName: file.name,
-          mimeType: file.type || "application/octet-stream",
-          fileSize: file.size,
-          bucket
+      // Phase 6 Polish: Fallback to local Base64 upload to respect user's non-negotiable decision
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          onChange(event.target.result as string);
+          toast.success("Mídia carregada com sucesso");
         }
-      });
+      };
+      reader.onerror = () => {
+        toast.error("Erro ao ler o arquivo");
+      };
+      reader.readAsDataURL(file);
 
-      if (urlRes.status !== "success") {
-        throw new Error(urlRes.message);
-      }
-
-      const { uploadUrl, publicUrl, path } = urlRes.data;
-
-      // Upload directly using the presigned URL
-      const response = await fetch(uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type || "application/octet-stream",
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
-      }
-
-      onChange(publicUrl);
-      toast.success("Mídia carregada com sucesso");
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer upload");
     } finally {

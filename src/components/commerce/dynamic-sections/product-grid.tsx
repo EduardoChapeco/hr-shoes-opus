@@ -26,6 +26,9 @@ interface ProductGridProps {
  * ProductGrid — reads products from server-resolved transient_data.
  * NEVER issues its own network requests. Honest empty state when no products.
  */
+import { listPublishedProducts, getProductsByCollection } from "@/services/catalog.functions";
+import { Loader2 } from "lucide-react";
+
 export function ProductGrid({ content, design_tokens, data_bindings, transientData, resolvedData, isEditing }: ProductGridProps) {
   // Support both object wrapped products and direct products array
   const products: any[] = resolvedData?.products || (Array.isArray(resolvedData) ? resolvedData : null) || transientData?.products || [];
@@ -38,25 +41,25 @@ export function ProductGrid({ content, design_tokens, data_bindings, transientDa
 
   const shouldFetchClient = !!isEditing && products.length === 0;
 
-  const { data: clientCollectionProducts } = useQuery({
+  const { data: clientCollectionProducts, isLoading: isCollectionLoading } = useQuery({
     queryKey: ["editorCollectionProductsGrid", collectionSlug],
     queryFn: async () => {
-      const { getProductsByCollection } = await import("@/services/catalog.functions");
       const res = await getProductsByCollection({ data: { slug: collectionSlug! } });
       return res.status === "ok" ? res.data : [];
     },
     enabled: !!(shouldFetchClient && isCollection)
   });
 
-  const { data: clientLatestProducts } = useQuery({
+  const { data: clientLatestProducts, isLoading: isLatestLoading } = useQuery({
     queryKey: ["editorLatestProductsGrid", data_bindings?.limit],
     queryFn: async () => {
-      const { listPublishedProducts } = await import("@/services/catalog.functions");
       const res = await listPublishedProducts({ data: { limit: data_bindings?.limit || 12 } });
       return res.status === "ok" ? res.data : [];
     },
     enabled: !!(shouldFetchClient && isLatest)
   });
+
+  const isLoading = shouldFetchClient && (isCollectionLoading || isLatestLoading);
 
   const activeProducts = products.length > 0
     ? products
@@ -95,7 +98,14 @@ export function ProductGrid({ content, design_tokens, data_bindings, transientDa
           </Button>
         </div>
 
-        {activeProducts.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-lg">
+            <Loader2 className="h-10 w-10 animate-spin opacity-50" />
+            <div>
+              <p className="font-medium">Carregando produtos...</p>
+            </div>
+          </div>
+        ) : activeProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-lg">
             <ShoppingBag className="h-10 w-10 opacity-30" />
             <div>

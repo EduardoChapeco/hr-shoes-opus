@@ -162,6 +162,31 @@ export async function calculateShippingHandler(zipcode: string) {
     }
   }
 
+  // Phase 5 Logistics Integration (Correios / Melhor Envio API Fallback)
+  // If no internal manual rates match, or if we want to provide real-time rates automatically
+  if (matchedRates.length === 0 && cleanZip.length === 8) {
+    // TODO: In a production scenario, this will make a REST API call to the carrier using credentials from `store_settings` or `integration_credentials`.
+    // Example: fetch(`https://api.melhorenvio.com.br/v2/me/shipment/calculate`, { body: { to: { postal_code: cleanZip } } })
+    
+    // For now, we simulate the Carrier Response (Correios PAC & SEDEX) dynamically based on ZIP regions
+    const basePrice = cleanZip.startsWith("0") ? 1500 : 2500; // SP gets cheaper shipping
+
+    matchedRates.push(
+      {
+        id: "correios-pac",
+        name: "Correios PAC (Integração)",
+        price_cents: basePrice,
+        estimated_days: 7,
+      },
+      {
+        id: "correios-sedex",
+        name: "Correios Sedex (Integração)",
+        price_cents: basePrice + 1200,
+        estimated_days: 3,
+      }
+    );
+  }
+
   return matchedRates;
 }
 

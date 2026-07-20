@@ -489,6 +489,29 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
     }
   });
 
+export const listMediaAssets = createServerFn({ method: "GET" })
+  .handler(async () => {
+    try {
+      const db = getServerClient();
+      
+      const { data: store } = await db.from("stores").select("id").limit(1).single();
+      if (!store) throw new Error("No store found");
+
+      const { data, error } = await db
+        .from("media_assets")
+        .select("*")
+        .eq("store_id", store.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      return { status: "success" as const, data };
+    } catch (e: any) {
+      console.error("[builder.functions] listMediaAssets error:", e);
+      return { status: "error" as const, message: e.message || "Erro ao carregar mídias" };
+    }
+  });
+
 export const updateExperienceDocument = createServerFn({ method: "POST" })
   .validator(
     z.object({
@@ -1217,6 +1240,8 @@ export const getBuilderReviews = createServerFn({ method: 'GET' })
         .from('reviews')
         .select('id, rating, comment, user_id, profiles(full_name, avatar_url)')
         .eq('status', 'approved')
+        .not('comment', 'is', null)
+        .neq('comment', '')
         .order('created_at', { ascending: false })
         .limit(6);
       
@@ -1227,7 +1252,7 @@ export const getBuilderReviews = createServerFn({ method: 'GET' })
         return {
           author: profile.full_name || 'Cliente',
           role: 'Cliente Verificado',
-          content: r.comment || 'Excelente produto!',
+          content: r.comment,
           rating: r.rating,
           avatar_url: profile.avatar_url || null
         };
