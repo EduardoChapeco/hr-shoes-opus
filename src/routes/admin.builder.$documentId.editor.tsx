@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   Plus,
   GripVertical,
@@ -31,8 +32,10 @@ import {
   ExternalLink,
   Check,
   Store,
+  Undo2,
+  Redo2,
 } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -41,6 +44,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getExperienceDocument, saveBuilderNodes, publishBuilderVersion } from "@/services/builder.functions";
+import { listCollections, listCategories } from "@/services/admin-catalog.functions";
 import type { ExperienceNode } from "@/lib/builder-types";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
 import { builderRegistry } from "@/lib/builder-registry";
@@ -48,6 +52,43 @@ import { MediaUploader } from "@/components/admin/builder/MediaUploader";
 import { ColorPicker } from "@/components/admin/builder/ColorPicker";
 import { ArrayBuilder } from "@/components/admin/builder/ArrayBuilder";
 import { cn } from "@/lib/utils";
+
+// ─── History Hook ─────────────────────────────────────────────────────────────
+
+function useHistory<T>(initialState: T) {
+  const [history, setHistory] = useState<T[]>([initialState]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const pushState = useCallback((newStateOrUpdater: T | ((prev: T) => T)) => {
+    setHistory((prevHistory) => {
+      const currentState = prevHistory[currentIndex];
+      const newState = typeof newStateOrUpdater === "function" 
+        ? (newStateOrUpdater as (prev: T) => T)(currentState) 
+        : newStateOrUpdater;
+
+      const trimmedHistory = prevHistory.slice(0, currentIndex + 1);
+      return [...trimmedHistory, newState];
+    });
+    setCurrentIndex((prev) => prev + 1);
+  }, [currentIndex]);
+
+  const undo = useCallback(() => {
+    setCurrentIndex((prev) => Math.max(0, prev - 1));
+  }, []);
+
+  const redo = useCallback(() => {
+    setCurrentIndex((prev) => Math.min(history.length - 1, prev + 1));
+  }, [history.length]);
+
+  return {
+    state: history[currentIndex],
+    pushState,
+    undo,
+    redo,
+    canUndo: currentIndex > 0,
+    canRedo: currentIndex < history.length - 1,
+  };
+}
 
 // ─── Block Category Definitions ────────────────────────────────────────────────
 
@@ -281,13 +322,48 @@ function BuilderEditorIDE() {
   const { document, version, initialNodes } = Route.useLoaderData();
   const navigate = useNavigate();
 
-  const [nodes, setNodes] = useState<ExperienceNode[]>(initialNodes);
+  const { data: categories } = useQuery({
+    queryKey: ["admin_categories"],
+    queryFn: () => listCategories(),
+  });
+
+  const { data: collections } = useQuery({
+    queryKey: ["admin_collections"],
+    queryFn: () => listCollections(),
+  });
+
+  const {
+    state: nodes,
+    pushState: setNodes,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useHistory<ExperienceNode[]>(initialNodes);
+
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [activePanel, setActivePanel] = useState<"sections" | "blocks" | "layers">("sections");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
   const [dragOverNodeId, setDragOverNodeId] = useState<string | null>(null);
+
+  // Keyboard Shortcuts for Undo/Redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        if (e.shiftKey) {
+          e.preventDefault();
+          if (canRedo) redo();
+        } else {
+          e.preventDefault();
+          if (canUndo) undo();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canUndo, canRedo, undo, redo]);
   const [inspectorTab, setInspectorTab] = useState<"content" | "connection" | "design" | "layout">("content");
   const [viewport, setViewport] = useState<"desktop" | "mobile">("desktop");
   const [blockCategory, setBlockCategory] = useState<string>("hero");
@@ -573,7 +649,35 @@ function BuilderEditorIDE() {
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-3">
+          {/* History Controls */}
+          <div className="flex items-center gap-1 mr-2 border-r border-white/10 pr-3">
+            <button
+              onClick={undo}
+              disabled={!canUndo}
+              className="p-1.5 text-white/50 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded hover:bg-white/10"
+              title="Desfazer (Ctrl+Z)"
+            >
+              <Undo2 className="h-4 w-4" />
+            </button>
+            <button
+              onClick={redo}
+              disabled={!canRedo}
+              className="p-1.5 text-white/50 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors rounded hover:bg-white/10"
+              title="Refazer (Ctrl+Shift+Z)"
+            >
+              <Redo2 className="h-4 w-4" />
+            </button>
+          </div>
+          
+          <Link
+            to="/admin/configuracoes/loja"
+            className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs transition-colors hidden md:flex border-r border-white/10 pr-3 mr-1"
+            title="Logo, Favicon e Dados da Loja"
+          >
+            <Settings2 className="h-3.5 w-3.5" />
+            Loja
+          </Link>
           {previewUrl && (
             <a
               href={previewUrl}
@@ -900,13 +1004,20 @@ function BuilderEditorIDE() {
                       </div>
                       {(selectedNode.data_bindings as any)?.type === "product_collection" && (
                         <div className="space-y-1.5">
-                          <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">Slug da Coleção</label>
-                          <Input
-                            placeholder="ex: inverno-2026"
-                            className="h-8 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                          <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">Coleção ou Categoria</label>
+                          <select
+                            className="w-full text-sm p-2 rounded-lg bg-white/5 border border-white/10 text-white"
                             value={(selectedNode.data_bindings as any)?.collection_slug ?? ""}
                             onChange={e => updateNode(selectedNode.id, "data_bindings", "collection_slug", e.target.value)}
-                          />
+                          >
+                            <option value="">Selecione para vincular...</option>
+                            {collections?.map((col: any) => (
+                              <option key={col.id} value={col.slug}>[Coleção] {col.title}</option>
+                            ))}
+                            {categories?.map((cat: any) => (
+                              <option key={cat.id} value={cat.slug}>[Categoria] {cat.name}</option>
+                            ))}
+                          </select>
                         </div>
                       )}
                       {(selectedNode.data_bindings as any)?.type === "dynamic_products" && (

@@ -19,6 +19,10 @@ export function TrustBadges({ content }: TrustBadgesProps) {
   ];
 
   const getIcon = (iconName: string) => {
+    if (!iconName) return <ShieldCheck className="w-8 h-8 @md:w-10 @md:h-10 text-primary" />;
+    if (iconName.startsWith("http") || iconName.startsWith("/")) {
+      return <img src={iconName} alt="Badge" className="w-8 h-8 @md:w-10 @md:h-10 object-contain" />;
+    }
     switch(iconName) {
       case "shield": return <ShieldCheck className="w-8 h-8 @md:w-10 @md:h-10 text-primary" />;
       case "truck": return <Truck className="w-8 h-8 @md:w-10 @md:h-10 text-primary" />;

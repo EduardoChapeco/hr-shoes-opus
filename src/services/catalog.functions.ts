@@ -414,7 +414,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
         return { status: "unconfigured", reason: "Loja não encontrada." };
       }
 
-      // First get collection id
+      // First try collection
       const { data: collection, error: collError } = await db
         .from("collections")
         .select("id")
@@ -423,17 +423,35 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
         .eq("status", "active")
         .single();
 
-      if (collError || !collection) {
-        return { status: "empty" };
+      let productIds: string[] = [];
+
+      if (!collError && collection) {
+        // Get product_ids from product_collections junction
+        const { data: productIdsData } = await db
+          .from("product_collections")
+          .select("product_id")
+          .eq("collection_id", collection.id);
+        productIds = productIdsData?.map((row) => row.product_id) || [];
+      } else {
+        // Fallback: try category
+        const { data: category, error: catError } = await db
+          .from("categories")
+          .select("id")
+          .eq("store_id", store.id)
+          .eq("slug", slug)
+          .single();
+
+        if (catError || !category) {
+          return { status: "empty" };
+        }
+
+        const { data: productIdsData } = await db
+          .from("product_categories")
+          .select("product_id")
+          .eq("category_id", category.id);
+        productIds = productIdsData?.map((row) => row.product_id) || [];
       }
 
-      // Get product_ids from product_collections junction
-      const { data: productIdsData } = await db
-        .from("product_collections")
-        .select("product_id")
-        .eq("collection_id", collection.id);
-
-      const productIds = productIdsData?.map((row) => row.product_id) || [];
       if (productIds.length === 0) return { status: "empty" };
 
       const { data, error } = await db
