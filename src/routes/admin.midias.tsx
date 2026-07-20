@@ -52,39 +52,44 @@ function MidiasPage() {
 
     setUploading(true);
     try {
-      const urlRes = await createUploadUrl({
-        data: {
-          fileName: file.name,
-          mimeType: file.type || "application/octet-stream",
-          fileSize: file.size,
-          bucket: "product-media"
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        if (event.target?.result) {
+          try {
+            const base64 = event.target.result as string;
+            // Import dynamically to avoid client bundle bloat
+            const { uploadMedia } = await import("@/services/storage.functions");
+            const res = await uploadMedia({
+              data: {
+                fileName: file.name,
+                fileBase64: base64,
+                bucket: "product-media"
+              }
+            });
+
+            if (res.status === "success") {
+              toast.success("Imagem enviada com sucesso!");
+              router.invalidate();
+            } else {
+              toast.error(res.message);
+            }
+          } catch (err: any) {
+            toast.error(err.message || "Erro ao enviar");
+          } finally {
+            setUploading(false);
+            if (fileRef.current) fileRef.current.value = "";
+          }
         }
-      });
+      };
+      reader.onerror = () => {
+        toast.error("Erro ao ler o arquivo");
+        setUploading(false);
+        if (fileRef.current) fileRef.current.value = "";
+      };
+      reader.readAsDataURL(file);
 
-      if (urlRes.status !== "success") {
-        throw new Error(urlRes.message);
-      }
-
-      const { uploadUrl, publicUrl } = urlRes.data;
-
-      // Upload directly using the presigned URL
-      const response = await fetch(uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type || "application/octet-stream",
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
-      }
-
-      toast.success("Imagem enviada com sucesso!");
-      router.invalidate();
     } catch (err: any) {
       toast.error(err.message || "Erro ao enviar");
-    } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
     }

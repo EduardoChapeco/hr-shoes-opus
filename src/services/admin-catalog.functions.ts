@@ -834,14 +834,30 @@ export const uploadProductMedia = createServerFn({ method: "POST" })
         contentType = `video/${fileExt}`;
       }
 
-      const { data, error } = await db.storage.from("product-media").upload(path, buffer, {
+      let uploadResult = await db.storage.from("product-media").upload(path, buffer, {
         contentType,
         upsert: false,
       });
 
-      if (error) throw new Error(error.message);
+      // Auto-Healing: If bucket not found, create it dynamically and retry
+      if (uploadResult.error && uploadResult.error.message.includes("Bucket not found")) {
+        console.log(`[storage] Bucket product-media missing. Auto-healing...`);
+        const { error: createError } = await db.storage.createBucket("product-media", {
+          public: true,
+          fileSizeLimit: 10485760, // 10MB
+        });
+        
+        if (createError) throw new Error(`Auto-healing failed: ${createError.message}`);
 
-      const publicUrl = db.storage.from("product-media").getPublicUrl(data.path).data.publicUrl;
+        uploadResult = await db.storage.from("product-media").upload(path, buffer, {
+          contentType,
+          upsert: false,
+        });
+      }
+
+      if (uploadResult.error) throw new Error(uploadResult.error.message);
+
+      const publicUrl = db.storage.from("product-media").getPublicUrl(uploadResult.data.path).data.publicUrl;
       return { status: "success" as const, url: publicUrl };
     } catch (e: any) {
       console.error("[admin-catalog] uploadProductMedia error:", e.message);

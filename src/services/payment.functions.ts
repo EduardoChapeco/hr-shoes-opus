@@ -285,9 +285,26 @@ export const uploadPaymentReceipt = createServerFn({ method: "POST" })
         };
         const contentType = mimeMap[ext] || "application/octet-stream";
 
-        const { error: uploadError } = await db.storage
+        let { error: uploadError } = await db.storage
           .from("receipts")
           .upload(storagePath, bytes, { contentType, upsert: false });
+
+        // Auto-Healing: If bucket not found, create it dynamically and retry
+        if (uploadError && uploadError.message.includes("Bucket not found")) {
+          console.log(`[storage] Bucket receipts missing. Auto-healing...`);
+          const { error: createError } = await db.storage.createBucket("receipts", {
+            public: false, // Receipts should not be public
+            fileSizeLimit: 10485760,
+          });
+          
+          if (createError) throw new Error(`Auto-healing failed: ${createError.message}`);
+
+          // Retry
+          const retry = await db.storage
+            .from("receipts")
+            .upload(storagePath, bytes, { contentType, upsert: false });
+          uploadError = retry.error;
+        }
 
         if (uploadError) {
           console.error("[payment] receipt upload error:", uploadError);

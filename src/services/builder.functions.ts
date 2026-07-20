@@ -609,69 +609,7 @@ const HOME_TEMPLATES: Record<string, (ids: () => string) => any[]> = {
   },
 };
 
-export const createUploadUrl = createServerFn({ method: "POST" })
-  .validator(z.object({ fileName: z.string(), mimeType: z.string(), fileSize: z.number(), bucket: z.string().default("product-media") }))
-  .handler(async ({ data: { fileName, mimeType, fileSize, bucket } }) => {
-    try {
-      const db = getServerClient();
 
-      // 1. Check authorization (must be admin/manager/content)
-      const { data: user } = await db.auth.getUser();
-      if (!user.user) throw new Error("Unauthorized");
-
-      // We skip rigorous role check here since getServerClient already applies RLS, 
-      // but let's get the store_id for multi-tenant isolation.
-      const { data: store } = await db.from("stores").select("id").limit(1).single();
-      if (!store) throw new Error("No store found");
-
-      // 2. Generate secure path
-      const { randomUUID } = await import("crypto");
-      const fileExt = fileName.split('.').pop();
-      const secureFileName = `${randomUUID()}_${Date.now()}.${fileExt}`;
-      const filePath = `builder/${secureFileName}`;
-
-      // 3. Create presigned upload URL
-      const { data: uploadData, error: uploadError } = await db.storage
-        .from(bucket)
-        .createSignedUploadUrl(filePath);
-
-      if (uploadError) throw uploadError;
-
-      // 4. Get the public URL that it will have once uploaded
-      const { data: publicData } = db.storage.from(bucket).getPublicUrl(filePath);
-
-      // 5. Register in media_assets
-      const { data: asset, error: assetError } = await db
-        .from("media_assets")
-        .insert({
-          store_id: store.id,
-          file_name: fileName,
-          file_size: fileSize,
-          mime_type: mimeType,
-          bucket_name: bucket,
-          file_path: filePath,
-          public_url: publicData.publicUrl,
-          uploaded_by: user.user.id
-        })
-        .select("id, public_url")
-        .single();
-
-      if (assetError) throw assetError;
-
-      return { 
-        status: "success" as const, 
-        data: { 
-          assetId: asset.id, 
-          uploadUrl: uploadData.signedUrl, 
-          publicUrl: asset.public_url,
-          path: uploadData.path
-        } 
-      };
-    } catch (e: any) {
-      console.error("[builder.functions] createUploadUrl error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao iniciar upload." };
-    }
-  });
 
 export const checkExperienceDocumentExists = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string(), document_type: z.enum(["storefront", "biolink", "pwa", "campaign", "seller_showcase", "product_template", "campaign_popup"]) }))

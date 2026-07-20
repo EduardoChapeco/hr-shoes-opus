@@ -24,23 +24,44 @@ export function MediaUploader({ value, onChange, label, bucket = "product-media"
     try {
       setIsUploading(true);
       
-      // Phase 6 Polish: Fallback to local Base64 upload to respect user's non-negotiable decision
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         if (event.target?.result) {
-          onChange(event.target.result as string);
-          toast.success("Mídia carregada com sucesso");
+          try {
+            const base64 = event.target.result as string;
+            // Dinamically import uploadMedia so it doesn't break client bundles
+            const { uploadMedia } = await import("@/services/storage.functions");
+            const res = await uploadMedia({
+              data: {
+                fileName: file.name,
+                fileBase64: base64,
+                bucket: bucket as any
+              }
+            });
+
+            if (res.status === "success") {
+              onChange(res.url);
+              toast.success("Mídia carregada com sucesso");
+            } else {
+              toast.error(res.message);
+            }
+          } catch (err: any) {
+            toast.error(err.message || "Erro no upload");
+          } finally {
+            setIsUploading(false);
+          }
         }
       };
       reader.onerror = () => {
         toast.error("Erro ao ler o arquivo");
+        setIsUploading(false);
       };
       reader.readAsDataURL(file);
 
     } catch (error: any) {
-      toast.error(error.message || "Erro ao fazer upload");
-    } finally {
+      toast.error(error.message || "Erro ao iniciar upload");
       setIsUploading(false);
+    } finally {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }

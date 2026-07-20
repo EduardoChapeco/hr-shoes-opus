@@ -57,6 +57,7 @@ import { Route as AdminCaixaIndexRouteImport } from './routes/admin.caixa.index'
 import { Route as AdminBuilderIndexRouteImport } from './routes/admin.builder.index'
 import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index'
 import { Route as ApiWebhooksPagarmeRouteImport } from './routes/api.webhooks.pagarme'
+import { Route as ApiFeedXmlRouteImport } from './routes/api.feed.xml'
 import { Route as ApiAuthConfirmRouteImport } from './routes/api.auth.confirm'
 import { Route as ApiAuthCallbackRouteImport } from './routes/api.auth.callback'
 import { Route as AdminPedidosTrocasRouteImport } from './routes/admin.pedidos.trocas'
@@ -355,6 +356,11 @@ const StoreContaIndexRoute = StoreContaIndexRouteImport.update({
 const ApiWebhooksPagarmeRoute = ApiWebhooksPagarmeRouteImport.update({
   id: '/api/webhooks/pagarme',
   path: '/api/webhooks/pagarme',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFeedXmlRoute = ApiFeedXmlRouteImport.update({
+  id: '/api/feed/xml',
+  path: '/api/feed/xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthConfirmRoute = ApiAuthConfirmRouteImport.update({
@@ -758,6 +764,7 @@ export interface FileRoutesByFullPath {
   '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
+  '/api/feed/xml': typeof ApiFeedXmlRoute
   '/api/webhooks/pagarme': typeof ApiWebhooksPagarmeRoute
   '/conta/': typeof StoreContaIndexRoute
   '/admin/builder/': typeof AdminBuilderIndexRoute
@@ -865,6 +872,7 @@ export interface FileRoutesByTo {
   '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
+  '/api/feed/xml': typeof ApiFeedXmlRoute
   '/api/webhooks/pagarme': typeof ApiWebhooksPagarmeRoute
   '/conta': typeof StoreContaIndexRoute
   '/admin/builder': typeof AdminBuilderIndexRoute
@@ -976,6 +984,7 @@ export interface FileRoutesById {
   '/admin/pedidos/trocas': typeof AdminPedidosTrocasRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
+  '/api/feed/xml': typeof ApiFeedXmlRoute
   '/api/webhooks/pagarme': typeof ApiWebhooksPagarmeRoute
   '/_store/conta/': typeof StoreContaIndexRoute
   '/admin/builder/': typeof AdminBuilderIndexRoute
@@ -1087,6 +1096,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos/trocas'
     | '/api/auth/callback'
     | '/api/auth/confirm'
+    | '/api/feed/xml'
     | '/api/webhooks/pagarme'
     | '/conta/'
     | '/admin/builder/'
@@ -1194,6 +1204,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos/trocas'
     | '/api/auth/callback'
     | '/api/auth/confirm'
+    | '/api/feed/xml'
     | '/api/webhooks/pagarme'
     | '/conta'
     | '/admin/builder'
@@ -1304,6 +1315,7 @@ export interface FileRouteTypes {
     | '/admin/pedidos/trocas'
     | '/api/auth/callback'
     | '/api/auth/confirm'
+    | '/api/feed/xml'
     | '/api/webhooks/pagarme'
     | '/_store/conta/'
     | '/admin/builder/'
@@ -1335,6 +1347,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiAuthCallbackRoute: typeof ApiAuthCallbackRoute
   ApiAuthConfirmRoute: typeof ApiAuthConfirmRoute
+  ApiFeedXmlRoute: typeof ApiFeedXmlRoute
   ApiWebhooksPagarmeRoute: typeof ApiWebhooksPagarmeRoute
   AdminPedidosIdReciboRoute: typeof AdminPedidosIdReciboRoute
 }
@@ -1675,6 +1688,13 @@ declare module '@tanstack/react-router' {
       path: '/api/webhooks/pagarme'
       fullPath: '/api/webhooks/pagarme'
       preLoaderRoute: typeof ApiWebhooksPagarmeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/feed/xml': {
+      id: '/api/feed/xml'
+      path: '/api/feed/xml'
+      fullPath: '/api/feed/xml'
+      preLoaderRoute: typeof ApiFeedXmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/confirm': {
@@ -2335,6 +2355,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiAuthCallbackRoute: ApiAuthCallbackRoute,
   ApiAuthConfirmRoute: ApiAuthConfirmRoute,
+  ApiFeedXmlRoute: ApiFeedXmlRoute,
   ApiWebhooksPagarmeRoute: ApiWebhooksPagarmeRoute,
   AdminPedidosIdReciboRoute: AdminPedidosIdReciboRoute,
 }

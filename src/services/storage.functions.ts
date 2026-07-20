@@ -24,18 +24,58 @@ export const uploadMedia = createServerFn({ method: "POST" })
       const base64Data = fileBase64.replace(/^data:image\/\w+;base64,/, "");
       const buffer = Buffer.from(base64Data, "base64");
 
-      const { error } = await supabase.storage.from(bucket).upload(filePath, buffer, {
+      let uploadResult = await supabase.storage.from(bucket).upload(filePath, buffer, {
         cacheControl: "3600",
         upsert: false,
         contentType: `image/${ext}`,
       });
 
-      if (error) {
-        throw new Error(`Erro no upload: ${error.message}`);
+      // Auto-Healing: If bucket not found, create it dynamically and retry
+      if (uploadResult.error && uploadResult.error.message.includes("Bucket not found")) {
+        console.log(`[storage] Bucket ${bucket} missing. Auto-healing...`);
+        const { error: createError } = await supabase.storage.createBucket(bucket, {
+          public: true,
+          fileSizeLimit: 10485760, // 10MB
+        });
+        
+        if (createError) {
+          throw new Error(`Auto-healing failed: ${createError.message}`);
+        }
+
+        // Retry upload
+        uploadResult = await supabase.storage.from(bucket).upload(filePath, buffer, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: `image/${ext}`,
+        });
+      }
+
+      if (uploadResult.error) {
+        throw new Error(`Erro no upload: ${uploadResult.error.message}`);
       }
 
       // Get public URL
       const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(filePath);
+
+      // Register asset in media_assets tracking table if possible
+      try {
+        const { data: store } = await supabase.from("stores").select("id").limit(1).single();
+        const { data: user } = await supabase.auth.getUser();
+        if (store && user.user) {
+          await supabase.from("media_assets").insert({
+            store_id: store.id,
+            file_name: fileName,
+            file_size: buffer.length,
+            mime_type: `image/${ext}`,
+            bucket_name: bucket,
+            file_path: filePath,
+            public_url: urlData.publicUrl,
+            uploaded_by: user.user.id
+          });
+        }
+      } catch (e) {
+        // Silently fail asset tracking, return the URL regardless
+      }
 
       return { status: "success" as const, url: urlData.publicUrl };
     } catch (e: any) {
