@@ -53,7 +53,7 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
         data: { slug: "institucional", document_type: "storefront" } 
       }).catch(() => null)
     ]);
-    return { profile, session, builderDoc: docReq?.status === "success" ? docReq.data : null };
+    return { profile, session, builderDoc: docReq?.status === "ok" ? docReq.data : null };
   },
 
   component: StorePerfil,
@@ -275,7 +275,7 @@ const renderRichSectionContent = (sec: any) => {
   );
 };
 
-function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session: any }) {
+export function PerfilView({ store, session, builderDoc }: { store: PublicStoreProfileDTO; session: any; builderDoc?: any }) {
   const fullAddress = [store.address, store.city, store.state].filter(Boolean).join(", ");
   const extendedHours = store.settings?.business_hours_extended || null;
   const customSections = store.settings?.profile_sections || [];
