@@ -20,6 +20,9 @@ import { SocialGrid } from "./dynamic-sections/social-grid";
 import { FaqAccordion } from "./dynamic-sections/faq-accordion";
 import { TestimonialCarousel } from "./dynamic-sections/testimonial-carousel";
 import { TimelineHistory } from "./dynamic-sections/timeline-history";
+import { ProductCarousel } from "./dynamic-sections/product-carousel";
+import { ProductGrid } from "./dynamic-sections/product-grid";
+import { SplitBanner } from "./dynamic-sections/split-banner";
 import { TrackView } from "./analytics-provider";
 
 // Mapeamento dinâmico dos componentes React para cada bloco
@@ -41,6 +44,9 @@ const componentMap: Record<string, React.FC<any>> = {
   faq_accordion: FaqAccordion,
   testimonial_carousel: TestimonialCarousel,
   timeline_history: TimelineHistory,
+  product_carousel: ProductCarousel,
+  product_grid: ProductGrid,
+  split_banner: SplitBanner,
 };
 
 interface ExperienceRendererProps {

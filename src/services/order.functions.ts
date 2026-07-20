@@ -347,3 +347,43 @@ export const getOrderPaymentInstructions = createServerFn({ method: "GET" })
       };
     }
   });
+export const requestOrderReturn = createServerFn({ method: "POST" })
+  .validator(z.object({ orderId: z.string().uuid(), reason: z.string().min(5, "Motivo muito curto") }))
+  .handler(async ({ data: { orderId, reason } }) => {
+    try {
+      const ssrClient = getSSRClient();
+      const { data: { user } } = await ssrClient.auth.getUser();
+      if (!user) throw new Error("Não autenticado");
+
+      // Verify ownership and status
+      const { data: order, error: orderError } = await ssrClient
+        .from("orders")
+        .select("id, status")
+        .eq("id", orderId)
+        .eq("customer_id", user.id)
+        .single();
+        
+      if (orderError || !order) throw new Error("Pedido não encontrado");
+      if (order.status !== "delivered") throw new Error("Apenas pedidos entregues podem ser devolvidos/trocados.");
+
+      const db = getServerClient();
+      const { error: updateError } = await db
+        .from("orders")
+        .update({ status: "return_requested" })
+        .eq("id", orderId);
+        
+      if (updateError) throw updateError;
+      
+      // Optionally create a note for the admin
+      await db.from("customer_notes").insert({
+        customer_id: user.id,
+        content: "Solicitação de Devolução/Troca (Pedido: " + orderId + ") - Motivo: " + reason
+      });
+
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[order.functions] requestOrderReturn:", e);
+      return { status: "error" as const, message: e.message || "Erro ao solicitar devolução." };
+    }
+  });
+

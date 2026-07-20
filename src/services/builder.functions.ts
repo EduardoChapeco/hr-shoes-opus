@@ -226,11 +226,66 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
             {
               id: randomUUID(),
               node_type: "composition",
-              block_type: "product_rail",
+              block_type: "product_carousel",
               parent_id: containerId,
               sort_order: 2,
-              content: { title: "Destaques da Coleção", layout: "carousel" },
-              data_bindings: { type: "latest_products" }
+              content: { title: "Destaques da Coleção", subtitle: "As melhores ofertas pra você" },
+              data_bindings: { source: "dynamic_products" }
+            },
+            {
+              id: randomUUID(),
+              node_type: "composition",
+              block_type: "product_grid",
+              parent_id: containerId,
+              sort_order: 3,
+              content: { title: "Mais Vendidos", subtitle: "Aproveite antes que acabe" },
+              data_bindings: { source: "dynamic_products" }
+            }
+          ];
+        } else if (input.template_id === "homepage_classic") {
+          const sectionId = randomUUID();
+          const containerId = randomUUID();
+          
+          seedNodes = [
+            {
+              id: sectionId,
+              node_type: "section",
+              block_type: "section",
+              parent_id: null,
+              sort_order: 0,
+            },
+            {
+              id: containerId,
+              node_type: "container",
+              block_type: "container",
+              parent_id: sectionId,
+              sort_order: 0,
+              layout_rules: { maxWidth: "full", display: "flex", flexDirection: "col", gap: "none", paddingX: "none", paddingY: "none" },
+            },
+            {
+              id: randomUUID(),
+              node_type: "composition",
+              block_type: "hero_carousel",
+              parent_id: containerId,
+              sort_order: 0,
+              content: { autoPlay: true, interval: 5, banners: [{ image_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b" }] }
+            },
+            {
+              id: randomUUID(),
+              node_type: "composition",
+              block_type: "product_carousel",
+              parent_id: containerId,
+              sort_order: 1,
+              content: { title: "Produtos em Destaque", subtitle: "As últimas novidades da coleção" },
+              data_bindings: { source: "dynamic_products" }
+            },
+            {
+              id: randomUUID(),
+              node_type: "composition",
+              block_type: "bento_grid",
+              parent_id: containerId,
+              sort_order: 2,
+              content: { items: [{ title: "Verão", image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446", col_span: 2 }] }
             }
           ];
         } else if (input.template_id === "institutional_profile") {
@@ -279,16 +334,19 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
             {
               id: randomUUID(),
               node_type: "composition",
-              block_type: "testimonial_carousel",
+              block_type: "split_banner",
               parent_id: containerId,
               sort_order: 2,
-              content: { 
-                title: "O que dizem de nós",
-                testimonials: [
-                  { author: "Maria S.", content: "Melhor loja da vida!", rating: 5 },
-                  { author: "João P.", content: "Atendimento impecável.", rating: 5 }
-                ]
-              }
+              content: { title: "Conforto Incomparável", description: "Experimente a leveza e a flexibilidade que só os nossos produtos oferecem.", button_text: "Conhecer Coleção", button_link: "/catalog", image_position: "right" },
+            },
+            {
+              id: randomUUID(),
+              node_type: "composition",
+              block_type: "testimonial_carousel",
+              parent_id: containerId,
+              sort_order: 3,
+              content: { title: "O que dizem de nós", subtitle: "A opinião de quem já veste Hr Shoes." },
+              data_bindings: { source: "dynamic_reviews" }
             }
           ];
         }
@@ -380,7 +438,11 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
         .eq("is_active", true)
         .single();
 
-      if (docError) throw docError;
+      if (docError) {
+        if (docError.code === "PGRST116") return { status: "not_found" as const };
+        throw docError;
+      }
+
       
       // Affiliate Tracking Injection
       if (doc.owner_id) {
@@ -421,25 +483,54 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
          const bindingType = bindings.type || bindings.source; // accommodate old blocks
          
          if (bindingType === "product_collection" && bindings.collection_slug) {
-            // Server-side fetching of catalog data directly into the node state
             const { getProductsByCollection } = await import("@/services/catalog.functions");
             const res = await getProductsByCollection({ data: { slug: bindings.collection_slug } }).catch(() => null);
             if (res && res.status === "ok") {
-              // Inject the resolved data into the node's transient state
               return { ...node, transient_data: { products: res.data } };
             }
-         } else if (bindingType === "latest_products") {
+         } else if (bindingType === "latest_products" || bindingType === "dynamic_products") {
+            // Server-side resolution — renderer must NOT issue its own query
             const dbRef = getServerClient();
-            // Just get the 12 most recently added active products
+            const limit = bindings.limit || 12;
             const { data: latest } = await dbRef
               .from("products")
-              .select("*, variants:product_variants(id,price,promotional_price,stock_quantity,sku)")
-              .eq("is_active", true)
+              .select("id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)")
+              .eq("status", "active")
               .order("created_at", { ascending: false })
-              .limit(12);
-              
+              .limit(limit);
             if (latest) {
-               return { ...node, transient_data: { products: latest } };
+              const formatted = latest.map((p: any) => {
+                const sortedMedia = p.media ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order) : [];
+                return {
+                  id: p.id, title: p.title, slug: p.slug,
+                  priceCents: p.price_cents, compareAtCents: p.compare_at_cents,
+                  coverUrl: sortedMedia[0]?.url || null,
+                  hoverUrl: sortedMedia[1]?.url || null,
+                  isOutOfStock: false,
+                };
+              });
+              return { ...node, transient_data: { products: formatted } };
+            }
+         } else if (bindingType === "dynamic_reviews") {
+            const dbRef = getServerClient();
+            const { data: reviews } = await dbRef
+              .from("reviews")
+              .select("id, rating, comment, profiles(full_name, avatar_url)")
+              .eq("status", "approved")
+              .order("created_at", { ascending: false })
+              .limit(6);
+            if (reviews) {
+              const formatted = reviews.map((r: any) => {
+                const profile = (r.profiles as any) || {};
+                return {
+                  author: profile.full_name || "Cliente",
+                  role: "Cliente Verificado",
+                  content: r.comment || "",
+                  rating: r.rating,
+                  avatar_url: profile.avatar_url || null,
+                };
+              });
+              return { ...node, transient_data: { reviews: formatted } };
             }
          }
          return node;
@@ -532,51 +623,44 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
   .validator(
     z.object({
       version_id: z.string().uuid(),
-      nodes: z.array(z.any()), // Em produção, validaremos com schema mais estrito, por ora aceitamos a árvore
+      nodes: z.array(z.any()),
     }),
   )
   .handler(async ({ data: input }) => {
     try {
       const db = getServerClient();
-      
-      // 1. Set Version to published
-      const { error: updError } = await db
-        .from("experience_versions")
-        .update({ status: "published" })
-        .eq("id", input.version_id);
-        
-      if (updError) throw updError;
 
-      // 2. Delete all current nodes for this version
+      // Save keeps the version as "draft" — does NOT publish.
+      // 1. Delete all current nodes for this version (full replace strategy)
       const { error: delError } = await db
         .from("experience_nodes")
         .delete()
         .eq("version_id", input.version_id);
-        
+
       if (delError) throw delError;
-      
-      // 3. Insert new nodes if array is not empty
+
+      // 2. Insert new nodes
       if (input.nodes.length > 0) {
         const nodesToInsert = input.nodes.map((node: any) => ({
-           id: node.id,
-           version_id: input.version_id,
-           parent_id: node.parent_id || null,
-           node_type: node.node_type,
-           block_type: node.block_type,
-           content: node.content || {},
-           design_tokens: node.design_tokens || {},
-           layout_rules: node.layout_rules || {},
-           responsive_overrides: node.responsive_overrides || {},
-           data_bindings: node.data_bindings || {},
-           action_bindings: node.action_bindings || {},
-           sort_order: node.sort_order || 0,
-           is_hidden: node.is_hidden || false,
+          id: node.id,
+          version_id: input.version_id,
+          parent_id: node.parent_id || null,
+          node_type: node.node_type,
+          block_type: node.block_type,
+          content: node.content || {},
+          design_tokens: node.design_tokens || {},
+          layout_rules: node.layout_rules || {},
+          responsive_overrides: node.responsive_overrides || {},
+          data_bindings: node.data_bindings || {},
+          action_bindings: node.action_bindings || {},
+          sort_order: node.sort_order || 0,
+          is_hidden: node.is_hidden || false,
         }));
-        
+
         const { error: insError } = await db
           .from("experience_nodes")
           .insert(nodesToInsert);
-          
+
         if (insError) throw insError;
       }
 
@@ -586,3 +670,143 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
       return { status: "error" as const, message: "Erro ao salvar o documento." };
     }
   });
+
+// ---------------------------------------------------------------------------
+// Publish: save nodes AND mark version as published
+// ---------------------------------------------------------------------------
+
+export const publishBuilderVersion = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      version_id: z.string().uuid(),
+      nodes: z.array(z.any()),
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+
+      // 1. Unpublish any previous published versions for the same document
+      const { data: version } = await db
+        .from("experience_versions")
+        .select("document_id")
+        .eq("id", input.version_id)
+        .single();
+
+      if (version) {
+        await db
+          .from("experience_versions")
+          .update({ status: "draft" })
+          .eq("document_id", version.document_id)
+          .eq("status", "published");
+      }
+
+      // 2. Replace nodes
+      await db.from("experience_nodes").delete().eq("version_id", input.version_id);
+
+      if (input.nodes.length > 0) {
+        const nodesToInsert = input.nodes.map((node: any) => ({
+          id: node.id,
+          version_id: input.version_id,
+          parent_id: node.parent_id || null,
+          node_type: node.node_type,
+          block_type: node.block_type,
+          content: node.content || {},
+          design_tokens: node.design_tokens || {},
+          layout_rules: node.layout_rules || {},
+          responsive_overrides: node.responsive_overrides || {},
+          data_bindings: node.data_bindings || {},
+          action_bindings: node.action_bindings || {},
+          sort_order: node.sort_order || 0,
+          is_hidden: node.is_hidden || false,
+        }));
+        await db.from("experience_nodes").insert(nodesToInsert);
+      }
+
+      // 3. Mark this version as published
+      const { error: pubError } = await db
+        .from("experience_versions")
+        .update({ status: "published" })
+        .eq("id", input.version_id);
+
+      if (pubError) throw pubError;
+
+      return { status: "success" as const };
+    } catch (e: unknown) {
+      console.error("[builder.functions] publishBuilderVersion error:", e);
+      return { status: "error" as const, message: "Erro ao publicar." };
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// Advanced Builder Data Hydration
+// ---------------------------------------------------------------------------
+
+export const getBuilderProducts = createServerFn({ method: 'GET' })
+  .validator(z.object({ limit: z.number().optional() }).optional())
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+      const { data, error } = await db
+        .from('products')
+        .select('id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(input?.limit || 4);
+      
+      if (error) throw error;
+      
+      const formatted = data.map(p => {
+        const sortedMedia = p.media ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order) : [];
+        return {
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          priceCents: p.price_cents,
+          compareAtCents: p.compare_at_cents,
+          coverUrl: sortedMedia[0]?.url || null,
+          hoverUrl: sortedMedia[1]?.url || null,
+          isOutOfStock: false
+        };
+      });
+
+      return { status: 'ok' as const, data: formatted };
+    } catch (e) {
+      if (e instanceof SupabaseUnconfiguredError) return { status: 'unconfigured' as const };
+      console.error('[builder.functions] getBuilderProducts error:', e);
+      return { status: 'error' as const, message: 'Erro ao buscar produtos.' };
+    }
+  });
+
+export const getBuilderReviews = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    try {
+      const db = getServerClient();
+      const { data, error } = await db
+        .from('reviews')
+        .select('id, rating, comment, user_id, profiles(full_name, avatar_url)')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(6);
+      
+      if (error) throw error;
+      
+      const formatted = data.map(r => {
+        const profile = (r.profiles as any) || {};
+        return {
+          author: profile.full_name || 'Cliente',
+          role: 'Cliente Verificado',
+          content: r.comment || 'Excelente produto!',
+          rating: r.rating,
+          avatar_url: profile.avatar_url || null
+        };
+      });
+
+      return { status: 'ok' as const, data: formatted };
+    } catch (e) {
+      if (e instanceof SupabaseUnconfiguredError) return { status: 'unconfigured' as const };
+      console.error('[builder.functions] getBuilderReviews error:', e);
+      return { status: 'error' as const, message: 'Erro ao buscar avaliações.' };
+    }
+  });
+

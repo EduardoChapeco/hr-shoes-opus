@@ -1,23 +1,223 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Plus, GripVertical, Settings2, Eye, Laptop, Smartphone, Save, PanelLeftClose, PanelRightClose, Layers, Braces, AlignLeft, Trash2, ChevronUp, ChevronDown, LayoutTemplate } from "lucide-react";
+import {
+  Plus,
+  GripVertical,
+  Settings2,
+  Eye,
+  Laptop,
+  Smartphone,
+  Save,
+  Layers,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+  LayoutTemplate,
+  Zap,
+  ImageIcon,
+  ShoppingBag,
+  AlignLeft,
+  Star,
+  Timer,
+  Shield,
+  Video,
+  Grid,
+  MessageSquare,
+  Map,
+  ListOrdered,
+  Columns2,
+  Megaphone,
+  X,
+  ArrowLeft,
+  ExternalLink,
+  Check,
+} from "lucide-react";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { getExperienceDocument, saveBuilderNodes } from "@/services/builder.functions";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { getExperienceDocument, saveBuilderNodes, publishBuilderVersion } from "@/services/builder.functions";
 import type { ExperienceNode } from "@/lib/builder-types";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
 import { builderRegistry } from "@/lib/builder-registry";
 import { MediaUploader } from "@/components/admin/builder/MediaUploader";
 import { ColorPicker } from "@/components/admin/builder/ColorPicker";
 import { ArrayBuilder } from "@/components/admin/builder/ArrayBuilder";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+
+// ─── Block Category Definitions ────────────────────────────────────────────────
+
+const BLOCK_CATEGORIES = [
+  {
+    id: "hero",
+    label: "Hero & Banners",
+    icon: ImageIcon,
+    blocks: ["hero_carousel", "split_banner", "announcement_bar", "mosaic_banners"],
+  },
+  {
+    id: "products",
+    label: "Produtos",
+    icon: ShoppingBag,
+    blocks: ["product_carousel", "product_grid", "product_rail"],
+  },
+  {
+    id: "content",
+    label: "Conteúdo",
+    icon: AlignLeft,
+    blocks: ["rich_text", "info_cards", "bento_grid", "gallery_grid", "video_section", "timeline_history"],
+  },
+  {
+    id: "social",
+    label: "Social & Comunidade",
+    icon: Star,
+    blocks: ["testimonial_carousel", "stories_ring", "social_grid"],
+  },
+  {
+    id: "conversion",
+    label: "Conversão",
+    icon: Zap,
+    blocks: ["countdown_timer", "trust_badges", "faq_accordion", "contact_form"],
+  },
+];
+
+// Pre-built sections that insert a full (section + container + block) group
+const SECTION_PRESETS = [
+  {
+    id: "hero",
+    label: "Hero Principal",
+    description: "Banner de destaque com imagem e CTA",
+    icon: ImageIcon,
+    color: "bg-violet-50 border-violet-200",
+    iconColor: "text-violet-500",
+    blocks: ["section", "container", "hero_carousel"],
+  },
+  {
+    id: "product_carousel",
+    label: "Carrossel de Produtos",
+    description: "Produtos reais em carrossel deslizante",
+    icon: ShoppingBag,
+    color: "bg-blue-50 border-blue-200",
+    iconColor: "text-blue-500",
+    blocks: ["section", "container", "product_carousel"],
+  },
+  {
+    id: "product_grid",
+    label: "Grid de Produtos",
+    description: "Grade de produtos 2, 3 ou 4 colunas",
+    icon: Grid,
+    color: "bg-cyan-50 border-cyan-200",
+    iconColor: "text-cyan-500",
+    blocks: ["section", "container", "product_grid"],
+  },
+  {
+    id: "split_banner",
+    label: "Banner Dividido 50/50",
+    description: "Imagem de um lado, texto do outro",
+    icon: Columns2,
+    color: "bg-emerald-50 border-emerald-200",
+    iconColor: "text-emerald-500",
+    blocks: ["section", "container_full", "split_banner"],
+  },
+  {
+    id: "announcement_bar",
+    label: "Barra de Anúncio",
+    description: "Faixa de aviso/promoção no topo",
+    icon: Megaphone,
+    color: "bg-amber-50 border-amber-200",
+    iconColor: "text-amber-500",
+    blocks: ["section", "container", "announcement_bar"],
+  },
+  {
+    id: "testimonials",
+    label: "Depoimentos",
+    description: "Carrossel de avaliações de clientes",
+    icon: MessageSquare,
+    color: "bg-pink-50 border-pink-200",
+    iconColor: "text-pink-500",
+    blocks: ["section", "container", "testimonial_carousel"],
+  },
+  {
+    id: "countdown",
+    label: "Cronômetro Regressivo",
+    description: "Timer para ofertas com prazo",
+    icon: Timer,
+    color: "bg-red-50 border-red-200",
+    iconColor: "text-red-500",
+    blocks: ["section", "container", "countdown_timer"],
+  },
+  {
+    id: "trust_badges",
+    label: "Selos de Confiança",
+    description: "Badges de garantia, frete, segurança",
+    icon: Shield,
+    color: "bg-teal-50 border-teal-200",
+    iconColor: "text-teal-500",
+    blocks: ["section", "container", "trust_badges"],
+  },
+  {
+    id: "bento",
+    label: "Bento Grid",
+    description: "Mosaico assimétrico de cards",
+    icon: LayoutTemplate,
+    color: "bg-indigo-50 border-indigo-200",
+    iconColor: "text-indigo-500",
+    blocks: ["section", "container", "bento_grid"],
+  },
+  {
+    id: "gallery",
+    label: "Galeria de Imagens",
+    description: "Grade editorial de fotos",
+    icon: ImageIcon,
+    color: "bg-orange-50 border-orange-200",
+    iconColor: "text-orange-500",
+    blocks: ["section", "container", "gallery_grid"],
+  },
+  {
+    id: "faq",
+    label: "FAQ",
+    description: "Perguntas e respostas em accordion",
+    icon: ListOrdered,
+    color: "bg-slate-50 border-slate-200",
+    iconColor: "text-slate-500",
+    blocks: ["section", "container", "faq_accordion"],
+  },
+  {
+    id: "timeline",
+    label: "Timeline / História",
+    description: "Linha do tempo da marca",
+    icon: Map,
+    color: "bg-yellow-50 border-yellow-200",
+    iconColor: "text-yellow-500",
+    blocks: ["section", "container", "timeline_history"],
+  },
+  {
+    id: "video",
+    label: "Vídeo Embed",
+    description: "YouTube ou Vimeo incorporado",
+    icon: Video,
+    color: "bg-rose-50 border-rose-200",
+    iconColor: "text-rose-500",
+    blocks: ["section", "container", "video_section"],
+  },
+  {
+    id: "rich_text",
+    label: "Texto Rico",
+    description: "Bloco de conteúdo editorial HTML",
+    icon: AlignLeft,
+    color: "bg-gray-50 border-gray-200",
+    iconColor: "text-gray-500",
+    blocks: ["section", "container", "rich_text"],
+  },
+];
+
+// ─── Route ─────────────────────────────────────────────────────────────────────
 
 export const Route = createFileRoute("/admin/builder/$documentId/editor")({
-  head: () => ({ meta: [{ title: "Editor Avançado — Builder" }] }),
+  head: () => ({ meta: [{ title: "Editor Visual — Builder" }] }),
   loader: async ({ params }) => {
-    // Carregar o documento específico
     const res = await getExperienceDocument({ data: { id: params.documentId } });
     if (res.status === "error" || res.status === "unconfigured") {
       throw new Error("Erro ao carregar Builder");
@@ -31,521 +231,680 @@ export const Route = createFileRoute("/admin/builder/$documentId/editor")({
   component: BuilderEditorIDE,
 });
 
+// ─── Utilities ─────────────────────────────────────────────────────────────────
+
+function makeNode(
+  blockType: string,
+  versionId: string,
+  parentId: string | null,
+  sortOrder: number,
+  extra: Partial<ExperienceNode> = {}
+): ExperienceNode {
+  const reg = builderRegistry[blockType];
+  return {
+    id: crypto.randomUUID(),
+    version_id: versionId,
+    parent_id: parentId,
+    sort_order: sortOrder,
+    node_type: reg?.defaultProps?.node_type ?? "element",
+    block_type: blockType,
+    content: reg?.defaultProps?.content ?? {},
+    design_tokens: reg?.defaultProps?.design_tokens ?? {},
+    layout_rules: reg?.defaultProps?.layout_rules ?? {},
+    responsive_overrides: {},
+    data_bindings: {},
+    action_bindings: {},
+    is_hidden: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    ...extra,
+  } as ExperienceNode;
+}
+
+function buildTree(flatNodes: ExperienceNode[], parentId: string | null = null): ExperienceNode[] {
+  return flatNodes
+    .filter(n => (parentId === null ? !n.parent_id : n.parent_id === parentId))
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map(node => ({ ...node, children: buildTree(flatNodes, node.id) }));
+}
+
+// ─── Main Component ────────────────────────────────────────────────────────────
+
 function BuilderEditorIDE() {
   const { document, version, initialNodes } = Route.useLoaderData();
   const navigate = useNavigate();
-  
+
   const [nodes, setNodes] = useState<ExperienceNode[]>(initialNodes);
   const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"layers" | "blocks" | "sections">("layers");
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [activePanel, setActivePanel] = useState<"sections" | "blocks" | "layers">("sections");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [inspectorTab, setInspectorTab] = useState<"content" | "connection" | "design" | "layout">("content");
+  const [viewport, setViewport] = useState<"desktop" | "mobile">("desktop");
+  const [blockCategory, setBlockCategory] = useState<string>("hero");
 
-  const selectedNode = nodes.find(n => n.id === selectedNodeId);
-  const blockManifest = selectedNode ? builderRegistry[selectedNode.block_type] : null;
+  const selectedNode = nodes.find(n => n.id === selectedNodeId) ?? null;
+  const blockManifest = selectedNode ? (builderRegistry[selectedNode.block_type] ?? null) : null;
+  const treeNodes = buildTree(nodes);
 
-  const updateSelectedNode = (propPath: "content" | "design_tokens" | "layout_rules" | "data_bindings", key: string, value: any) => {
-    if (!selectedNodeId) return;
-    setNodes(prev => prev.map(node => {
-      if (node.id === selectedNodeId) {
-        return {
-          ...node,
-          [propPath]: {
-            ...node[propPath],
-            [key]: value
-          }
-        };
-      }
-      return node;
+  // ─── Mutations ─────────────────────────────────────────────────────────────
+
+  const updateNode = useCallback((id: string, propPath: "content" | "design_tokens" | "layout_rules" | "data_bindings", key: string, value: unknown) => {
+    setNodes(prev => prev.map(n =>
+      n.id === id ? { ...n, [propPath]: { ...n[propPath], [key]: value } } : n
+    ));
+  }, []);
+
+  const deleteNode = useCallback((id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const idsToDelete = new Set([id]);
+    let prev = 0;
+    while (idsToDelete.size > prev) {
+      prev = idsToDelete.size;
+      nodes.forEach(n => { if (n.parent_id && idsToDelete.has(n.parent_id)) idsToDelete.add(n.id); });
+    }
+    setNodes(p => p.filter(n => !idsToDelete.has(n.id)));
+    if (selectedNodeId && idsToDelete.has(selectedNodeId)) setSelectedNodeId(null);
+  }, [nodes, selectedNodeId]);
+
+  const moveNode = useCallback((id: string, dir: -1 | 1, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const node = nodes.find(n => n.id === id);
+    if (!node) return;
+    const siblings = nodes.filter(n => n.parent_id === node.parent_id).sort((a, b) => a.sort_order - b.sort_order);
+    const idx = siblings.findIndex(n => n.id === id);
+    const target = siblings[idx + dir];
+    if (!target) return;
+    setNodes(prev => prev.map(n => {
+      if (n.id === node.id) return { ...n, sort_order: target.sort_order };
+      if (n.id === target.id) return { ...n, sort_order: node.sort_order };
+      return n;
     }));
-  };
+  }, [nodes]);
+
+  // Insert a preset section (section + container + block)
+  const insertPreset = useCallback((presetId: string) => {
+    if (!version) return;
+    const preset = SECTION_PRESETS.find(p => p.id === presetId);
+    if (!preset) return;
+
+    const rootSortOrder = nodes.filter(n => !n.parent_id).length;
+    const sectionId = crypto.randomUUID();
+    const containerId = crypto.randomUUID();
+    const blockId = crypto.randomUUID();
+
+    const isFullWidth = preset.blocks[1] === "container_full";
+    const containerBlock = isFullWidth ? "container" : "container";
+
+    const newNodes: ExperienceNode[] = [
+      makeNode("section", version.id, null, rootSortOrder, {
+        node_type: "section",
+        block_type: "section",
+        id: sectionId,
+      }),
+      makeNode(containerBlock, version.id, sectionId, 0, {
+        node_type: "container",
+        block_type: "container",
+        id: containerId,
+        layout_rules: isFullWidth
+          ? { maxWidth: "full", paddingX: "none", paddingY: "none", display: "flex", flexDirection: "col" }
+          : { maxWidth: "2xl", paddingX: "md", paddingY: "lg", display: "flex", flexDirection: "col" },
+      }),
+      makeNode(preset.blocks[2], version.id, containerId, 0, {
+        id: blockId,
+        data_bindings: ["product_carousel", "product_grid", "product_rail"].includes(preset.blocks[2])
+          ? { type: "dynamic_products", limit: 12 }
+          : ["testimonial_carousel"].includes(preset.blocks[2])
+          ? { type: "dynamic_reviews" }
+          : {},
+      }),
+    ];
+
+    setNodes(prev => [...prev, ...newNodes]);
+    setSelectedNodeId(blockId);
+    setActivePanel("layers");
+    toast.success(`Seção "${preset.label}" adicionada`);
+  }, [nodes, version]);
+
+  // Insert a bare block into the selected container
+  const insertBlock = useCallback((blockType: string) => {
+    if (!version) return;
+    const parent = selectedNode && (selectedNode.block_type === "container" || selectedNode.block_type === "section")
+      ? selectedNode
+      : null;
+    const parentId = parent?.id ?? null;
+    const sortOrder = nodes.filter(n => n.parent_id === parentId).length;
+    const newNode = makeNode(blockType, version.id, parentId, sortOrder);
+    setNodes(prev => [...prev, newNode]);
+    setSelectedNodeId(newNode.id);
+  }, [nodes, version, selectedNode]);
+
+  // ─── Save & Publish ──────────────────────────────────────────────────────
 
   const handleSave = async () => {
     if (!version) return;
     setIsSaving(true);
     try {
-      const res = await saveBuilderNodes({ 
-        data: { version_id: version.id, nodes: nodes } 
-      });
-      if (res.status === "success") {
-        toast.success("Documento salvo com sucesso!");
-      } else {
-        toast.error("Erro ao salvar documento.");
-      }
-    } catch (e) {
-      toast.error("Erro inesperado ao salvar.");
-    } finally {
-      setIsSaving(false);
-    }
+      const res = await saveBuilderNodes({ data: { version_id: version.id, nodes } });
+      if (res.status === "success") toast.success("Salvo com sucesso!");
+      else toast.error("Erro ao salvar.");
+    } catch { toast.error("Erro inesperado ao salvar."); }
+    finally { setIsSaving(false); }
   };
 
-  // Build the hierarchical tree just for rendering the canvas
-  const buildTree = (flatNodes: ExperienceNode[], parentId: string | null = null): ExperienceNode[] => {
-    return flatNodes
-      .filter(n => (parentId === null ? !n.parent_id : n.parent_id === parentId))
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map(node => ({
-        ...node,
-        children: buildTree(flatNodes, node.id)
-      }));
+  const handlePublish = async () => {
+    if (!version) return;
+    setIsPublishing(true);
+    try {
+      // First save, then publish
+      await saveBuilderNodes({ data: { version_id: version.id, nodes } });
+      const res = await publishBuilderVersion({ data: { version_id: version.id, nodes } });
+      if (res.status === "success") toast.success("Publicado! Página pública atualizada.");
+      else toast.error("Erro ao publicar.");
+    } catch { toast.error("Erro inesperado ao publicar."); }
+    finally { setIsPublishing(false); }
   };
 
-  const treeNodes = buildTree(nodes);
+  // ─── Preview URL ────────────────────────────────────────────────────────
 
-  const deleteNode = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const idsToDelete = new Set([id]);
-    let currentSize = 0;
-    while (idsToDelete.size > currentSize) {
-      currentSize = idsToDelete.size;
-      nodes.forEach(n => {
-        if (n.parent_id && idsToDelete.has(n.parent_id)) {
-          idsToDelete.add(n.id);
-        }
-      });
-    }
-    setNodes(prev => prev.filter(n => !idsToDelete.has(n.id)));
-    if (selectedNodeId && idsToDelete.has(selectedNodeId)) {
-      setSelectedNodeId(null);
-    }
-  };
+  const previewUrl = (() => {
+    const doc = document;
+    if (!doc) return null;
+    if (doc.slug === "home" || doc.document_type === "storefront") return "/";
+    if (doc.slug === "institucional") return "/perfil-da-loja";
+    if (doc.document_type === "biolink") return `/bio/${doc.slug}`;
+    if (doc.document_type === "seller_showcase") return `/vendedora/${doc.slug}`;
+    return `/paginas/${doc.slug}`;
+  })();
 
-  const moveNode = (id: string, direction: -1 | 1, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const nodeIndex = nodes.findIndex(n => n.id === id);
-    if (nodeIndex === -1) return;
-    const node = nodes[nodeIndex];
-    
-    const siblings = nodes.filter(n => n.parent_id === node.parent_id).sort((a, b) => a.sort_order - b.sort_order);
-    const currentIndex = siblings.findIndex(n => n.id === id);
-    if (currentIndex === -1) return;
-    
-    const targetIndex = currentIndex + direction;
-    if (targetIndex < 0 || targetIndex >= siblings.length) return; 
-    
-    const siblingToSwap = siblings[targetIndex];
-    
-    setNodes(prev => prev.map(n => {
-      if (n.id === node.id) return { ...n, sort_order: siblingToSwap.sort_order };
-      if (n.id === siblingToSwap.id) return { ...n, sort_order: node.sort_order };
-      return n;
-    }));
-  };
+  // ─── Layer Tree ─────────────────────────────────────────────────────────
 
-  const renderLayer = (node: ExperienceNode, depth = 0) => {
+  const renderLayer = (node: ExperienceNode & { children?: ExperienceNode[] }, depth = 0): React.ReactNode => {
+    const isSelected = selectedNodeId === node.id;
+    const reg = builderRegistry[node.block_type];
     return (
-      <div key={node.id} className="flex flex-col gap-1">
-        <div 
-          className={`text-sm py-1.5 pr-2 rounded-md flex items-center justify-between cursor-pointer group ${selectedNodeId === node.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted'}`}
-          style={{ paddingLeft: `${(depth * 12) + 8}px` }}
+      <div key={node.id}>
+        <div
+          className={cn(
+            "flex items-center gap-1.5 py-1.5 pr-2 rounded-lg text-sm cursor-pointer transition-colors group select-none",
+            isSelected ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted text-foreground"
+          )}
+          style={{ paddingLeft: `${depth * 14 + 8}px` }}
           onClick={() => setSelectedNodeId(node.id)}
         >
-          <div className="flex items-center gap-2 overflow-hidden">
-            <GripVertical className="h-3 w-3 opacity-50 shrink-0" />
-            <span className="truncate">{builderRegistry[node.block_type]?.name || node.block_type}</span>
-          </div>
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={(e) => moveNode(node.id, -1, e)} className="p-1 hover:bg-muted-foreground/20 rounded"><ChevronUp className="h-3 w-3" /></button>
-            <button onClick={(e) => moveNode(node.id, 1, e)} className="p-1 hover:bg-muted-foreground/20 rounded"><ChevronDown className="h-3 w-3" /></button>
-            <button onClick={(e) => deleteNode(node.id, e)} className="p-1 hover:bg-destructive/20 text-destructive rounded"><Trash2 className="h-3 w-3" /></button>
+          <GripVertical className="h-3 w-3 opacity-30 shrink-0" />
+          <span className="truncate flex-1 text-xs">{reg?.name ?? node.block_type}</span>
+          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button className="p-0.5 rounded hover:bg-muted-foreground/20" onClick={e => moveNode(node.id, -1, e)}><ChevronUp className="h-3 w-3" /></button>
+            <button className="p-0.5 rounded hover:bg-muted-foreground/20" onClick={e => moveNode(node.id, 1, e)}><ChevronDown className="h-3 w-3" /></button>
+            <button className="p-0.5 rounded hover:bg-destructive/20 text-destructive" onClick={e => deleteNode(node.id, e)}><Trash2 className="h-3 w-3" /></button>
           </div>
         </div>
-        {(node as any).children && (node as any).children.length > 0 && (
-          <div className="flex flex-col gap-1 mt-1">
-            {(node as any).children.map((child: any) => renderLayer(child, depth + 1))}
-          </div>
+        {node.children && node.children.length > 0 && (
+          <div>{node.children.map(c => renderLayer(c as any, depth + 1))}</div>
         )}
       </div>
     );
   };
 
+  // ─── Render ─────────────────────────────────────────────────────────────
+
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background">
-      {/* Top Navbar - IDE Controls */}
-      <header className="flex-none h-14 border-b bg-card flex items-center justify-between px-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/admin/builder" })}>
-            Sair
-          </Button>
-          <div className="h-4 w-px bg-border" />
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold">{document.title}</span>
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-              Rascunho (v{version?.version_number || 1})
-            </span>
+    <div className="fixed inset-0 flex flex-col bg-[#111] overflow-hidden z-50">
+
+      {/* ── Top Bar ──────────────────────────────────────────────────────── */}
+      <header className="flex-none h-12 bg-[#1a1a1a] border-b border-white/10 flex items-center justify-between px-3 gap-3">
+        {/* Left: Back + Title */}
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={() => navigate({ to: "/admin/builder/", search: {} as any })}
+            className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs transition-colors shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:block">Sair</span>
+          </button>
+          <div className="h-4 w-px bg-white/10 hidden sm:block" />
+          <div className="flex flex-col min-w-0">
+            <span className="text-white text-sm font-semibold truncate">{document.title}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+              <span className="text-white/40 text-[10px]">Rascunho v{version?.version_number ?? 1}</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Viewport Switcher */}
-          <div className="flex items-center bg-muted rounded-md p-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-foreground shadow-sm bg-background">
-              <Laptop className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
-              <Smartphone className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="h-4 w-px bg-border mx-2" />
-          <Button variant="outline" size="sm" disabled>
-            <Eye className="h-4 w-4 mr-2" />
-            Preview
-          </Button>
-          <Button size="sm" onClick={handleSave} disabled={isSaving}>
-            <Save className="h-4 w-4 mr-2" />
+        {/* Center: Viewport */}
+        <div className="flex items-center bg-white/5 rounded-lg p-1 gap-1">
+          <button
+            onClick={() => setViewport("desktop")}
+            className={cn("h-7 w-7 rounded-md flex items-center justify-center transition-colors", viewport === "desktop" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70")}
+          >
+            <Laptop className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setViewport("mobile")}
+            className={cn("h-7 w-7 rounded-md flex items-center justify-center transition-colors", viewport === "mobile" ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70")}
+          >
+            <Smartphone className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          {previewUrl && (
+            <a
+              href={previewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs transition-colors hidden md:flex"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Visualizar
+            </a>
+          )}
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/15 text-white text-xs px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <Save className="h-3.5 w-3.5" />
             {isSaving ? "Salvando..." : "Salvar"}
-          </Button>
+          </button>
+          <button
+            onClick={handlePublish}
+            disabled={isPublishing || isSaving}
+            className="flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 font-medium"
+          >
+            <Check className="h-3.5 w-3.5" />
+            {isPublishing ? "Publicando..." : "Publicar"}
+          </button>
         </div>
       </header>
 
-      {/* Main Workspace */}
+      {/* ── Workspace ────────────────────────────────────────────────────── */}
       <div className="flex-1 flex overflow-hidden">
-        
-        {/* Left Sidebar (Layers & Blocks) */}
-        <aside className="w-64 border-r bg-card flex flex-col flex-none">
-          <div className="flex items-center border-b p-1">
-            <Button 
-              variant={activeTab === "layers" ? "secondary" : "ghost"} 
-              size="sm" 
-              className="flex-1 rounded-sm justify-center px-1"
-              onClick={() => setActiveTab("layers")}
-            >
-              <Layers className="h-4 w-4 mr-1" />
-              Camadas
-            </Button>
-            <Button 
-              variant={activeTab === "sections" ? "secondary" : "ghost"} 
-              size="sm" 
-              className="flex-1 rounded-sm justify-center px-1"
-              onClick={() => setActiveTab("sections")}
-            >
-              <LayoutTemplate className="h-4 w-4 mr-1" />
-              Seções
-            </Button>
-            <Button 
-              variant={activeTab === "blocks" ? "secondary" : "ghost"} 
-              size="sm" 
-              className="flex-1 rounded-sm justify-center px-1"
-              onClick={() => setActiveTab("blocks")}
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Primitivos
-            </Button>
+
+        {/* ── Left Panel (Sections / Blocks / Layers) ───────────────────── */}
+        <aside className="w-72 bg-[#1a1a1a] border-r border-white/10 flex flex-col flex-none overflow-hidden">
+          {/* Panel Tabs */}
+          <div className="flex border-b border-white/10 bg-[#161616]">
+            {(["sections", "blocks", "layers"] as const).map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActivePanel(tab)}
+                className={cn(
+                  "flex-1 py-2.5 text-[11px] font-medium uppercase tracking-wide transition-colors",
+                  activePanel === tab
+                    ? "text-white border-b-2 border-primary"
+                    : "text-white/40 hover:text-white/70"
+                )}
+              >
+                {tab === "sections" ? "Seções" : tab === "blocks" ? "Blocos" : "Camadas"}
+              </button>
+            ))}
           </div>
-          <div className="flex-1 overflow-y-auto p-4">
-            {activeTab === "layers" ? (
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">DOM Tree</p>
+
+          <ScrollArea className="flex-1">
+            {/* SECTIONS: Pre-built section presets */}
+            {activePanel === "sections" && (
+              <div className="p-3 space-y-2">
+                <p className="text-[11px] text-white/40 uppercase tracking-wider px-1 mb-3">
+                  Clique para adicionar seção
+                </p>
+                {SECTION_PRESETS.map(preset => {
+                  const Icon = preset.icon;
+                  return (
+                    <button
+                      key={preset.id}
+                      onClick={() => insertPreset(preset.id)}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left group border border-transparent hover:border-white/10"
+                    >
+                      <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-white/10")}>
+                        <Icon className={cn("h-4 w-4", preset.iconColor)} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-white text-xs font-medium truncate">{preset.label}</div>
+                        <div className="text-white/40 text-[10px] truncate">{preset.description}</div>
+                      </div>
+                      <Plus className="h-3.5 w-3.5 text-white/30 group-hover:text-white/70 transition-colors shrink-0" />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* BLOCKS: Categorized block picker */}
+            {activePanel === "blocks" && (
+              <div className="flex flex-col">
+                {/* Category tabs */}
+                <div className="flex flex-col gap-0.5 p-2 border-b border-white/10">
+                  {BLOCK_CATEGORIES.map(cat => {
+                    const Icon = cat.icon;
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => setBlockCategory(cat.id)}
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors text-left",
+                          blockCategory === cat.id ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80 hover:bg-white/5"
+                        )}
+                      >
+                        <Icon className="h-3.5 w-3.5 shrink-0" />
+                        {cat.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Block items */}
+                <div className="p-3 grid grid-cols-2 gap-2">
+                  {(BLOCK_CATEGORIES.find(c => c.id === blockCategory)?.blocks ?? []).map(blockType => {
+                    const reg = builderRegistry[blockType];
+                    if (!reg) return null;
+                    return (
+                      <button
+                        key={blockType}
+                        onClick={() => insertBlock(blockType)}
+                        className="flex flex-col items-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 transition-colors text-center"
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
+                          <Plus className="h-4 w-4 text-white/50" />
+                        </div>
+                        <span className="text-white/70 text-[10px] font-medium leading-tight">{reg.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[10px] text-white/30 text-center pb-3 px-3">
+                  Selecione um container na árvore antes de inserir
+                </p>
+              </div>
+            )}
+
+            {/* LAYERS: DOM tree */}
+            {activePanel === "layers" && (
+              <div className="p-3">
+                <p className="text-[11px] text-white/40 uppercase tracking-wider px-1 mb-3">
+                  Estrutura da Página
+                </p>
                 {nodes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">A árvore está vazia.</p>
+                  <div className="text-center py-8 text-white/30 text-xs space-y-2">
+                    <Layers className="h-8 w-8 mx-auto opacity-30" />
+                    <p>Árvore vazia.</p>
+                    <p>Adicione seções no painel "Seções".</p>
+                  </div>
                 ) : (
-                  <div className="flex flex-col gap-1">
-                    {treeNodes.map(node => renderLayer(node, 0))}
+                  <div className="space-y-0.5">
+                    {treeNodes.map(node => renderLayer(node as any, 0))}
                   </div>
                 )}
               </div>
-            ) : activeTab === "sections" ? (
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Seções Prontas</p>
-                <div className="grid grid-cols-1 gap-3">
-                  {/* Hero Completo */}
-                  <div className="border rounded-md p-3 bg-muted/30 cursor-pointer hover:border-primary transition-colors" onClick={() => {
-                    const sectionId = crypto.randomUUID();
-                    const containerId = crypto.randomUUID();
-                    const heroId = crypto.randomUUID();
-                    const sortOrder = nodes.filter(n => !n.parent_id).length;
-                    setNodes(prev => [
-                      ...prev,
-                      { id: sectionId, version_id: version.id, parent_id: null, sort_order: sortOrder, ...builderRegistry["section"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode,
-                      { id: containerId, version_id: version.id, parent_id: sectionId, sort_order: 0, ...builderRegistry["container"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode,
-                      { id: heroId, version_id: version.id, parent_id: containerId, sort_order: 0, ...builderRegistry["hero_carousel"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode
-                    ]);
-                  }}>
-                    <h4 className="font-semibold text-sm">Hero Banner</h4>
-                    <p className="text-xs text-muted-foreground mt-1">Sessão completa de banner principal.</p>
-                  </div>
-                  {/* FAQ */}
-                  <div className="border rounded-md p-3 bg-muted/30 cursor-pointer hover:border-primary transition-colors" onClick={() => {
-                    const sectionId = crypto.randomUUID();
-                    const containerId = crypto.randomUUID();
-                    const faqId = crypto.randomUUID();
-                    const sortOrder = nodes.filter(n => !n.parent_id).length;
-                    setNodes(prev => [
-                      ...prev,
-                      { id: sectionId, version_id: version.id, parent_id: null, sort_order: sortOrder, ...builderRegistry["section"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode,
-                      { id: containerId, version_id: version.id, parent_id: sectionId, sort_order: 0, ...builderRegistry["container"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode,
-                      { id: faqId, version_id: version.id, parent_id: containerId, sort_order: 0, ...builderRegistry["faq_accordion"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode
-                    ]);
-                  }}>
-                    <h4 className="font-semibold text-sm">Perguntas Frequentes</h4>
-                    <p className="text-xs text-muted-foreground mt-1">Grid de respostas e quebra de objeções.</p>
-                  </div>
-                  {/* Testemunhos */}
-                  <div className="border rounded-md p-3 bg-muted/30 cursor-pointer hover:border-primary transition-colors" onClick={() => {
-                    const sectionId = crypto.randomUUID();
-                    const containerId = crypto.randomUUID();
-                    const testId = crypto.randomUUID();
-                    const sortOrder = nodes.filter(n => !n.parent_id).length;
-                    setNodes(prev => [
-                      ...prev,
-                      { id: sectionId, version_id: version.id, parent_id: null, sort_order: sortOrder, ...builderRegistry["section"].defaultProps, design_tokens: { backgroundColor: "#f8fafc" }, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode,
-                      { id: containerId, version_id: version.id, parent_id: sectionId, sort_order: 0, ...builderRegistry["container"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode,
-                      { id: testId, version_id: version.id, parent_id: containerId, sort_order: 0, ...builderRegistry["testimonial_carousel"].defaultProps, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ExperienceNode
-                    ]);
-                  }}>
-                    <h4 className="font-semibold text-sm">Depoimentos</h4>
-                    <p className="text-xs text-muted-foreground mt-1">Carrossel de provas sociais.</p>
-                  </div>
+            )}
+          </ScrollArea>
+        </aside>
+
+        {/* ── Canvas ──────────────────────────────────────────────────────── */}
+        <main className="flex-1 overflow-y-auto bg-[#0d0d0d] flex flex-col items-center">
+          {/* Viewport indicator */}
+          <div className="sticky top-0 z-10 flex justify-center pt-3 pb-2 bg-[#0d0d0d] w-full">
+            <Badge variant="outline" className="text-white/40 border-white/10 text-[10px] bg-transparent">
+              {viewport === "desktop" ? "Desktop — 1440px" : "Mobile — 390px"}
+            </Badge>
+          </div>
+
+          {/* Canvas frame */}
+          <div
+            className={cn(
+              "bg-white relative transition-all duration-300 mb-8",
+              viewport === "desktop"
+                ? "w-full min-h-[calc(100vh-120px)] shadow-2xl"
+                : "w-[390px] min-h-[844px] rounded-[2rem] shadow-2xl border-[6px] border-[#333] overflow-hidden"
+            )}
+            onClick={() => setSelectedNodeId(null)}
+          >
+            {nodes.length === 0 ? (
+              <div className="flex flex-col items-center justify-center min-h-[500px] text-gray-400 gap-4">
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+                  <Plus className="h-8 w-8 text-gray-300" />
+                </div>
+                <div className="text-center">
+                  <p className="font-medium text-gray-500">Canvas vazio</p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Adicione seções no painel à esquerda para construir sua página.
+                  </p>
                 </div>
               </div>
             ) : (
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Primitivos</p>
-                <div className="grid grid-cols-2 gap-2">
-                   {Object.values(builderRegistry).map(block => (
-                     <Button 
-                       key={block.type}
-                       variant="outline" 
-                       className="h-20 flex-col gap-2 p-2"
-                       onClick={() => {
-                         const parentNode = nodes.find(n => n.id === selectedNodeId);
-                         let targetParentId = null;
-                         if (parentNode && (parentNode.block_type === "container" || parentNode.block_type === "section")) {
-                           targetParentId = parentNode.id;
-                         }
-
-                         const newNode: ExperienceNode = {
-                           id: crypto.randomUUID(),
-                           ...block.defaultProps,
-                           version_id: version.id,
-                           parent_id: targetParentId,
-                           sort_order: nodes.filter(n => n.parent_id === targetParentId).length,
-                           created_at: new Date().toISOString(),
-                           updated_at: new Date().toISOString(),
-                         } as ExperienceNode;
-                         setNodes(prev => [...prev, newNode]);
-                         setSelectedNodeId(newNode.id);
-                       }}
-                     >
-                       <span className="text-xs text-center">{block.name}</span>
-                     </Button>
-                   ))}
-                </div>
-              </div>
+              <ExperienceRenderer
+                nodes={treeNodes}
+                isEditing
+                selectedNodeId={selectedNodeId}
+                onSelectNode={setSelectedNodeId}
+              />
             )}
-          </div>
-        </aside>
-
-        {/* Canvas Area */}
-        <main className="flex-1 bg-muted/30 overflow-y-auto flex justify-center p-8">
-          <div className="bg-background shadow-xl border w-full max-w-7xl min-h-[800px] flex flex-col relative transition-all">
-             <ExperienceRenderer 
-               nodes={treeNodes} 
-               isEditing={true}
-               selectedNodeId={selectedNodeId}
-               onSelectNode={setSelectedNodeId}
-             />
-             {nodes.length === 0 && (
-               <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
-                 <Plus className="h-12 w-12 mb-4 opacity-20" />
-                 <p>Arraste um bloco para iniciar a construção.</p>
-               </div>
-             )}
           </div>
         </main>
 
-        {/* Right Sidebar (Inspector) */}
-        <aside className="w-80 border-l bg-card flex flex-col flex-none">
-          <div className="h-12 border-b flex items-center px-4 font-semibold text-sm">
-            <Settings2 className="h-4 w-4 mr-2" />
-            Propriedades
-          </div>
-          <div className="flex-1 overflow-y-auto p-4">
-             {selectedNode && blockManifest ? (
-               <div className="space-y-6">
-                 {/* Tabs do Inspetor */}
-                 <div className="flex bg-muted/50 p-1 rounded-md mb-4 flex-wrap">
-                   <Button 
-                     variant={inspectorTab === "content" ? "secondary" : "ghost"} 
-                     size="sm" 
-                     className="flex-1 text-xs" 
-                     onClick={() => setInspectorTab("content")}
-                   >Conteúdo</Button>
-                   <Button 
-                     variant={inspectorTab === "connection" ? "secondary" : "ghost"} 
-                     size="sm" 
-                     className="flex-1 text-xs" 
-                     onClick={() => setInspectorTab("connection")}
-                   >Conexão</Button>
-                   {blockManifest.inspector?.layout && (
-                     <Button 
-                       variant={inspectorTab === "layout" ? "secondary" : "ghost"} 
-                       size="sm" 
-                       className="flex-1 text-xs" 
-                       onClick={() => setInspectorTab("layout")}
-                     >Layout</Button>
-                   )}
-                   {blockManifest.inspector?.design && (
-                     <Button 
-                       variant={inspectorTab === "design" ? "secondary" : "ghost"} 
-                       size="sm" 
-                       className="flex-1 text-xs" 
-                       onClick={() => setInspectorTab("design")}
-                     >Design</Button>
-                   )}
-                 </div>
+        {/* ── Right Inspector ──────────────────────────────────────────── */}
+        <aside className="w-72 bg-[#1a1a1a] border-l border-white/10 flex flex-col flex-none overflow-hidden">
+          {selectedNode && blockManifest ? (
+            <>
+              {/* Inspector Header */}
+              <div className="flex-none border-b border-white/10 p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white text-sm font-semibold">{blockManifest.name}</p>
+                    <p className="text-white/40 text-[10px] font-mono">{selectedNode.block_type}</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedNodeId(null)}
+                    className="text-white/30 hover:text-white/70 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                {/* Inspector Tabs */}
+                <div className="flex gap-1 mt-3">
+                  {(["content", "connection", ...(blockManifest.inspector?.layout ? ["layout"] : []), ...(blockManifest.inspector?.design ? ["design"] : [])] as const).map(tab => (
+                    <button
+                      key={tab}
+                      onClick={() => setInspectorTab(tab as any)}
+                      className={cn(
+                        "px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors capitalize",
+                        inspectorTab === tab ? "bg-white/15 text-white" : "text-white/40 hover:text-white/70"
+                      )}
+                    >
+                      {tab === "content" ? "Conteúdo" : tab === "connection" ? "Dados" : tab === "layout" ? "Layout" : "Design"}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                 {inspectorTab === "content" && (
-                   <div className="space-y-3">
-                     <h4 className="text-xs font-semibold uppercase text-muted-foreground">Conteúdo Estático</h4>
-                     
-                     {blockManifest.inspector?.content?.map(field => (
-                       <div key={field.name} className="space-y-1.5">
-                         <label className="text-xs font-medium">{field.label}</label>
-                         {field.type === "textarea" ? (
-                           <Textarea 
-                             className="text-sm bg-background"
-                             value={selectedNode.content?.[field.name] || ""}
-                             onChange={(e) => updateSelectedNode("content", field.name, e.target.value)}
-                           />
-                         ) : field.type === "json" || field.type === "array" ? (
+              <ScrollArea className="flex-1">
+                <div className="p-4 space-y-4">
+
+                  {/* Content Tab */}
+                  {inspectorTab === "content" && (
+                    <div className="space-y-4">
+                      {blockManifest.inspector?.content?.map(field => (
+                        <div key={field.name} className="space-y-1.5">
+                          <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">{field.label}</label>
+                          {field.type === "textarea" ? (
+                            <Textarea
+                              className="text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30 resize-none"
+                              rows={3}
+                              value={(selectedNode.content as any)?.[field.name] ?? ""}
+                              onChange={e => updateNode(selectedNode.id, "content", field.name, e.target.value)}
+                            />
+                          ) : field.type === "json" || field.type === "array" ? (
                             <ArrayBuilder
                               label={field.label}
-                              value={Array.isArray(selectedNode.content?.[field.name]) ? selectedNode.content[field.name] : []}
-                              onChange={(val) => updateSelectedNode("content", field.name, val)}
-                              arrayFields={field.arrayFields || []}
+                              value={Array.isArray((selectedNode.content as any)?.[field.name]) ? (selectedNode.content as any)[field.name] : []}
+                              onChange={val => updateNode(selectedNode.id, "content", field.name, val)}
+                              arrayFields={field.arrayFields ?? []}
                             />
                           ) : field.type === "image" ? (
                             <MediaUploader
-                              value={selectedNode.content?.[field.name] || ""}
-                              onChange={(val) => updateSelectedNode("content", field.name, val)}
+                              value={(selectedNode.content as any)?.[field.name] ?? ""}
+                              onChange={val => updateNode(selectedNode.id, "content", field.name, val)}
                             />
                           ) : field.type === "color" ? (
                             <ColorPicker
-                              value={selectedNode.content?.[field.name] || ""}
-                              onChange={(val) => updateSelectedNode("content", field.name, val)}
+                              value={(selectedNode.content as any)?.[field.name] ?? ""}
+                              onChange={val => updateNode(selectedNode.id, "content", field.name, val)}
                             />
-                         ) : field.type === "boolean" ? (
-                           <input 
-                             type="checkbox"
-                             checked={selectedNode.content?.[field.name] || false}
-                             onChange={(e) => updateSelectedNode("content", field.name, e.target.checked)}
-                           />
-                         ) : field.type === "number" ? (
-                           <Input 
-                             type="number"
-                             className="h-8 text-sm bg-background"
-                             value={selectedNode.content?.[field.name] || ""}
-                             onChange={(e) => updateSelectedNode("content", field.name, Number(e.target.value))}
-                           />
-                         ) : (
-                           <Input 
-                             className="h-8 text-sm bg-background"
-                             value={selectedNode.content?.[field.name] || ""}
-                             onChange={(e) => updateSelectedNode("content", field.name, e.target.value)}
-                           />
-                         )}
-                       </div>
-                     )) || (
-                       <p className="text-sm text-muted-foreground">Este bloco não possui propriedades de conteúdo editáveis.</p>
-                     )}
-                   </div>
-                 )}
+                          ) : field.type === "boolean" ? (
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={(selectedNode.content as any)?.[field.name] ?? false}
+                                onChange={e => updateNode(selectedNode.id, "content", field.name, e.target.checked)}
+                                className="w-4 h-4 accent-primary"
+                              />
+                              <span className="text-white/60 text-xs">{field.label}</span>
+                            </label>
+                          ) : field.type === "number" ? (
+                            <Input
+                              type="number"
+                              className="h-8 text-sm bg-white/5 border-white/10 text-white"
+                              value={(selectedNode.content as any)?.[field.name] ?? ""}
+                              onChange={e => updateNode(selectedNode.id, "content", field.name, Number(e.target.value))}
+                            />
+                          ) : (
+                            <Input
+                              className="h-8 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                              value={(selectedNode.content as any)?.[field.name] ?? ""}
+                              onChange={e => updateNode(selectedNode.id, "content", field.name, e.target.value)}
+                            />
+                          )}
+                        </div>
+                      ))}
+                      {(!blockManifest.inspector?.content || blockManifest.inspector.content.length === 0) && (
+                        <p className="text-white/30 text-xs">Este bloco não tem campos de conteúdo editáveis.</p>
+                      )}
+                    </div>
+                  )}
 
-                 {inspectorTab === "connection" && (
-                   <div className="space-y-4">
-                     <h4 className="text-xs font-semibold uppercase text-muted-foreground">Data Binding</h4>
-                     <p className="text-sm text-muted-foreground">Conecte este bloco a informações em tempo real da loja.</p>
-                     <div className="space-y-2">
-                       <label className="text-xs font-medium">Fonte de Dados (Resolver)</label>
-                       <select 
-                         className="w-full text-sm p-2 border rounded-md bg-background"
-                         value={selectedNode.data_bindings?.type || ""}
-                         onChange={(e) => {
-                           const type = e.target.value;
-                           if (!type) {
-                             // clear bindings
-                             setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data_bindings: {} } : n));
-                           } else {
-                             // set basic binding
-                             setNodes(prev => prev.map(n => n.id === selectedNodeId ? { ...n, data_bindings: { type } } : n));
-                           }
-                         }}
-                       >
-                         <option value="">Nenhuma (Estático)</option>
-                         <option value="latest_products">Últimos Produtos Adicionados</option>
-                         <option value="product_collection">Produtos por Coleção</option>
-                         <option value="category_products">Produtos por Categoria</option>
-                       </select>
-                     </div>
-                     {selectedNode.data_bindings?.type === "product_collection" && (
-                       <div className="space-y-2">
-                         <label className="text-xs font-medium">Slug da Coleção</label>
-                         <Input 
-                           placeholder="ex: inverno-26" 
-                           className="h-8 text-sm bg-background"
-                           value={selectedNode.data_bindings?.collection_slug || ""}
-                           onChange={(e) => updateSelectedNode("data_bindings", "collection_slug", e.target.value)}
-                         />
-                       </div>
-                     )}
-                   </div>
-                 )}
+                  {/* Connection / Data Binding Tab */}
+                  {inspectorTab === "connection" && (
+                    <div className="space-y-4">
+                      <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                        <p className="text-white/60 text-[11px] mb-1 font-medium">Fonte de Dados</p>
+                        <p className="text-white/30 text-[10px]">
+                          Quando configurado, os dados são resolvidos no servidor antes de chegar ao canvas.
+                        </p>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">Resolver</label>
+                        <select
+                          className="w-full text-sm p-2 rounded-lg bg-white/5 border border-white/10 text-white"
+                          value={(selectedNode.data_bindings as any)?.type ?? ""}
+                          onChange={e => {
+                            const type = e.target.value;
+                            setNodes(prev => prev.map(n => n.id === selectedNodeId
+                              ? { ...n, data_bindings: type ? { type } : {} }
+                              : n
+                            ));
+                          }}
+                        >
+                          <option value="">Nenhum (conteúdo estático)</option>
+                          <option value="dynamic_products">Últimos Produtos Ativos</option>
+                          <option value="product_collection">Produtos por Coleção</option>
+                          <option value="dynamic_reviews">Avaliações Aprovadas</option>
+                        </select>
+                      </div>
+                      {(selectedNode.data_bindings as any)?.type === "product_collection" && (
+                        <div className="space-y-1.5">
+                          <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">Slug da Coleção</label>
+                          <Input
+                            placeholder="ex: inverno-2026"
+                            className="h-8 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                            value={(selectedNode.data_bindings as any)?.collection_slug ?? ""}
+                            onChange={e => updateNode(selectedNode.id, "data_bindings", "collection_slug", e.target.value)}
+                          />
+                        </div>
+                      )}
+                      {(selectedNode.data_bindings as any)?.type === "dynamic_products" && (
+                        <div className="space-y-1.5">
+                          <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">Quantidade</label>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={24}
+                            className="h-8 text-sm bg-white/5 border-white/10 text-white"
+                            value={(selectedNode.data_bindings as any)?.limit ?? 12}
+                            onChange={e => updateNode(selectedNode.id, "data_bindings", "limit", Number(e.target.value))}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                 {inspectorTab === "layout" && blockManifest.inspector?.layout && (
-                   <div className="space-y-3">
-                     <h4 className="text-xs font-semibold uppercase text-muted-foreground">Layout & Estrutura</h4>
-                     {blockManifest.inspector.layout.map(field => (
-                       <div key={field.name} className="space-y-1.5">
-                         <label className="text-xs font-medium">{field.label}</label>
-                         {field.type === "select" && field.options ? (
-                           <select 
-                             className="w-full text-sm p-1.5 border rounded-md bg-background"
-                             value={selectedNode.layout_rules?.[field.name] || ""}
-                             onChange={(e) => updateSelectedNode("layout_rules", field.name, e.target.value)}
-                           >
-                             {field.options.map(opt => (
-                               <option key={opt.value} value={opt.value}>{opt.label}</option>
-                             ))}
-                           </select>
-                         ) : null}
-                       </div>
-                     ))}
-                   </div>
-                 )}
+                  {/* Layout Tab */}
+                  {inspectorTab === "layout" && blockManifest.inspector?.layout && (
+                    <div className="space-y-4">
+                      {blockManifest.inspector.layout.map(field => (
+                        <div key={field.name} className="space-y-1.5">
+                          <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">{field.label}</label>
+                          {field.type === "select" && field.options ? (
+                            <select
+                              className="w-full text-sm p-2 rounded-lg bg-white/5 border border-white/10 text-white"
+                              value={(selectedNode.layout_rules as any)?.[field.name] ?? ""}
+                              onChange={e => updateNode(selectedNode.id, "layout_rules", field.name, e.target.value)}
+                            >
+                              {field.options.map(opt => (
+                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <Input
+                              className="h-8 text-sm bg-white/5 border-white/10 text-white"
+                              value={(selectedNode.layout_rules as any)?.[field.name] ?? ""}
+                              onChange={e => updateNode(selectedNode.id, "layout_rules", field.name, e.target.value)}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
-                 {inspectorTab === "design" && blockManifest.inspector?.design && (
-                   <div className="space-y-3">
-                     <h4 className="text-xs font-semibold uppercase text-muted-foreground">Layout e Tokens</h4>
-                     {blockManifest.inspector.design.map(field => (
-                       <div key={field.name} className="space-y-1.5">
-                         <label className="text-xs font-medium">{field.label}</label>
+                  {/* Design Tab */}
+                  {inspectorTab === "design" && blockManifest.inspector?.design && (
+                    <div className="space-y-4">
+                      {blockManifest.inspector.design.map(field => (
+                        <div key={field.name} className="space-y-1.5">
+                          <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">{field.label}</label>
                           {field.type === "color" ? (
-                            <ColorPicker 
-                              value={selectedNode.design_tokens?.[field.name] || ""}
-                              onChange={(val) => updateSelectedNode("design_tokens", field.name, val)}
+                            <ColorPicker
+                              value={(selectedNode.design_tokens as any)?.[field.name] ?? ""}
+                              onChange={val => updateNode(selectedNode.id, "design_tokens", field.name, val)}
                             />
                           ) : field.type === "image" ? (
-                            <MediaUploader 
-                              value={selectedNode.design_tokens?.[field.name] || ""}
-                              onChange={(val) => updateSelectedNode("design_tokens", field.name, val)}
+                            <MediaUploader
+                              value={(selectedNode.design_tokens as any)?.[field.name] ?? ""}
+                              onChange={val => updateNode(selectedNode.id, "design_tokens", field.name, val)}
                             />
-                          ) : null}
-                       </div>
-                     ))}
-                   </div>
-                 )}
-               </div>
-             ) : (
-               <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground space-y-4 opacity-50">
-                 <Settings2 className="h-10 w-10" />
-                 <p className="text-sm">Selecione uma camada para inspecionar propriedades.</p>
-               </div>
-             )}
-          </div>
+                          ) : (
+                            <Input
+                              className="h-8 text-sm bg-white/5 border-white/10 text-white"
+                              value={(selectedNode.design_tokens as any)?.[field.name] ?? ""}
+                              onChange={e => updateNode(selectedNode.id, "design_tokens", field.name, e.target.value)}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </>
+          ) : (
+            /* No selection state */
+            <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-3">
+              <Settings2 className="h-8 w-8 text-white/20" />
+              <p className="text-white/30 text-sm">Selecione um bloco no canvas para editar suas propriedades.</p>
+            </div>
+          )}
         </aside>
-        
       </div>
     </div>
   );

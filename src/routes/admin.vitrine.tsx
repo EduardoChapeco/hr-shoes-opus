@@ -1,35 +1,20 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { getPublicExperienceDocumentBySlug, createExperienceDocument } from "@/services/builder.functions";
+import { getOrCreateHomeDocument } from "@/services/builder.functions";
 
 export const Route = createFileRoute("/admin/vitrine")({
   loader: async () => {
-    // Busca a Home Page (Storefront) principal
-    let res = await getPublicExperienceDocumentBySlug({ data: { slug: "home", document_type: "storefront" } });
-    
-    // Se não existir, criamos a semente inicial
-    if (res.status === "error" || !res.data?.document) {
-      const createRes = await createExperienceDocument({
-        data: {
-          title: "Página Inicial (Vitrine)",
-          slug: "home",
-          document_type: "storefront"
-        }
+    // getOrCreateHomeDocument finds or creates the home storefront document
+    // (uses getExperienceDocument internally, no requirement for published status)
+    const res = await getOrCreateHomeDocument();
+
+    if (res.status === "success" && res.data?.id) {
+      throw redirect({
+        to: "/admin/builder/$documentId/editor",
+        params: { documentId: res.data.id },
       });
-      if (createRes.status === "success") {
-        throw redirect({
-          to: "/admin/builder/$documentId/editor",
-          params: { documentId: createRes.data.document.id }
-        });
-      } else {
-        throw new Error("Falha ao inicializar a vitrine.");
-      }
     }
-    
-    // Redireciona para o construtor visual
-    throw redirect({
-      to: "/admin/builder/$documentId/editor",
-      params: { documentId: res.data.document.id }
-    });
+
+    throw new Error("Falha ao inicializar a vitrine principal.");
   },
-  component: () => <div>Redirecionando para o construtor visual...</div>,
+  component: () => <div className="p-8 text-muted-foreground text-sm">Redirecionando para o construtor visual...</div>,
 });

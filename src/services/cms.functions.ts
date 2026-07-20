@@ -685,3 +685,27 @@ export const getPageBySlug = createServerFn({ method: "GET" })
       return { status: "error" as const, message: "Erro ao carregar página." };
     }
   });
+export const createReview = createServerFn({ method: "POST" })
+  .validator(z.object({ productId: z.string().uuid(), rating: z.number().min(1).max(5), comment: z.string().optional() }))
+  .handler(async ({ data: { productId, rating, comment } }) => {
+    try {
+      const ssrClient = getServerClient();
+      const { data: { user } } = await ssrClient.auth.getUser();
+      if (!user) throw new Error("Não autenticado");
+
+      const { error } = await ssrClient.from("reviews").insert({
+        product_id: productId,
+        user_id: user.id,
+        rating,
+        comment: comment || null,
+        status: "pending"
+      });
+
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[cms.functions] createReview:", e);
+      return { status: "error" as const, message: e.message || "Erro ao enviar avaliação." };
+    }
+  });
+

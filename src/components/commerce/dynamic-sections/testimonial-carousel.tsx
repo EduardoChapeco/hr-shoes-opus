@@ -1,5 +1,7 @@
 import * as React from "react";
 import { Star } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getBuilderReviews } from "@/services/builder.functions";
 import {
   Carousel,
   CarouselContent,
@@ -16,19 +18,23 @@ interface TestimonialCarouselProps {
   content?: {
     title?: string;
     subtitle?: string;
-    testimonials?: Array<{
-      author: string;
-      role?: string;
-      content: string;
-      rating?: number;
-      avatar_url?: string;
-    }>;
+    testimonials?: Array<any>; // Fallback para conteúdo manual, se não usar dinâmico
   };
   design_tokens?: any;
+  data_bindings?: { source?: string };
 }
 
-export function TestimonialCarousel({ content, design_tokens }: TestimonialCarouselProps) {
-  const testimonials = content?.testimonials || [];
+export function TestimonialCarousel({ content, design_tokens, data_bindings }: TestimonialCarouselProps) {
+  // Puxar depoimentos dinâmicos se source não for nulo/estático
+  const isDynamic = data_bindings?.source === "dynamic_reviews" || !content?.testimonials || content.testimonials.length === 0;
+
+  const { data: result, isLoading } = useQuery({
+    queryKey: ["builderReviews"],
+    queryFn: () => getBuilderReviews(),
+    enabled: isDynamic
+  });
+
+  const testimonials = isDynamic ? (result?.status === "ok" ? result.data : []) : (content?.testimonials || []);
 
   return (
     <div
@@ -54,13 +60,17 @@ export function TestimonialCarousel({ content, design_tokens }: TestimonialCarou
           </div>
         )}
 
-        {testimonials.length > 0 ? (
+        {isLoading ? (
+          <div className="flex gap-4 overflow-hidden">
+             {[1,2,3].map(i => <div key={i} className="w-[300px] md:w-[350px] h-[200px] bg-muted animate-pulse rounded-lg flex-shrink-0" />)}
+          </div>
+        ) : testimonials.length > 0 ? (
           <Carousel
             opts={{
               align: "start",
               loop: true,
             }}
-            className="w-full"
+            className="w-full relative"
           >
             <CarouselContent className="-ml-2 md:-ml-4">
               {testimonials.map((item, idx) => (
@@ -92,15 +102,13 @@ export function TestimonialCarousel({ content, design_tokens }: TestimonialCarou
                               className="h-10 w-10 rounded-full object-cover border"
                             />
                           ) : (
-                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">
-                              {item.author.charAt(0)}
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary uppercase">
+                              {item.author?.charAt(0) || "C"}
                             </div>
                           )}
                           <div>
                             <p className="font-semibold text-sm">{item.author}</p>
-                            {item.role && (
-                              <p className="text-xs text-muted-foreground">{item.role}</p>
-                            )}
+                            {item.role && <p className="text-xs text-muted-foreground">{item.role}</p>}
                           </div>
                         </div>
                       </CardContent>
@@ -110,13 +118,13 @@ export function TestimonialCarousel({ content, design_tokens }: TestimonialCarou
               ))}
             </CarouselContent>
             <div className="hidden md:block">
-              <CarouselPrevious className="-left-12" />
-              <CarouselNext className="-right-12" />
+              <CarouselPrevious className="-left-4 lg:-left-12 bg-background border-muted shadow-sm hover:bg-background" />
+              <CarouselNext className="-right-4 lg:-right-12 bg-background border-muted shadow-sm hover:bg-background" />
             </div>
           </Carousel>
         ) : (
-          <div className="p-8 border border-dashed text-center text-muted-foreground bg-muted/50 rounded-xl">
-            Adicione depoimentos pelo inspetor para exibi-los aqui.
+          <div className="text-center py-12 text-muted-foreground border border-dashed rounded-lg">
+            Nenhuma avaliação disponível no momento.
           </div>
         )}
       </div>

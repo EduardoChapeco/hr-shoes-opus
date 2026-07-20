@@ -30,16 +30,13 @@ import type { ExperienceDocument } from "@/lib/builder-types";
 
 export const Route = createFileRoute("/admin/builder/")({
   head: () => ({ meta: [{ title: "Páginas & Bio Links — Hr Shoes" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({ type: (s.type as string) || undefined }),
   loader: async () => {
     const res = await listExperienceDocuments();
     if (res.status === "error" || res.status === "unconfigured") {
       throw new Error("Erro ao carregar documentos do Builder");
     }
-    // Filtrar vitrine principal para não aparecer aqui
-    const filtered = res.data.filter((doc: ExperienceDocument) => doc.document_type !== "storefront");
-    return {
-      documents: filtered,
-    };
+    return { documents: res.data as ExperienceDocument[] };
   },
   component: BuilderIndex,
 });
@@ -66,9 +63,19 @@ function getTypeLabel(type: string) {
 
 function BuilderIndex() {
   const { documents } = Route.useLoaderData();
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
-  
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter by type (from ?type=biolink redirect) and search query
+  const filteredDocs = documents.filter((doc: ExperienceDocument) => {
+    const typeMatch = !search.type || doc.document_type === search.type;
+    const queryMatch = !searchQuery || doc.title.toLowerCase().includes(searchQuery.toLowerCase()) || doc.slug.includes(searchQuery.toLowerCase());
+    return typeMatch && queryMatch;
+  });
+
+  const activeTypeLabel = search.type === "biolink" ? "Bio Links" : search.type === "campaign" ? "Campanhas" : undefined;
   // Template Modal State
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [selectedDocType, setSelectedDocType] = useState<"biolink" | "campaign" | null>(null);
@@ -112,9 +119,13 @@ function BuilderIndex() {
     <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Páginas & Bio Links</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {activeTypeLabel ?? "Páginas & Bio Links"}
+          </h1>
           <p className="text-muted-foreground mt-1">
-            Crie landing pages, campanhas promocionais e bio links para o Instagram.
+            {search.type === "biolink"
+              ? "Gerencie os bio links para o Instagram e afiliadas."
+              : "Crie landing pages, campanhas promocionais e bio links para o Instagram."}
           </p>
         </div>
         
@@ -145,12 +156,17 @@ function BuilderIndex() {
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar experiências..." className="pl-9" />
+          <Input
+            placeholder="Buscar experiências..."
+            className="pl-9"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {documents.map((doc: ExperienceDocument) => (
+        {filteredDocs.map((doc: ExperienceDocument) => (
           <Card key={doc.id} className="group overflow-hidden flex flex-col hover:border-primary/50 transition-colors">
             {/* Visual Thumbnail Placeholder */}
             <div className="h-32 bg-muted/50 border-b relative flex items-center justify-center">
@@ -183,9 +199,11 @@ function BuilderIndex() {
             </CardContent>
           </Card>
         ))}
-        {documents.length === 0 && (
+        {filteredDocs.length === 0 && (
           <div className="col-span-full py-12 text-center text-muted-foreground">
-            Nenhuma experiência criada ainda.
+            {documents.length === 0
+              ? "Nenhuma experiência criada ainda. Use o botão acima para criar."
+              : `Nenhum resultado encontrado${activeTypeLabel ? ` em "${activeTypeLabel}"` : ""}.`}
           </div>
         )}
       </div>

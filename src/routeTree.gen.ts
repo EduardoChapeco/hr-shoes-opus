@@ -40,7 +40,6 @@ import { Route as StorePromocoesRouteImport } from './routes/_store.promocoes'
 import { Route as StorePrivacidadeRouteImport } from './routes/_store.privacidade'
 import { Route as StorePerfilDaLojaRouteImport } from './routes/_store.perfil-da-loja'
 import { Route as StoreMatchTimeRouteImport } from './routes/_store.match-time'
-import { Route as StoreLinksRouteImport } from './routes/_store.links'
 import { Route as StoreFaqRouteImport } from './routes/_store.faq'
 import { Route as StoreEntrarRouteImport } from './routes/_store.entrar'
 import { Route as StoreContatoRouteImport } from './routes/_store.contato'
@@ -102,6 +101,7 @@ import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.cr
 import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.avaliacoes'
 import { Route as StoreColecaoSlugRouteImport } from './routes/_store.colecao.$slug'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store.categoria.$slug'
+import { Route as StoreBioSlugRouteImport } from './routes/_store.bio.$slug'
 import { Route as AdminCatalogoProdutosIndexRouteImport } from './routes/admin.catalogo.produtos.index'
 import { Route as AdminCatalogoColecoesIndexRouteImport } from './routes/admin.catalogo.colecoes.index'
 import { Route as AdminCatalogoCategoriasIndexRouteImport } from './routes/admin.catalogo.categorias.index'
@@ -270,11 +270,6 @@ const StorePerfilDaLojaRoute = StorePerfilDaLojaRouteImport.update({
 const StoreMatchTimeRoute = StoreMatchTimeRouteImport.update({
   id: '/match-time',
   path: '/match-time',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreLinksRoute = StoreLinksRouteImport.update({
-  id: '/links',
-  path: '/links',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreFaqRoute = StoreFaqRouteImport.update({
@@ -588,6 +583,11 @@ const StoreCategoriaSlugRoute = StoreCategoriaSlugRouteImport.update({
   path: '/categoria/$slug',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreBioSlugRoute = StoreBioSlugRouteImport.update({
+  id: '/bio/$slug',
+  path: '/bio/$slug',
+  getParentRoute: () => StoreRoute,
+} as any)
 const AdminCatalogoProdutosIndexRoute =
   AdminCatalogoProdutosIndexRouteImport.update({
     id: '/catalogo/produtos/',
@@ -686,7 +686,6 @@ export interface FileRoutesByFullPath {
   '/contato': typeof StoreContatoRoute
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
-  '/links': typeof StoreLinksRoute
   '/match-time': typeof StoreMatchTimeRoute
   '/perfil-da-loja': typeof StorePerfilDaLojaRoute
   '/privacidade': typeof StorePrivacidadeRoute
@@ -714,6 +713,7 @@ export interface FileRoutesByFullPath {
   '/admin/suporte': typeof AdminSuporteRoute
   '/admin/vitrine': typeof AdminVitrineRoute
   '/admin/': typeof AdminIndexRoute
+  '/bio/$slug': typeof StoreBioSlugRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
   '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
@@ -792,7 +792,6 @@ export interface FileRoutesByTo {
   '/contato': typeof StoreContatoRoute
   '/entrar': typeof StoreEntrarRoute
   '/faq': typeof StoreFaqRoute
-  '/links': typeof StoreLinksRoute
   '/match-time': typeof StoreMatchTimeRoute
   '/perfil-da-loja': typeof StorePerfilDaLojaRoute
   '/privacidade': typeof StorePrivacidadeRoute
@@ -821,6 +820,7 @@ export interface FileRoutesByTo {
   '/admin/vitrine': typeof AdminVitrineRoute
   '/': typeof StoreIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/bio/$slug': typeof StoreBioSlugRoute
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
   '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
@@ -903,7 +903,6 @@ export interface FileRoutesById {
   '/_store/contato': typeof StoreContatoRoute
   '/_store/entrar': typeof StoreEntrarRoute
   '/_store/faq': typeof StoreFaqRoute
-  '/_store/links': typeof StoreLinksRoute
   '/_store/match-time': typeof StoreMatchTimeRoute
   '/_store/perfil-da-loja': typeof StorePerfilDaLojaRoute
   '/_store/privacidade': typeof StorePrivacidadeRoute
@@ -932,6 +931,7 @@ export interface FileRoutesById {
   '/admin/vitrine': typeof AdminVitrineRoute
   '/_store/': typeof StoreIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/_store/bio/$slug': typeof StoreBioSlugRoute
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/_store/colecao/$slug': typeof StoreColecaoSlugRoute
   '/_store/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
@@ -1015,7 +1015,6 @@ export interface FileRouteTypes {
     | '/contato'
     | '/entrar'
     | '/faq'
-    | '/links'
     | '/match-time'
     | '/perfil-da-loja'
     | '/privacidade'
@@ -1043,6 +1042,7 @@ export interface FileRouteTypes {
     | '/admin/suporte'
     | '/admin/vitrine'
     | '/admin/'
+    | '/bio/$slug'
     | '/categoria/$slug'
     | '/colecao/$slug'
     | '/conta/avaliacoes'
@@ -1121,7 +1121,6 @@ export interface FileRouteTypes {
     | '/contato'
     | '/entrar'
     | '/faq'
-    | '/links'
     | '/match-time'
     | '/perfil-da-loja'
     | '/privacidade'
@@ -1150,6 +1149,7 @@ export interface FileRouteTypes {
     | '/admin/vitrine'
     | '/'
     | '/admin'
+    | '/bio/$slug'
     | '/categoria/$slug'
     | '/colecao/$slug'
     | '/conta/avaliacoes'
@@ -1231,7 +1231,6 @@ export interface FileRouteTypes {
     | '/_store/contato'
     | '/_store/entrar'
     | '/_store/faq'
-    | '/_store/links'
     | '/_store/match-time'
     | '/_store/perfil-da-loja'
     | '/_store/privacidade'
@@ -1260,6 +1259,7 @@ export interface FileRouteTypes {
     | '/admin/vitrine'
     | '/_store/'
     | '/admin/'
+    | '/_store/bio/$slug'
     | '/_store/categoria/$slug'
     | '/_store/colecao/$slug'
     | '/_store/conta/avaliacoes'
@@ -1556,13 +1556,6 @@ declare module '@tanstack/react-router' {
       path: '/match-time'
       fullPath: '/match-time'
       preLoaderRoute: typeof StoreMatchTimeRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/links': {
-      id: '/_store/links'
-      path: '/links'
-      fullPath: '/links'
-      preLoaderRoute: typeof StoreLinksRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/faq': {
@@ -1992,6 +1985,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreCategoriaSlugRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/bio/$slug': {
+      id: '/_store/bio/$slug'
+      path: '/bio/$slug'
+      fullPath: '/bio/$slug'
+      preLoaderRoute: typeof StoreBioSlugRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/admin/catalogo/produtos/': {
       id: '/admin/catalogo/produtos/'
       path: '/catalogo/produtos'
@@ -2142,7 +2142,6 @@ interface StoreRouteChildren {
   StoreContatoRoute: typeof StoreContatoRoute
   StoreEntrarRoute: typeof StoreEntrarRoute
   StoreFaqRoute: typeof StoreFaqRoute
-  StoreLinksRoute: typeof StoreLinksRoute
   StoreMatchTimeRoute: typeof StoreMatchTimeRoute
   StorePerfilDaLojaRoute: typeof StorePerfilDaLojaRoute
   StorePrivacidadeRoute: typeof StorePrivacidadeRoute
@@ -2153,6 +2152,7 @@ interface StoreRouteChildren {
   StoreTermosRoute: typeof StoreTermosRoute
   StoreTrocasEDevolucoesRoute: typeof StoreTrocasEDevolucoesRoute
   StoreIndexRoute: typeof StoreIndexRoute
+  StoreBioSlugRoute: typeof StoreBioSlugRoute
   StoreCategoriaSlugRoute: typeof StoreCategoriaSlugRoute
   StoreColecaoSlugRoute: typeof StoreColecaoSlugRoute
   StoreDestaquesSlugRoute: typeof StoreDestaquesSlugRoute
@@ -2174,7 +2174,6 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreContatoRoute: StoreContatoRoute,
   StoreEntrarRoute: StoreEntrarRoute,
   StoreFaqRoute: StoreFaqRoute,
-  StoreLinksRoute: StoreLinksRoute,
   StoreMatchTimeRoute: StoreMatchTimeRoute,
   StorePerfilDaLojaRoute: StorePerfilDaLojaRoute,
   StorePrivacidadeRoute: StorePrivacidadeRoute,
@@ -2185,6 +2184,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreTermosRoute: StoreTermosRoute,
   StoreTrocasEDevolucoesRoute: StoreTrocasEDevolucoesRoute,
   StoreIndexRoute: StoreIndexRoute,
+  StoreBioSlugRoute: StoreBioSlugRoute,
   StoreCategoriaSlugRoute: StoreCategoriaSlugRoute,
   StoreColecaoSlugRoute: StoreColecaoSlugRoute,
   StoreDestaquesSlugRoute: StoreDestaquesSlugRoute,

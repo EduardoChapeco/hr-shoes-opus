@@ -628,5 +628,100 @@ export const builderRegistry: Record<string, BlockManifest> = {
       block_type: "timeline_history",
       content: { title: "Nossa História", events: [] }
     }
+  },
+
+  product_carousel: {
+    type: "product_carousel",
+    version: "1.0.0",
+    name: "Carrossel de Produtos",
+    description: "Exibe produtos dinamicamente puxando do catálogo",
+    category: "commerce",
+    icon: "ShoppingBag",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      collection_slug: z.string().optional()
+    }),
+    inspector: { 
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "textarea" },
+        { name: "collection_slug", label: "Slug da Coleção (opcional)", type: "text" }
+      ]
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "product_carousel",
+      content: { title: "Lançamentos", subtitle: "Conheça as novidades" },
+      data_bindings: { source: "dynamic_products" }
+    }
+  },
+
+  product_grid: {
+    type: "product_grid",
+    version: "1.0.0",
+    name: "Grid de Produtos",
+    description: "Exibe produtos em formato de grade",
+    category: "commerce",
+    icon: "LayoutGrid",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      collection_slug: z.string().optional()
+    }),
+    inspector: { 
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "textarea" },
+        { name: "collection_slug", label: "Slug da Coleção (opcional)", type: "text" }
+      ]
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "product_grid",
+      content: { title: "Mais Vendidos", subtitle: "Os favoritos dos clientes" },
+      data_bindings: { source: "dynamic_products" }
+    }
+  },
+
+  split_banner: {
+    type: "split_banner",
+    version: "1.0.0",
+    name: "Banner Dividido",
+    description: "50% Imagem, 50% Texto e Botão",
+    category: "marketing",
+    icon: "Columns",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      description: z.string().optional(),
+      button_text: z.string().optional(),
+      button_link: z.string().optional(),
+      image_url: z.string().url().optional(),
+      image_position: z.enum(["left", "right"]).default("left")
+    }),
+    inspector: { 
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "description", label: "Descrição", type: "textarea" },
+        { name: "button_text", label: "Texto do Botão", type: "text" },
+        { name: "button_link", label: "Link do Botão", type: "text" },
+        { name: "image_url", label: "Imagem (Upload)", type: "image" },
+        { name: "image_position", label: "Posição da Imagem", type: "select", options: [{label: "Esquerda", value: "left"}, {label: "Direita", value: "right"}] }
+      ]
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "split_banner",
+      content: { title: "Nova Coleção", description: "Descubra os novos modelos.", button_text: "Comprar Agora", image_position: "left" }
+    }
   }
 };

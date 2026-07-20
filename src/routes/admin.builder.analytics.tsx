@@ -31,7 +31,7 @@ function BuilderAnalyticsPage() {
     <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full p-6">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" asChild>
-          <Link to="/admin/builder">
+          <Link to="/admin/builder/" search={{} as any}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar ao Builder
           </Link>

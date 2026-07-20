@@ -16,6 +16,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/commerce/page-header";
+import { ReviewModal } from "@/components/commerce/review-modal";
+import { ReturnModal } from "@/components/commerce/return-modal";
 import { ErrorState, EmptyState } from "@/components/state/states";
 import { formatMoney } from "@/lib/money";
 import { getCustomerOrder, getOrderPaymentInstructions } from "@/services/order.functions";
@@ -182,6 +184,9 @@ function CustomerOrderDetailPage() {
                     <p className="text-xs text-muted-foreground">
                       {item.qty}x {formatMoney(item.unit_price_cents)}
                     </p>
+                    {order.status === "delivered" && (
+                      <ReviewModal productId={item.product_id} productName={item.product_title} />
+                    )}
                   </div>
                 </div>
               ))}
@@ -351,6 +356,10 @@ function CustomerOrderDetailPage() {
                 </p>
               </div>
             </div>
+          )}
+
+          {order.status === "delivered" && (
+            <ReturnModal orderId={order.id} />
           )}
         </div>
       </div>

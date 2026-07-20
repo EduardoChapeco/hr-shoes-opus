@@ -54,6 +54,7 @@ const RegisterSchema = z.object({
     .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
   fullName: z.string().min(2, "Nome é obrigatório"),
   redirectTo: z.string().optional(), // destination after email confirmation
+  isConsentLgpd: z.boolean().optional(),
 });
 
 const ResetPasswordSchema = z.object({
@@ -195,7 +196,7 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
 
 export const signUpWithPassword = createServerFn({ method: "POST" })
   .validator(RegisterSchema)
-  .handler(async ({ data: { email, password, fullName, redirectTo } }) => {
+  .handler(async ({ data: { email, password, fullName, redirectTo, isConsentLgpd } }) => {
     try {
       const request = getRequest();
       // Extract guest session manually before async context drops
@@ -212,7 +213,7 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
         email,
         password,
         options: {
-          data: { full_name: fullName },
+          data: { full_name: fullName, is_consent_lgpd: isConsentLgpd },
           emailRedirectTo: confirmUrl,
         },
       });
