@@ -26,14 +26,14 @@ export function BentoGrid({ content, node_id, block_type }: BentoGridProps) {
   const getSizeClasses = (size?: string) => {
     switch (size) {
       case "wide":
-        return "md:col-span-2 md:row-span-1 h-64";
+        return "md:col-span-2 md:row-span-1 aspect-[16/9] md:aspect-auto md:h-64";
       case "tall":
-        return "md:col-span-1 md:row-span-2 h-[512px]";
+        return "md:col-span-1 md:row-span-2 aspect-[3/4] md:aspect-auto md:h-[512px]";
       case "large":
-        return "md:col-span-2 md:row-span-2 h-[512px]";
+        return "md:col-span-2 md:row-span-2 aspect-square md:aspect-auto md:h-[512px]";
       case "small":
       default:
-        return "md:col-span-1 md:row-span-1 h-64";
+        return "md:col-span-1 md:row-span-1 aspect-[4/3] md:aspect-auto md:h-64";
     }
   };
 
