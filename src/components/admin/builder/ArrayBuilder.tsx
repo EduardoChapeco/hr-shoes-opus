@@ -22,6 +22,8 @@ interface ArrayBuilderProps {
 
 export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: ArrayBuilderProps) {
   const items = Array.isArray(value) ? value : [];
+  const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
 
   const handleAddItem = () => {
     const newItem: any = {};
@@ -45,13 +47,16 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
     onChange(newItems);
   };
 
-  const moveItem = (index: number, direction: -1 | 1) => {
-    if (index + direction < 0 || index + direction >= items.length) return;
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    setDragOverIndex(null);
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
+
     const newItems = [...items];
-    const temp = newItems[index];
-    newItems[index] = newItems[index + direction];
-    newItems[index + direction] = temp;
+    const [removed] = newItems.splice(draggedIndex, 1);
+    newItems.splice(dropIndex, 0, removed);
     onChange(newItems);
+    setDraggedIndex(null);
   };
 
   return (
@@ -67,38 +72,54 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
         </div>
       ) : (
         <Accordion type="single" collapsible className="w-full space-y-2">
-          {items.map((item, index) => (
-            <AccordionItem key={item._id || index} value={`item-${index}`} className="border bg-card rounded-md overflow-hidden">
-              <div className="flex items-center bg-muted/30 pr-2">
-                <div className="flex flex-col border-r px-1 py-2 opacity-50 hover:opacity-100 cursor-ns-resize" onClick={(e) => { e.preventDefault(); }}>
-                   {/* Simple up/down click since drag and drop requires dnd-kit which might be heavy here */}
-                   <button onClick={(e) => { e.preventDefault(); moveItem(index, -1); }} className="p-0.5 hover:bg-muted rounded text-[10px]">▲</button>
-                   <button onClick={(e) => { e.preventDefault(); moveItem(index, 1); }} className="p-0.5 hover:bg-muted rounded text-[10px]">▼</button>
+          {items.map((item, index) => {
+            const isDragged = draggedIndex === index;
+            const isDragOver = dragOverIndex === index;
+            
+            return (
+              <AccordionItem 
+                key={item._id || index} 
+                value={`item-${index}`} 
+                className={`border rounded-md overflow-hidden transition-all ${isDragged ? 'opacity-50' : 'bg-card'} ${isDragOver ? 'border-primary border-t-2' : ''}`}
+                draggable
+                onDragStart={(e) => {
+                  setDraggedIndex(index);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (draggedIndex !== null && draggedIndex !== index) {
+                    setDragOverIndex(index);
+                  }
+                }}
+                onDragLeave={() => setDragOverIndex(null)}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={() => {
+                  setDraggedIndex(null);
+                  setDragOverIndex(null);
+                }}
+              >
+                <div className="flex items-center bg-muted/30 pr-2">
+                  <div className="flex flex-col items-center justify-center border-r px-2 py-2 opacity-50 hover:opacity-100 cursor-grab active:cursor-grabbing text-muted-foreground">
+                     <GripVertical className="h-4 w-4" />
+                  </div>
+                  <AccordionTrigger className="hover:no-underline py-2 px-3 flex-1 text-xs justify-start gap-2">
+                    <span className="font-medium truncate flex-1 text-left">
+                      Item {index + 1} {item.title || item.name || ""}
+                    </span>
+                  </AccordionTrigger>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 text-destructive hover:bg-destructive/10 shrink-0"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleRemoveItem(index);
+                    }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
-                <AccordionTrigger className="hover:no-underline py-2 px-3 flex-1 text-xs justify-start gap-2">
-                  <span className="font-medium truncate flex-1 text-left">
-                    Item {index + 1} {item.title || item.name || ""}
-                  </span>
-                </AccordionTrigger>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-6 w-6 text-destructive hover:bg-destructive/10 shrink-0"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleRemoveItem(index);
-                  }}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-              <AccordionContent className="p-3 border-t bg-card space-y-3">
-                {arrayFields.map(field => (
-                  <div key={field.name} className="flex flex-col gap-1.5">
-                    {field.type === "image" ? (
-                      <MediaUploader
-                        label={field.label}
-                        value={item[field.name] || ""}
                         onChange={(val) => handleUpdateItem(index, field.name, val)}
                       />
                     ) : field.type === "color" ? (

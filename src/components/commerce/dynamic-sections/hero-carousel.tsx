@@ -65,38 +65,37 @@ export function HeroCarousel({ content, node_id, block_type }: { content: Record
             const button_link = String(banner.link || "");
 
             return (
-              <div key={index} className="relative min-w-0 flex-full shrink-0 grow-0 basis-full">
-                {/* Background Image */}
-                <div className="absolute inset-0 z-0 bg-[#222]">
-                  {bg_url ? (
-                    <picture>
-                      <source media="(max-width: 640px)" srcSet={mobile_bg_url} />
-                      <img
-                        src={bg_url}
-                        alt={title || "Banner"}
-                        loading={index === 0 ? "eager" : "lazy"}
-                        className="size-full object-cover"
-                      />
-                    </picture>
-                  ) : (
-                    <div className="size-full bg-gradient-to-tr from-[#1a1a2e] to-[#16213e] flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-4">
-                      <span className="text-white/60 text-sm font-semibold tracking-wide uppercase mb-1">Banner Principal</span>
-                      <span className="text-white/30 text-xs">Arraste/selecione uma imagem ou cole uma URL no painel à direita</span>
-                    </div>
-                  )}
-                  {/* Subtle overlay for text readability */}
-                  <div className="absolute inset-0 bg-black/30" />
-                </div>
+              <div key={index} className="relative min-w-0 flex-full shrink-0 grow-0 basis-full bg-[#222]">
+                {/* Background Image (Static to dictate height naturally without cropping) */}
+                {bg_url ? (
+                  <picture className="block w-full">
+                    <source media="(max-width: 640px)" srcSet={mobile_bg_url} />
+                    <img
+                      src={bg_url}
+                      alt={title || "Banner"}
+                      loading={index === 0 ? "eager" : "lazy"}
+                      className="block w-full h-auto object-cover"
+                    />
+                  </picture>
+                ) : (
+                  <div className="w-full aspect-[21/9] bg-gradient-to-tr from-[#1a1a2e] to-[#16213e] flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-4">
+                    <span className="text-white/60 text-sm font-semibold tracking-wide uppercase mb-1">Banner Principal</span>
+                    <span className="text-white/30 text-xs">Arraste/selecione uma imagem ou cole uma URL no painel à direita</span>
+                  </div>
+                )}
+                
+                {/* Subtle overlay for text readability */}
+                <div className="absolute inset-0 bg-black/30 pointer-events-none" />
 
-                {/* Content */}
-                <div className="relative z-10 mx-auto flex min-h-[400px] max-w-screen-xl flex-col items-start justify-center px-4 py-16 md:min-h-[500px] md:px-6">
+                {/* Content Overlay */}
+                <div className="absolute inset-0 z-10 mx-auto flex w-full max-w-screen-xl flex-col items-start justify-center px-6 py-8 md:px-12 pointer-events-none">
                   {title && (
-                    <h2 className="text-editorial text-4xl text-white sm:text-5xl lg:text-6xl drop-shadow-md max-w-2xl">
+                    <h2 className="text-editorial text-4xl text-white sm:text-5xl lg:text-6xl drop-shadow-md max-w-2xl pointer-events-auto">
                       {title}
                     </h2>
                   )}
                   {button_link && button_text && (
-                    <div className="mt-8">
+                    <div className="mt-4 md:mt-8 pointer-events-auto">
                       <Button size="lg" className="bg-white text-black hover:bg-white/90" asChild>
                         <Link 
                           to={button_link as never}

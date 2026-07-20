@@ -51,15 +51,15 @@ export function SplitBanner({ content, design_tokens }: SplitBannerProps) {
         </div>
 
         {/* Image Side */}
-        <div className="relative h-64 md:h-auto bg-muted">
+        <div className="relative w-full md:h-auto bg-muted flex items-center justify-center overflow-hidden">
           {content?.image_url ? (
             <img 
               src={content.image_url} 
               alt={content?.title || "Banner"} 
-              className="absolute inset-0 w-full h-full object-cover"
+              className="w-full h-auto object-cover md:absolute md:inset-0 md:h-full"
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground bg-muted/50">
+            <div className="w-full aspect-square md:absolute md:inset-0 flex items-center justify-center text-muted-foreground bg-muted/50">
               [Imagem não configurada]
             </div>
           )}
