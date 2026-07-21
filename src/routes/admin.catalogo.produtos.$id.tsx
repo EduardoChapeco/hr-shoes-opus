@@ -303,38 +303,38 @@ function GeneralForm({
   const watchStatus = watch("status");
 
   // Re-emit live updates to preview
-  useMemo(() => {
+  useEffect(() => {
     onTitleChange(watchTitle);
-  }, [watchTitle]);
+  }, [watchTitle, onTitleChange]);
 
-  useMemo(() => {
+  useEffect(() => {
     onDescriptionChange(watchDescription);
-  }, [watchDescription]);
+  }, [watchDescription, onDescriptionChange]);
 
-  useMemo(() => {
+  useEffect(() => {
     onBrandChange(watchBrand);
-  }, [watchBrand]);
+  }, [watchBrand, onBrandChange]);
 
-  useMemo(() => {
+  useEffect(() => {
     const p = parseFloat((watchPrice || "0").replace(",", "."));
     onPriceChange(isNaN(p) ? 0 : Math.round(p * 100));
-  }, [watchPrice]);
+  }, [watchPrice, onPriceChange]);
 
-  useMemo(() => {
+  useEffect(() => {
     if (!watchCompare) return onCompareChange(null);
     const c = parseFloat(watchCompare.replace(",", "."));
     onCompareChange(isNaN(c) ? null : Math.round(c * 100));
-  }, [watchCompare]);
+  }, [watchCompare, onCompareChange]);
 
-  useMemo(() => {
+  useEffect(() => {
     if (!watchCost) return onCostChange(null);
     const cost = parseFloat(watchCost.replace(",", "."));
     onCostChange(isNaN(cost) ? null : Math.round(cost * 100));
-  }, [watchCost]);
+  }, [watchCost, onCostChange]);
 
-  useMemo(() => {
+  useEffect(() => {
     onStatusChange(watchStatus);
-  }, [watchStatus]);
+  }, [watchStatus, onStatusChange]);
 
   const onSubmit = async (values: any) => {
     setIsSubmitting(true);
