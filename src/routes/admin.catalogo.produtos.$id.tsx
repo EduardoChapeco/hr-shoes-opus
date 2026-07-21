@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
@@ -699,6 +699,114 @@ function GeneralForm({
 }
 
 function VariantsManager({ product }: { product: any }) {
+
+  // Matrix State
+  const initialVariantOptions = (product.attributes?.variant_options || []) as {name: string, options: string[]}[];
+  const [customVariantGroups, setCustomVariantGroups] = useState<{name: string, options: string[]}[]>(initialVariantOptions);
+  const [selectedVariantOptions, setSelectedVariantOptions] = useState<Record<string, string[]>>({});
+  const [newCustomGroupName, setNewCustomGroupName] = useState("");
+  const [customOptionInput, setCustomOptionInput] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const initialSelected: Record<string, string[]> = {};
+    initialVariantOptions.forEach(g => {
+      initialSelected[g.name] = g.options || [];
+    });
+    setSelectedVariantOptions(initialSelected);
+  }, []);
+
+  const toggleVariantOption = (groupName: string, optionValue: string) => {
+    setSelectedVariantOptions(prev => {
+      const current = prev[groupName] || [];
+      const newOpts = current.includes(optionValue)
+        ? current.filter(o => o !== optionValue)
+        : [...current, optionValue];
+      
+      // Update customVariantGroups to reflect the change
+      setCustomVariantGroups(groups => groups.map(g => {
+        if (g.name === groupName) {
+          return { ...g, options: newOpts };
+        }
+        return g;
+      }));
+      
+      return { ...prev, [groupName]: newOpts };
+    });
+  };
+
+  const handleSaveMatrixMemory = async () => {
+    try {
+      const activeGroups = customVariantGroups.filter(g => (selectedVariantOptions[g.name] || []).length > 0).map(g => ({
+        name: g.name,
+        options: selectedVariantOptions[g.name]
+      }));
+      const newAttributes = { ...product.attributes, variant_options: activeGroups };
+      await updateProduct({ data: { id: product.id, updates: { attributes: newAttributes } } });
+      toast.success("Memória da matriz salva!");
+    } catch (e) {
+      toast.error("Erro ao salvar matriz");
+    }
+  };
+
+  const handleGenerateMissingVariants = async () => {
+    setIsSubmitting(true);
+    try {
+      await handleSaveMatrixMemory();
+      
+      const activeGroups = customVariantGroups.map(g => g.name).filter(name => (selectedVariantOptions[name] || []).length > 0);
+      if (activeGroups.length === 0) {
+        toast.error("Nenhuma opção selecionada");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const arraysToMultiply = activeGroups.map(name => selectedVariantOptions[name] || []);
+      const cartesian = arraysToMultiply.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())), [[]] as any[]);
+      
+      const existingVariants = product.product_variants || [];
+      let added = 0;
+      
+      for (const combination of cartesian) {
+        const comboArray = Array.isArray(combination) ? combination : [combination];
+        const attrs: Record<string, string> = {};
+        activeGroups.forEach((name, i) => {
+          attrs[name] = comboArray[i];
+        });
+        
+        // Check if exists
+        const exists = existingVariants.some((v: any) => {
+          const vAttrs = v.attributes || {};
+          return activeGroups.every(name => vAttrs[name] === attrs[name]);
+        });
+        
+        if (!exists) {
+          const skuSuffix = comboArray.map(v => v.substring(0, 3).toUpperCase()).join('-');
+          const sku = `${product.slug}-${skuSuffix}-${Date.now().toString().slice(-4)}`;
+          await upsertProductVariant({
+            data: {
+              product_id: product.id,
+              sku,
+              status: "active",
+              attributes: attrs,
+            }
+          });
+          added++;
+        }
+      }
+      
+      if (added > 0) {
+        toast.success(`${added} variantes geradas com sucesso!`);
+        router.invalidate();
+      } else {
+        toast.info("Nenhuma variante nova necessária.");
+      }
+    } catch (e) {
+      toast.error("Erro ao gerar variantes");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
