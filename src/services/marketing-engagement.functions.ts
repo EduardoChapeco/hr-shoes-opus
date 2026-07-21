@@ -41,11 +41,11 @@ export const listAbandonedCarts = createServerFn({ method: "GET" }).handler(asyn
       .order("updated_at", { ascending: false });
 
     if (error) throw error;
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[marketing] listAbandonedCarts error:", e);
-    return { status: "error" as const, message: "Erro ao listar carrinhos abandonados." };
+    throw new Error("Erro ao listar carrinhos abandonados." );
   }
 });
 
@@ -70,9 +70,9 @@ export const updateAbandonedCartStatus = createServerFn({ method: "POST" })
         .single();
 
       if (error) throw error;
-      return { status: "success" as const, data };
+      return data;
     } catch (e) {
-      return { status: "error" as const, message: "Erro ao atualizar status." };
+      throw new Error("Erro ao atualizar status." );
     }
   });
 
@@ -92,10 +92,10 @@ export const listMatchTimeCampaigns = createServerFn({ method: "GET" }).handler(
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
-    return { status: "error" as const, message: "Erro ao listar campanhas Match Time." };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
+    throw new Error("Erro ao listar campanhas Match Time." );
   }
 });
 
@@ -139,10 +139,10 @@ export const upsertMatchTimeCampaign = createServerFn({ method: "POST" })
       }
 
       if (result.error) throw result.error;
-      return { status: "success" as const, data: result.data };
+      return result.data ;
     } catch (e) {
       console.error("[marketing] upsertMatchTimeCampaign error:", e);
-      return { status: "error" as const, message: "Erro ao salvar campanha." };
+      throw new Error("Erro ao salvar campanha." );
     }
   });
 
@@ -162,10 +162,10 @@ export const listSocialPosts = createServerFn({ method: "GET" }).handler(async (
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
-    return { status: "error" as const, message: "Erro ao listar posts." };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
+    throw new Error("Erro ao listar posts." );
   }
 });
 
@@ -195,9 +195,9 @@ export const createSocialPost = createServerFn({ method: "POST" })
         .single();
 
       if (error) throw error;
-      return { status: "success" as const, data };
+      return data;
     } catch (e) {
       console.error("[marketing] createSocialPost error:", e);
-      return { status: "error" as const, message: "Erro ao salvar post." };
+      throw new Error("Erro ao salvar post." );
     }
   });

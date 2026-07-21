@@ -30,7 +30,7 @@ vi.mock("@/lib/supabase-ssr.server", () => {
 
 describe("Auth Profile Functions", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mockFrom.mockReturnValue(mockQueryBuilder);
     mockUpdate.mockReturnValue(mockQueryBuilder);
     mockEq.mockReturnThis();
@@ -74,7 +74,6 @@ describe("Auth Profile Functions", () => {
       expect(mockUpdateUser).toHaveBeenCalledWith({
         data: {
           full_name: "Test User",
-          phone: "123456",
         },
       });
       expect(mockFrom).toHaveBeenCalledWith("profiles");

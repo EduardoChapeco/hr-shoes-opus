@@ -28,6 +28,12 @@ export function MediaUploader({ value, onChange, label, bucket = "product-media"
     if (!file) return;
 
     if (file.type.startsWith("image/")) {
+      // SVG and GIF files cannot be safely cropped without losing animation or vector properties
+      if (file.type.includes("svg") || file.type.includes("gif")) {
+        handleUploadMediaDirectly(file);
+        return;
+      }
+
       setCurrentImageFile(file);
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -57,12 +63,8 @@ export function MediaUploader({ value, onChange, label, bucket = "product-media"
               data: { fileName: file.name, fileBase64: base64, bucket: bucket as any }
             });
 
-            if (res.status === "success") {
-              onChange(res.url);
-              toast.success("Mídia carregada com sucesso");
-            } else {
-              toast.error(res.message);
-            }
+            onChange(res.url);
+            toast.success("Mídia carregada com sucesso");
           } catch (err: any) {
             toast.error(err.message || "Erro no upload");
           } finally {
@@ -87,12 +89,8 @@ export function MediaUploader({ value, onChange, label, bucket = "product-media"
       const res = await uploadMedia({
         data: { fileName: currentImageFile.name, fileBase64: croppedBase64.split(",")[1], bucket: bucket as any }
       });
-      if (res.status === "success") {
-        onChange(res.url);
-        toast.success("Imagem enviada com sucesso");
-      } else {
-        toast.error(res.message);
-      }
+      onChange(res.url);
+      toast.success("Imagem enviada com sucesso");
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer upload da imagem");
     } finally {

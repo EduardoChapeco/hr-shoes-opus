@@ -44,11 +44,11 @@ export const listChatThreads = createServerFn({ method: "GET" }).handler(async (
       };
     });
 
-    return { status: "ok" as const, data: formattedData };
+    return formattedData ;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[chat] listChatThreads error:", e);
-    return { status: "error" as const, message: "Erro ao listar chats." };
+    throw new Error("Erro ao listar chats." );
   }
 });
 
@@ -68,11 +68,11 @@ export const getChatMessages = createServerFn({ method: "GET" })
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      return { status: "ok" as const, data };
+      return data;
     } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[chat] getChatMessages error:", e);
-      return { status: "error" as const, message: "Erro ao carregar mensagens." };
+      throw new Error("Erro ao carregar mensagens." );
     }
   });
 
@@ -111,10 +111,10 @@ export const sendChatMessage = createServerFn({ method: "POST" })
         .update({ updated_at: new Date().toISOString() })
         .eq("id", input.threadId);
 
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[chat] sendChatMessage error:", e);
-      return { status: "error" as const, message: "Erro ao enviar mensagem." };
+      throw new Error("Erro ao enviar mensagem." );
     }
   });
 
@@ -153,24 +153,21 @@ export const getCustomerChatThread = createServerFn({ method: "GET" })
       if (msgErr) throw new Error(msgErr.message);
 
       return {
-        status: "ok" as const,
-        data: {
-          thread: {
-            id: thread.id as string,
-            subject: thread.subject as string | null,
-            status: thread.status as string,
-            createdAt: thread.created_at as string,
-          },
-          messages: (messages || []).map((m: any) => ({
-            id: m.id as string,
-            message: m.message as string,
-            isStaffReply: m.is_staff_reply as boolean,
-            createdAt: m.created_at as string,
-          })),
+        thread: {
+          id: thread.id as string,
+          subject: thread.subject as string | null,
+          status: thread.status as string,
+          createdAt: thread.created_at as string,
         },
+        messages: (messages || []).map((m: any) => ({
+          id: m.id as string,
+          message: m.message as string,
+          isStaffReply: m.is_staff_reply as boolean,
+          createdAt: m.created_at as string,
+        })),
       };
     } catch (e: any) {
-      return { status: "error" as const, message: e.message || "Erro ao carregar conversa." };
+      throw new Error(e.message || "Erro ao buscar chat.");
     }
   });
 
@@ -212,6 +209,6 @@ export const sendCustomerChatMessage = createServerFn({ method: "POST" })
 
       return { status: "success" as const };
     } catch (e: any) {
-      return { status: "error" as const, message: e.message || "Erro ao enviar mensagem." };
+      throw new Error(e.message || "Erro ao enviar mensagem." );
     }
   });

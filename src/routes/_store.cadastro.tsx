@@ -79,10 +79,7 @@ function RegisterPage() {
         },
       });
 
-      if (result.status === "error") {
-        toast.error(result.message);
-        return;
-      }
+
 
       if (!result.sessionActive) {
         toast.success(

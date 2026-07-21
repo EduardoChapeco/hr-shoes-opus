@@ -20,7 +20,7 @@ export const Route = createFileRoute("/admin/configuracoes/politicas")({
 function PoliticasPage() {
   const res = Route.useLoaderData();
   const router = useRouter();
-  const initial = res.status === "ok" ? (res.data.policies as any) || {} : {};
+  const initial = res && "policies" in res ? (res.policies as any) || {} : {};
   const [form, setForm] = useState({
     privacy_policy: initial.privacy_policy || "",
     return_policy: initial.return_policy || "",

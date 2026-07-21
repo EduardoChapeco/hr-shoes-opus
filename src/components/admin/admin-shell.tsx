@@ -223,14 +223,10 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
   const handleLogout = async () => {
     try {
       const res = await signOut();
-      if (res.status === "success") {
-        toast.success("Sessão encerrada.");
-        router.navigate({ to: "/entrar", replace: true });
-      } else {
-        toast.error(res.message || "Erro ao sair");
-      }
-    } catch {
-      toast.error("Erro inesperado ao encerrar sessão.");
+      toast.success("Sessão encerrada.");
+      router.navigate({ to: "/entrar", replace: true });
+    } catch (e: any) {
+      toast.error(e.message || "Erro inesperado ao encerrar sessão.");
     }
   };
 

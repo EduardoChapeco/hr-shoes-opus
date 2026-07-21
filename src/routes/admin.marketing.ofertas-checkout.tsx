@@ -49,14 +49,13 @@ import { EmptyState } from "@/components/state/states";
 export const Route = createFileRoute("/admin/marketing/ofertas-checkout")({
   head: () => ({ meta: [{ title: "Ofertas de Checkout (Upsell) — Hr Shoes" }] }),
   loader: async () => {
-    const [rules, productsRes] = await Promise.all([
+    const [rules, products] = await Promise.all([
       listUpsellRules(),
       listAdminProducts(),
     ]);
-    if (productsRes.status === "error") throw new Error(productsRes.message);
     return {
       rules: rules || [],
-      products: productsRes.data || [],
+      products: products || [],
     };
   },
   component: CheckoutOffersPage,

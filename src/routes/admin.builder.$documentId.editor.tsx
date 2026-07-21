@@ -267,9 +267,7 @@ export const Route = createFileRoute("/admin/builder/$documentId/editor")({
   head: () => ({ meta: [{ title: "Editor Visual — Builder" }] }),
   loader: async ({ params }) => {
     const res = await getExperienceDocument({ data: { id: params.documentId } });
-    if (res.status === "error" || res.status === "unconfigured") {
-      throw new Error("Erro ao carregar Builder");
-    }
+
     return {
       document: res.data.document,
       version: res.data.version,
@@ -508,7 +506,7 @@ function BuilderEditorIDE() {
     setIsSaving(true);
     try {
       const res = await saveBuilderNodes({ data: { version_id: version.id, nodes } });
-      if (res.status === "success") toast.success("Salvo com sucesso!");
+      if (res) toast.success("Salvo com sucesso!");
       else toast.error("Erro ao salvar.");
     } catch { toast.error("Erro inesperado ao salvar."); }
     finally { setIsSaving(false); }
@@ -521,7 +519,7 @@ function BuilderEditorIDE() {
       // First save, then publish
       await saveBuilderNodes({ data: { version_id: version.id, nodes } });
       const res = await publishBuilderVersion({ data: { version_id: version.id, nodes } });
-      if (res.status === "success") toast.success("Publicado! Página pública atualizada.");
+      if (res) toast.success("Publicado! Página pública atualizada.");
       else toast.error("Erro ao publicar.");
     } catch { toast.error("Erro inesperado ao publicar."); }
     finally { setIsPublishing(false); }
@@ -584,7 +582,7 @@ function BuilderEditorIDE() {
           }}
           className={cn(
             "flex items-center gap-1.5 py-1.5 pr-2 rounded-lg text-sm cursor-grab active:cursor-grabbing transition-colors group select-none relative",
-            isSelected ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted text-foreground",
+            isSelected ? "bg-primary/10 text-primary font-medium" : "hover:bg-white/5 text-white/70 hover:text-white",
             isDragged && "opacity-50",
             isDragOver && "border-t-2 border-t-primary" // Feedback visual simples de drop
           )}
@@ -594,8 +592,8 @@ function BuilderEditorIDE() {
           <GripVertical className="h-3 w-3 opacity-30 shrink-0" />
           <span className="truncate flex-1 text-xs">{reg?.name ?? node.block_type}</span>
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button className="p-0.5 rounded hover:bg-muted-foreground/20" onClick={e => moveNode(node.id, -1, e)}><ChevronUp className="h-3 w-3" /></button>
-            <button className="p-0.5 rounded hover:bg-muted-foreground/20" onClick={e => moveNode(node.id, 1, e)}><ChevronDown className="h-3 w-3" /></button>
+            <button className="p-0.5 rounded hover:bg-white/10 text-white/50 hover:text-white" onClick={e => moveNode(node.id, -1, e)}><ChevronUp className="h-3 w-3" /></button>
+            <button className="p-0.5 rounded hover:bg-white/10 text-white/50 hover:text-white" onClick={e => moveNode(node.id, 1, e)}><ChevronDown className="h-3 w-3" /></button>
             <button className="p-0.5 rounded hover:bg-destructive/20 text-destructive" onClick={e => deleteNode(node.id, e)}><Trash2 className="h-3 w-3" /></button>
           </div>
         </div>

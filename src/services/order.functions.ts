@@ -97,11 +97,11 @@ export async function updateOrderStatusHandler(
 export const listOrders = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const data = await listOrdersHandler();
-    return { status: "ok" as const, data };
+    return data;
   } catch (e: any) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[order.functions] listOrders:", e.message);
-    return { status: "error" as const, message: "Erro ao buscar pedidos." };
+    throw new Error("Erro ao buscar pedidos." );
   }
 });
 
@@ -110,11 +110,11 @@ export const getOrderById = createServerFn({ method: "GET" })
   .handler(async ({ data: { orderId } }) => {
     try {
       const data = await getOrderByIdHandler(orderId);
-      return { status: "ok" as const, data };
+      return data;
     } catch (e: any) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[order.functions] getOrderById:", e.message);
-      return { status: "error" as const, message: e.message || "Pedido não encontrado." };
+      throw new Error(e.message || "Pedido não encontrado." );
     }
   });
 
@@ -129,9 +129,9 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     try {
       return await updateOrderStatusHandler(params.orderId, params.status);
     } catch (e: any) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[order.functions] updateOrderStatus:", e.message);
-      return { status: "error" as const, message: "Erro ao atualizar pedido." };
+      throw new Error("Erro ao atualizar pedido." );
     }
   });
 
@@ -151,11 +151,11 @@ export const listPayments = createServerFn({ method: "GET" }).handler(async () =
 
     if (error) throw error;
 
-    return { status: "ok" as const, data: data || [] };
+    return data || [] ;
   } catch (e: any) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[order.functions] listPayments:", e.message);
-    return { status: "error" as const, message: "Erro ao buscar pagamentos." };
+    throw new Error("Erro ao buscar pagamentos." );
   }
 });
 
@@ -185,10 +185,10 @@ export const listCustomerOrders = createServerFn({ method: "GET" }).handler(asyn
 
     if (error) throw error;
 
-    return { status: "ok" as const, data: data || [] };
+    return data || [] ;
   } catch (e: any) {
     console.error("[order.functions] listCustomerOrders:", e.message);
-    return { status: "error" as const, message: "Erro ao buscar seus pedidos." };
+    throw new Error("Erro ao buscar seus pedidos." );
   }
 });
 
@@ -219,13 +219,11 @@ export const getCustomerOrder = createServerFn({ method: "GET" })
 
       if (error) throw error;
 
-      return { status: "ok" as const, data: order };
+      return order ;
     } catch (e: any) {
       console.error("[order.functions] getCustomerOrder:", e.message);
-      return {
-        status: "error" as const,
-        message: e.message || "Erro ao buscar detalhes do pedido.",
-      };
+      throw new Error(e.message || "Erro ao buscar detalhes do pedido.",
+      );
     }
   });
 
@@ -245,13 +243,11 @@ export const listOrdersAwaitingShippingQuote = createServerFn({ method: "GET" })
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      return { status: "ok" as const, data: data || [] };
+      return data || [] ;
     } catch (e: any) {
       console.error("[order.functions] listOrdersAwaitingShippingQuote error:", e);
-      return {
-        status: "error" as const,
-        message: e.message || "Erro ao buscar solicitações de frete.",
-      };
+      throw new Error(e.message || "Erro ao buscar solicitações de frete.",
+      );
     }
   },
 );
@@ -304,10 +300,8 @@ export const updateOrderShippingQuote = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[order.functions] updateOrderShippingQuote error:", e);
-      return {
-        status: "error" as const,
-        message: e.message || "Erro ao atualizar frete do pedido.",
-      };
+      throw new Error(e.message || "Erro ao atualizar frete do pedido.",
+      );
     }
   });
 
@@ -355,10 +349,8 @@ export const getOrderPaymentInstructions = createServerFn({ method: "GET" })
       };
     } catch (e: any) {
       console.error("[order.functions] getOrderPaymentInstructions:", e);
-      return {
-        status: "error" as const,
-        message: e.message || "Erro ao buscar instruções de pagamento.",
-      };
+      throw new Error(e.message || "Erro ao buscar instruções de pagamento.",
+      );
     }
   });
 export const requestOrderReturn = createServerFn({ method: "POST" })
@@ -398,7 +390,7 @@ export const requestOrderReturn = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[order.functions] requestOrderReturn:", e);
-      return { status: "error" as const, message: e.message || "Erro ao solicitar devolução." };
+      throw new Error(e.message || "Erro ao solicitar devolução." );
     }
   });
 

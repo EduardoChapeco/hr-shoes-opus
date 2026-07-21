@@ -25,7 +25,7 @@ export const Route = createFileRoute("/admin/configuracoes/auditoria")({
 function AuditoriaPage() {
   const res = Route.useLoaderData();
 
-  const entries = res.data;
+  const entries = Array.isArray(res) ? res : [];
 
   const actionVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
     INSERT: "default",

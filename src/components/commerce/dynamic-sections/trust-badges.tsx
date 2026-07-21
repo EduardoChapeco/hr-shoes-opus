@@ -1,22 +1,27 @@
 import * as React from "react";
 import { ShieldCheck, Truck, Lock, RotateCcw, CreditCard, Award } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-interface TrustBadgesProps {
-  content: {
-    badges?: Array<{
-      icon: "shield" | "truck" | "lock" | "return" | "card" | "award";
-      title: string;
-      description?: string;
-      subtitle?: string;
-    }>;
-  };
+interface TrustBadge {
+  icon: string;
+  title: string;
+  description?: string;
+  subtitle?: string; // backwards compatibility
 }
 
-export function TrustBadges({ content }: TrustBadgesProps) {
-  const badges = (content.badges || []).length > 0 ? content.badges : [
-    { icon: "lock", title: "Compra 100% Segura", description: "Seus dados estão protegidos" },
-    { icon: "truck", title: "Frete Grátis", description: "Para todo o Brasil" },
-    { icon: "return", title: "Primeira Troca Grátis", description: "Até 30 dias após receber" }
+interface TrustBadgesProps {
+  content?: {
+    badges?: TrustBadge[];
+  };
+  design_tokens?: any;
+}
+
+export function TrustBadges({ content, design_tokens }: TrustBadgesProps) {
+  const badges = content?.badges || [
+    { icon: "shield", title: "Pagamento Seguro", description: "Seus dados estão protegidos" },
+    { icon: "truck", title: "Frete Expresso", description: "Entrega rápida para todo Brasil" },
+    { icon: "return", title: "Troca Fácil", description: "1ª troca grátis em até 7 dias" },
+    { icon: "award", title: "Qualidade Garantida", description: "Produtos 100% originais" },
   ];
 
   const getIcon = (iconName: string) => {
@@ -36,8 +41,14 @@ export function TrustBadges({ content }: TrustBadgesProps) {
   };
 
   return (
-    <div className="w-full grid grid-cols-2 @md:grid-cols-4 gap-6 py-12 px-4 border-y border-border/30 bg-muted/30 backdrop-blur-sm">
-      {badges.map((badge, idx) => (
+    <div 
+      className={cn("w-full grid grid-cols-2 @md:grid-cols-4 gap-6 py-12 px-4 border-y border-border/30 bg-muted/30 backdrop-blur-sm", design_tokens?.className)}
+      style={{
+        backgroundColor: design_tokens?.backgroundColor,
+        color: design_tokens?.textColor,
+      }}
+    >
+      {(badges || []).map((badge, idx) => (
         <div key={idx} className="group flex flex-col items-center text-center gap-4 transition-transform duration-300 hover:-translate-y-1">
           <div className="p-4 rounded-2xl bg-background shadow-sm border border-border/50 group-hover:shadow-md transition-shadow duration-300 group-hover:border-primary/20">
             {getIcon(badge.icon)}

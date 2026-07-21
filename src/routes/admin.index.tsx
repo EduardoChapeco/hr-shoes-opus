@@ -37,6 +37,22 @@ export const Route = createFileRoute("/admin/")({
 });
 
 function DashboardErrorState({ error }: { error: Error }) {
+  if (error.message.includes("SupabaseUnconfiguredError") || error.name === "SupabaseUnconfiguredError") {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          eyebrow="Painel"
+          title="Centro de Comando"
+          description="Sua plataforma comercial integrada."
+        />
+        <ErrorState
+          title="Loja não configurada ou sem conexão"
+          description="O serviço Supabase não está configurado ou sua conta não possui uma loja vinculada. Verifique as variáveis de ambiente ou o cadastro em Configurações."
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -53,41 +69,8 @@ function DashboardErrorState({ error }: { error: Error }) {
 }
 
 function DashboardPage() {
-  const result = Route.useLoaderData();
+  const metrics = Route.useLoaderData();
 
-  if (result.status === "unconfigured") {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          eyebrow="Painel"
-          title="Centro de Comando"
-          description="Sua plataforma comercial integrada."
-        />
-        <ErrorState
-          title="Loja não configurada ou sem conexão"
-          description="O serviço Supabase não está configurado ou sua conta não possui uma loja vinculada. Verifique as variáveis de ambiente ou o cadastro em Configurações."
-        />
-      </div>
-    );
-  }
-
-  if (result.status === "error" || !result.data) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          eyebrow="Painel"
-          title="Centro de Comando"
-          description="Sua plataforma comercial integrada."
-        />
-        <ErrorState
-          title="Não foi possível carregar as métricas"
-          description={result.message || "Ocorreu um erro no servidor ao processar o painel."}
-        />
-      </div>
-    );
-  }
-
-  const metrics: DashboardMetrics = result.data;
   const {
     salesTodayCents,
     salesMonthCents,

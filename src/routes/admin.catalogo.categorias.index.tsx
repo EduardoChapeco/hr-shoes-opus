@@ -29,7 +29,7 @@ export const Route = createFileRoute("/admin/catalogo/categorias/")({
   head: () => ({ meta: [{ title: "Categorias — Hr Shoes" }] }),
   loader: async () => {
     const res = await listCategories();
-    return res.status === "ok" ? res.data : [];
+    return res || [];
   },
   component: AdminCategoriesPage,
 });
@@ -59,7 +59,7 @@ function AdminCategoriesPage() {
   const handleUpdateStatus = async (id: string, newStatus: "active" | "inactive" | "archived") => {
     try {
       const res = await updateCategory({ data: { id, status: newStatus } });
-      if (res.status === "success") {
+      if (res) {
         toast.success(
           newStatus === "archived"
             ? "Categoria arquivada com sucesso!"

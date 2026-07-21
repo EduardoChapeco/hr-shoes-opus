@@ -8,9 +8,7 @@ import { getPromotionalProducts } from "@/services/catalog.functions";
 export const Route = createFileRoute("/_store/promocoes")({
   head: () => ({ meta: [{ title: "Promoções — Hr Shoes" }] }),
   loader: async () => {
-    const res = await getPromotionalProducts();
-    if (res.status === "error") throw new Error(res.message);
-    return res;
+    return await getPromotionalProducts();
   },
   component: Page,
 });
@@ -22,8 +20,8 @@ function Page() {
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       <PageHeader eyebrow="Ofertas" title="Promoções" description="Ofertas ativas da loja." />
       <div className="mt-8">
-        {result.status === "ok" && result.data && result.data.length > 0 ? (
-          <ProductGrid result={result} />
+        {Array.isArray(result) && result.length > 0 ? (
+          <ProductGrid result={{ status: "ok", data: result }} />
         ) : (
           <EmptyState
             title="Nenhuma promoção ativa"

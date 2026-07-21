@@ -15,14 +15,17 @@ mockOrder.mockReturnValue(mockQueryChain);
 
 const mockSupabase = { from: mockFrom };
 
+vi.mock("@/lib/supabase-ssr.server", () => ({
+  getSSRClient: () => mockSupabase,
+}));
+
 vi.mock("@/lib/supabase", () => ({
-  getServerClient: () => mockSupabase,
   SupabaseUnconfiguredError: class extends Error {},
 }));
 
 describe("CMS Functions", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mockFrom.mockReturnValue(mockQueryChain);
     mockSelect.mockReturnValue(mockQueryChain);
     mockOrder.mockReturnValue(mockQueryChain);

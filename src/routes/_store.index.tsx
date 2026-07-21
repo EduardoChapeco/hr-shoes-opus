@@ -62,19 +62,8 @@ function UnconfiguredStorefront() {
 function Home() {
   const { storeConfig, experienceRes } = Route.useLoaderData();
 
-  if (storeConfig.status === "unconfigured") return <UnconfiguredStorefront />;
-  if (storeConfig.status === "error")
-    return (
-      <div className="p-8">
-        <ErrorState description={storeConfig.message} />
-      </div>
-    );
-  if (storeConfig.status === "empty")
-    return (
-      <div className="p-8">
-        <ErrorState description="Loja sem configuração" />
-      </div>
-    );
+  if ("status" in storeConfig && storeConfig.status === "unconfigured") return <UnconfiguredStorefront />;
+
 
   // Fallback se não houver experience document "home" publicado
   if (experienceRes.status !== "ok" || !experienceRes.data.tree || experienceRes.data.tree.length === 0) {

@@ -23,8 +23,7 @@ export const Route = createFileRoute("/admin/criador")({
   head: () => ({ meta: [{ title: "Criador de Posts — Hr Shoes" }] }),
   loader: async () => {
     const res = await listSocialPosts();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: CreatorPage,
 });
@@ -47,7 +46,7 @@ function CreatorPage() {
       const res = await createSocialPost({
         data: { platform, content_text: content, image_url: imageUrl || undefined },
       });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Post arquivado!");
         setContent("");
         setImageUrl("");

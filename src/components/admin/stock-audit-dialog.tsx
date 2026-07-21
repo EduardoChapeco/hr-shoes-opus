@@ -59,8 +59,8 @@ export function StockAuditDialog({ variant }: { variant: any }) {
         },
       });
 
-      if (res.status === "success") {
-        toast.success(res.data.message);
+      if (res) {
+        toast.success(res.message);
         setOpen(false);
         router.invalidate();
       } else {

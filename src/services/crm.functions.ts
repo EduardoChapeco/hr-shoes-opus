@@ -217,7 +217,7 @@ export const createCustomer = createServerFn({ method: "POST" })
       return { status: "success" as const, customerId: userId };
     } catch (e: any) {
       console.error("[crm] createCustomer error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao cadastrar cliente." };
+      throw new Error(e.message || "Erro ao cadastrar cliente." );
     }
   });
 
@@ -250,28 +250,23 @@ export const submitContactForm = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[crm] submitContactForm error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao enviar mensagem" };
+      throw new Error(e.message || "Erro ao enviar mensagem" );
     }
   });
 
 export const listLeads = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const supabase = getServerClient();
-    const identity = await getServerIdentity();
-    assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
+  const supabase = getServerClient();
+  const identity = await getServerIdentity();
+  assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
 
-    const { data, error } = await supabase
-      .from("leads_crm")
-      .select("*")
-      .eq("store_id", identity.store_id)
-      .order("created_at", { ascending: false });
+  const { data, error } = await supabase
+    .from("leads_crm")
+    .select("*")
+    .eq("store_id", identity.store_id)
+    .order("created_at", { ascending: false });
 
-    if (error) throw error;
-    return { status: "ok" as const, data: data || [] };
-  } catch (e: any) {
-    console.error("[crm] listLeads error:", e);
-    return { status: "error" as const, data: [], message: e.message };
-  }
+  if (error) throw error;
+  return data || [];
 });
 
 export const updateLeadStatus = createServerFn({ method: "POST" })
@@ -297,7 +292,7 @@ export const updateLeadStatus = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[crm] updateLeadStatus error:", e);
-      return { status: "error" as const, message: e.message };
+      throw new Error(e.message );
     }
   });
 
@@ -330,10 +325,6 @@ export const promoteLeadToCustomer = createServerFn({ method: "POST" })
         },
       });
 
-      if (promoteRes.status === "error") {
-        throw new Error(promoteRes.message);
-      }
-
       // Update lead status
       await supabase
         .from("leads_crm")
@@ -343,7 +334,7 @@ export const promoteLeadToCustomer = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[crm] promoteLeadToCustomer error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao converter lead." };
+      throw new Error(e.message || "Erro ao converter lead." );
     }
   });
 
@@ -403,10 +394,10 @@ export const upsertCustomerAddress = createServerFn({ method: "POST" })
       }
 
       if (result.error) throw result.error;
-      return { status: "success" as const, data: result.data };
+      return result.data ;
     } catch (e: any) {
       console.error("[crm] upsertCustomerAddress error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao salvar endereço." };
+      throw new Error(e.message || "Erro ao salvar endereço." );
     }
   });
 
@@ -434,7 +425,7 @@ export const deleteCustomerAddress = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[crm] deleteCustomerAddress error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao deletar endereço." };
+      throw new Error(e.message || "Erro ao deletar endereço." );
     }
   });
 

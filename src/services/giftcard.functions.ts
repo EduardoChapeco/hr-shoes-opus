@@ -164,7 +164,7 @@ export const listCustomerGiftCards = createServerFn({ method: "GET" }).handler(a
   const {
     data: { user },
   } = await ssrClient.auth.getUser();
-  if (!user) return { status: "unauthenticated" as const, data: [] };
+  if (!user) throw new Error("Não autorizado");
 
   const supabase = getServerClient();
   const { data: cards, error } = await supabase
@@ -177,8 +177,8 @@ export const listCustomerGiftCards = createServerFn({ method: "GET" }).handler(a
 
   if (error) {
     console.error("[giftcard.functions] listCustomerGiftCards error:", error);
-    return { status: "error" as const, data: [] };
+    throw new Error("Erro ao listar cartões presente.");
   }
 
-  return { status: "success" as const, data: cards || [] };
+  return cards || [] ;
 });

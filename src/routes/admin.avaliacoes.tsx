@@ -31,8 +31,8 @@ export const Route = createFileRoute("/admin/avaliacoes")({
       listAdminProducts()
     ]);
     return {
-      reviews: reviewsRes.status === "ok" ? reviewsRes.data : [],
-      products: productsRes.status === "ok" ? productsRes.data : []
+      reviews: reviewsRes || [],
+      products: productsRes || []
     };
   },
   component: ReviewsPage,
@@ -54,7 +54,7 @@ function ReviewsPage() {
   const handleUpdateStatus = async (id: string, status: "approved" | "rejected") => {
     try {
       const res = await updateReviewStatus({ data: { id, status } });
-      if (res.status === "success") {
+      if (res) {
         toast.success(`Avaliação ${status === "approved" ? "aprovada" : "rejeitada"}.`);
         router.invalidate();
       } else {
@@ -83,13 +83,13 @@ function ReviewsPage() {
         }
       });
 
-      if (res.status === "success") {
+      if (res) {
         toast.success("Avaliação adicionada com sucesso!");
         setIsModalOpen(false);
         setNewReview({ productId: "", reviewerName: "", rating: "5", comment: "" });
         router.invalidate();
       } else {
-        toast.error(res.message || "Erro ao adicionar avaliação.");
+        toast.error("Erro ao adicionar avaliação.");
       }
     } catch (e) {
       toast.error("Erro inesperado ao adicionar avaliação.");
@@ -101,9 +101,9 @@ function ReviewsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Avaliações"
-        description="Modere ou adicione avaliações de produtos para sua loja."
-        action={
+        title="Avaliações de Clientes"
+        description="Aprove e gerencie depoimentos sobre seus produtos"
+        actions={
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger asChild>
               <Button size="sm">

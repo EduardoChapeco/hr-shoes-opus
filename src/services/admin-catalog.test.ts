@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { getServerIdentity } from "@/lib/identity";
 import {
   getOnboardingProgressHandler,
   listCategoriesHandler,
@@ -80,7 +81,21 @@ vi.mock("@/lib/supabase", () => {
 
 describe("Admin Catalog Functions", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
+    mockFrom.mockReset();
+    mockSelect.mockReset();
+    mockLimit.mockReset();
+    mockMaybeSingle.mockReset();
+    mockIn.mockReset();
+    mockOrder.mockReset();
+    mockInsert.mockReset();
+    mockSingle.mockReset();
+    mockDelete.mockReset();
+    mockEq.mockReset();
+    mockUpdate.mockReset();
+    mockStorageFrom.mockReset();
+    mockRemove.mockReset();
+
     mockFrom.mockReturnValue(mockQueryBuilder);
     mockSelect.mockReturnValue(mockQueryBuilder);
     mockLimit.mockReturnValue(mockQueryBuilder);
@@ -94,6 +109,13 @@ describe("Admin Catalog Functions", () => {
     mockUpdate.mockReturnValue(mockQueryBuilder);
     mockStorageFrom.mockReturnValue(mockStorageBucket);
     mockRemove.mockResolvedValue({ error: null });
+
+    vi.mocked(getServerIdentity).mockResolvedValue({
+      id: "test-user-id",
+      role: "admin",
+      store_id: "test-store-id",
+      organization_id: "test-org-id"
+    });
   });
 
   describe("getOnboardingProgressHandler", () => {
@@ -168,10 +190,8 @@ describe("Admin Catalog Functions", () => {
 
   describe("createCategoryHandler", () => {
     it("should successfully insert a category linked to the store", async () => {
-      // 1st single (store query): returns store id
-      // 2nd single (category query): returns new category
+      // 1st single (category query): returns new category
       mockSingle
-        .mockResolvedValueOnce({ data: { id: "store-123" } })
         .mockResolvedValueOnce({
           data: { id: "cat-1", name: "Novidades", slug: "novidades" },
           error: null,
@@ -181,17 +201,15 @@ describe("Admin Catalog Functions", () => {
       const res = await createCategoryHandler(input);
 
       expect(res).toEqual({ id: "cat-1", name: "Novidades", slug: "novidades" });
-      expect(mockFrom).toHaveBeenCalledWith("stores");
       expect(mockFrom).toHaveBeenCalledWith("categories");
       expect(mockInsert).toHaveBeenCalledWith({
-        store_id: "store-123",
+        store_id: "test-store-id",
         ...input,
       });
     });
 
     it("should throw error if store is missing", async () => {
-      // 1st single returns null
-      mockSingle.mockResolvedValueOnce({ data: null });
+      vi.mocked(getServerIdentity).mockResolvedValueOnce({} as any);
 
       await expect(
         createCategoryHandler({ name: "Novidades", slug: "novidades", status: "active" }),
@@ -199,10 +217,8 @@ describe("Admin Catalog Functions", () => {
     });
 
     it("should propagate database insert error", async () => {
-      // 1st single returns store
-      // 2nd single returns insert error
+      // 1st single returns insert error
       mockSingle
-        .mockResolvedValueOnce({ data: { id: "store-123" } })
         .mockResolvedValueOnce({ data: null, error: { message: "DB insert error" } });
 
       await expect(
@@ -266,11 +282,11 @@ describe("Admin Catalog Functions", () => {
     it("should propagate database insert error", async () => {
       mockSingle
         .mockResolvedValueOnce({ data: { id: "store-123", organization_id: "org-456" } })
-        .mockResolvedValueOnce({ data: null, error: { message: "DB insert error" } });
+        .mockResolvedValueOnce({ data: null, error: { message: "DB insert fail" } });
 
       await expect(
         createProductTypeHandler({ name: "Tênis", slug: "tenis", field_schema: [] }),
-      ).rejects.toThrow("DB insert error");
+      ).rejects.toThrow("DB insert fail");
     });
   });
 
@@ -294,12 +310,10 @@ describe("Admin Catalog Functions", () => {
 
   describe("createProductHandler", () => {
     it("should successfully insert a product and create variants/categories/media records", async () => {
-      // 1st single: stores
-      mockSingle.mockResolvedValueOnce({ data: { id: "store-123" } });
-      // 2nd single: products insert
+      // 1st single: products insert
       const mockProduct = { id: "prod-1", title: "Tênis Preto" };
       mockSingle.mockResolvedValueOnce({ data: mockProduct, error: null });
-      // 3rd single: variants insert
+      // 2nd single: variants insert
       mockSingle.mockResolvedValueOnce({ data: { id: "var-1", sku: "TENIS-P-38" }, error: null });
 
       const input = {
@@ -317,7 +331,6 @@ describe("Admin Catalog Functions", () => {
 
       const res = await createProductHandler(input);
       expect(res).toEqual(mockProduct);
-      expect(mockFrom).toHaveBeenCalledWith("stores");
       expect(mockFrom).toHaveBeenCalledWith("products");
       expect(mockFrom).toHaveBeenCalledWith("product_categories");
       expect(mockFrom).toHaveBeenCalledWith("product_variants");
@@ -326,7 +339,7 @@ describe("Admin Catalog Functions", () => {
     });
 
     it("should throw if store not found", async () => {
-      mockSingle.mockResolvedValueOnce({ data: null });
+      vi.mocked(getServerIdentity).mockResolvedValueOnce({} as any);
 
       await expect(
         createProductHandler({
@@ -340,7 +353,6 @@ describe("Admin Catalog Functions", () => {
     });
 
     it("should propagate product insert database error", async () => {
-      mockSingle.mockResolvedValueOnce({ data: { id: "store-123" } });
       mockSingle.mockResolvedValueOnce({ data: null, error: { message: "Insert error" } });
 
       await expect(
@@ -401,24 +413,73 @@ describe("Admin Catalog Functions", () => {
   });
 
   describe("upsertProductVariantHandler", () => {
-    it("should insert variant when id is missing", async () => {
+    it("Regra A (Sanitização): should trim all attribute keys and values before inserting", async () => {
       const mockVar = { id: "var-99", sku: "TENIS-99" };
+      // 1. Mock fetch existing variants
+      mockEq.mockResolvedValueOnce({ data: [], error: null });
+      // 2. Mock insert response
       mockSingle.mockResolvedValueOnce({ data: mockVar, error: null });
 
       const res = await upsertProductVariantHandler({
         product_id: "prod-1",
         sku: "TENIS-99",
         status: "active",
-        attributes: { size: "39" },
+        attributes: { " Cor ": " Azul " },
       });
 
       expect(res).toEqual(mockVar);
-      expect(mockFrom).toHaveBeenCalledWith("product_variants");
-      expect(mockInsert).toHaveBeenCalled();
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          attributes: { Cor: "Azul" },
+        })
+      );
     });
 
-    it("should update variant when id is present", async () => {
+    it("Regra B (Consistência): should throw Inconsistência de matriz if new variant has different attribute keys", async () => {
+      // 1. Mock fetch existing variants (has Size but we try to insert Cor)
+      mockEq.mockResolvedValueOnce({
+        data: [{ id: "var-1", attributes: { Tamanho: "40" } }],
+        error: null,
+      });
+
+      await expect(
+        upsertProductVariantHandler({
+          product_id: "prod-1",
+          sku: "TENIS-99",
+          status: "active",
+          attributes: { Cor: "Azul" },
+        })
+      ).rejects.toThrow(/Inconsistência de matriz/);
+    });
+
+    it("Regra C (Conflito): should throw Conflito de Matriz if exact combination already exists", async () => {
+      // 1. Mock fetch existing variants (has Cor: Azul)
+      mockEq.mockResolvedValueOnce({
+        data: [{ id: "var-1", attributes: { Cor: "Azul" } }],
+        error: null,
+      });
+
+      await expect(
+        upsertProductVariantHandler({
+          product_id: "prod-1",
+          sku: "TENIS-99",
+          status: "active",
+          attributes: { Cor: "Azul" },
+        })
+      ).rejects.toThrow(/Conflito de Matriz/);
+    });
+
+    it("should update variant when id is present and no conflict occurs", async () => {
       const mockVar = { id: "var-99", sku: "TENIS-99" };
+      // Mock fetch existing variants (returns itself and another one)
+      mockEq.mockResolvedValueOnce({
+        data: [
+          { id: "var-99", attributes: { Cor: "Azul" } },
+          { id: "var-100", attributes: { Cor: "Vermelho" } },
+        ],
+        error: null,
+      });
+      // Mock update response
       mockSingle.mockResolvedValueOnce({ data: mockVar, error: null });
 
       const res = await upsertProductVariantHandler({
@@ -426,25 +487,16 @@ describe("Admin Catalog Functions", () => {
         product_id: "prod-1",
         sku: "TENIS-99",
         status: "active",
-        attributes: { size: "39" },
+        attributes: { Cor: "Azul" }, // we are updating var-99 to Azul, which is what it was
       });
 
       expect(res).toEqual(mockVar);
-      expect(mockFrom).toHaveBeenCalledWith("product_variants");
-      expect(mockUpdate).toHaveBeenCalled();
-    });
-
-    it("should propagate database error", async () => {
-      mockSingle.mockResolvedValueOnce({ data: null, error: { message: "DB Variant fail" } });
-
-      await expect(
-        upsertProductVariantHandler({
-          product_id: "prod-1",
-          sku: "TENIS-99",
-          status: "active",
-          attributes: {},
-        }),
-      ).rejects.toThrow("DB Variant fail");
+      expect(mockUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          attributes: { Cor: "Azul" },
+        })
+      );
+      expect(mockEq).toHaveBeenCalledWith("id", "var-99");
     });
   });
 
@@ -492,6 +544,7 @@ describe("Admin Catalog Functions", () => {
         product_id: "prod-1",
         url: "https://foo.com/pic.jpg",
         sort_order: 99,
+        variant_id: null,
       });
     });
 
@@ -528,7 +581,6 @@ describe("Admin Catalog Functions", () => {
   describe("createCollectionHandler", () => {
     it("should successfully insert collection linked to store", async () => {
       mockSingle
-        .mockResolvedValueOnce({ data: { id: "store-123" } })
         .mockResolvedValueOnce({
           data: { id: "col-1", name: "Verão", slug: "verao" },
           error: null,
@@ -538,16 +590,15 @@ describe("Admin Catalog Functions", () => {
       const res = await createCollectionHandler(input);
 
       expect(res).toEqual({ id: "col-1", name: "Verão", slug: "verao" });
-      expect(mockFrom).toHaveBeenCalledWith("stores");
       expect(mockFrom).toHaveBeenCalledWith("collections");
       expect(mockInsert).toHaveBeenCalledWith({
-        store_id: "store-123",
+        store_id: "test-store-id",
         ...input,
       });
     });
 
     it("should throw if store is missing", async () => {
-      mockSingle.mockResolvedValueOnce({ data: null });
+      vi.mocked(getServerIdentity).mockResolvedValueOnce({} as any);
 
       await expect(
         createCollectionHandler({ name: "Verão", slug: "verao", status: "active" }),
@@ -556,7 +607,6 @@ describe("Admin Catalog Functions", () => {
 
     it("should propagate database insert error", async () => {
       mockSingle
-        .mockResolvedValueOnce({ data: { id: "store-123" } })
         .mockResolvedValueOnce({ data: null, error: { message: "DB collections insert fail" } });
 
       await expect(

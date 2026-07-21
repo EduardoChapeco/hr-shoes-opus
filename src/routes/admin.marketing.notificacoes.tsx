@@ -26,12 +26,7 @@ import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/marketing/notificacoes")({
   head: () => ({ meta: [{ title: "Notificações — Hr Shoes" }] }),
-  loader: async () => {
-    const res = await listAbandonedCarts();
-    if (res.status === "error") throw new Error(res.message);
-    if (res.status === "unconfigured") return [];
-    return res.data || [];
-  },
+  loader: async () => await listAbandonedCarts() || [],
   component: NotificacoesPage,
 });
 
@@ -44,7 +39,7 @@ function NotificacoesPage() {
     setProcessingId(id);
     try {
       const res = await updateAbandonedCartStatus({ data: { id, status } });
-      if (res.status === "error") throw new Error("Erro ao atualizar");
+      
       toast.success("Status atualizado!");
       router.invalidate();
     } catch (e: any) {

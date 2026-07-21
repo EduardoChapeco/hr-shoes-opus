@@ -20,10 +20,10 @@ export const Route = createFileRoute("/_store")({
       getActiveGlobalPopups()
     ]);
     return {
-      menus: menusRes.status === "ok" ? menusRes.data : [],
-      store: storeRes.status === "ok" ? storeRes.data : null,
+      menus: menusRes || [],
+      store: storeRes || null,
       cart,
-      popups: popupsRes.status === "ok" ? popupsRes.data : []
+      popups: popupsRes || []
     };
   },
   component: StoreLayoutWrapper,

@@ -60,7 +60,7 @@ describe("Audit Server Functions", () => {
 
       expect(supabaseMock.from).toHaveBeenCalledWith("audit_log");
       expect(supabaseMock.from().eq).toHaveBeenCalledWith("store_id", "store-456");
-      expect(result).toEqual({ status: "ok", data: mockLogs });
+      expect(result).toEqual(mockLogs);
     });
   });
 });

@@ -89,7 +89,7 @@ export const Route = createFileRoute("/admin/catalogo/produtos/$id")({
     if (res.status === "error") throw new Error(res.message);
     return {
       product: res.data,
-      categories: catsRes.status === "ok" ? catsRes.data : [],
+      categories: catsRes || [],
     };
   },
   component: EditProductPage,
@@ -372,7 +372,7 @@ function GeneralForm({
         },
       });
 
-      if (res.status === "success") {
+      if (res) {
         toast.success("Produto atualizado com sucesso!");
       } else {
         toast.error(res.message || "Erro ao atualizar");
@@ -396,10 +396,10 @@ function GeneralForm({
           status: "active"
         }
       });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Categoria criada!");
-        categories.push(res.data);
-        setSelectedCategory(res.data.id);
+        categories.push(res);
+        setSelectedCategory(res.id);
         setIsCategoryModalOpen(false);
         setNewCategoryName("");
       } else {
@@ -864,7 +864,7 @@ function MediaManager({ product }: { product: any }) {
     setIsAdding(true);
     try {
       const res = await addProductMediaLink({ data: { product_id: product.id, url } });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Imagem vinculada e salva na galeria!");
         router.invalidate();
       } else {
@@ -879,13 +879,9 @@ function MediaManager({ product }: { product: any }) {
 
   const handleDelete = async (mediaId: string, mediaUrl: string) => {
     try {
-      const res = await deleteProductMedia({ data: { id: mediaId, url: mediaUrl } });
-      if (res.status === "success") {
-        toast.success("Mídia removida.");
-        router.invalidate();
-      } else {
-        toast.error(res.message);
-      }
+      await deleteProductMedia({ data: { id: mediaId, url: mediaUrl } });
+      toast.success("Mídia removida.");
+      router.invalidate();
     } catch (e) {
       toast.error("Erro ao deletar mídia");
     }
@@ -907,13 +903,9 @@ function MediaManager({ product }: { product: any }) {
     }));
 
     try {
-      const res = await reorderProductMedia({ data: { mediaOrders } });
-      if (res.status === "success") {
-        toast.success("Ordenação atualizada!");
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao reordenar mídias.");
-      }
+      await reorderProductMedia({ data: { mediaOrders } });
+      toast.success("Ordenação atualizada!");
+      router.invalidate();
     } catch {
       toast.error("Erro ao reordenar mídias.");
     }
@@ -930,7 +922,7 @@ function MediaManager({ product }: { product: any }) {
     const variant_id = formData.get("variant_id") as string || null;
 
     try {
-      const res = await updateProductMediaMetadata({
+      await updateProductMediaMetadata({
         data: {
           id: editingMedia.id,
           alt: alt || null,
@@ -939,13 +931,9 @@ function MediaManager({ product }: { product: any }) {
         },
       });
 
-      if (res.status === "success") {
-        toast.success("Metadados atualizados com sucesso!");
-        setEditingMedia(null);
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao atualizar metadados.");
-      }
+      toast.success("Metadados atualizados com sucesso!");
+      setEditingMedia(null);
+      router.invalidate();
     } catch {
       toast.error("Erro ao atualizar metadados.");
     } finally {

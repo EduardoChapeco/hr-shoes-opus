@@ -18,9 +18,7 @@ import { getStockMovements } from "@/services/stock.functions";
 export const Route = createFileRoute("/admin/estoque/movimentos")({
   head: () => ({ meta: [{ title: "Movimentos de estoque — Hr Shoes" }] }),
   loader: async () => {
-    const res = await getStockMovements({ data: { limit: 100 } });
-    if (res.status === "error") throw new Error((res as any).message);
-    return res.data;
+    return await getStockMovements({ data: { limit: 100 } }) || [];
   },
   component: MovementsPage,
 });

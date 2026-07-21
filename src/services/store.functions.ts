@@ -20,7 +20,7 @@ export async function getStoreSettingsHandler() {
     throw new Error("Loja não encontrada ou erro ao carregar configurações");
   }
 
-  return { status: "ok" as const, data: store };
+  return store ;
 }
 
 export const getStoreSettings = createServerFn({ method: "GET" }).handler(getStoreSettingsHandler);
@@ -80,7 +80,7 @@ export async function getPoliciesHandler() {
     throw new Error("Loja não encontrada ou erro ao carregar políticas");
   }
 
-  return { status: "ok" as const, data: store };
+  return store ;
 }
 
 export const getPolicies = createServerFn({ method: "GET" }).handler(getPoliciesHandler);
@@ -126,7 +126,7 @@ export async function getStoreSeoHandler() {
     throw new Error("Loja não encontrada ou erro ao carregar SEO");
   }
 
-  return { status: "ok" as const, data: store };
+  return store ;
 }
 
 export const getStoreSeo = createServerFn({ method: "GET" }).handler(getStoreSeoHandler);
@@ -172,7 +172,7 @@ export async function getPublicProfileHandler() {
     throw new Error("Loja não encontrada ou erro ao carregar perfil público");
   }
 
-  return { status: "ok" as const, data: store };
+  return store ;
 }
 
 export const getPublicProfile = createServerFn({ method: "GET" }).handler(getPublicProfileHandler);

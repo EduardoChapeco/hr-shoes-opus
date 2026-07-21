@@ -38,31 +38,15 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
 });
 
 function StorePerfil() {
-  const { profile: res, builderTree } = Route.useLoaderData();
+  const { profile: data, builderTree } = Route.useLoaderData();
 
-  if (res.status === "unconfigured") {
+  if (data && "status" in data && data.status === "unconfigured") {
     return (
       <div className="mx-auto max-w-screen-xl px-4 py-12 md:px-6">
         <UnconfiguredState
           title="Perfil não disponível"
           description="As informações da loja ainda não foram configuradas."
         />
-      </div>
-    );
-  }
-
-  if (res.status === "error") {
-    return (
-      <div className="mx-auto max-w-screen-xl px-4 py-12 md:px-6">
-        <ErrorState title="Erro ao carregar" description={(res as any).message ?? "Erro desconhecido"} />
-      </div>
-    );
-  }
-
-  if (res.status === "empty") {
-    return (
-      <div className="mx-auto max-w-screen-xl px-4 py-12 md:px-6">
-        <UnconfiguredState title="Perfil não encontrado" description="Loja sem dados configurados." />
       </div>
     );
   }
@@ -80,7 +64,7 @@ function StorePerfil() {
   // ── Honest fallback: no Builder document published yet.
   // Reads real store data and shows structured info.
   // Admin banner prompts creating the institutional profile.
-  const store = res.data as any;
+  const store = data as any;
   const settings = store.settings || {};
   const extendedHours = settings.business_hours_extended || [];
   const holidayExceptions = settings.holiday_exceptions || [];

@@ -20,9 +20,7 @@ import { listIntegrations, upsertIntegration } from "@/services/growth.functions
 export const Route = createFileRoute("/admin/integracoes")({
   head: () => ({ meta: [{ title: "Integrações — Hr Shoes" }] }),
   loader: async () => {
-    const res = await listIntegrations();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return await listIntegrations();
   },
   component: IntegrationsPage,
 });
@@ -56,7 +54,7 @@ function IntegrationsPage() {
           credentials: state.credentials,
         },
       });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Integração salva com sucesso!");
         router.invalidate();
       } else {

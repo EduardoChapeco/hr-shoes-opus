@@ -56,7 +56,7 @@ vi.mock("@/lib/identity", () => {
 
 describe("Dashboard Services", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mockFrom.mockReturnValue(mockQueryBuilder);
     mockSelect.mockReturnValue(mockQueryBuilder);
     mockEq.mockReturnValue(mockQueryBuilder);

@@ -98,7 +98,7 @@ export const Route = createFileRoute("/admin/caixa/")({
     ]);
     return {
       register: registerRes,
-      products: productsRes.status === "ok" ? productsRes.data : [],
+      products: productsRes || [],
     };
   },
   errorComponent: ({ error }) => <CashRegisterError error={error} />,
@@ -198,17 +198,13 @@ function CashRegisterPage() {
         },
       });
 
-      if (res.status === "success") {
-        toast.success("Cliente cadastrado!");
-        setIsNewCustomerOpen(false);
-        setNewCustomerForm({ fullName: "", email: "", phone: "" });
-        
-        await fetchCustomers();
-        setSelectedCustomerId(res.customerId);
-        setCustomerNameInput(newCustomerForm.fullName);
-      } else {
-        toast.error(res.message || "Erro ao cadastrar cliente");
-      }
+      toast.success("Cliente cadastrado!");
+      setIsNewCustomerOpen(false);
+      setNewCustomerForm({ fullName: "", email: "", phone: "" });
+      
+      await fetchCustomers();
+      setSelectedCustomerId(res.customerId);
+      setCustomerNameInput(newCustomerForm.fullName);
     } catch (e: any) {
       toast.error(e.message || "Erro inesperado");
     } finally {
@@ -325,7 +321,7 @@ function CashRegisterPage() {
         },
       });
 
-      if (res.status === "success") {
+      if (res) {
         if (res.hasNegativeStock) {
           toast.warning("Venda concluída, mas o estoque ficou negativo em alguns produtos. Recomendamos auditoria/recontagem de estoque.", { duration: 8000 });
         } else {

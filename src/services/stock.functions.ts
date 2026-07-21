@@ -40,11 +40,11 @@ export const getStockLevels = createServerFn({ method: "GET" })
   .handler(async ({ data: params }) => {
     try {
       const data = await getStockLevelsHandler(params);
-      return { status: "ok" as const, data };
+      return data;
     } catch (e: any) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[stock.functions] getStockLevels:", e.message);
-      return { status: "error" as const, message: "Erro ao buscar estoque." };
+      throw new Error("Erro ao buscar estoque." );
     }
   });
 
@@ -82,9 +82,9 @@ export const adjustStock = createServerFn({ method: "POST" })
     try {
       return await adjustStockHandler(params);
     } catch (e: any) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[stock.functions] adjustStock:", e.message);
-      return { status: "error" as const, message: e.message || "Erro ao ajustar estoque." };
+      throw new Error(e.message || "Erro ao ajustar estoque." );
     }
   });
 
@@ -128,11 +128,11 @@ export const getStockMovements = createServerFn({ method: "GET" })
   .handler(async ({ data: { limit } }) => {
     try {
       const data = await getStockMovementsHandler(limit);
-      return { status: "ok" as const, data };
+      return data;
     } catch (e: any) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[stock.functions] getStockMovements:", e.message);
-      return { status: "error" as const, message: "Erro ao buscar ledger de estoque." };
+      throw new Error("Erro ao buscar ledger de estoque." );
     }
   });
 
@@ -160,9 +160,9 @@ export const performStockAudit = createServerFn({ method: "POST" })
       });
 
       if (error) throw error;
-      return { status: "success" as const, data };
+      return data;
     } catch (e: any) {
       console.error("[stock.functions] performStockAudit:", e.message);
-      return { status: "error" as const, message: e.message || "Erro ao realizar auditoria." };
+      throw new Error(e.message || "Erro ao realizar auditoria." );
     }
   });

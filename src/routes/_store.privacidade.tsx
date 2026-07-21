@@ -15,9 +15,8 @@ export const Route = createFileRoute("/_store/privacidade")({
   }),
   loader: async () => {
     const res = await getPageBySlug({ data: { slug: "privacidade" } });
-    if (res.status === "error") throw new Error(res.message);
-    if (res.status === "not_found") return null;
-    return res.data;
+    if (res && "status" in res && res.status === "not_found") return null;
+    return res as { title?: string; sections?: any[] } | null;
   },
   component: Page,
 });

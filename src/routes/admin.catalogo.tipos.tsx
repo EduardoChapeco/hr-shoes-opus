@@ -69,7 +69,7 @@ export const Route = createFileRoute("/admin/catalogo/tipos")({
   head: () => ({ meta: [{ title: "Tipos de produto — Hr Shoes" }] }),
   loader: async () => {
     const res = await listProductTypes();
-    return res.status === "ok" ? res.data : [];
+    return res || [];
   },
   component: ProductTypesPage,
 });
@@ -115,7 +115,7 @@ function ProductTypesPage() {
             field_schema: values.fields,
           },
         });
-        if (res.status === "success") {
+        if (res) {
           toast.success("Tipo de produto atualizado!");
           setOpen(false);
           setEditingType(null);
@@ -133,7 +133,7 @@ function ProductTypesPage() {
           },
         });
 
-        if (res.status === "success") {
+        if (res) {
           toast.success("Tipo de produto criado com sucesso!");
           setOpen(false);
           form.reset();
@@ -170,13 +170,9 @@ function ProductTypesPage() {
       return;
     }
     try {
-      const res = await deleteProductType({ data: { id } });
-      if (res.status === "success") {
-        toast.success("Tipo de produto excluído!");
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao excluir tipo");
-      }
+      await deleteProductType({ data: { id } });
+      toast.success("Tipo de produto excluído!");
+      router.invalidate();
     } catch {
       toast.error("Erro ao excluir tipo");
     }

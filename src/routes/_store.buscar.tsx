@@ -8,7 +8,8 @@ import { ProductGrid } from "@/components/commerce/product-grid";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/state/states";
-import type { ProductListResult } from "@/types/catalog";
+import type { ProductCardDTO } from "@/types/catalog";
+import { toast } from "sonner";
 
 const SearchSchema = z.object({
   q: z.string().optional(),
@@ -37,12 +38,12 @@ const SUGGESTIONS = [
 
 function SearchPage() {
   const { result: initialResult, query: initialQuery } = Route.useLoaderData() as {
-    result: ProductListResult | null;
+    result: ProductCardDTO[] | null;
     query: string;
   };
   const navigate = useNavigate();
   const [input, setInput] = useState(initialQuery ?? "");
-  const [result, setResult] = useState<ProductListResult | null>(initialResult);
+  const [result, setResult] = useState<ProductCardDTO[] | null>(initialResult);
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -62,8 +63,9 @@ function SearchPage() {
     try {
       const res = await searchProducts({ data: { query: trimmed } });
       setResult(res);
-    } catch {
-      setResult({ status: "error", message: "Erro ao conectar ao servidor." });
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao conectar ao servidor.");
+      setResult(null);
     } finally {
       setIsSearching(false);
     }
@@ -171,22 +173,19 @@ function SearchPage() {
       {/* Results */}
       {!isSearching && result && (
         <div className="mt-2">
-          {result.status === "ok" && result.data.length === 0 && (
+          {Array.isArray(result) && result.length === 0 && (
             <EmptyState
               title={`Nenhum resultado para "${initialQuery}"`}
               description="Tente outros termos. Ex: use o nome do produto, a marca ou a cor."
             />
           )}
-          {result.status === "error" && (
-            <p className="text-destructive text-center py-8">{result.message}</p>
-          )}
-          {result.status === "ok" && result.data.length > 0 && (
+          {Array.isArray(result) && result.length > 0 && (
             <>
               <p className="text-sm text-muted-foreground mb-6">
-                {result.data.length} resultado{result.data.length !== 1 ? "s" : ""} para{" "}
+                {result.length} resultado{result.length !== 1 ? "s" : ""} para{" "}
                 <strong className="text-foreground">"{initialQuery}"</strong>
               </p>
-              <ProductGrid result={result} />
+              <ProductGrid result={{ status: "ok", data: result }} />
             </>
           )}
         </div>

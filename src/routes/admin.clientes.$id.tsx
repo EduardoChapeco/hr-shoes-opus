@@ -202,7 +202,7 @@ function CustomerDetailPage() {
         },
       });
 
-      if (res.status === "success") {
+      if (res) {
         toast.success(editingAddress ? "Endereço atualizado!" : "Endereço cadastrado!");
         setIsAddressOpen(false);
         router.invalidate();
@@ -219,18 +219,14 @@ function CustomerDetailPage() {
   const handleDeleteAddress = async (addressId: string) => {
     if (!confirm("Tem certeza que deseja remover este endereço permanentemente?")) return;
     try {
-      const res = await deleteCustomerAddress({
+      await deleteCustomerAddress({
         data: {
           addressId,
           customerId: id,
         },
       });
-      if (res.status === "success") {
-        toast.success("Endereço removido");
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao remover endereço");
-      }
+      toast.success("Endereço removido");
+      router.invalidate();
     } catch {
       toast.error("Erro inesperado");
     }
@@ -396,7 +392,7 @@ function CustomerDetailPage() {
                                 is_default: true
                               }
                             });
-                            if (res.status === "success") {
+                            if (res) {
                               toast.success("Endereço padrão atualizado!");
                               router.invalidate();
                             }

@@ -127,18 +127,14 @@ export const signInWithPassword = createServerFn({ method: "POST" })
         recordFailedAttempt(ip);
 
         if (error.status === 429) {
-          return {
-            status: "error" as const,
-            message: "Muitas tentativas de login. Aguarde alguns minutos.",
-          };
+          throw new Error("Muitas tentativas de login. Aguarde alguns minutos.",
+          );
         }
         if (error.message.includes("Email not confirmed")) {
-          return {
-            status: "error" as const,
-            message: "E-mail não confirmado. Verifique sua caixa de entrada.",
-          };
+          throw new Error("E-mail não confirmado. Verifique sua caixa de entrada.",
+          );
         }
-        return { status: "error" as const, message: "E-mail ou senha incorretos." };
+        throw new Error("E-mail ou senha incorretos." );
       }
 
       // Successful login: clear the failed attempts counter
@@ -162,7 +158,7 @@ export const signInWithPassword = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Erro desconhecido";
-      return { status: "error" as const, message: `Erro ao realizar login: ${message}` };
+      throw new Error(`Erro ao realizar login: ${message}`);
     }
   });
 
@@ -184,7 +180,7 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
       });
 
       if (error) {
-        return { status: "error" as const, message: error.message };
+        throw new Error(error.message );
       }
 
       return { status: "success" as const, url: data.url };
@@ -221,22 +217,17 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
       if (error) {
         console.error("[auth] signUp API error:", error);
         if (error.status === 429) {
-          return {
-            status: "error" as const,
-            message:
-              "Limite de tentativas atingido (Supabase Free Tier). Aguarde 60 min ou desative 'Confirm email' no seu painel do Supabase em Authentication -> Providers -> Email.",
-          };
+          throw new Error("Limite de tentativas atingido (Supabase Free Tier). Aguarde 60 min ou desative 'Confirm email' no seu painel do Supabase em Authentication -> Providers -> Email.",
+          );
         }
         if (
           error.message?.toLowerCase().includes("already registered") ||
           error.message?.toLowerCase().includes("user already")
         ) {
-          return {
-            status: "error" as const,
-            message: "Este e-mail já possui uma conta. Faça login ou recupere sua senha.",
-          };
+          throw new Error("Este e-mail já possui uma conta. Faça login ou recupere sua senha.",
+          );
         }
-        return { status: "error" as const, message: `Erro ao realizar cadastro: ${error.message}` };
+        throw new Error(`Erro ao realizar cadastro: ${error.message}`);
       }
 
       // Only merge guest cart if signup returned an active session (email confirmation disabled).
@@ -267,7 +258,7 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Erro desconhecido";
       console.error("[auth] Erro catastrófico no signUp:", e);
-      return { status: "error" as const, message: `Erro interno no cadastro: ${message}` };
+      throw new Error(`Erro interno no cadastro: ${message}`);
     }
   });
 
@@ -277,7 +268,7 @@ export const signOut = createServerFn({ method: "POST" }).handler(async () => {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      return { status: "error" as const, message: error.message };
+      throw new Error(error.message );
     }
 
     // Clear guest session manually using H3-compatible util
@@ -305,13 +296,13 @@ export const updatePassword = createServerFn({ method: "POST" })
       });
 
       if (error) {
-        return { status: "error" as const, message: error.message };
+        throw new Error(error.message );
       }
 
       return { status: "success" as const };
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Erro desconhecido";
-      return { status: "error" as const, message: `Erro ao atualizar senha: ${message}` };
+      throw new Error(`Erro ao atualizar senha: ${message}`);
     }
   });
 
@@ -326,17 +317,14 @@ export const resetPasswordForEmail = createServerFn({ method: "POST" })
 
       if (error) {
         if (error.status === 429) {
-          return {
-            status: "error" as const,
-            message:
-              "Limite de envio de e-mails atingido. Aguarde 60 minutos antes de solicitar novamente.",
-          };
+          throw new Error("Limite de envio de e-mails atingido. Aguarde 60 minutos antes de solicitar novamente.",
+          );
         }
-        return { status: "error" as const, message: error.message };
+        throw new Error(error.message );
       }
       return { status: "success" as const };
     } catch (e) {
-      return { status: "error" as const, message: "Erro ao solicitar redefinição." };
+      throw new Error("Erro ao solicitar redefinição." );
     }
   });
 

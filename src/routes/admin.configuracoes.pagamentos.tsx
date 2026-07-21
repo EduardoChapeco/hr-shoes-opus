@@ -37,13 +37,13 @@ import { getPaymentSettings, savePaymentSettings } from "@/services/store.functi
 export const Route = createFileRoute("/admin/configuracoes/pagamentos")({
   head: () => ({ meta: [{ title: "Métodos de Pagamento — Hr Shoes" }] }),
   loader: async () => {
-    const [methodsRes, pixRes] = await Promise.all([
+    const [methods, pixRes] = await Promise.all([
       listManualPaymentMethods(),
-      getPaymentSettings().catch(() => ({ status: "error" as const, data: null })),
+      getPaymentSettings().catch(() => null),
     ]);
     return {
-      methods: methodsRes.status === "error" ? [] : methodsRes.data || [],
-      pixSettings: pixRes.status === "ok" ? pixRes.data : null,
+      methods: methods || [],
+      pixSettings: pixRes || null,
     };
   },
   component: ManualPaymentsPage,
@@ -124,7 +124,7 @@ function ManualPaymentsPage() {
           installment_interest_rate: Number(installmentInterestRate),
         },
       });
-      if (res.status === "success") {
+      if (res) {
         toast.success(
           "Configurações salvas com sucesso! As regras serão aplicadas instantaneamente no checkout.",
         );
@@ -166,7 +166,7 @@ function ManualPaymentsPage() {
   const onSubmit = async (values: any) => {
     setIsSubmitting(true);
     try {
-      const res = await saveManualPaymentMethod({
+      await saveManualPaymentMethod({
         data: {
           id: editingMethod?.id,
           name: values.name,
@@ -176,13 +176,9 @@ function ManualPaymentsPage() {
           is_active: values.is_active,
         },
       });
-      if (res.status === "success") {
-        toast.success(editingMethod ? "Método atualizado!" : "Método criado com sucesso!");
-        setOpen(false);
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao salvar método.");
-      }
+      toast.success(editingMethod ? "Método atualizado!" : "Método criado com sucesso!");
+      setOpen(false);
+      router.invalidate();
     } catch (e) {
       toast.error("Erro inesperado");
     } finally {
@@ -193,13 +189,9 @@ function ManualPaymentsPage() {
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     try {
-      const res = await deleteManualPaymentMethod({ data: { id: deleteTarget.id } });
-      if (res.status === "success") {
-        toast.success("Método excluído.");
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao excluir.");
-      }
+      await deleteManualPaymentMethod({ data: { id: deleteTarget.id } });
+      toast.success("Método excluído.");
+      router.invalidate();
     } catch (e) {
       toast.error("Erro inesperado");
     } finally {

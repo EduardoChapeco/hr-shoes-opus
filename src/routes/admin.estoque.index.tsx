@@ -55,7 +55,7 @@ export const Route = createFileRoute("/admin/estoque/")({
   head: () => ({ meta: [{ title: "Estoque Operacional — Hr Shoes" }] }),
   loader: async () => {
     const res = await getStockLevels({ data: {} });
-    return res.status === "ok" ? res.data : [];
+    return res || [];
   },
   component: AdminStockPage,
 });
@@ -156,7 +156,7 @@ function AdminStockPage() {
         },
       });
 
-      if (res.status === "ok") {
+      if (res) {
         toast.success("Movimentação registrada com sucesso no banco de dados.");
         setSelectedVariant(null);
 

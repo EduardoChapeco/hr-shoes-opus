@@ -63,7 +63,7 @@ export const Route = createFileRoute("/admin/clientes/")({
     ]);
     return {
       customers,
-      leads: leadsRes.status === "ok" ? leadsRes.data : [],
+      leads: leadsRes || [],
     };
   },
   component: CustomersPage,
@@ -100,7 +100,7 @@ function CustomersPage() {
         ? form.tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
         : [];
 
-      const res = await createCustomer({
+      await createCustomer({
         data: {
           fullName: form.fullName,
           email: form.email,
@@ -110,14 +110,10 @@ function CustomersPage() {
         },
       });
 
-      if (res.status === "success") {
-        toast.success("Cliente cadastrado com sucesso!");
-        setIsOpen(false);
-        setForm({ fullName: "", email: "", phone: "", tagsRaw: "", notes: "", taxId: "", isConsentLgpd: false });
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao cadastrar");
-      }
+      toast.success("Cliente cadastrado com sucesso!");
+      setIsOpen(false);
+      setForm({ fullName: "", email: "", phone: "", tagsRaw: "", notes: "", taxId: "", isConsentLgpd: false });
+      router.invalidate();
     } catch (e: any) {
       toast.error(e.message || "Erro inesperado");
     } finally {
@@ -127,13 +123,9 @@ function CustomersPage() {
 
   const handleStatusChange = async (leadId: string, status: "new" | "contacted" | "converted" | "lost") => {
     try {
-      const res = await updateLeadStatus({ data: { leadId, status } });
-      if (res.status === "success") {
-        toast.success("Lead atualizado");
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao atualizar");
-      }
+      await updateLeadStatus({ data: { leadId, status } });
+      toast.success("Lead atualizado");
+      router.invalidate();
     } catch {
       toast.error("Falha ao atualizar lead");
     }
@@ -142,13 +134,9 @@ function CustomersPage() {
   const handlePromote = async (leadId: string) => {
     try {
       toast.loading("Promovendo lead a cliente...", { id: "promote" });
-      const res = await promoteLeadToCustomer({ data: { leadId } });
-      if (res.status === "success") {
-        toast.success("Lead promovido a cliente com sucesso!", { id: "promote" });
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao promover", { id: "promote" });
-      }
+      await promoteLeadToCustomer({ data: { leadId } });
+      toast.success("Lead promovido a cliente com sucesso!", { id: "promote" });
+      router.invalidate();
     } catch {
       toast.error("Falha ao promover lead", { id: "promote" });
     }

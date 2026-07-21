@@ -20,6 +20,9 @@ interface ProductCarouselProps {
     title?: string;
     subtitle?: string;
     collection_slug?: string;
+    itemsPerRowDesktop?: string;
+    itemsPerRowMobile?: string;
+    freeScroll?: boolean;
   };
   design_tokens?: any;
   data_bindings?: any;
@@ -53,7 +56,7 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
     queryKey: ["editorCollectionProducts", collectionSlug],
     queryFn: async () => {
       const res = await getProductsByCollection({ data: { slug: collectionSlug! } });
-      return res.status === "ok" ? res.data : [];
+      return Array.isArray(res) ? res : [];
     },
     enabled: !!(shouldFetchClient && isCollection)
   });
@@ -62,7 +65,7 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
     queryKey: ["editorLatestProducts", data_bindings?.limit],
     queryFn: async () => {
       const res = await listPublishedProducts({ data: { limit: data_bindings?.limit || 12 } });
-      return res.status === "ok" ? res.data : [];
+      return Array.isArray(res) ? res : [];
     },
     enabled: !!(shouldFetchClient && isLatest)
   });
@@ -72,6 +75,29 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
   const activeProducts = products.length > 0
     ? products
     : (isCollection ? (clientCollectionProducts || []) : (clientLatestProducts || []));
+
+  const itemsPerRowDesktop = String(content?.itemsPerRowDesktop || "4");
+  const itemsPerRowMobile = String(content?.itemsPerRowMobile || "2");
+  const freeScroll = content?.freeScroll !== false;
+
+  const getDesktopBasis = (cols: string) => {
+    switch (cols) {
+      case "3": return "@md:basis-1/3 @lg:basis-1/3";
+      case "5": return "@md:basis-1/4 @lg:basis-1/5";
+      case "4":
+      default: return "@md:basis-1/3 @lg:basis-1/4";
+    }
+  };
+
+  const getMobileBasis = (cols: string) => {
+    switch (cols) {
+      case "1": return freeScroll ? "basis-[85%] @sm:basis-[85%]" : "basis-full @sm:basis-full";
+      case "2":
+      default: return freeScroll ? "basis-[45%] @sm:basis-1/2" : "basis-1/2 @sm:basis-1/2";
+    }
+  };
+
+  const itemClassName = `pl-3 @md:pl-4 ${getMobileBasis(itemsPerRowMobile)} ${getDesktopBasis(itemsPerRowDesktop)}`;
 
   return (
     <div
@@ -120,12 +146,12 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
           </div>
         ) : (
           <Carousel
-            opts={{ align: "start", loop: false, dragFree: true }}
+            opts={{ align: "start", loop: false, dragFree: freeScroll }}
             className="w-full relative"
           >
             <CarouselContent className="-ml-3 @md:-ml-4">
               {activeProducts.map((product: any) => (
-                <CarouselItem key={product.id} className="pl-3 @md:pl-4 basis-[65%] @sm:basis-1/2 @md:basis-1/3 @lg:basis-1/4 @xl:basis-1/5">
+                <CarouselItem key={product.id} className={itemClassName}>
                   <ProductCard product={product} />
                 </CarouselItem>
               ))}

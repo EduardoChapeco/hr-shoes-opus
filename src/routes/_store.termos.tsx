@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_store/termos")({
   head: ({ loaderData }) => ({
     meta: [
       {
-        title: loaderData?.title
+        title: loaderData && !("status" in loaderData) && loaderData.title
           ? `${loaderData.title} — Hr Shoes`
           : "Termos de serviço — Hr Shoes",
       },
@@ -15,36 +15,40 @@ export const Route = createFileRoute("/_store/termos")({
   }),
   loader: async () => {
     const res = await getPageBySlug({ data: { slug: "termos" } });
-    if (res.status === "error") throw new Error(res.message);
-    if (res.status === "not_found") return null;
-    return res.data;
+    if ("status" in res && res.status === "not_found") return null;
+    return res;
   },
   component: Page,
 });
 
 function Page() {
-  const page = Route.useLoaderData();
+  const data = Route.useLoaderData();
+  const res = data as any;
+
+  if (!res || res.status === "not_found") {
+    return (
+      <div className="container py-20">
+        <EmptyState
+          title="Documento não encontrado"
+          description="Os termos de serviço ainda não foram publicados."
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 md:px-6 md:py-12">
-      <PageHeader eyebrow="Documento" title={page?.title || "Termos de serviço"} />
-      <div className="mt-8">
-        {!page ? (
-          <EmptyState
-            title="Página não encontrada"
-            description="Este documento ainda não foi publicado."
-          />
-        ) : (
-          <div className="prose prose-neutral max-w-none">
-            {page.sections?.map((section: any) => (
-              <div key={section.id}>
-                {section.section_type === "text" && (
-                  <div dangerouslySetInnerHTML={{ __html: section.content.html || "" }} />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+    <div className="pb-24">
+      <PageHeader title={res.title} />
+      <div className="container max-w-4xl mx-auto px-4 mt-12">
+        <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-primary">
+          {res.sections?.map((section: any) => (
+            <div key={section.id}>
+              {section.section_type === "text" && (
+                <div dangerouslySetInnerHTML={{ __html: section.content.html || "" }} />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

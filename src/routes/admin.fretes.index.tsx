@@ -49,12 +49,7 @@ import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/fretes/")({
   head: () => ({ meta: [{ title: "Gestão de Fretes & Entregas — Hr Shoes" }] }),
-  loader: async () => {
-    const res = await listShippingZones();
-    if (res.status === "error") throw new Error(res.message);
-    if (res.status === "unconfigured") return [];
-    return res.data || [];
-  },
+  loader: async () => await listShippingZones() || [],
   component: ShippingHubPage,
 });
 
@@ -98,7 +93,7 @@ function ShippingHubPage() {
         },
       });
 
-      if (res.status === "error") throw new Error(res.message);
+      
       toast.success("Zona de entrega criada com sucesso!");
       setOpenZone(false);
       setNewZoneName("");
@@ -117,7 +112,7 @@ function ShippingHubPage() {
       const res = await upsertShippingZone({
         data: { id: zone.id, name: zone.name, regions: zone.regions, is_active: active },
       });
-      if (res.status === "error") throw new Error(res.message);
+      
       toast.success(`Zona ${active ? "ativada" : "desativada"}.`);
       router.invalidate();
     } catch (e: any) {
@@ -130,7 +125,7 @@ function ShippingHubPage() {
     if (!confirm("Deseja realmente excluir esta zona de entrega e suas taxas?")) return;
     try {
       const res = await deleteShippingZone({ data: { id: zoneId } });
-      if (res.status === "error") throw new Error(res.message);
+      
       toast.success("Zona de entrega removida.");
       router.invalidate();
     } catch (e: any) {
@@ -150,8 +145,8 @@ function ShippingHubPage() {
     setIsSimulating(true);
     try {
       const res = await calculateShipping({ data: { zipcode: cleanZip } });
-      if (res.status === "error") throw new Error(res.message);
-      setSimResults(res.data || []);
+      
+      setSimResults(Array.isArray(res) ? res : []);
     } catch (e: any) {
       toast.error(e.message || "Erro ao calcular frete para o CEP.");
     } finally {

@@ -20,7 +20,7 @@ export const Route = createFileRoute("/admin/marketing/seguidores")({
   head: () => ({ meta: [{ title: "Seguidores da Loja — Hr Shoes" }] }),
   loader: async () => {
     const res = await listStoreFollowers();
-    return res.status === "ok" ? res.data : [];
+    return res || [];
   },
   component: FollowersPage,
 });
@@ -57,7 +57,6 @@ function FollowersPage() {
         <EmptyState
           title={searchTerm ? "Nenhum seguidor encontrado" : "Ainda sem seguidores"}
           description={searchTerm ? "Tente buscar por outro termo." : "Os clientes que clicarem em 'Seguir' na página do produto aparecerão aqui."}
-          icon={Users}
         />
       ) : (
         <div className="rounded-md border bg-card">

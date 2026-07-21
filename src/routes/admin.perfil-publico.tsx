@@ -74,15 +74,11 @@ function InstitutionalTemplatePicker() {
     try {
       setIsCreating(true);
       const res = await getOrCreateInstitutionalDocument({ data: { template_id: templateId } });
-      if (res.status === "success" && res.data?.id) {
-        toast.success("Perfil Institucional criado com sucesso!");
-        navigate({
-          to: "/admin/builder/$documentId/editor",
-          params: { documentId: res.data.id },
-        });
-      } else {
-        throw new Error(res.message || "Erro desconhecido");
-      }
+      toast.success("Perfil Institucional criado com sucesso!");
+      navigate({
+        to: "/admin/builder/$documentId/editor",
+        params: { documentId: res.data.id },
+      });
     } catch (e: any) {
       toast.error("Falha ao criar perfil: " + e.message);
       setIsCreating(false);

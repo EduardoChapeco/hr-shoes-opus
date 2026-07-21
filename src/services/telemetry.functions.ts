@@ -97,6 +97,6 @@ export const getBuilderAnalyticsSummary = createServerFn({ method: "GET" })
 
       return { status: "ok" as const, data: { totalViews, totalClicks, blockStats } };
     } catch (e: unknown) {
-      return { status: "error" as const, message: "Erro ao carregar sumário analítico." };
+      throw new Error("Erro ao carregar sumário analítico." );
     }
   });

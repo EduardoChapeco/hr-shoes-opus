@@ -29,19 +29,16 @@ const getDashboardStats = createServerFn({ method: "GET" }).handler(async () => 
     const revenueCents = paidOrders.reduce((sum, o) => sum + (o.total_cents || 0), 0);
 
     return {
-      status: "ok" as const,
-      data: {
-        totalRevenueCents: revenueCents,
-        totalOrders: orders.length,
-        paidOrders: paidOrders.length,
-        totalProducts: productsRes.data?.length || 0,
-        publishedProducts: productsRes.data?.filter((p) => p.status === "published").length || 0,
-        totalCustomers: customersRes.data?.length || 0,
-      },
+      totalRevenueCents: revenueCents,
+      totalOrders: orders.length,
+      paidOrders: paidOrders.length,
+      totalProducts: productsRes.data?.length || 0,
+      publishedProducts: productsRes.data?.filter((p) => p.status === "published").length || 0,
+      totalCustomers: customersRes.data?.length || 0,
     };
   } catch (e: any) {
     console.error("[admin.relatorios] getDashboardStats:", e);
-    return { status: "error" as const, message: "Erro ao carregar estatísticas." };
+    throw new Error("Erro ao carregar estatísticas.");
   }
 });
 
@@ -90,16 +87,7 @@ function ReportsPage() {
     );
   }
 
-  if (res.status === "error") {
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Relatórios" description="Visão consolidada do desempenho da loja." />
-        <p className="text-destructive text-sm">{res.message}</p>
-      </div>
-    );
-  }
-
-  const d = res.data;
+  const d = res;
 
   return (
     <div className="space-y-8">

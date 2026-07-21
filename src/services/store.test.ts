@@ -72,7 +72,7 @@ describe("Store Settings Server Functions", () => {
       expect(getServerIdentity).toHaveBeenCalled();
       expect(supabaseMock.from).toHaveBeenCalledWith("stores");
       expect(supabaseMock.from().eq).toHaveBeenCalledWith("id", "store-456");
-      expect(result).toEqual({ status: "ok", data: mockStoreData });
+      expect(result).toEqual(mockStoreData);
     });
 
     it("should throw error if database select fails", async () => {
@@ -105,13 +105,13 @@ describe("Store Settings Server Functions", () => {
       vi.mocked(getServerIdentity).mockResolvedValue(mockIdentity);
 
       supabaseMock.from().update.mockReturnValue(supabaseMock.from());
-      supabaseMock.from().eq.mockResolvedValue({ error: null });
+      supabaseMock.from().single.mockResolvedValue({ data: { settings: {} }, error: null });
 
       const updateData = { name: "New Name" };
       const result = await saveStoreSettingsHandler(updateData);
 
       expect(supabaseMock.from).toHaveBeenCalledWith("stores");
-      expect(supabaseMock.from().update).toHaveBeenCalledWith(updateData);
+      expect(supabaseMock.from().update).toHaveBeenCalledWith({ ...updateData, settings: { faviconUrl: undefined, logoUrl: undefined } });
       expect(supabaseMock.from().eq).toHaveBeenCalledWith("id", "store-456");
       expect(result).toEqual({ status: "success" });
     });
@@ -136,7 +136,7 @@ describe("Store Settings Server Functions", () => {
 
       expect(supabaseMock.from).toHaveBeenCalledWith("stores");
       expect(supabaseMock.from().eq).toHaveBeenCalledWith("id", "store-456");
-      expect(result).toEqual({ status: "ok", data: mockStoreData });
+      expect(result).toEqual(mockStoreData);
     });
   });
 
@@ -178,7 +178,7 @@ describe("Store Settings Server Functions", () => {
 
       const result = await getStoreSeoHandler();
 
-      expect(result).toEqual({ status: "ok", data: mockSeoData });
+      expect(result).toEqual(mockSeoData);
     });
   });
 
@@ -220,7 +220,7 @@ describe("Store Settings Server Functions", () => {
 
       const result = await getPublicProfileHandler();
 
-      expect(result).toEqual({ status: "ok", data: mockStoreData });
+      expect(result).toEqual(mockStoreData);
     });
   });
 

@@ -49,11 +49,11 @@ export async function listTeamMembersHandler() {
 export const listTeamMembers = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const data = await listTeamMembersHandler();
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[admin-team] listTeamMembers error:", e);
-    return { status: "error" as const, message: "Erro ao listar equipe." };
+    throw new Error("Erro ao listar equipe." );
   }
 });
 
@@ -114,10 +114,10 @@ export const updateTeamMemberRole = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await updateTeamMemberRoleHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[admin-team] updateTeamMemberRole error:", e);
-      return { status: "error" as const, message: e instanceof Error ? e.message : "Erro." };
+      throw new Error(e instanceof Error ? e.message : "Erro." );
     }
   });
 
@@ -175,6 +175,6 @@ export const inviteTeamMember = createServerFn({ method: "POST" })
       return await inviteTeamMemberHandler(input);
     } catch (e: unknown) {
       console.error("[admin-team] inviteTeamMember error:", e);
-      return { status: "error" as const, message: e instanceof Error ? e.message : "Erro." };
+      throw new Error(e instanceof Error ? e.message : "Erro." );
     }
   });

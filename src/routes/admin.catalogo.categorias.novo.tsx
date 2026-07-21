@@ -22,7 +22,7 @@ export const Route = createFileRoute("/admin/catalogo/categorias/novo")({
   head: () => ({ meta: [{ title: "Nova Categoria — Hr Shoes" }] }),
   loader: async () => {
     const res = await listCategories();
-    return res.status === "ok" ? res.data : [];
+    return res || [];
   },
   component: NewCategoryPage,
 });
@@ -58,7 +58,7 @@ function NewCategoryPage() {
         },
       });
 
-      if (res.status === "success") {
+      if (res) {
         toast.success("Categoria criada com sucesso!");
         navigate({ to: "/admin/catalogo/categorias" });
       } else {

@@ -69,7 +69,7 @@ vi.mock("@/lib/identity", () => {
 
 describe("Admin Team Functions", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mockSchema.mockImplementation(() => ({
       from: mockFrom,
     }));

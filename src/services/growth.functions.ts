@@ -41,11 +41,11 @@ export const listCoupons = createServerFn({ method: "GET" }).handler(async () =>
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[growth] listCoupons error:", e);
-    return { status: "error" as const, message: "Erro ao listar cupons." };
+    throw new Error("Erro ao listar cupons." );
   }
 });
 
@@ -86,12 +86,12 @@ export const upsertCoupon = createServerFn({ method: "POST" })
       }
 
       if (result.error) throw result.error;
-      return { status: "success" as const, data: result.data };
+      return result.data ;
     } catch (e: any) {
       console.error("[growth] upsertCoupon error:", e);
       if (e.code === "23505")
-        return { status: "error" as const, message: "Código de cupom já existe." };
-      return { status: "error" as const, message: "Erro ao salvar cupom." };
+        throw new Error("Código de cupom já existe." );
+      throw new Error("Erro ao salvar cupom." );
     }
   });
 
@@ -112,7 +112,7 @@ export const deleteCoupon = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[growth] deleteCoupon error:", e);
-      return { status: "error" as const, message: "Erro ao excluir cupom." };
+      throw new Error("Erro ao excluir cupom." );
     }
   });
 
@@ -131,11 +131,11 @@ export const listIntegrations = createServerFn({ method: "GET" }).handler(async 
       .eq("store_id", identity.store_id);
 
     if (error) throw error;
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[growth] listIntegrations error:", e);
-    return { status: "error" as const, message: "Erro ao listar integrações." };
+    throw new Error("Erro ao listar integrações." );
   }
 });
 
@@ -171,9 +171,9 @@ export const upsertIntegration = createServerFn({ method: "POST" })
         .single();
 
       if (error) throw error;
-      return { status: "success" as const, data };
+      return data;
     } catch (e: any) {
       console.error("[growth] upsertIntegration error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao salvar integração." };
+      throw new Error(e.message || "Erro ao salvar integração." );
     }
   });

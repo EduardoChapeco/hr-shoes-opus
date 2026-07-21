@@ -10,8 +10,7 @@ export const Route = createFileRoute("/_store/conta/trocas")({
   head: () => ({ meta: [{ title: "Trocas e Devoluções — Hr Shoes" }] }),
   loader: async () => {
     const res = await listCustomerExchanges();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: Page,
 });

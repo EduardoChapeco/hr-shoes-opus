@@ -15,8 +15,7 @@ export const Route = createFileRoute("/admin/cms/navegacao")({
   head: () => ({ meta: [{ title: "Navegação — Hr Shoes" }] }),
   loader: async () => {
     const res = await getNavigationMenus();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: NavigationMenusPage,
 });
@@ -92,7 +91,7 @@ function MenuEditor({
         },
       });
 
-      if (res.status === "success") {
+      if (res) {
         toast.success(`${title} salvo com sucesso!`);
         router.invalidate();
       } else {

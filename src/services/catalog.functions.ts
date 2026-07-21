@@ -106,16 +106,13 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       })
       .default({}),
   )
-  .handler(async ({ data: params }): Promise<ProductListResult> => {
+  .handler(async ({ data: params }) => {
     try {
       const db = getAnonServerClient();
       const storeId = await resolveTenantStoreId();
 
       if (!storeId) {
-        return {
-          status: "unconfigured",
-          reason: "Nenhuma loja foi configurada. Configure a loja no painel de administração.",
-        };
+        throw new Error("Nenhuma loja foi configurada. Configure a loja no painel de administração.");
       }
 
       const selectQuery = params.categorySlug
@@ -163,11 +160,11 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
 
       if (error) {
         console.error("[catalog.functions] listPublishedProducts:", error.message);
-        return { status: "error", message: "Não foi possível carregar os produtos." };
+        throw new Error("Não foi possível carregar os produtos." );
       }
 
       if (!data || data.length === 0) {
-        return { status: "empty" };
+        return [];
       }
 
       let products: ProductCardDTO[] = data.map(mapProductCardDTO);
@@ -184,16 +181,13 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       // Trim to requested limit after sorting
       products = products.slice(0, params.limit);
 
-      return { status: "ok", data: products };
+      return products ;
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) {
-        return {
-          status: "unconfigured",
-          reason: "Nossa vitrine está passando por uma rápida atualização técnica.",
-        };
+        throw new Error("Nossa vitrine está passando por uma rápida atualização técnica.");
       }
       console.error("[catalog.functions] unexpected error:", e);
-      return { status: "error", message: "Erro inesperado ao carregar produtos." };
+      throw new Error("Erro inesperado ao carregar produtos." );
     }
   });
 
@@ -203,7 +197,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
 // ---------------------------------------------------------------------------
 
 export const listPublishedCategories = createServerFn({ method: "GET" }).handler(
-  async (): Promise<CategoryListResult> => {
+  async () => {
     try {
       const db = getAnonServerClient();
       const storeId = await resolveTenantStoreId();
@@ -225,11 +219,11 @@ export const listPublishedCategories = createServerFn({ method: "GET" }).handler
 
       if (error) {
         console.error("[catalog.functions] listPublishedCategories:", error.message);
-        return { status: "error", message: "Não foi possível carregar as categorias." };
+        throw new Error("Não foi possível carregar as categorias." );
       }
 
       if (!data || data.length === 0) {
-        return { status: "empty" };
+        return [];
       }
 
       const categories: CategoryDTO[] = data.map((row) => ({
@@ -239,7 +233,7 @@ export const listPublishedCategories = createServerFn({ method: "GET" }).handler
         coverUrl: (row.cover_url as string | null) ?? null,
       }));
 
-      return { status: "ok", data: categories };
+      return categories ;
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) {
         return {
@@ -247,7 +241,7 @@ export const listPublishedCategories = createServerFn({ method: "GET" }).handler
           reason: "Nossas categorias de calçados estão em manutenção temporária.",
         };
       }
-      return { status: "error", message: "Erro inesperado ao carregar categorias." };
+      throw new Error("Erro inesperado ao carregar categorias." );
     }
   },
 );
@@ -257,7 +251,7 @@ export const listPublishedCategories = createServerFn({ method: "GET" }).handler
 // ---------------------------------------------------------------------------
 
 export const getStoreConfig = createServerFn({ method: "GET" }).handler(
-  async (): Promise<StoreConfigResult> => {
+  async () => {
     try {
       const db = getAnonServerClient();
 
@@ -277,10 +271,10 @@ export const getStoreConfig = createServerFn({ method: "GET" }).handler(
         .single();
 
       if (error || !data) {
-        return {
-          status: "unconfigured",
-          reason: "Nenhuma loja configurada. Crie a loja no painel de administração.",
-        };
+        throw new Error("Nenhuma loja configurada. Crie a loja no painel de administração.");
+      }
+      if (!storeId) {
+        throw new Error("Nenhuma loja foi configurada. Configure a loja no painel de administração.");
       }
 
       // settings is a JSONB column — validated here (not trusted as-is).
@@ -317,7 +311,7 @@ export const getStoreConfig = createServerFn({ method: "GET" }).handler(
           typeof settings.instagramHandle === "string" ? settings.instagramHandle : null,
       };
 
-      return { status: "ok", data: config };
+      return config ;
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) {
         return {
@@ -325,20 +319,20 @@ export const getStoreConfig = createServerFn({ method: "GET" }).handler(
           reason: "As configurações e dados da loja estão sendo restabelecidos.",
         };
       }
-      return { status: "error", message: "Erro inesperado ao carregar configurações da loja." };
+      throw new Error("Erro inesperado ao carregar configurações da loja." );
     }
   },
 );
 export const searchProducts = createServerFn({ method: "GET" })
   .validator(z.object({ query: z.string().min(1) }))
-  .handler(async ({ data: { query } }): Promise<ProductListResult> => {
+  .handler(async ({ data: { query } }) => {
     try {
       const db = await getAnonServerClient();
       const { resolveTenantStoreId } = await import("@/lib/tenant");
       const storeId = await resolveTenantStoreId();
       const store = { id: storeId };
       if (!storeId) {
-        return { status: "unconfigured", reason: "Loja não encontrada." };
+        throw new Error("Loja não encontrada.");
       }
 
       const selectFields = `
@@ -372,7 +366,7 @@ export const searchProducts = createServerFn({ method: "GET" })
 
       // If FTS returns results, use them
       if (!ftsError && ftsData && ftsData.length > 0) {
-        return { status: "ok", data: ftsData.map(mapProductCardDTO) };
+        return ftsData.map(mapProductCardDTO) ;
       }
 
       // Stage 2: Trigram fallback — match across title, brand, description
@@ -387,30 +381,30 @@ export const searchProducts = createServerFn({ method: "GET" })
         .limit(20);
 
       if (trigramError) {
-        return { status: "error", message: trigramError.message };
+        throw new Error(trigramError.message );
       }
 
       if (!trigramData || trigramData.length === 0) {
-        return { status: "ok", data: [] };
+        return [] ;
       }
 
-      return { status: "ok", data: trigramData.map(mapProductCardDTO) };
+      return trigramData.map(mapProductCardDTO) ;
     } catch (e: any) {
-      return { status: "error", message: e.message || "Erro desconhecido" };
+      throw new Error(e.message || "Erro desconhecido" );
     }
   });
 
 
 export const getProductsByCollection = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string().min(1) }))
-  .handler(async ({ data: { slug } }): Promise<ProductListResult> => {
+  .handler(async ({ data: { slug } }) => {
     try {
       const db = await getAnonServerClient();
       const { resolveTenantStoreId } = await import("@/lib/tenant");
       const storeId = await resolveTenantStoreId();
       const store = { id: storeId };
       if (!storeId) {
-        return { status: "unconfigured", reason: "Loja não encontrada." };
+        throw new Error("Loja não encontrada.");
       }
 
       // First try collection
@@ -441,7 +435,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
           .single();
 
         if (catError || !category) {
-          return { status: "empty" };
+          return [];
         }
 
         const { data: productIdsData } = await db
@@ -451,7 +445,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
         productIds = productIdsData?.map((row) => row.product_id) || [];
       }
 
-      if (productIds.length === 0) return { status: "empty" };
+      if (productIds.length === 0) return [];
 
       const { data, error } = await db
         .from("products")
@@ -463,19 +457,19 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
         .in("id", productIds)
         .order("created_at", { ascending: false });
 
-      if (error) return { status: "error", message: error.message };
-      if (!data || data.length === 0) return { status: "empty" };
+      if (error) throw new Error(error.message );
+      if (!data || data.length === 0) return [];
 
       const mapped: ProductCardDTO[] = data.map(mapProductCardDTO);
 
-      return { status: "ok", data: mapped };
+      return mapped ;
     } catch (e: any) {
-      return { status: "error", message: e.message || "Erro desconhecido" };
+      throw new Error(e.message || "Erro desconhecido" );
     }
   });
 
 export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
-  async (): Promise<ProductListResult> => {
+  async () => {
     try {
       const db = await getAnonServerClient();
       const { resolveTenantStoreId } = await import("@/lib/tenant");
@@ -496,20 +490,20 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
         .order("created_at", { ascending: false })
         .limit(20);
 
-      if (error) return { status: "error", message: error.message };
-      if (!data || data.length === 0) return { status: "empty" };
+      if (error) throw new Error(error.message );
+      if (!data || data.length === 0) return [];
 
       // Filter natively to ensure only actual discounts are returned (compare > price)
       const discountedData = data.filter(
         (item) => item.compareAtCents && item.compareAtCents > item.priceCents,
       );
-      if (discountedData.length === 0) return { status: "empty" };
+      if (discountedData.length === 0) return [];
 
       const mapped: ProductCardDTO[] = discountedData.map(mapProductCardDTO);
 
-      return { status: "ok", data: mapped };
+      return mapped ;
     } catch (e: any) {
-      return { status: "error", message: e.message || "Erro desconhecido" };
+      throw new Error(e.message || "Erro desconhecido" );
     }
   },
 );
@@ -520,7 +514,7 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
 
 export const getProductDetail = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string().min(1) }))
-  .handler(async ({ data: { slug } }): Promise<import("@/types/catalog").ProductDetailResult> => {
+  .handler(async ({ data: { slug } }) => {
     try {
       const db = getAnonServerClient();
       const { data: store, error: storeError } = await db
@@ -621,7 +615,7 @@ export const getProductDetail = createServerFn({ method: "GET" })
         };
       }
       console.error("[catalog.functions] getProductDetail:", e);
-      return { status: "error", message: "Erro inesperado ao carregar detalhes do produto." };
+      throw new Error("Erro inesperado ao carregar detalhes do produto." );
     }
   });
 
@@ -650,7 +644,7 @@ export interface PublicStoreProfileDTO {
 export type PublicStoreProfileResult = CatalogResult<PublicStoreProfileDTO>;
 
 export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
-  async (): Promise<PublicStoreProfileResult> => {
+  async () => {
     try {
       const db = getAnonServerClient();
 
@@ -662,7 +656,7 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
         .single();
 
       if (error || !data) {
-        return { status: "unconfigured", reason: "Loja não encontrada." };
+        throw new Error("Loja não encontrada.");
       }
 
       const settings = (data.settings ?? {}) as Record<string, any>;
@@ -685,16 +679,13 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
         paymentInstructions: (typeof settings.paymentInstructions === "string" ? settings.paymentInstructions : null),
       };
 
-      return { status: "ok", data: profile };
+      return profile ;
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) {
-        return {
-          status: "unconfigured",
-          reason: "Nossa vitrine está passando por uma rápida atualização técnica.",
-        };
+        throw new Error("Nossa vitrine está passando por uma rápida atualização técnica.");
       }
       console.error("[catalog.functions] getPublicStoreProfile:", e);
-      return { status: "error", message: "Erro inesperado ao carregar perfil da loja." };
+      throw new Error("Erro inesperado ao carregar perfil da loja." );
     }
   },
 );

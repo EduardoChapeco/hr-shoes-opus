@@ -24,8 +24,7 @@ export const Route = createFileRoute("/admin/marketing/carrinhos")({
   head: () => ({ meta: [{ title: "Carrinhos Abandonados — Hr Shoes" }] }),
   loader: async () => {
     const res = await listAbandonedCarts();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: AbandonedCartsPage,
 });
@@ -39,7 +38,7 @@ function AbandonedCartsPage() {
       const res = await updateAbandonedCartStatus({
         data: { id, status: newStatus },
       });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Status atualizado!");
         router.invalidate();
       } else {

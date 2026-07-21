@@ -23,12 +23,9 @@ export const getCustomerCredits = createServerFn({ method: "GET" }).handler(asyn
 
     if (error) throw error;
 
-    return {
-      status: "success" as const,
-      data: credits || { balance_cents: 0, customer_credit_transactions: [] },
-    };
+    return credits || { balance_cents: 0, customer_credit_transactions: [] };
   } catch (e: any) {
     console.error("[credits] getCustomerCredits error:", e);
-    return { status: "error" as const, message: "Erro ao buscar créditos." };
+    throw new Error("Erro ao buscar créditos." );
   }
 });

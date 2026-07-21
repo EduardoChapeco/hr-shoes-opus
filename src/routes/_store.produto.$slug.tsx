@@ -28,6 +28,9 @@ import { Input } from "@/components/ui/input";
 import { EmptyState, ErrorState } from "@/components/state/states";
 import { PriceDisplay } from "@/components/commerce/price-display";
 import { getProductBySlug } from "@/services/product.functions";
+import type { ProductDetailDTO, ProductMediaDTO, VariantDTO } from "@/types/catalog";
+import { calculateShipping } from "@/services/shipping.functions";
+import { formatMoney } from "@/lib/money";
 import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions";
 import { addToCart } from "@/services/cart.functions";
 import { useCartContext } from "@/lib/cart-context";
@@ -257,14 +260,6 @@ function ProductPage() {
     );
   }
 
-  if (result.status === "error") {
-    return (
-      <div className="mx-auto max-w-screen-xl px-4 py-20 md:px-6">
-        <ErrorState description={result.message} />
-      </div>
-    );
-  }
-
   if (result.status === "unconfigured") {
     return (
       <div className="mx-auto max-w-screen-xl px-4 py-20 md:px-6">
@@ -284,8 +279,22 @@ function ProductPage() {
   return <ProductContent product={result.data} templateTree={templateTree} />;
 }
 
-function ProductContent({ product, templateTree }: { product: ProductDetailDTO, templateTree?: any[] }) {
-  const coverImage: ProductMediaDTO | null = product.media[0] ?? null;
+function ProductContent({ product: rawProduct, templateTree }: { product: ProductDetailDTO, templateTree?: any[] }) {
+  const coverImage: ProductMediaDTO | null = rawProduct.media[0] ?? null;
+
+  // Sanitize variant attributes to avoid UI breakage due to trailing spaces in keys or values
+  const product = useMemo(() => {
+    const cleanVariants = rawProduct.variants.map((v: VariantDTO) => {
+      const cleanAttrs: Record<string, string> = {};
+      if (v.attributes) {
+        Object.entries(v.attributes).forEach(([k, val]) => {
+          cleanAttrs[k.trim()] = val != null ? String(val).trim() : "";
+        });
+      }
+      return { ...v, attributes: cleanAttrs };
+    });
+    return { ...rawProduct, variants: cleanVariants };
+  }, [rawProduct]);
 
   // Collect unique attribute keys across all variants.
   const attributeKeys: string[] = Array.from(
@@ -322,8 +331,8 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
   });
 
   const { data: followStatus, refetch: refetchFollowStatus } = useQuery({
-    queryKey: ["storeFollow", product.storeId],
-    queryFn: () => getStoreFollowStatus({ data: { storeId: product.storeId } }),
+    queryKey: ["storeFollow"],
+    queryFn: () => getStoreFollowStatus(),
     initialData: { following: false }
   });
 
@@ -332,9 +341,7 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-  const [shippingOrigin, setShippingOrigin] = useState<"national" | "international">(
-    product.attributes?.origin === "international" || product.attributes?.is_international === "true" ? "international" : "national"
-  );
+  const [shippingOrigin, setShippingOrigin] = useState<"national" | "international">("national");
 
   // Find the matching variant
   const selectedVariant = product.variants.find((v: VariantDTO) => {
@@ -391,15 +398,15 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
     setLoadingShipping(true);
     try {
       const res = await calculateShipping({ data: { zipcode: clean } });
-      if (res.status === "ok") {
-        setShippingRates(res.data);
-        if (res.data.length === 0) {
+      if (res) {
+        setShippingRates(res);
+        if (res.length === 0) {
           toast.info("Nenhuma transportadora atende a esta região.");
         } else {
           toast.success("Frete calculado com sucesso!");
         }
       } else {
-        toast.error(res.message || "Erro ao calcular frete.");
+        toast.error("Erro ao calcular frete.");
       }
     } catch (error) {
       toast.error("Falha de rede ao calcular frete.");
@@ -418,7 +425,6 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
     try {
       const res = await submitProductReview({
         data: {
-          storeId: product.storeId,
           productId: product.id,
           rating: newRating,
           comment: newComment,
@@ -443,7 +449,7 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
 
   const handleToggleFollow = async () => {
     try {
-      const res = await toggleStoreFollow({ data: { storeId: product.storeId } });
+      const res = await toggleStoreFollow();
       toast.success(res.following ? "Você agora está seguindo a loja!" : "Você deixou de seguir a loja.");
       refetchFollowStatus();
     } catch (err: any) {
@@ -475,7 +481,7 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
           {product.categories && product.categories.length > 0 && (
             <>
               <ChevronRight className="size-3" aria-hidden />
-              <Link to={`/catalogo?category=${product.categories[0].slug}`} className="hover:text-foreground truncate max-w-[150px]">
+              <Link to="/catalogo" search={{ categoria: product.categories[0].slug }} className="hover:text-foreground truncate max-w-[150px]">
                 {product.categories[0].name}
               </Link>
             </>

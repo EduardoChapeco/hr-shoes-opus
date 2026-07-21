@@ -68,15 +68,12 @@ function ResetPasswordPage() {
     try {
       const result = await updatePassword({ data: { password: data.password } });
 
-      if (result.status === "error") {
-        toast.error(result.message);
-        return;
-      }
+
 
       toast.success("Senha atualizada com sucesso!");
       navigate({ to: "/conta" });
-    } catch (e) {
-      toast.error("Erro ao redefinir a senha.");
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao redefinir a senha.");
     }
   };
 

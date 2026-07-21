@@ -66,7 +66,7 @@ function VitrineTemplatePicker() {
           params: { documentId: res.data.id },
         });
       } else {
-        throw new Error(res.message || "Erro desconhecido");
+        throw new Error("Erro desconhecido");
       }
     } catch (e: any) {
       toast.error("Falha ao criar vitrine: " + e.message);

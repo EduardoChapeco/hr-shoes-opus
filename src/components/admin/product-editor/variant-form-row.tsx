@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { upsertProductVariant } from "@/services/admin-catalog.functions";
 import { adjustStock } from "@/services/stock.functions";
 import { useRouter } from "@tanstack/react-router";
+import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
 
 export function VariantFormRow({ 
   variant, 
@@ -58,7 +59,9 @@ export function VariantFormRow({
     setIsSubmitting(true);
     try {
       const attributes = attrFields.reduce((acc, curr) => {
-        if (curr.k && curr.v) acc[curr.k] = curr.v;
+        const key = curr.k.trim();
+        const val = curr.v.trim();
+        if (key && val) acc[key] = val;
         return acc;
       }, {} as Record<string, string>);
 
@@ -99,32 +102,31 @@ export function VariantFormRow({
         },
       });
 
-      if (res.status === "success") {
+      if (res) {
         const targetStock = parseInt(values.stock || "0", 10);
         const currentStock = variant ? (variant.stock_on_hand || 0) : 0;
         const diff = targetStock - currentStock;
 
-        if (diff !== 0) {
-          const adjRes = await adjustStock({
-            data: {
-              variantId: res.data.id,
-              qty: diff,
-              movementType: "adjustment",
-              note: variant
-                ? `Ajuste manual via editor de produtos (anterior: ${currentStock}, novo: ${targetStock})`
-                : `Estoque inicial na criação da variante`,
-            },
-          });
-          if (adjRes.status === "error") {
-            toast.error("Variante salva, mas falhou ao ajustar estoque: " + adjRes.message);
+        try {
+          if (diff !== 0) {
+            await adjustStock({
+              data: {
+                variantId: res.id,
+                qty: diff,
+                movementType: "adjustment",
+                note: variant
+                  ? `Ajuste manual via editor de produtos (anterior: ${currentStock}, novo: ${targetStock})`
+                  : `Estoque inicial na criação da variante`,
+              },
+            });
           }
+        } catch (adjErr: any) {
+          toast.error("Variante salva, mas falhou ao ajustar estoque: " + adjErr.message);
         }
 
         toast.success(variant ? "Variante atualizada!" : "Variante criada!");
         onClose();
         router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao salvar variante");
       }
     } catch (e) {
       toast.error("Erro inesperado ao salvar variante.");
@@ -217,8 +219,19 @@ export function VariantFormRow({
         </div>
       </div>
 
-      <div className="space-y-2 pt-2 border-t">
-        <Label>Atributos da Variante</Label>
+      <div className="space-y-3 pt-4 border-t">
+        <div className="flex items-center justify-between">
+          <Label>Atributos da Variante</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAttrFields([...attrFields, { k: "", v: "" }])}
+            className="h-7 text-xs"
+          >
+            <Plus className="mr-1 size-3" /> Adicionar
+          </Button>
+        </div>
         {attrFields.map((field, index) => (
           <div key={index} className="flex gap-2 items-center">
             <Input
@@ -229,6 +242,7 @@ export function VariantFormRow({
                 next[index].k = e.target.value;
                 setAttrFields(next);
               }}
+              className="flex-1"
             />
             <Input
               placeholder="Valor (ex: 37)"
@@ -238,9 +252,34 @@ export function VariantFormRow({
                 next[index].v = e.target.value;
                 setAttrFields(next);
               }}
+              className="flex-1"
             />
+            {attrFields.length > 1 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  const next = attrFields.filter((_, i) => i !== index);
+                  setAttrFields(next);
+                }}
+                className="size-9 text-destructive shrink-0 hover:bg-destructive/10"
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            )}
           </div>
         ))}
+      </div>
+
+      <div className="mt-4 p-3 bg-muted/40 border rounded-md flex items-start gap-3">
+        <ImageIcon className="size-4 text-muted-foreground mt-0.5 shrink-0" />
+        <div className="space-y-1">
+          <p className="text-xs font-medium">Fotos para esta Variação</p>
+          <p className="text-[11px] text-muted-foreground leading-snug">
+            Para adicionar fotos exclusivas desta variação, salve-a primeiro. Depois, role até a seção <span className="font-semibold">Galeria de Fotos do Produto</span> abaixo, faça o upload da imagem e clique no botão de engrenagem para "Vincular à Variante".
+          </p>
+        </div>
       </div>
 
       <div className="pt-4 border-t flex justify-end gap-2">

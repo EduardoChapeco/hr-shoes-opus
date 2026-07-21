@@ -21,9 +21,7 @@ import { updateOrderStatus } from "@/services/order.functions";
 export const Route = createFileRoute("/admin/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido — Hr Shoes" }] }),
   loader: async ({ params }: { params: { id: string } }) => {
-    const res = await getOrderById({ data: { orderId: params.id } });
-    if (res.status !== "ok") throw new Error((res as any).message ?? "Pedido não encontrado");
-    return res.data;
+    return await getOrderById({ data: { orderId: params.id } });
   },
   component: AdminOrderDetailPage,
 });

@@ -64,15 +64,11 @@ export function GridBuilderDialog({ product }: { product: any }) {
           options: validOptions,
         },
       });
-      if (res.status === "success") {
-        toast.success(`Foram geradas ${res.data.length} novas variantes!`);
-        setOpen(false);
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao gerar grades");
-      }
-    } catch (e) {
-      toast.error("Falha inesperada ao gerar grades");
+      toast.success(`Foram geradas ${res.length} novas variantes!`);
+      setOpen(false);
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Falha inesperada ao gerar grades");
     } finally {
       setIsSubmitting(false);
     }

@@ -170,10 +170,10 @@ export const approvePayment = createServerFn({ method: "POST" })
       const db = getServerClient();
       const { data } = await db.from("orders").select("*").eq("id", orderId).single();
 
-      return { status: "success" as const, data };
+      return data;
     } catch (e: any) {
       console.error("[payment] approvePayment error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao aprovar pagamento." };
+      throw new Error(e.message || "Erro ao aprovar pagamento." );
     }
   });
 
@@ -195,15 +195,15 @@ export const rejectPayment = createServerFn({ method: "POST" })
         .single();
       if (error) throw error;
 
-      return { status: "success" as const, data };
+      return data;
     } catch (e: any) {
       console.error("[payment] rejectPayment error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao rejeitar comprovante." };
+      throw new Error(e.message || "Erro ao rejeitar comprovante." );
     }
   });
 
 export const listPendingManualPayments = createServerFn({ method: "GET" }).handler(
-  async (): Promise<{ status: "success"; data: any[] } | { status: "error"; message: string }> => {
+  async () => {
     try {
       const db = getServerClient();
       const { data, error } = await db
@@ -216,13 +216,11 @@ export const listPendingManualPayments = createServerFn({ method: "GET" }).handl
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      return { status: "success" as const, data: data || [] };
+      return data || [] ;
     } catch (e: any) {
       console.error("[payment] listPendingManualPayments error:", e);
-      return {
-        status: "error" as const,
-        message: e.message || "Erro ao buscar comprovantes pendentes.",
-      };
+      throw new Error(e.message || "Erro ao buscar comprovantes pendentes.",
+      );
     }
   },
 );
@@ -339,7 +337,7 @@ export const uploadPaymentReceipt = createServerFn({ method: "POST" })
         return { status: "success" as const };
       } catch (e: any) {
         console.error("[payment] uploadPaymentReceipt error:", e);
-        return { status: "error" as const, message: e.message || "Erro ao enviar comprovante." };
+        throw new Error(e.message || "Erro ao enviar comprovante." );
       }
     },
   );
@@ -393,13 +391,11 @@ export const listManualPaymentMethods = createServerFn({ method: "GET" }).handle
       .order("created_at", { ascending: true });
 
     if (error) throw error;
-    return { status: "success" as const, data: data || [] };
+    return data || [] ;
   } catch (e: any) {
     console.error("[payment] listManualPaymentMethods error:", e);
-    return {
-      status: "error" as const,
-      message: e.message || "Erro ao listar métodos de pagamento manual.",
-    };
+    throw new Error(e.message || "Erro ao listar métodos de pagamento manual.",
+    );
   }
 });
 
@@ -436,10 +432,8 @@ export const saveManualPaymentMethod = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[payment] saveManualPaymentMethod error:", e);
-      return {
-        status: "error" as const,
-        message: e.message || "Erro ao salvar método de pagamento.",
-      };
+      throw new Error(e.message || "Erro ao salvar método de pagamento.",
+      );
     }
   });
 
@@ -460,10 +454,8 @@ export const deleteManualPaymentMethod = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[payment] deleteManualPaymentMethod error:", e);
-      return {
-        status: "error" as const,
-        message: e.message || "Erro ao excluir método de pagamento.",
-      };
+      throw new Error(e.message || "Erro ao excluir método de pagamento.",
+      );
     }
   });
 
@@ -484,12 +476,10 @@ export const getPublicPaymentMethods = createServerFn({ method: "GET" }).handler
       .order("created_at", { ascending: true });
 
     if (error) throw error;
-    return { status: "success" as const, data: data || [] };
+    return data || [] ;
   } catch (e: any) {
     console.error("[payment] getPublicPaymentMethods error:", e);
-    return {
-      status: "error" as const,
-      message: e.message || "Erro ao obter métodos de pagamento públicos.",
-    };
+    throw new Error(e.message || "Erro ao obter métodos de pagamento públicos.",
+    );
   }
 });

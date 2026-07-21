@@ -24,7 +24,7 @@ vi.mock("@/lib/supabase-ssr.server", () => {
 
 describe("Customer Address Functions", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mockFrom.mockReturnValue(mockQueryBuilder);
     mockUpdate.mockReturnValue(mockQueryBuilder);
     mockEq.mockReturnValue(mockQueryBuilder);

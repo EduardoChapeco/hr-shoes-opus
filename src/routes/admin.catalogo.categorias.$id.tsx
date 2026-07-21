@@ -30,7 +30,7 @@ export const Route = createFileRoute("/admin/catalogo/categorias/$id")({
 
     return {
       category: resCategory.data,
-      allCategories: resAll.status === "ok" ? resAll.data : [],
+      allCategories: resAll || [],
     };
   },
   component: EditCategoryPage,
@@ -70,7 +70,7 @@ function EditCategoryPage() {
         },
       });
 
-      if (res.status === "success") {
+      if (res) {
         toast.success("Categoria atualizada com sucesso!");
         navigate({ to: "/admin/catalogo/categorias" });
       } else {

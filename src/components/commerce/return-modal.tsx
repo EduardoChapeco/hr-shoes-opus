@@ -20,15 +20,11 @@ export function ReturnModal({ orderId }: { orderId: string }) {
     setLoading(true);
     try {
       const res = await requestOrderReturn({ data: { orderId, reason } });
-      if (res.status === "success") {
-        toast.success("Solicitação enviada com sucesso!");
-        setOpen(false);
-        router.invalidate();
-      } else {
-        toast.error(res.message);
-      }
-    } catch (e) {
-      toast.error("Erro inesperado.");
+      toast.success("Solicitação enviada com sucesso!");
+      setOpen(false);
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro inesperado.");
     } finally {
       setLoading(false);
     }

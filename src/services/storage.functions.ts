@@ -54,7 +54,7 @@ export const getSignedUploadUrl = createServerFn({ method: "POST" })
       };
     } catch (e: any) {
       console.error("[storage.functions] getSignedUploadUrl error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao gerar URL" };
+      throw new Error(e.message || "Erro ao gerar URL" );
     }
   });
 
@@ -96,6 +96,6 @@ export const uploadMedia = createServerFn({ method: "POST" })
       const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(uniqueName);
       return { status: "success" as const, url: urlData.publicUrl };
     } catch (e: any) {
-      return { status: "error" as const, message: e.message || "Erro no upload" };
+      throw new Error(e.message || "Erro no upload" );
     }
   });

@@ -11,9 +11,6 @@ export const Route = createFileRoute("/admin/builder/analytics")({
   head: () => ({ meta: [{ title: "Métricas do Builder — Hr Shoes" }] }),
   loader: async () => {
     const res = await getBuilderAnalyticsSummary();
-    if (res.status === "error") {
-      throw new Error(res.message || "Erro ao carregar métricas do Builder");
-    }
     return {
       summary: res.data || { totalViews: 0, totalClicks: 0, blockStats: [] },
     };

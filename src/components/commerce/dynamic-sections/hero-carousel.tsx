@@ -12,6 +12,22 @@ export function HeroCarousel({ content, node_id, block_type }: { content: Record
   const banners = (Array.isArray(content.banners) ? content.banners : []) as any[];
   const trackClick = useBuilderClickTracking(node_id || "", block_type || "");
 
+  const showOverlay = content.showOverlay !== false;
+  const overlayOpacity = String(content.overlayOpacity || "medium");
+  const opacityMap = {
+    light: "from-black/40 via-black/10 to-transparent",
+    medium: "from-black/80 via-black/30 to-transparent",
+    dark: "from-black/90 via-black/50 to-black/10",
+  };
+  const overlayClass = opacityMap[overlayOpacity as keyof typeof opacityMap] || opacityMap.medium;
+
+  const heightMode = String(content.desktopHeight || "proportional");
+  const heightClass = heightMode === "full" 
+    ? "h-[85dvh] @md:h-[100dvh]" 
+    : heightMode === "square" 
+      ? "aspect-square" 
+      : "aspect-[4/5] @md:aspect-[21/9]";
+
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -65,7 +81,7 @@ export function HeroCarousel({ content, node_id, block_type }: { content: Record
             const button_link = String(banner.link || "");
 
             return (
-              <div key={index} className="relative min-w-0 flex-full shrink-0 grow-0 basis-full bg-[#111] aspect-[4/5] @md:aspect-[21/9]">
+              <div key={index} className={`relative min-w-0 flex-full shrink-0 grow-0 basis-full bg-[#111] ${heightClass}`}>
                 {/* Background Image (Static to dictate height naturally without cropping) */}
                 {bg_url ? (
                   <picture className="absolute inset-0 block w-full h-full">
@@ -84,8 +100,10 @@ export function HeroCarousel({ content, node_id, block_type }: { content: Record
                   </div>
                 )}
                 
-                {/* Subtle overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+                {/* Overlay for text readability */}
+                {showOverlay && (
+                  <div className={`absolute inset-0 bg-gradient-to-t ${overlayClass} pointer-events-none`} />
+                )}
 
                 {/* Content Overlay */}
                 <div className="absolute inset-0 z-10 mx-auto flex w-full max-w-screen-xl flex-col items-start justify-center px-6 py-8 @md:px-12 pointer-events-none">

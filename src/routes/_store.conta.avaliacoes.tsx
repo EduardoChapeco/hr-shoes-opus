@@ -28,20 +28,17 @@ const listCustomerReviews = createServerFn({ method: "GET" }).handler(async () =
 
     if (error) throw new Error(error.message);
 
-    return {
-      status: "ok" as const,
-      data: (data || []).map((r: any) => ({
-        id: r.id as string,
-        rating: r.rating as number,
-        comment: r.comment as string | null,
-        status: r.status as string,
-        createdAt: r.created_at as string,
-        productName: r.products?.name as string | null,
-        productSlug: r.products?.slug as string | null,
-      })),
-    };
+    return (data || []).map((r: any) => ({
+      id: r.id as string,
+      rating: r.rating as number,
+      comment: r.comment as string | null,
+      status: r.status as string,
+      createdAt: r.created_at as string,
+      productName: r.products?.name as string | null,
+      productSlug: r.products?.slug as string | null,
+    }));
   } catch (e: any) {
-    return { status: "error" as const, message: e.message || "Erro ao buscar avaliações." };
+    throw new Error(e.message || "Erro ao buscar avaliações.");
   }
 });
 
@@ -53,8 +50,7 @@ export const Route = createFileRoute("/_store/conta/avaliacoes")({
   head: () => ({ meta: [{ title: "Minhas Avaliações — Hr Shoes" }] }),
   loader: async () => {
     const res = await listCustomerReviews();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: Page,
 });

@@ -259,10 +259,25 @@ describe("Cash Functions", () => {
             insert: vi.fn().mockResolvedValue({ error: null }),
           };
         }
+        if (table === "products") {
+          return {
+            select: vi.fn().mockReturnThis(),
+            in: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockResolvedValue({
+              data: [
+                { id: "var-1", price_cents: 15000 }
+              ],
+              error: null
+            })
+          };
+        }
         return {};
       });
 
-      supabaseMock.rpc.mockResolvedValue({ error: null });
+      supabaseMock.rpc.mockResolvedValue({ 
+        data: { receiptId: "rec-1", orderId: "ord-1", orderToken: "tok-1", hasNegativeStock: false },
+        error: null 
+      });
 
       const res = await processPOSSaleHandler({
         registerId: "reg-111",
@@ -285,12 +300,12 @@ describe("Cash Functions", () => {
       expect(res.subtotalCents).toBe(30000);
       expect(res.totalCents).toBe(29000);
       expect(res.changeCents).toBe(1000);
-      expect(supabaseMock.rpc).toHaveBeenCalledWith("adjust_stock", {
-        p_variant_id: "var-1",
-        p_qty: -2,
-        p_movement_type: "sale",
-        p_note: "Venda PDV Balcão - SKU: SC-36",
-      });
+      expect(supabaseMock.rpc).toHaveBeenCalledWith("process_pos_sale_transaction", expect.objectContaining({
+        p_payment_method: "cash",
+        p_discount_cents: 1000,
+        p_customer_name: "Maria Silva",
+        p_register_id: "reg-111",
+      }));
     });
   });
 });

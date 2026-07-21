@@ -46,7 +46,7 @@ export const Route = createFileRoute("/admin/pedidos/")({
   head: () => ({ meta: [{ title: "Gestão de Pedidos — Hr Shoes" }] }),
   loader: async () => {
     const res = await listOrders();
-    return res.status === "ok" ? res.data : [];
+    return res || [];
   },
   component: AdminOrdersPage,
 });
@@ -101,7 +101,7 @@ function AdminOrdersPage() {
     setIsProcessing(true);
     try {
       const res = await updateOrderStatus({ data: { orderId, status: newStatus } });
-      if (res.status === "ok") {
+      if (res) {
         setOrders((prev) =>
           prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)),
         );
@@ -122,7 +122,7 @@ function AdminOrdersPage() {
     setIsProcessing(true);
     try {
       const res = await approvePayment({ data: { orderId, receivedMethod: "cash" } });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Pagamento aprovado! Pedido avançou para separação.");
         setOrders((prev) =>
           prev.map((o) => (o.id === orderId ? { ...o, status: "processing" } : o)),

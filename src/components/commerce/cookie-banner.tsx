@@ -6,14 +6,16 @@ export function CookieBanner() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem("hr_shoes_cookie_consent");
-    if (!consent) {
+    // Look for hr_shoes_cookie_consent in actual browser cookies
+    const hasConsent = document.cookie.split('; ').find(row => row.startsWith('hr_shoes_cookie_consent='));
+    if (!hasConsent) {
       setShow(true);
     }
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem("hr_shoes_cookie_consent", "accepted");
+    // Set cookie to expire in 1 year (31536000 seconds)
+    document.cookie = "hr_shoes_cookie_consent=accepted; path=/; max-age=31536000; SameSite=Lax";
     setShow(false);
   };
 

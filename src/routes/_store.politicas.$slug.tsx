@@ -15,9 +15,8 @@ export const Route = createFileRoute("/_store/politicas/$slug")({
   }),
   loader: async ({ params }) => {
     const res = await getPageBySlug({ data: { slug: params.slug } });
-    if (res.status === "error") throw new Error(res.message);
-    if (res.status === "not_found") return null as { title?: string; sections?: any[] } | null;
-    return res.data as { title?: string; sections?: any[] } | null;
+    if (res && "status" in res && res.status === "not_found") return null as { title?: string; sections?: any[] } | null;
+    return res as { title?: string; sections?: any[] } | null;
   },
   component: Page,
 });

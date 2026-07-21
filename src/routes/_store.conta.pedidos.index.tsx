@@ -9,8 +9,7 @@ export const Route = createFileRoute("/_store/conta/pedidos/")({
   head: () => ({ meta: [{ title: "Meus Pedidos — Hr Shoes" }] }),
   loader: async () => {
     const res = await listCustomerOrders();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: Page,
 });

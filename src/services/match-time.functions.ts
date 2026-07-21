@@ -12,14 +12,14 @@ export const startMatchTimeSession = createServerFn({ method: "POST" }).handler(
     const {
       data: { user },
     } = await ssrClient.auth.getUser();
-    if (!user) return { status: "error" as const, message: "Faça login para usar o Match Time." };
+    if (!user) throw new Error("Faça login para usar o Match Time." );
 
     const db = getServerClient();
 
     const { resolveTenantStoreId } = await import("@/lib/tenant");
     const storeId = await resolveTenantStoreId();
     const store = storeId ? { id: storeId } : null;
-    if (!store) return { status: "error" as const, message: "Loja não encontrada." };
+    if (!store) throw new Error("Loja não encontrada." );
 
     // Verifica se há sessão ativa (sem ended_at)
     const { data: activeSession } = await db
@@ -51,7 +51,7 @@ export const startMatchTimeSession = createServerFn({ method: "POST" }).handler(
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError)
       return { status: "unconfigured" as const, message: "Supabase não configurado." };
-    return { status: "error" as const, message: e.message || "Erro ao iniciar sessão." };
+    throw new Error(e.message || "Erro ao iniciar sessão." );
   }
 });
 
@@ -71,7 +71,7 @@ export const endMatchTimeSession = createServerFn({ method: "POST" })
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError)
         return { status: "unconfigured" as const, message: "Supabase não configurado." };
-      return { status: "error" as const, message: e.message || "Erro ao encerrar sessão." };
+      throw new Error(e.message || "Erro ao encerrar sessão." );
     }
   });
 
@@ -84,14 +84,14 @@ export const getNextProductsForSwipe = createServerFn({ method: "GET" }).handler
     const {
       data: { user },
     } = await ssrClient.auth.getUser();
-    if (!user) return { status: "error" as const, message: "Faça login para usar o Match Time." };
+    if (!user) throw new Error("Faça login para usar o Match Time." );
 
     const db = getServerClient();
 
     const { resolveTenantStoreId } = await import("@/lib/tenant");
     const storeId = await resolveTenantStoreId();
     const store = storeId ? { id: storeId } : null;
-    if (!store) return { status: "error" as const, message: "Loja não encontrada." };
+    if (!store) throw new Error("Loja não encontrada." );
 
     const { data: swiped } = await db
       .from("match_time_swipes")
@@ -124,11 +124,11 @@ export const getNextProductsForSwipe = createServerFn({ method: "GET" }).handler
       .limit(10);
 
     if (error) throw error;
-    return { status: "success" as const, data: products || [] };
+    return products || [] ;
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError)
       return { status: "unconfigured" as const, message: "Supabase não configurado." };
-    return { status: "error" as const, message: e.message || "Erro ao buscar produtos." };
+    throw new Error(e.message || "Erro ao buscar produtos." );
   }
 });
 
@@ -146,13 +146,13 @@ export const generateMatchTimeOffer = createServerFn({ method: "POST" })
     try {
       const ssrClient = getSSRClient();
       const { data: { user } } = await ssrClient.auth.getUser();
-      if (!user) return { status: "error" as const, message: "Não autorizado" };
+      if (!user) throw new Error("Não autorizado" );
 
       const db = getServerClient();
       const { resolveTenantStoreId } = await import("@/lib/tenant");
       const storeId = await resolveTenantStoreId();
       const store = storeId ? { id: storeId } : null;
-      if (!store) return { status: "error" as const, message: "Loja não encontrada." };
+      if (!store) throw new Error("Loja não encontrada." );
 
       // 1. Create the offer for 15 minutes (50% off for testing, in a real app this comes from a rules table)
       const expiresAt = new Date(Date.now() + 15 * 60000).toISOString();
@@ -181,7 +181,7 @@ export const generateMatchTimeOffer = createServerFn({ method: "POST" })
 
       return { status: "success" as const, data: { offerId: offer.id, expiresAt } };
     } catch (e: any) {
-      return { status: "error" as const, message: e.message || "Erro ao gerar oferta relâmpago." };
+      throw new Error(e.message || "Erro ao gerar oferta relâmpago." );
     }
   });
 
@@ -202,13 +202,13 @@ export const recordSwipe = createServerFn({ method: "POST" })
       const {
         data: { user },
       } = await ssrClient.auth.getUser();
-      if (!user) return { status: "error" as const, message: "Não autorizado" };
+      if (!user) throw new Error("Não autorizado" );
 
       const db = getServerClient();
       const { resolveTenantStoreId } = await import("@/lib/tenant");
       const storeId = await resolveTenantStoreId();
       const store = storeId ? { id: storeId } : null;
-      if (!store) return { status: "error" as const, message: "Loja não encontrada." };
+      if (!store) throw new Error("Loja não encontrada." );
 
       const { error } = await db.from("match_time_swipes").insert({
         session_id: sessionId,
@@ -226,7 +226,7 @@ export const recordSwipe = createServerFn({ method: "POST" })
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError)
         return { status: "unconfigured" as const, message: "Supabase não configurado." };
-      return { status: "error" as const, message: e.message || "Erro ao registrar swipe." };
+      throw new Error(e.message || "Erro ao registrar swipe." );
     }
   });
 
@@ -241,13 +241,13 @@ export const getCustomerAffinityRecommendations = createServerFn({ method: "GET"
       const {
         data: { user },
       } = await ssrClient.auth.getUser();
-      if (!user) return { status: "error" as const, message: "Não autenticado." };
+      if (!user) throw new Error("Não autenticado." );
 
       const db = getServerClient();
       const { resolveTenantStoreId } = await import("@/lib/tenant");
       const storeId = await resolveTenantStoreId();
       const store = storeId ? { id: storeId } : null;
-      if (!store) return { status: "error" as const, message: "Loja não encontrada." };
+      if (!store) throw new Error("Loja não encontrada." );
 
       // 1. Obter todos os swipes do cliente
       const { data: allSwipes, error: swipesError } = await db
@@ -337,7 +337,7 @@ export const getCustomerAffinityRecommendations = createServerFn({ method: "GET"
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError)
         return { status: "unconfigured" as const, message: "Supabase não configurado." };
-      return { status: "error" as const, message: e.message || "Erro ao calcular recomendações." };
+      throw new Error(e.message || "Erro ao calcular recomendações." );
     }
   },
 );
@@ -351,9 +351,9 @@ export const getMatchTimeReport = createServerFn({ method: "GET" }).handler(asyn
 
     const { getServerIdentity } = await import("@/lib/identity");
     const { store_id } = await getServerIdentity();
-    if (!store_id) return { status: "error" as const, message: "Loja não encontrada." };
+    if (!store_id) throw new Error("Loja não encontrada." );
     const store = { id: store_id };
-    if (!store) return { status: "error" as const, message: "Loja não encontrada." };
+    if (!store) throw new Error("Loja não encontrada." );
 
     // 1. Buscar todos os swipes com joins
     const { data: swipes, error } = await db
@@ -452,6 +452,6 @@ export const getMatchTimeReport = createServerFn({ method: "GET" }).handler(asyn
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError)
       return { status: "unconfigured" as const, message: "Supabase não configurado." };
-    return { status: "error" as const, message: e.message || "Erro ao buscar relatório." };
+    throw new Error(e.message || "Erro ao buscar relatório." );
   }
 });

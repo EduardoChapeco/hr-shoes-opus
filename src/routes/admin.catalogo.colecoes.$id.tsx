@@ -22,8 +22,7 @@ export const Route = createFileRoute("/admin/catalogo/colecoes/$id")({
   head: () => ({ meta: [{ title: "Editar Coleção — Hr Shoes" }] }),
   loader: async ({ params }) => {
     const res = await getCollectionById({ data: { id: params.id } });
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: EditCollectionPage,
 });
@@ -58,7 +57,7 @@ function EditCollectionPage() {
         },
       });
 
-      if (res.status === "success") {
+      if (res) {
         toast.success("Coleção atualizada com sucesso!");
         navigate({ to: "/admin/catalogo/colecoes" });
       } else {

@@ -24,7 +24,7 @@ export const Route = createFileRoute("/admin/catalogo/produtos/novo")({
   loader: async () => {
     const catsRes = await listCategories();
     return {
-      categories: catsRes.status === "ok" ? catsRes.data : [],
+      categories: catsRes || [],
     };
   },
   component: QuickNewProductPage,
@@ -76,9 +76,9 @@ function QuickNewProductPage() {
         },
       });
 
-      if (res.status === "success") {
+      if (res) {
         toast.success("Rascunho criado! Redirecionando para o editor completo...");
-        navigate({ to: "/admin/catalogo/produtos/$id", params: { id: res.data.id } });
+        navigate({ to: "/admin/catalogo/produtos/$id", params: { id: res.id } });
       } else {
         toast.error(res.message || "Erro ao criar produto");
         setIsSubmitting(false);

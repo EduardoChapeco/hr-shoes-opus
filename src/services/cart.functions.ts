@@ -327,7 +327,7 @@ export const removeFromCart = createServerFn({ method: "POST" })
       .eq("id", itemId)
       .single();
 
-    if (!item) return { status: "error", message: "Item não encontrado" };
+    if (!item) throw new Error("Item não encontrado" );
 
     // Soltar reserva via RPC para garantir a atomicidade do decremento de stock_reserved
     await supabase.rpc("release_stock_for_cart_item", {
@@ -455,23 +455,20 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
       .eq("is_active", true)
       .maybeSingle();
 
-    if (!coupon) return { status: "error", message: "Cupom inválido ou expirado." };
+    if (!coupon) throw new Error("Cupom inválido ou expirado." );
 
     // Check expiration
     if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
-      return { status: "error", message: "Este cupom já expirou." };
+      throw new Error("Este cupom já expirou." );
     }
 
     // Check limits
     if (coupon.max_uses && coupon.uses_count >= coupon.max_uses) {
-      return { status: "error", message: "Este cupom atingiu o limite de usos." };
+      throw new Error("Este cupom atingiu o limite de usos." );
     }
 
     if (coupon.min_order_cents && cartDetails.subtotalCents < coupon.min_order_cents) {
-      return {
-        status: "error",
-        message: `Valor mínimo para este cupom é ${(coupon.min_order_cents / 100).toFixed(2)}`,
-      };
+      throw new Error(`Valor mínimo para este cupom é ${(coupon.min_order_cents / 100).toFixed(2)}`);
     }
 
     // Calculate discount
@@ -497,7 +494,7 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
       })
       .eq("id", cart.id);
 
-    return { status: "success", message: "Cupom aplicado com sucesso!" };
+    return { message: "Cupom aplicado com sucesso!" };
   });
 
 export const updateCartShipping = createServerFn({ method: "POST" })

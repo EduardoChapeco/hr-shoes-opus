@@ -45,9 +45,7 @@ import { formatDateTime } from "@/lib/datetime";
 export const Route = createFileRoute("/admin/equipe")({
   head: () => ({ meta: [{ title: "Gestão de Equipe — Hr Shoes" }] }),
   loader: async () => {
-    const res = await listTeamMembers();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data || [];
+    return await listTeamMembers() || [];
   },
   component: TeamPage,
 });
@@ -98,7 +96,7 @@ function TeamPage() {
   const handleRoleChange = async (id: string, newRole: string) => {
     try {
       const res = await updateTeamMemberRole({ data: { id, role: newRole as any } });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Cargo e permissão atualizados com sucesso!");
         router.invalidate();
       } else {
@@ -115,15 +113,11 @@ function TeamPage() {
 
     setIsInviting(true);
     try {
-      const res = await inviteTeamMember({ data: inviteData as any });
-      if (res.status === "success") {
-        toast.success(`Acesso criado! Senha temporária enviada para ${inviteData.email}`);
-        setIsInviteOpen(false);
-        setInviteData({ fullName: "", email: "", role: "seller" });
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao criar acesso.");
-      }
+      await inviteTeamMember({ data: inviteData as any });
+      toast.success(`Acesso criado! Senha temporária enviada para ${inviteData.email}`);
+      setIsInviteOpen(false);
+      setInviteData({ fullName: "", email: "", role: "seller" });
+      router.invalidate();
     } catch (e: any) {
       toast.error("Erro inesperado ao cadastrar membro.");
     } finally {

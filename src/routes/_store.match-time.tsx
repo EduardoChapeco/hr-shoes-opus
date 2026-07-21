@@ -43,10 +43,10 @@ function MatchTimePage() {
         setSessionId(sessionRes.data.sessionId);
 
         const prodRes = await getNextProductsForSwipe();
-        if (prodRes.status === "error") {
+        if ("status" in prodRes && prodRes.status === "unconfigured") {
           setError(prodRes.message);
         } else {
-          setProducts(prodRes.data || []);
+          setProducts(prodRes as any[]);
         }
       } catch {
         setError("Erro de conexão");
@@ -62,7 +62,7 @@ function MatchTimePage() {
     setLoadingRecs(true);
     try {
       const res = await getCustomerAffinityRecommendations();
-      if (res.status === "success") {
+      if (res && "status" in res && res.status === "success") {
         setMatches(res.data.matches || []);
         setRecommendations(res.data.recommendations || []);
       }
@@ -100,7 +100,7 @@ function MatchTimePage() {
             action,
           },
         });
-        if (res.status === "error") {
+        if ("status" in res && res.status === "unconfigured") {
           toast.error(res.message || "Erro ao registrar avaliação");
         }
       } catch {

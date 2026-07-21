@@ -36,11 +36,12 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Hr Shoes" }] }),
   loader: async () => {
-    const [cart, paymentMethodsRes, storeProfileRes] = await Promise.all([
+    const [cart, profileRes, paymentMethodsRes] = await Promise.all([
       getCart(),
-      getPublicPaymentMethods(),
       getPublicStoreProfile(),
+      getPublicPaymentMethods(),
     ]);
+    const storeProfile = profileRes;
 
     return {
       cart: cart || {
@@ -54,8 +55,8 @@ export const Route = createFileRoute("/_store/checkout")({
         couponCode: null,
         itemCount: 0,
       },
-      paymentMethods: paymentMethodsRes.status === "success" ? paymentMethodsRes.data : [],
-      storeProfile: storeProfileRes.status === "ok" ? storeProfileRes.data : null,
+      paymentMethods: paymentMethodsRes || [],
+      storeProfile: storeProfile || null,
     };
   },
   component: CheckoutPage,
@@ -157,8 +158,8 @@ function CheckoutPage() {
 
         // Calculate shipping rates
         const shipRes = await calculateShipping({ data: { zipcode: cep } });
-        if (shipRes.status === "ok" && shipRes.data && shipRes.data.length > 0) {
-          setShippingRates(shipRes.data);
+        if (shipRes && Array.isArray(shipRes) && shipRes.length > 0) {
+          setShippingRates(shipRes);
           setNoShippingRatesFound(false);
         } else {
           setShippingRates([]);
@@ -337,7 +338,7 @@ function CheckoutPage() {
       // 1. Try coupon first
       const codeUpper = promoCode.toUpperCase().trim();
       const res = await applyCouponToCart({ data: { code: codeUpper } });
-      if (res.status === "success") {
+      if (res) {
         toast.success(res.message || "Cupom aplicado!");
         setPromoCode("");
         setAppliedGiftCard(null); // Clear gift card if coupon works
@@ -411,47 +412,43 @@ function CheckoutPage() {
         },
       });
 
-      if (res.status === "success") {
-        if (formData.shippingMethod !== "manual_quote" && checkoutTotalCents > 0) {
-          try {
-            await initiatePaymentTransaction({
-              data: {
-                orderId: res.orderToken,
-                method: formData.paymentMethod === "credit_card" ? "credit_card" : "pix",
-                amountCents: checkoutTotalCents,
-              },
-            });
-          } catch (payErr: any) {
-            console.error("Erro de transação:", payErr);
-          }
+      if (formData.shippingMethod !== "manual_quote" && checkoutTotalCents > 0) {
+        try {
+          await initiatePaymentTransaction({
+            data: {
+              orderId: res.orderToken,
+              method: formData.paymentMethod === "credit_card" ? "credit_card" : "pix",
+              amountCents: checkoutTotalCents,
+            },
+          });
+        } catch (payErr: any) {
+          console.error("Erro de transação:", payErr);
         }
-        setSuccessToken(res.orderToken);
-        toast.success("Pedido realizado com sucesso!");
+      }
+      setSuccessToken(res.orderToken);
+      toast.success("Pedido realizado com sucesso!");
 
-        // Phase 5 Analytics: Trigger Purchase Event
-        if (typeof window !== "undefined") {
-          try {
-            (window as any).dataLayer = (window as any).dataLayer || [];
-            (window as any).dataLayer.push({
-              event: "purchase",
-              ecommerce: {
-                transaction_id: res.orderToken,
-                value: checkoutTotalCents / 100,
-                currency: "BRL",
-                items: cart.items.map((item) => ({
-                  item_id: item.variantId,
-                  item_name: item.title,
-                  price: item.priceCents / 100,
-                  quantity: item.qty,
-                })),
-              },
-            });
-          } catch (e) {
-            console.error("Erro ao registrar conversão no analytics", e);
-          }
+      // Phase 5 Analytics: Trigger Purchase Event
+      if (typeof window !== "undefined") {
+        try {
+          (window as any).dataLayer = (window as any).dataLayer || [];
+          (window as any).dataLayer.push({
+            event: "purchase",
+            ecommerce: {
+              transaction_id: res.orderToken,
+              value: checkoutTotalCents / 100,
+              currency: "BRL",
+              items: cart.items.map((item) => ({
+                item_id: item.variantId,
+                item_name: item.productTitle,
+                price: item.priceCents / 100,
+                quantity: item.qty,
+              })),
+            },
+          });
+        } catch (e) {
+          console.error("Erro ao registrar conversão no analytics", e);
         }
-      } else {
-        toast.error(res.message || "Falha ao processar checkout.");
       }
     } catch (err: any) {
       toast.error(err.message || "Erro inesperado.");

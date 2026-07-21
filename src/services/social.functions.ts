@@ -4,10 +4,12 @@ import { getServerClient } from "@/lib/supabase";
 import { getCurrentIdentity } from "@/services/cart-helpers";
 
 export const toggleStoreFollow = createServerFn({ method: "POST" })
-  .validator(z.object({ storeId: z.string().uuid() }))
-  .handler(async ({ data: { storeId } }) => {
+  .handler(async () => {
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) throw new Error("Loja não encontrada.");
 
     if (!identity.customer_id) {
       throw new Error("Você precisa estar logado para seguir uma loja.");
@@ -37,10 +39,12 @@ export const toggleStoreFollow = createServerFn({ method: "POST" })
   });
 
 export const getStoreFollowStatus = createServerFn({ method: "GET" })
-  .validator(z.object({ storeId: z.string().uuid() }))
-  .handler(async ({ data: { storeId } }) => {
+  .handler(async () => {
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) return { following: false };
 
     if (!identity.customer_id) return { following: false };
 
@@ -57,15 +61,18 @@ export const getStoreFollowStatus = createServerFn({ method: "GET" })
 export const submitProductReview = createServerFn({ method: "POST" })
   .validator(
     z.object({
-      storeId: z.string().uuid(),
+
       productId: z.string().uuid(),
       rating: z.number().min(1).max(5),
       comment: z.string().max(1000).optional(),
     })
   )
-  .handler(async ({ data: { storeId, productId, rating, comment } }) => {
+  .handler(async ({ data: { productId, rating, comment } }) => {
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) throw new Error("Loja não encontrada.");
 
     if (!identity.customer_id) {
       throw new Error("Você precisa estar logado para avaliar um produto.");
@@ -135,7 +142,7 @@ export const listStoreFollowers = createServerFn({ method: "GET" })
         .eq("id", user.id)
         .single();
 
-      if (!profile?.store_id) return { status: "ok" as const, data: [] };
+      if (!profile?.store_id) return [] ;
 
       const { data, error } = await ssrClient
         .from("store_followers")
@@ -145,9 +152,9 @@ export const listStoreFollowers = createServerFn({ method: "GET" })
 
       if (error) throw error;
 
-      return { status: "ok" as const, data };
+      return data;
     } catch (e: any) {
       console.error("[social.functions] listStoreFollowers:", e);
-      return { status: "error" as const, message: e.message || "Erro ao listar seguidores" };
+      throw new Error(e.message || "Erro ao listar seguidores" );
     }
   });

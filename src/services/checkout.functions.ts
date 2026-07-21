@@ -96,6 +96,6 @@ export const processCheckout = createServerFn({ method: "POST" })
       return { status: "success" as const, orderToken: result.orderToken };
     } catch (e: any) {
       console.error("[checkout.functions] processCheckout:", e.message);
-      return { status: "error" as const, message: e.message || "Erro no checkout" };
+      throw new Error(e.message || "Erro no checkout" );
     }
   });

@@ -244,10 +244,10 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
 export const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const data = await getDashboardDataHandler();
-    return { status: "ok" as const, data };
+    return data;
   } catch (e: any) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[dashboard.functions] getDashboardData error:", e?.message || e);
-    return { status: "error" as const, message: e?.message || "Erro ao carregar dados do painel." };
+    throw new Error(e?.message || "Erro ao carregar dados do painel." );
   }
 });

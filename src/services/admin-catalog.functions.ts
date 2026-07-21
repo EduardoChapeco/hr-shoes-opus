@@ -31,11 +31,11 @@ export async function listProductTypesHandler() {
 export const listProductTypes = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const data = await listProductTypesHandler();
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[admin-catalog] listProductTypes error:", e);
-    return { status: "error" as const, message: "Erro ao listar tipos de produto." };
+    throw new Error("Erro ao listar tipos de produto." );
   }
 });
 
@@ -81,13 +81,11 @@ export const createProductType = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await createProductTypeHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createProductType error:", e);
-      return {
-        status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao criar tipo de produto.",
-      };
+      throw new Error(e instanceof Error ? e.message : "Erro ao criar tipo de produto.",
+      );
     }
   });
 
@@ -126,13 +124,11 @@ export const updateProductType = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await updateProductTypeHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateProductType error:", e);
-      return {
-        status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao atualizar tipo de produto.",
-      };
+      throw new Error(e instanceof Error ? e.message : "Erro ao atualizar tipo de produto.",
+      );
     }
   });
 
@@ -151,10 +147,8 @@ export const deleteProductType = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[admin-catalog] deleteProductType error:", e);
-      return {
-        status: "error" as const,
-        message: "Não foi possível excluir o tipo. Verifique se existem produtos cadastrados usando este tipo.",
-      };
+      throw new Error("Não foi possível excluir o tipo. Verifique se existem produtos cadastrados usando este tipo.",
+      );
     }
   });
 
@@ -183,11 +177,11 @@ export async function listAdminProductsHandler() {
 export const listAdminProducts = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const data = await listAdminProductsHandler();
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[admin-catalog] listAdminProducts error:", e);
-    return { status: "error" as const, message: "Erro ao listar produtos." };
+    throw new Error("Erro ao listar produtos." );
   }
 });
 
@@ -231,6 +225,32 @@ export async function createProductHandler(input: {
   if (!storeData) throw new Error("No store found");
 
   const { media_urls, variants, category_ids, ...productInput } = input;
+
+  // -- CONTRACT SHIELD START --
+  if (variants && variants.length > 0) {
+    const baseKeys = Object.keys(variants[0].attributes || {}).map(k => k.trim()).sort().join("|");
+    const seenCombos = new Set<string>();
+
+    for (const v of variants) {
+      const cleanAttrs: Record<string, string> = {};
+      for (const [key, val] of Object.entries(v.attributes || {})) {
+        cleanAttrs[key.trim()] = String(val).trim();
+      }
+      v.attributes = cleanAttrs;
+
+      const incomingKeys = Object.keys(cleanAttrs).sort().join("|");
+      if (incomingKeys !== baseKeys) {
+        throw new Error("Inconsistência de matriz: Todas as variantes do produto devem possuir exatamente o mesmo conjunto de atributos.");
+      }
+
+      const comboStr = Object.keys(cleanAttrs).sort().map(k => `${k}=${cleanAttrs[k]}`).join("|");
+      if (seenCombos.has(comboStr)) {
+        throw new Error("Conflito de matriz: O produto contém variantes com a mesma combinação exata de atributos na requisição.");
+      }
+      seenCombos.add(comboStr);
+    }
+  }
+  // -- CONTRACT SHIELD END --
 
   const { data, error } = await db
     .from("products")
@@ -346,13 +366,11 @@ export const createProduct = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await createProductHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createProduct error:", e);
-      return {
-        status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao criar produto.",
-      };
+      throw new Error(e instanceof Error ? e.message : "Erro ao criar produto.",
+      );
     }
   });
 
@@ -375,11 +393,11 @@ export async function listCategoriesHandler() {
 export const listCategories = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const data = await listCategoriesHandler();
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[admin-catalog] listCategories error:", e);
-    return { status: "error" as const, message: "Erro ao listar categorias." };
+    throw new Error("Erro ao listar categorias." );
   }
 });
 
@@ -422,13 +440,11 @@ export const createCategory = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await createCategoryHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createCategory error:", e);
-      return {
-        status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao criar categoria.",
-      };
+      throw new Error(e instanceof Error ? e.message : "Erro ao criar categoria.",
+      );
     }
   });
 
@@ -444,11 +460,11 @@ export const getCategoryById = createServerFn({ method: "GET" })
   .handler(async ({ data: { id } }) => {
     try {
       const data = await getCategoryByIdHandler(id);
-      return { status: "ok" as const, data };
+      return data;
     } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[admin-catalog] getCategoryById error:", e);
-      return { status: "error" as const, message: "Erro ao buscar categoria." };
+      throw new Error("Erro ao buscar categoria." );
     }
   });
 
@@ -479,13 +495,11 @@ export const updateCategory = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await updateCategoryHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateCategory error:", e);
-      return {
-        status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao atualizar categoria.",
-      };
+      throw new Error(e instanceof Error ? e.message : "Erro ao atualizar categoria.",
+      );
     }
   });
 
@@ -508,11 +522,11 @@ export async function listCollectionsHandler() {
 export const listCollections = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const data = await listCollectionsHandler();
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[admin-catalog] listCollections error:", e);
-    return { status: "error" as const, message: "Erro ao listar coleções." };
+    throw new Error("Erro ao listar coleções." );
   }
 });
 
@@ -553,13 +567,11 @@ export const createCollection = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await createCollectionHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createCollection error:", e);
-      return {
-        status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao criar coleção.",
-      };
+      throw new Error(e instanceof Error ? e.message : "Erro ao criar coleção.",
+      );
     }
   });
 
@@ -575,11 +587,11 @@ export const getCollectionById = createServerFn({ method: "GET" })
   .handler(async ({ data: { id } }) => {
     try {
       const data = await getCollectionByIdHandler(id);
-      return { status: "ok" as const, data };
+      return data;
     } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[admin-catalog] getCollectionById error:", e);
-      return { status: "error" as const, message: "Erro ao buscar coleção." };
+      throw new Error("Erro ao buscar coleção." );
     }
   });
 
@@ -608,13 +620,11 @@ export const updateCollection = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await updateCollectionHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateCollection error:", e);
-      return {
-        status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao atualizar coleção.",
-      };
+      throw new Error(e instanceof Error ? e.message : "Erro ao atualizar coleção.",
+      );
     }
   });
 
@@ -648,11 +658,11 @@ export const getProductById = createServerFn({ method: "GET" })
   .handler(async ({ data: { id } }) => {
     try {
       const data = await getProductByIdHandler(id);
-      return { status: "ok" as const, data };
+      return data;
     } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[admin-catalog] getProductById error:", e);
-      return { status: "error" as const, message: "Erro ao buscar produto." };
+      throw new Error("Erro ao buscar produto." );
     }
   });
 
@@ -731,13 +741,11 @@ export const updateProduct = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await updateProductHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateProduct error:", e);
-      return {
-        status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao atualizar produto.",
-      };
+      throw new Error(e instanceof Error ? e.message : "Erro ao atualizar produto.",
+      );
     }
   });
 
@@ -762,6 +770,44 @@ export async function upsertProductVariantHandler(input: {
   const { id, product_id, ...payload } = input;
 
   const query = db.from("product_variants");
+
+  // -- CONTRACT SHIELD START --
+  // Clean attributes
+  const cleanAttrs: Record<string, string> = {};
+  for (const [k, v] of Object.entries(payload.attributes || {})) {
+    cleanAttrs[k.trim()] = String(v).trim();
+  }
+  payload.attributes = cleanAttrs;
+
+  // Get existing variants
+  const { data: existingVariants, error: fetchError } = await db
+    .from("product_variants")
+    .select("id, attributes")
+    .eq("product_id", product_id);
+    
+  if (fetchError) throw fetchError;
+
+  const otherVariants = existingVariants.filter((v: any) => v.id !== id);
+
+  if (otherVariants.length > 0) {
+    const requiredKeys = Object.keys(otherVariants[0].attributes || {}).sort().join("|");
+    const incomingKeys = Object.keys(cleanAttrs).sort().join("|");
+
+    if (requiredKeys !== incomingKeys) {
+      throw new Error(`Inconsistência de matriz: Esta variante requer os atributos [${Object.keys(otherVariants[0].attributes || {}).join(", ")}], mas recebeu [${Object.keys(cleanAttrs).join(", ")}].`);
+    }
+
+    const incomingComboStr = Object.keys(cleanAttrs).sort().map(k => `${k}=${cleanAttrs[k]}`).join("|");
+
+    for (const ov of otherVariants) {
+      const ovComboStr = Object.keys(ov.attributes || {}).sort().map(k => `${k}=${ov.attributes[k]}`).join("|");
+      if (ovComboStr === incomingComboStr) {
+        throw new Error("Conflito de Matriz: Já existe outra variante neste produto com esta mesma combinação exata de atributos.");
+      }
+    }
+  }
+  // -- CONTRACT SHIELD END --
+
   let result;
 
   if (id) {
@@ -797,13 +843,11 @@ export const upsertProductVariant = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await upsertProductVariantHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] upsertProductVariant error:", e);
-      return {
-        status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao salvar variante.",
-      };
+      throw new Error(e instanceof Error ? e.message : "Erro ao salvar variante.",
+      );
     }
   });
 
@@ -827,7 +871,7 @@ export const updateProductMediaMetadata = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[admin-catalog] updateProductMediaMetadata error:", e.message);
-      return { status: "error" as const, message: e.message || "Erro ao atualizar metadados da mídia." };
+      throw new Error(e.message || "Erro ao atualizar metadados da mídia." );
     }
   });
 
@@ -857,7 +901,7 @@ export const reorderProductMedia = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[admin-catalog] reorderProductMedia error:", e.message);
-      return { status: "error" as const, message: e.message || "Erro ao reordenar mídias." };
+      throw new Error(e.message || "Erro ao reordenar mídias." );
     }
   });
 
@@ -925,10 +969,8 @@ export const getOnboardingProgress = createServerFn({ method: "GET" }).handler(a
       return { status: "unconfigured" as const };
     }
     console.error("[admin-catalog] getOnboardingProgress error:", e);
-    return {
-      status: "error" as const,
-      message: e.message || "Erro ao carregar progresso de onboarding.",
-    };
+    throw new Error(e.message || "Erro ao carregar progresso de onboarding.",
+    );
   }
 });
 
@@ -954,7 +996,7 @@ export const deleteProductMedia = createServerFn({ method: "POST" })
     try {
       return await deleteProductMediaHandler(input);
     } catch (e: any) {
-      return { status: "error" as const, message: e.message || "Erro ao deletar mídia." };
+      throw new Error(e.message || "Erro ao deletar mídia." );
     }
   });
 
@@ -982,9 +1024,9 @@ export const addProductMediaLink = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await addProductMediaLinkHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: any) {
-      return { status: "error" as const, message: e.message || "Erro ao vincular mídia" };
+      throw new Error(e.message || "Erro ao vincular mídia" );
     }
   });
 
@@ -1080,13 +1122,11 @@ export const duplicateProduct = createServerFn({ method: "POST" })
   .handler(async ({ data: { productId } }) => {
     try {
       const data = await duplicateProductHandler(productId);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] duplicateProduct error:", e);
-      return {
-        status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao duplicar produto.",
-      };
+      throw new Error(e instanceof Error ? e.message : "Erro ao duplicar produto.",
+      );
     }
   });
 
@@ -1116,13 +1156,11 @@ export const toggleProductStatus = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await toggleProductStatusHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] toggleProductStatus error:", e);
-      return {
-        status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao alterar status.",
-      };
+      throw new Error(e instanceof Error ? e.message : "Erro ao alterar status.",
+      );
     }
   });
 
@@ -1160,13 +1198,11 @@ export const bulkUpdateProductStatus = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const res = await bulkUpdateProductStatusHandler(input);
-      return { status: "success" as const, data: res };
+      return res ;
     } catch (e: unknown) {
       console.error("[admin-catalog] bulkUpdateProductStatus error:", e);
-      return {
-        status: "error" as const,
-        message: e instanceof Error ? e.message : "Erro ao executar ação em lote.",
-      };
+      throw new Error(e instanceof Error ? e.message : "Erro ao executar ação em lote.",
+      );
     }
   });
 
@@ -1217,14 +1253,14 @@ export const generateVariantGrid = createServerFn({ method: "POST" })
         };
       });
 
-      if (variants.length === 0) return { status: "success", data: [] };
+      if (variants.length === 0) return [] ;
 
       const { data, error } = await db.from("product_variants").insert(variants).select();
       if (error) throw error;
 
-      return { status: "success", data };
+      return data;
     } catch (e: any) {
       console.error("[generateVariantGrid]", e);
-      return { status: "error", message: e.message || "Erro ao gerar grades" };
+      throw new Error(e.message || "Erro ao gerar grades" );
     }
   });

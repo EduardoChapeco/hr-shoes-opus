@@ -59,8 +59,8 @@ export function ImageUpload({
         },
       });
 
-      if (res.status === "error" || !res.signedUrl) {
-        throw new Error(res.message || "Erro ao obter URL de upload");
+      if (!res.signedUrl) {
+        throw new Error("Erro ao obter URL de upload");
       }
 
       // Convert base64 to Blob for PUT request

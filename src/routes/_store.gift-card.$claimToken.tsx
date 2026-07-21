@@ -56,7 +56,7 @@ function ClaimGiftCardPage() {
     setIsRedeeming(true);
     try {
       const res = await claimGiftCard({ data: { code } });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Vale-Presente vinculado com sucesso!");
         navigate({ to: "/conta/gift-cards" });
       } else {

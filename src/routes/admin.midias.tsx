@@ -2,7 +2,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { Upload, Image, Trash2, ExternalLink } from "lucide-react";
-import { listMediaAssets, createUploadUrl } from "@/services/builder.functions";
+import { listMediaAssets } from "@/services/builder.functions";
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/state/states";
@@ -17,24 +17,10 @@ export const Route = createFileRoute("/admin/midias")({
 });
 
 function MidiasPage() {
-  const res = Route.useLoaderData();
+  const files = Route.useLoaderData() || [];
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-
-  if (res.status === "error") {
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Mídias" description="Gerencie imagens e arquivos da loja." />
-        <EmptyState
-          title="Loja não configurada"
-          description={res.message}
-        />
-      </div>
-    );
-  }
-
-  const files = res.data || [];
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -59,7 +45,7 @@ function MidiasPage() {
             const base64 = event.target.result as string;
             // Import dynamically to avoid client bundle bloat
             const { uploadMedia } = await import("@/services/storage.functions");
-            const res = await uploadMedia({
+            await uploadMedia({
               data: {
                 fileName: file.name,
                 fileBase64: base64,
@@ -67,12 +53,8 @@ function MidiasPage() {
               }
             });
 
-            if (res.status === "success") {
-              toast.success("Imagem enviada com sucesso!");
-              router.invalidate();
-            } else {
-              toast.error(res.message);
-            }
+            toast.success("Imagem enviada com sucesso!");
+            router.invalidate();
           } catch (err: any) {
             toast.error(err.message || "Erro ao enviar");
           } finally {

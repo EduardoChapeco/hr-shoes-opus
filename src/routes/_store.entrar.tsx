@@ -91,17 +91,13 @@ function LoginPage() {
         return;
       }
 
-      if (result.status === "error") {
-        toast.error(result.message);
-        return;
-      }
 
       toast.success("Login efetuado com sucesso!");
       // CRITICAL: We must invalidate the router to clear any cached unauthenticated data
       await router.invalidate();
       navigate({ to: returnUrl });
-    } catch (e) {
-      toast.error("Ocorreu um erro ao tentar fazer login.");
+    } catch (e: any) {
+      toast.error(e.message || "Erro inesperado ao fazer login");
     }
   };
 

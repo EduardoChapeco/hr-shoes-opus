@@ -54,7 +54,7 @@ export const Route = createFileRoute("/admin/catalogo/produtos/")({
   head: () => ({ meta: [{ title: "Gerenciador de Produtos — Hr Shoes" }] }),
   loader: async () => {
     const res = await listAdminProducts();
-    return res.status === "ok" ? res.data : [];
+    return res || [];
   },
   component: AdminProductsPage,
 });
@@ -110,7 +110,7 @@ function AdminProductsPage() {
     if (res.status === "success" && res.data) {
       toast.success("Produto duplicado com sucesso em modo Rascunho!");
       const reloaded = await listAdminProducts();
-      if (reloaded.status === "ok") setProducts(reloaded.data);
+      if (reloaded) setProducts(reloaded);
     } else {
       toast.error((res as any).message || "Erro ao duplicar produto.");
     }
@@ -125,7 +125,7 @@ function AdminProductsPage() {
     const res = await toggleProductStatus({ data: { productId, status: newStatus } });
     setIsProcessing(false);
 
-    if (res.status === "success") {
+    if (res) {
       toast.success(`Status alterado para ${newStatus === "published" ? "Publicado" : newStatus === "archived" ? "Arquivado" : "Rascunho"}.`);
       setProducts((prev) =>
         prev.map((p) => (p.id === productId ? { ...p, status: newStatus } : p)),
@@ -147,11 +147,11 @@ function AdminProductsPage() {
     const res = await bulkUpdateProductStatus({ data: { productIds: selectedIds, action } });
     setIsProcessing(false);
 
-    if (res.status === "success") {
+    if (res) {
       toast.success(`Ação em lote executada para ${selectedIds.length} produto(s).`);
       setSelectedIds([]);
       const reloaded = await listAdminProducts();
-      if (reloaded.status === "ok") setProducts(reloaded.data);
+      if (reloaded) setProducts(reloaded);
     } else {
       toast.error((res as any).message || "Erro ao executar ação em lote.");
     }

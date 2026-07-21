@@ -34,12 +34,10 @@ export const Route = createFileRoute("/_store/conta/pedidos/$id")({
       })),
     ]);
 
-    if (orderRes.status === "error") throw new Error(orderRes.message);
-
     return {
-      order: orderRes.data,
+      order: orderRes,
       paymentInstructions:
-        instrRes.status === "ok" ? instrRes.data : { pix_key: null, payment_instructions: null },
+        instrRes || { pix_key: null, payment_instructions: null },
     };
   },
   component: CustomerOrderDetailPage,

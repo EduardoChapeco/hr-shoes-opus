@@ -180,11 +180,11 @@ export const listExperienceDocuments = createServerFn({ method: "GET" })
       const { data, error } = await query;
       if (error) throw error;
       
-      return { status: "ok" as const, data: data as ExperienceDocument[] };
+      return data as ExperienceDocument[] ;
     } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[builder.functions] listExperienceDocuments error:", e);
-      return { status: "error" as const, message: "Erro ao listar documentos." };
+      throw new Error("Erro ao listar documentos." );
     }
   });
 
@@ -236,9 +236,9 @@ export const getExperienceDocument = createServerFn({ method: "GET" })
 
       return { status: "ok" as const, data: { document: doc as ExperienceDocument, version, nodes } };
     } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[builder.functions] getExperienceDocument error:", e);
-      return { status: "error" as const, message: "Erro ao carregar documento." };
+      throw new Error("Erro ao carregar documento." );
     }
   });
 
@@ -511,7 +511,7 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
       return { status: "success" as const, data: { document: doc, version } };
     } catch (e: unknown) {
       console.error("[builder.functions] createExperienceDocument error:", e);
-      return { status: "error" as const, message: "Erro ao criar documento." };
+      throw new Error("Erro ao criar documento." );
     }
   });
 
@@ -534,10 +534,10 @@ export const listMediaAssets = createServerFn({ method: "GET" })
 
       if (error) throw error;
 
-      return { status: "success" as const, data };
+      return data;
     } catch (e: any) {
       console.error("[builder.functions] listMediaAssets error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao carregar mídias" };
+      throw new Error(e.message || "Erro ao carregar mídias" );
     }
   });
 
@@ -564,7 +564,7 @@ export const updateExperienceDocument = createServerFn({ method: "POST" })
         .maybeSingle();
 
       if (existing) {
-        return { status: "error" as const, message: "Este slug já está em uso por outra página ativa." };
+        throw new Error("Este slug já está em uso por outra página ativa." );
       }
 
       const { error } = await db
@@ -582,7 +582,7 @@ export const updateExperienceDocument = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[builder.functions] updateExperienceDocument error:", e);
-      return { status: "error" as const, message: "Erro ao atualizar configurações." };
+      throw new Error("Erro ao atualizar configurações." );
     }
   });
 
@@ -655,7 +655,7 @@ export const checkExperienceDocumentExists = createServerFn({ method: "GET" })
 
       return { status: "success" as const, data: { exists: !!doc, id: doc?.id } };
     } catch (e) {
-      return { status: "error" as const, message: "Erro ao verificar documento." };
+      throw new Error("Erro ao verificar documento." );
     }
   });
 
@@ -726,7 +726,7 @@ export const getOrCreateHomeDocument = createServerFn({ method: "POST" })
       return { status: "success" as const, data: { id: newDoc.id, isNew: true, templateId } };
     } catch (e) {
       console.error("[builder.functions] getOrCreateHomeDocument error:", e);
-      return { status: "error" as const, message: "Erro ao criar vitrine principal." };
+      throw new Error("Erro ao criar vitrine principal." );
     }
   });
 
@@ -899,7 +899,7 @@ export const getOrCreateInstitutionalDocument = createServerFn({ method: "POST" 
       return { status: "success" as const, data: { id: newDoc.id, isNew: true, templateId } };
     } catch (e) {
       console.error("[builder.functions] getOrCreateInstitutionalDocument error:", e);
-      return { status: "error" as const, message: "Erro ao inicializar perfil institucional." };
+      throw new Error("Erro ao inicializar perfil institucional." );
     }
   });
 
@@ -981,9 +981,9 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
 
       return { status: "ok" as const, data: { document: doc as ExperienceDocument, tree } };
     } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[builder.functions] getPublicExperienceDocumentBySlug error:", e);
-      return { status: "error" as const, message: "Erro ao carregar página." };
+      throw new Error("Erro ao carregar página." );
     }
   });
 
@@ -1003,7 +1003,7 @@ export const getActiveGlobalPopups = createServerFn({ method: "GET" })
         .eq("is_active", true);
 
       if (docError) throw docError;
-      if (!docs || docs.length === 0) return { status: "ok" as const, data: [] };
+      if (!docs || docs.length === 0) return [] ;
 
       // Load published versions for all active popup documents
       const activePopups = await Promise.all(docs.map(async (doc) => {
@@ -1043,9 +1043,9 @@ export const getActiveGlobalPopups = createServerFn({ method: "GET" })
         };
       }));
 
-      return { status: "ok" as const, data: activePopups.filter(Boolean) };
+      return activePopups.filter(Boolean) ;
     } catch (e) {
-      return { status: "error" as const, message: "Erro ao carregar popups globais." };
+      throw new Error("Erro ao carregar popups globais." );
     }
   });
 
@@ -1097,7 +1097,7 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[builder.functions] saveBuilderNodes error:", e);
-      return { status: "error" as const, message: "Erro ao salvar o documento." };
+      throw new Error("Erro ao salvar o documento." );
     }
   });
 
@@ -1164,7 +1164,7 @@ export const publishBuilderVersion = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[builder.functions] publishBuilderVersion error:", e);
-      return { status: "error" as const, message: "Erro ao publicar." };
+      throw new Error("Erro ao publicar." );
     }
   });
 
@@ -1200,11 +1200,11 @@ export const getBuilderProducts = createServerFn({ method: 'GET' })
         };
       });
 
-      return { status: 'ok' as const, data: formatted };
+      return formatted ;
     } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: 'unconfigured' as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error('[builder.functions] getBuilderProducts error:', e);
-      return { status: 'error' as const, message: 'Erro ao buscar produtos.' };
+      throw new Error('Erro ao buscar produtos.' );
     }
   });
 
@@ -1234,11 +1234,11 @@ export const getBuilderReviews = createServerFn({ method: 'GET' })
         };
       });
 
-      return { status: 'ok' as const, data: formatted };
+      return formatted ;
     } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: 'unconfigured' as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error('[builder.functions] getBuilderReviews error:', e);
-      return { status: 'error' as const, message: 'Erro ao buscar avaliações.' };
+      throw new Error('Erro ao buscar avaliações.' );
     }
   });
 

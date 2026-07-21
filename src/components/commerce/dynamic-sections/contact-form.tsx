@@ -52,9 +52,7 @@ export function ContactForm({ storeId, content }: ContactFormProps) {
         },
       });
 
-      if (res.status === "error") {
-        throw new Error(res.message);
-      }
+
 
       setIsSuccess(true);
       toast.success("Mensagem enviada com sucesso!");

@@ -41,7 +41,7 @@ vi.mock("@/lib/supabase", () => ({
 
 describe("listOrdersHandler", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mockFrom.mockReturnValue(mockQueryChain);
     mockSelect.mockReturnValue(mockQueryChain);
     mockOrder.mockReturnValue(mockQueryChain);
@@ -71,7 +71,7 @@ describe("listOrdersHandler", () => {
 
 describe("getOrderByIdHandler", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mockFrom.mockReturnValue(mockQueryChain);
     mockSelect.mockReturnValue(mockQueryChain);
     mockEq.mockReturnValue(mockQueryChain);
@@ -108,7 +108,7 @@ describe("getOrderByIdHandler", () => {
 
 describe("updateOrderStatusHandler", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mockFrom.mockReturnValue(mockQueryChain);
     mockUpdate.mockReturnValue(mockQueryChain);
     mockEq.mockReturnValue(mockQueryChain);

@@ -38,7 +38,7 @@ vi.mock("@/lib/supabase", () => {
 
 describe("Stock Functions", () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     mockFrom.mockReturnValue(mockQueryBuilder);
     mockSelect.mockReturnValue(mockQueryBuilder);
     mockOrder.mockReturnValue(mockQueryBuilder);

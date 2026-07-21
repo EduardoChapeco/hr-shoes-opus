@@ -66,7 +66,7 @@ export const Route = createFileRoute("/_store/catalogo")({
     ]);
     return {
       products: productsRes,
-      categories: categoriesRes.status === "ok" ? categoriesRes.data : [],
+      categories: categoriesRes || [],
     };
   },
   component: CatalogPage,
@@ -352,7 +352,6 @@ function CatalogPage() {
 
         {/* Product grid */}
         <div className="flex-1">
-          {result.status === "error" && <ErrorState description={result.message} />}
           {result.status === "unconfigured" && <ErrorState description={result.reason} />}
           {result.status === "empty" && (
             <EmptyState

@@ -36,12 +36,7 @@ import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/fretes/tabelas")({
   head: () => ({ meta: [{ title: "Tabelas de Frete — Hr Shoes" }] }),
-  loader: async () => {
-    const res = await listShippingZones();
-    if (res.status === "error") throw new Error(res.message);
-    if (res.status === "unconfigured") return [];
-    return res.data || [];
-  },
+  loader: async () => await listShippingZones() || [],
   component: FretesTabelasPage,
 });
 
@@ -76,10 +71,7 @@ function FretesTabelasPage() {
           is_active: true,
         },
       });
-      if (res.status === "error") {
-        toast.error(res.message || "Erro ao criar zona");
-        return;
-      }
+      
       toast.success("Zona adicionada!");
       setAddZoneOpen(false);
       setZoneForm({ name: "", regions: "" });
@@ -123,10 +115,7 @@ function FretesTabelasPage() {
           is_active: true,
         },
       });
-      if (res.status === "error") {
-        toast.error(res.message || "Erro ao atualizar zona");
-        return;
-      }
+      
       toast.success("Zona atualizada!");
       setEditZoneOpen(false);
       router.invalidate();
@@ -148,10 +137,7 @@ function FretesTabelasPage() {
     if (!confirm("Tem certeza que deseja excluir esta zona e todas as suas taxas?")) return;
     try {
       const res = await deleteShippingZone({ data: { id } });
-      if (res.status === "error") {
-        toast.error(res.message || "Erro ao excluir zona");
-        return;
-      }
+      
       toast.success("Zona excluída!");
       router.invalidate();
     } catch (e: any) {
@@ -175,10 +161,7 @@ function FretesTabelasPage() {
           is_active: true,
         },
       });
-      if (res.status === "error") {
-        toast.error(res.message || "Erro ao adicionar taxa");
-        return;
-      }
+      
       toast.success("Taxa adicionada!");
       setAddRateOpen(null);
       setRateForm({ name: "", price: "", minOrderCents: "", estimatedDays: "" });
@@ -200,10 +183,7 @@ function FretesTabelasPage() {
   const handleDeleteRate = async (id: string) => {
     try {
       const res = await deleteShippingRate({ data: { id } });
-      if (res.status === "error") {
-        toast.error(res.message || "Erro ao remover taxa");
-        return;
-      }
+      
       toast.success("Taxa removida.");
       router.invalidate();
     } catch (e: any) {

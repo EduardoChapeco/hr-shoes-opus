@@ -28,11 +28,11 @@ export async function listAdminPagesHandler() {
 export const listAdminPages = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const data = await listAdminPagesHandler();
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] listAdminPages error:", e);
-    return { status: "error" as const, message: "Erro ao listar páginas." };
+    throw new Error("Erro ao listar páginas." );
   }
 });
 
@@ -60,9 +60,9 @@ export const getAdminPageDetails = createServerFn({ method: "GET" })
 
       return { status: "ok" as const, data: { ...page, sections } };
     } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+      if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[cms.functions] getAdminPageDetails error:", e);
-      return { status: "error" as const, message: "Erro ao carregar detalhes da página." };
+      throw new Error("Erro ao carregar detalhes da página." );
     }
   });
 
@@ -100,10 +100,10 @@ export const createPage = createServerFn({ method: "POST" })
         .single();
 
       if (error) throw error;
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[cms.functions] createPage error:", e);
-      return { status: "error" as const, message: e instanceof Error ? e.message : "Erro." };
+      throw new Error(e instanceof Error ? e.message : "Erro." );
     }
   });
 
@@ -123,7 +123,7 @@ export const deletePage = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[cms.functions] deletePage error:", e);
-      return { status: "error" as const, message: "Erro ao excluir página." };
+      throw new Error("Erro ao excluir página." );
     }
   });
 
@@ -172,7 +172,7 @@ export const savePageSections = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[cms.functions] savePageSections error:", e);
-      return { status: "error" as const, message: "Erro ao salvar seções." };
+      throw new Error("Erro ao salvar seções." );
     }
   });
 
@@ -217,7 +217,7 @@ export const getPublicPageBySlug = createServerFn({ method: "GET" })
           reason: "Este conteúdo institucional está sendo atualizado.",
         };
       console.error("[cms.functions] getPublicPageBySlug error:", e);
-      return { status: "error" as const, message: "Erro inesperado ao carregar página." };
+      throw new Error("Erro inesperado ao carregar página." );
     }
   });
 
@@ -243,7 +243,7 @@ export const getPublicStoreSettings = createServerFn({ method: "GET" }).handler(
     
     return { status: "ok" as const, data: { ...store, logoUrl, faviconUrl } };
   } catch {
-    return { status: "error" as const, message: "Erro ao carregar dados da loja." };
+    throw new Error("Erro ao carregar dados da loja." );
   }
 });
 
@@ -277,14 +277,14 @@ export const getThemeSettings = createServerFn({ method: "GET" }).handler(async 
         .single();
 
       if (insertError) throw insertError;
-      return { status: "ok" as const, data: newData };
+      return newData ;
     }
 
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] getThemeSettings error:", e);
-    return { status: "error" as const, message: "Erro ao buscar tema." };
+    throw new Error("Erro ao buscar tema." );
   }
 });
 
@@ -319,10 +319,10 @@ export const updateThemeSettings = createServerFn({ method: "POST" })
         .single();
 
       if (error) throw error;
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[cms.functions] updateThemeSettings error:", e);
-      return { status: "error" as const, message: "Erro ao atualizar tema." };
+      throw new Error("Erro ao atualizar tema." );
     }
   });
 
@@ -346,11 +346,11 @@ export const getNavigationMenus = createServerFn({ method: "GET" }).handler(asyn
       .order("handle", { ascending: true });
 
     if (error) throw error;
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] getNavigationMenus error:", e);
-    return { status: "error" as const, message: "Erro ao buscar menus de navegação." };
+    throw new Error("Erro ao buscar menus de navegação." );
   }
 });
 
@@ -390,10 +390,10 @@ export const upsertNavigationMenu = createServerFn({ method: "POST" })
       }
 
       if (result.error) throw result.error;
-      return { status: "success" as const, data: result.data };
+      return result.data ;
     } catch (e: unknown) {
       console.error("[cms.functions] upsertNavigationMenu error:", e);
-      return { status: "error" as const, message: "Erro ao salvar menu de navegação." };
+      throw new Error("Erro ao salvar menu de navegação." );
     }
   });
 
@@ -418,11 +418,11 @@ export const listReviews = createServerFn({ method: "GET" }).handler(async () =>
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] listReviews error:", e);
-    return { status: "error" as const, message: "Erro ao listar avaliações." };
+    throw new Error("Erro ao listar avaliações." );
   }
 });
 
@@ -445,10 +445,10 @@ export const updateReviewStatus = createServerFn({ method: "POST" })
         .single();
 
       if (error) throw error;
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[cms.functions] updateReviewStatus error:", e);
-      return { status: "error" as const, message: "Erro ao atualizar avaliação." };
+      throw new Error("Erro ao atualizar avaliação." );
     }
   });
 
@@ -489,10 +489,10 @@ export const createProductReview = createServerFn({ method: "POST" })
         .single();
 
       if (error) throw error;
-      return { status: "success" as const, data };
+      return data;
     } catch (e: any) {
       console.error("[cms.functions] createProductReview error:", e.message || e);
-      return { status: "error" as const, message: e.message || "Erro ao enviar avaliação." };
+      throw new Error(e.message || "Erro ao enviar avaliação." );
     }
   });
 
@@ -526,14 +526,14 @@ export const getLinkInBio = createServerFn({ method: "GET" }).handler(async () =
         .single();
 
       if (insertError) throw insertError;
-      return { status: "ok" as const, data: newData };
+      return newData ;
     }
 
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] getLinkInBio error:", e);
-    return { status: "error" as const, message: "Erro ao buscar Link da Bio." };
+    throw new Error("Erro ao buscar Link da Bio." );
   }
 });
 
@@ -564,10 +564,10 @@ export const upsertLinkInBio = createServerFn({ method: "POST" })
         .single();
 
       if (error) throw error;
-      return { status: "success" as const, data };
+      return data;
     } catch (e: unknown) {
       console.error("[cms.functions] upsertLinkInBio error:", e);
-      return { status: "error" as const, message: "Erro ao atualizar Link da Bio." };
+      throw new Error("Erro ao atualizar Link da Bio." );
     }
   });
 
@@ -592,11 +592,11 @@ export const listAdminStories = createServerFn({ method: "GET" }).handler(async 
       .order("sort_order", { ascending: true });
 
     if (error) throw error;
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] listAdminStories error:", e);
-    return { status: "error" as const, message: "Erro ao listar stories." };
+    throw new Error("Erro ao listar stories." );
   }
 });
 
@@ -638,10 +638,10 @@ export const upsertStory = createServerFn({ method: "POST" })
       }
 
       if (result.error) throw result.error;
-      return { status: "success" as const, data: result.data };
+      return result.data ;
     } catch (e: unknown) {
       console.error("[cms.functions] upsertStory error:", e);
-      return { status: "error" as const, message: "Erro ao salvar story." };
+      throw new Error("Erro ao salvar story." );
     }
   });
 
@@ -657,7 +657,7 @@ export const deleteStory = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[cms.functions] deleteStory error:", e);
-      return { status: "error" as const, message: "Erro ao excluir story." };
+      throw new Error("Erro ao excluir story." );
     }
   });
 
@@ -678,11 +678,11 @@ export const listPublicStories = createServerFn({ method: "GET" }).handler(async
       .order("sort_order", { ascending: true });
 
     if (error) throw error;
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] listPublicStories error:", e);
-    return { status: "error" as const, message: "Erro ao listar stories." };
+    throw new Error("Erro ao listar stories." );
   }
 });
 
@@ -696,7 +696,7 @@ export const getPageBySlug = createServerFn({ method: "GET" })
       const { resolveTenantStoreId } = await import("@/lib/tenant");
       const storeId = await resolveTenantStoreId();
       const store = storeId ? { id: storeId } : null;
-      if (!store) return { status: "error" as const, message: "Loja não encontrada." };
+      if (!store) throw new Error("Loja não encontrada." );
 
       const { data: page, error } = await db
         .from("pages")
@@ -718,10 +718,10 @@ export const getPageBySlug = createServerFn({ method: "GET" })
         throw error;
       }
 
-      return { status: "success" as const, data: page };
+      return page ;
     } catch (e: unknown) {
       console.error("[cms.functions] getPageBySlug error:", e);
-      return { status: "error" as const, message: "Erro ao carregar página." };
+      throw new Error("Erro ao carregar página." );
     }
   });
 export const createReview = createServerFn({ method: "POST" })
@@ -748,7 +748,7 @@ export const createReview = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[cms.functions] createReview:", e);
-      return { status: "error" as const, message: e.message || "Erro ao enviar avaliação." };
+      throw new Error(e.message || "Erro ao enviar avaliação." );
     }
   });
 
@@ -793,6 +793,6 @@ export const createManualReview = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[cms.functions] createManualReview:", e);
-      return { status: "error" as const, message: e.message || "Erro ao inserir avaliação manual." };
+      throw new Error(e.message || "Erro ao inserir avaliação manual." );
     }
   });

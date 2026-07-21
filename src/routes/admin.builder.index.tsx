@@ -33,10 +33,7 @@ export const Route = createFileRoute("/admin/builder/")({
   validateSearch: (s: Record<string, unknown>) => ({ type: (s.type as string) || undefined }),
   loader: async () => {
     const res = await listExperienceDocuments();
-    if (res.status === "error" || res.status === "unconfigured") {
-      throw new Error("Erro ao carregar documentos do Builder");
-    }
-    const filtered = (res.data as ExperienceDocument[]).filter(
+    const filtered = res.filter(
       (doc) => doc.document_type !== "storefront"
     );
     return { documents: filtered };
@@ -95,7 +92,7 @@ function BuilderIndex() {
     
     setIsUpdatingSettings(true);
     try {
-      const res = await updateExperienceDocument({
+      await updateExperienceDocument({
         data: {
           id: editingDoc.id,
           title: settingsTitle,
@@ -103,13 +100,9 @@ function BuilderIndex() {
           is_active: settingsActive
         }
       });
-      if (res.status === "success") {
-        toast.success("Configurações atualizadas!");
-        setIsSettingsOpen(false);
-        await router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao atualizar.");
-      }
+      toast.success("Configurações atualizadas!");
+      setIsSettingsOpen(false);
+      await router.invalidate();
     } catch {
       toast.error("Erro inesperado.");
     } finally {
@@ -151,12 +144,8 @@ function BuilderIndex() {
         }
       });
       
-      if (res.status === "success") {
-        toast.success("Documento criado!");
-        navigate({ to: "/admin/builder/$documentId/editor", params: { documentId: res.data.document.id } });
-      } else {
-        toast.error("Erro ao criar documento.");
-      }
+      toast.success("Documento criado!");
+      navigate({ to: "/admin/builder/$documentId/editor", params: { documentId: res.data.document.id } });
     } catch (e) {
       toast.error("Erro inesperado.");
     } finally {

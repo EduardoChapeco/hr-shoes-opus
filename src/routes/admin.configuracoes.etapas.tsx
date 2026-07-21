@@ -87,40 +87,14 @@ function getStatusBadge(status: OnboardingStepStatus) {
 function EtapasPage() {
   const result = Route.useLoaderData();
 
-  if (result.status === "unconfigured") {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          eyebrow="Configurações"
-          title="Etapas para uma Loja de Sucesso"
-          description="Checklist inteligente de prontidão comercial."
-        />
-        <ErrorState
-          title="Loja não configurada"
-          description="A conexão com o Supabase ou sua conta de loja não foi encontrada."
-        />
-      </div>
-    );
-  }
-
-  if (result.status === "error" || !result.data) {
-    return (
-      <div className="space-y-6">
-        <PageHeader
-          eyebrow="Configurações"
-          title="Etapas para uma Loja de Sucesso"
-          description="Checklist inteligente de prontidão comercial."
-        />
-        <ErrorState
-          title="Não foi possível carregar o checklist"
-          description={result.message || "Erro no servidor ao verificar configurações da loja."}
-        />
-      </div>
-    );
-  }
-
-  const overview: OnboardingOverview = result.data;
-  const { steps, progressPercentage, completedSteps, totalSteps, isStoreReadyToSell } = overview;
+  const {
+    steps,
+    totalSteps,
+    completedSteps,
+    partiallyConfiguredSteps,
+    progressPercentage,
+    isStoreReadyToSell,
+  } = result;
 
   const categoryLabels: Record<string, string> = {
     fundamentos: "1. Fundamentos da Loja",

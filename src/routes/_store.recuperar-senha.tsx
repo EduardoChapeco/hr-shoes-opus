@@ -21,14 +21,13 @@ function Page() {
 
     setIsSubmitting(true);
     try {
-      const result = await resetPasswordForEmail({
+      await resetPasswordForEmail({
         data: {
           email,
           redirectTo: `${window.location.origin}/redefinir-senha`,
         },
       });
 
-      if (result.status === "error") throw new Error(result.message);
       setSuccess(true);
     } catch (e: any) {
       toast.error(e.message || "Erro ao solicitar recuperação de senha.");

@@ -43,19 +43,7 @@ function ThemeSettingsPage() {
     );
   }
 
-  if (res.status === "error" || !res.data) {
-    return (
-      <div className="container max-w-4xl py-12 mx-auto px-4">
-        <ErrorState
-          title="Erro ao Carregar Tema"
-          description={res.message || "Não foi possível conectar ao banco de dados."}
-          onRetry={() => router.invalidate()}
-        />
-      </div>
-    );
-  }
-
-  const theme = res.data;
+  const theme = res;
 
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
@@ -74,7 +62,7 @@ function ThemeSettingsPage() {
     setIsSubmitting(true);
     try {
       const res = await updateThemeSettings({ data: values });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Configurações de tema atualizadas!");
         router.invalidate();
       } else {

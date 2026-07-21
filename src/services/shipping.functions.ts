@@ -200,11 +200,11 @@ export async function calculateShippingHandler(zipcode: string) {
 export const listShippingZones = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const data = await listShippingZonesHandler();
-    return { status: "ok" as const, data };
+    return data;
   } catch (e) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
+    if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[shipping] listShippingZones error:", e);
-    return { status: "error" as const, message: "Erro ao listar zonas de frete." };
+    throw new Error("Erro ao listar zonas de frete." );
   }
 });
 
@@ -222,10 +222,10 @@ export const upsertShippingZone = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await upsertShippingZoneHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: any) {
       console.error("[shipping] upsertShippingZone error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao salvar zona de frete." };
+      throw new Error(e.message || "Erro ao salvar zona de frete." );
     }
   });
 
@@ -237,7 +237,7 @@ export const deleteShippingZone = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[shipping] deleteShippingZone error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao excluir zona de frete." };
+      throw new Error(e.message || "Erro ao excluir zona de frete." );
     }
   });
 
@@ -256,10 +256,10 @@ export const upsertShippingRate = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const data = await upsertShippingRateHandler(input);
-      return { status: "success" as const, data };
+      return data;
     } catch (e: any) {
       console.error("[shipping] upsertShippingRate error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao salvar taxa de frete." };
+      throw new Error(e.message || "Erro ao salvar taxa de frete." );
     }
   });
 
@@ -271,7 +271,7 @@ export const deleteShippingRate = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[shipping] deleteShippingRate error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao excluir taxa." };
+      throw new Error(e.message || "Erro ao excluir taxa." );
     }
   });
 
@@ -280,9 +280,9 @@ export const calculateShipping = createServerFn({ method: "POST" })
   .handler(async ({ data: { zipcode } }) => {
     try {
       const data = await calculateShippingHandler(zipcode);
-      return { status: "ok" as const, data };
+      return data;
     } catch (e: any) {
       console.error("[shipping] calculateShipping error:", e);
-      return { status: "error" as const, message: e.message || "Erro ao calcular frete." };
+      throw new Error(e.message || "Erro ao calcular frete." );
     }
   });

@@ -65,7 +65,7 @@ export const createUpsellRule = createServerFn({ method: "POST" })
       throw new Error("Erro ao cadastrar regra de upsell");
     }
 
-    return { status: "success" as const, data };
+    return data;
   });
 
 export const updateUpsellRule = createServerFn({ method: "POST" })
@@ -102,7 +102,7 @@ export const updateUpsellRule = createServerFn({ method: "POST" })
       throw new Error("Erro ao atualizar regra de upsell");
     }
 
-    return { status: "success" as const, data };
+    return data;
   });
 
 export const deleteUpsellRule = createServerFn({ method: "POST" })

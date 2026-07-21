@@ -19,8 +19,8 @@ import type {
 } from "@/types/catalog";
 
 export const getProductBySlug = createServerFn({ method: "GET" })
-  .validator(z.object({ slug: z.string().min(1).max(200) }))
-  .handler(async ({ data: { slug } }): Promise<ProductDetailResult> => {
+  .validator(z.object({ slug: z.string() }))
+  .handler(async ({ data: { slug } }) => {
     try {
       const db = getAnonServerClient();
 
@@ -57,7 +57,7 @@ export const getProductBySlug = createServerFn({ method: "GET" })
 
       if (error) {
         console.error("[product.functions] getProductBySlug:", error.message);
-        return { status: "error", message: "Não foi possível carregar o produto." };
+        throw new Error("Não foi possível carregar o produto." );
       }
 
       if (!product) {
@@ -179,7 +179,7 @@ export const getProductBySlug = createServerFn({ method: "GET" })
           .filter(Boolean),
       };
 
-      return { status: "ok", data: dto };
+      return dto ;
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) {
         return {
@@ -188,6 +188,6 @@ export const getProductBySlug = createServerFn({ method: "GET" })
         };
       }
       console.error("[product.functions] unexpected error:", e);
-      return { status: "error", message: "Erro inesperado ao carregar o produto." };
+      throw new Error("Erro inesperado ao carregar o produto." );
     }
   });

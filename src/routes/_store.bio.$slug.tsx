@@ -9,7 +9,6 @@ export const Route = createFileRoute("/_store/bio/$slug")({
     });
     
     if (res.status === "not_found") throw notFound();
-    if (res.status === "error" || res.status === "unconfigured") throw new Error(res.status);
 
     return {
       document: res.data.document,

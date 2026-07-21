@@ -28,10 +28,9 @@ export const Route = createFileRoute("/_store/categoria/$slug")({
 function CategoryPage() {
   const { productsResult, categoriesResult, slug } = Route.useLoaderData();
 
-  const category: CategoryDTO | undefined =
-    categoriesResult.status === "ok"
-      ? categoriesResult.data.find((c: CategoryDTO) => c.slug === slug)
-      : undefined;
+  const category: CategoryDTO | undefined = Array.isArray(categoriesResult)
+    ? categoriesResult.find((c: CategoryDTO) => c.slug === slug)
+    : undefined;
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
@@ -58,11 +57,7 @@ function CategoryPage() {
       />
 
       <div className="mt-8">
-        {productsResult.status === "unconfigured" ? (
-          <UnconfiguredState title="Catálogo não disponível" description={productsResult.reason} />
-        ) : productsResult.status === "error" ? (
-          <ErrorState description={productsResult.message} />
-        ) : productsResult.status === "empty" ? (
+        {productsResult.length === 0 ? (
           <EmptyState
             title="Nenhum produto nesta categoria"
             description="Ainda não há produtos publicados nesta categoria."
@@ -74,7 +69,7 @@ function CategoryPage() {
           />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {productsResult.data.map((product: ProductCardDTO) => (
+            {productsResult.map((product: ProductCardDTO) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

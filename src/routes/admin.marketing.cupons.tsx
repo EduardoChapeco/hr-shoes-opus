@@ -41,9 +41,7 @@ import { EmptyState } from "@/components/state/states";
 export const Route = createFileRoute("/admin/marketing/cupons")({
   head: () => ({ meta: [{ title: "Cupons de Desconto — Hr Shoes" }] }),
   loader: async () => {
-    const res = await listCoupons();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data || [];
+    return await listCoupons() || [];
   },
   component: CouponsPage,
 });
@@ -81,7 +79,7 @@ function CouponsPage() {
         },
       });
 
-      if (res.status === "success") {
+      if (res) {
         toast.success("Cupom criado com sucesso!");
         setOpen(false);
         setCode("");
@@ -110,7 +108,7 @@ function CouponsPage() {
           is_active: active,
         },
       });
-      if (res.status === "error") throw new Error(res.message);
+      if (!res) throw new Error("Erro ao atualizar cupom");
       toast.success(`Cupom ${active ? "ativado" : "desativado"}.`);
       router.invalidate();
     } catch (e: any) {
@@ -122,7 +120,6 @@ function CouponsPage() {
     if (!confirm("Deseja realmente excluir este cupom promocional?")) return;
     try {
       const res = await deleteCoupon({ data: { id: couponId } });
-      if (res.status === "error") throw new Error(res.message);
       toast.success("Cupom excluído com sucesso.");
       router.invalidate();
     } catch (e: any) {

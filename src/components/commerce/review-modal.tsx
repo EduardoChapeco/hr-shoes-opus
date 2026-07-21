@@ -20,14 +20,10 @@ export function ReviewModal({ productId, productName }: { productId: string, pro
     setLoading(true);
     try {
       const res = await createReview({ data: { productId, rating, comment } });
-      if (res.status === "success") {
-        toast.success("Avaliação enviada com sucesso!");
-        setOpen(false);
-      } else {
-        toast.error(res.message);
-      }
-    } catch (e) {
-      toast.error("Erro inesperado.");
+      toast.success("Avaliação enviada com sucesso!");
+      setOpen(false);
+    } catch (e: any) {
+      toast.error(e.message || "Erro inesperado.");
     } finally {
       setLoading(false);
     }

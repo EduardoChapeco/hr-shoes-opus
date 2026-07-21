@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_store/conta/")({
   head: () => ({ meta: [{ title: "Minha Conta — Hr Shoes" }] }),
   loader: async () => {
     const [ordersRes, profile] = await Promise.all([listCustomerOrders(), getProfile()]);
-    const orders = ordersRes.status === "ok" ? ordersRes.data : [];
+    const orders = ordersRes || [];
     return { orders, profile };
   },
   component: Page,

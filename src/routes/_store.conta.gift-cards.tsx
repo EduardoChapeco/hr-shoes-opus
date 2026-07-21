@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_store/conta/gift-cards")({
   loader: async () => {
     const res = await listCustomerGiftCards();
     return {
-      giftCards: res.status === "success" ? res.data : [],
+      giftCards: res || [],
     };
   },
   component: CustomerGiftCardsPage,
@@ -63,7 +63,7 @@ function CustomerGiftCardsPage() {
     setIsLoading(true);
     try {
       const res = await claimGiftCard({ data: { code: data.code } });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Vale-presente resgatado e vinculado à sua conta!");
         form.reset();
         router.invalidate();

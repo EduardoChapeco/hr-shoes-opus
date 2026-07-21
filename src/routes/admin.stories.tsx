@@ -26,8 +26,7 @@ export const Route = createFileRoute("/admin/stories")({
   head: () => ({ meta: [{ title: "Stories — Hr Shoes" }] }),
   loader: async () => {
     const res = await listAdminStories();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: StoriesPage,
 });
@@ -63,7 +62,7 @@ function StoriesPage() {
         },
       });
 
-      if (res.status === "success") {
+      if (res) {
         toast.success("Story publicado!");
         setOpen(false);
         reset();
@@ -82,11 +81,11 @@ function StoriesPage() {
     if (!confirm("Tem certeza que deseja apagar este story?")) return;
     try {
       const res = await deleteStory({ data: { id } });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Story excluído.");
         router.invalidate();
       } else {
-        toast.error(res.message || "Erro ao excluir");
+        toast.error("Erro ao excluir");
       }
     } catch (e) {
       toast.error("Erro inesperado");

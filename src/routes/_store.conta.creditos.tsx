@@ -7,8 +7,7 @@ export const Route = createFileRoute("/_store/conta/creditos")({
   head: () => ({ meta: [{ title: "Meus Créditos — Hr Shoes" }] }),
   loader: async () => {
     const res = await getCustomerCredits();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: Page,
 });

@@ -60,13 +60,13 @@ function DestaquesPage() {
         <PageHeader title="Destaques" description="Produtos em destaque na vitrine." />
         <EmptyState
           title="Sem dados"
-          description={res.status === "error" ? res.message : "Loja não configurada."}
+          description="Loja não configurada."
         />
       </div>
     );
   }
 
-  const products = res.data;
+  const products = Array.isArray(res) ? res : [];
 
   const handleToggle = async (productId: string, currentIsFeatured: boolean) => {
     toast.promise(
@@ -76,8 +76,7 @@ function DestaquesPage() {
           collectionSlug: "destaques",
           add: !currentIsFeatured,
         },
-      }).then((res) => {
-        if (res.status === "error") throw new Error(res.message);
+      }).then(() => {
         router.invalidate();
       }),
       {

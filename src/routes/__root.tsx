@@ -79,8 +79,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       getPublicStoreSettings(),
     ]);
     return {
-      theme: themeRes.status === "ok" ? themeRes.data : null,
-      store: storeRes.status === "ok" ? storeRes.data : null,
+      theme: themeRes || null,
+      store: storeRes || null,
     };
   },
   head: ({ loaderData }) => {

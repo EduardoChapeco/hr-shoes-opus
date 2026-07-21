@@ -45,7 +45,7 @@ export function ProductGrid({ content, design_tokens, data_bindings, transientDa
     queryKey: ["editorCollectionProductsGrid", collectionSlug],
     queryFn: async () => {
       const res = await getProductsByCollection({ data: { slug: collectionSlug! } });
-      return res.status === "ok" ? res.data : [];
+      return Array.isArray(res) ? res : [];
     },
     enabled: !!(shouldFetchClient && isCollection)
   });
@@ -53,8 +53,8 @@ export function ProductGrid({ content, design_tokens, data_bindings, transientDa
   const { data: clientLatestProducts, isLoading: isLatestLoading } = useQuery({
     queryKey: ["editorLatestProductsGrid", data_bindings?.limit],
     queryFn: async () => {
-      const res = await listPublishedProducts({ data: { limit: data_bindings?.limit || 12 } });
-      return res.status === "ok" ? res.data : [];
+      const res = await listPublishedProducts({ data: { limit: 8 } });
+      return Array.isArray(res) ? res : [];
     },
     enabled: !!(shouldFetchClient && isLatest)
   });

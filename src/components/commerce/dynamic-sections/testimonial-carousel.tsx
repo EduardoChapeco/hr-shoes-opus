@@ -40,7 +40,7 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
   });
 
   const testimonials = isDynamic 
-    ? (serverReviews || (result?.status === "ok" ? result.data : []))
+    ? (serverReviews || (Array.isArray(result) ? result : []))
     : (content?.testimonials || []);
 
   return (

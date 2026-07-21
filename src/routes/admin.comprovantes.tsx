@@ -36,8 +36,7 @@ export const Route = createFileRoute("/admin/comprovantes")({
   head: () => ({ meta: [{ title: "Comprovantes — Hr Shoes" }] }),
   loader: async () => {
     const res = await listPendingManualPayments();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: ReceiptsPage,
 });
@@ -56,7 +55,7 @@ function ReceiptsPage() {
     setApprovingId(orderId);
     try {
       const res = await approvePayment({ data: { orderId } });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Pagamento aprovado. O pedido entrará em separação!");
         router.invalidate();
       } else {
@@ -75,7 +74,7 @@ function ReceiptsPage() {
     try {
       const orderId = rejectTarget.orders?.id || rejectTarget.order_id;
       const res = await rejectPayment({ data: { orderId, reason: rejectReason } });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Comprovante rejeitado. O cliente foi notificado do status.");
         router.invalidate();
         setRejectTarget(null);

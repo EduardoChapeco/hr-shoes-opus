@@ -21,9 +21,8 @@ export const Route = createFileRoute("/admin/estoque/alertas")({
   head: () => ({ meta: [{ title: "Alertas de Estoque — Hr Shoes" }] }),
   loader: async () => {
     const res = await getStockLevels({ data: {} });
-    if (res.status === "error") throw new Error(res.message);
     // Filter for low stock (on_hand <= 5) or out of stock
-    return (res.data || []).filter((v: any) => v.stock_on_hand - (v.stock_reserved || 0) <= 5);
+    return (res || []).filter((v: any) => v.stock_on_hand - (v.stock_reserved || 0) <= 5);
   },
   component: StockAlertsPage,
 });
@@ -36,7 +35,7 @@ function StockAlertsPage() {
   const handleQuickRefill = async (variantId: string) => {
     setAdjustingId(variantId);
     try {
-      const res = await adjustStock({
+      await adjustStock({
         data: {
           variantId,
           qty: 10,
@@ -44,7 +43,6 @@ function StockAlertsPage() {
           note: "Reposição rápida via alerta de estoque",
         },
       });
-      if (res.status === "error") throw new Error(res.message);
       toast.success("10 unidades adicionadas ao estoque.");
       router.invalidate();
     } catch (e: any) {

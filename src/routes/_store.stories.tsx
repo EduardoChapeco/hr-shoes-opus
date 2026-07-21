@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_store/stories")({
   loader: async () => {
     const res = await listPublicStories();
     return {
-      stories: res.status === "ok" ? res.data || [] : [],
+      stories: Array.isArray(res) ? res : [],
     };
   },
   component: Page,

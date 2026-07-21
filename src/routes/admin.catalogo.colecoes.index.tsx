@@ -29,7 +29,7 @@ export const Route = createFileRoute("/admin/catalogo/colecoes/")({
   head: () => ({ meta: [{ title: "Coleções — Hr Shoes" }] }),
   loader: async () => {
     const res = await listCollections();
-    return res.status === "ok" ? res.data : [];
+    return res || [];
   },
   component: AdminCollectionsPage,
 });
@@ -59,7 +59,7 @@ function AdminCollectionsPage() {
   const handleUpdateStatus = async (id: string, newStatus: "active" | "inactive" | "archived") => {
     try {
       const res = await updateCollection({ data: { id, status: newStatus } });
-      if (res.status === "success") {
+      if (res) {
         toast.success(
           newStatus === "archived"
             ? "Coleção arquivada com sucesso!"

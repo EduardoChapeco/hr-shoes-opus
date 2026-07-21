@@ -22,7 +22,7 @@ export const Route = createFileRoute("/admin/pagamentos")({
   head: () => ({ meta: [{ title: "Pagamentos — Hr Shoes" }] }),
   loader: async () => {
     const res = await listPayments();
-    return res.status === "ok" ? res.data : [];
+    return res || [];
   },
   component: AdminPaymentsPage,
 });
@@ -37,7 +37,7 @@ function AdminPaymentsPage() {
     setApproving(id);
     try {
       const res = await approvePayment({ data: { orderId: id, receivedMethod: "bank_transfer" } });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Pagamento aprovado! O pedido está em separação.");
         router.invalidate();
       } else {

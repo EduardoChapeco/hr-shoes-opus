@@ -17,8 +17,7 @@ export const Route = createFileRoute("/admin/match-time")({
   head: () => ({ meta: [{ title: "Match Time Reports — Hr Shoes" }] }),
   loader: async () => {
     const res = await getMatchTimeReport();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: AdminMatchTimePage,
 });

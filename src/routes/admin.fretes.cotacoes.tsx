@@ -31,12 +31,12 @@ export const Route = createFileRoute("/admin/fretes/cotacoes")({
       listOrdersAwaitingShippingQuote(),
     ]);
 
-    if (zonesRes.status === "error") throw new Error(zonesRes.message);
-    if (pendingRes.status === "error") throw new Error(pendingRes.message);
+    
+    
 
     return {
-      zones: zonesRes.status === "ok" ? zonesRes.data : [],
-      pendingOrders: pendingRes.status === "ok" ? pendingRes.data : [],
+      zones: zonesRes || [],
+      pendingOrders: pendingRes || [],
     };
   },
   component: FretesCotacoesPage,
@@ -64,8 +64,8 @@ function FretesCotacoesPage() {
     setLoading(true);
     try {
       const res = await calculateShipping({ data: { zipcode } });
-      if (res.status === "error") throw new Error(res.message);
-      setResults(res.data || []);
+      
+      setResults(Array.isArray(res) ? res : []);
     } catch (e: any) {
       toast.error(e.message || "Erro ao calcular");
     } finally {
@@ -90,12 +90,8 @@ function FretesCotacoesPage() {
         },
       });
 
-      if (res.status === "success") {
-        toast.success("Frete adicionado! Pedido liberado para pagamento.");
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao salvar cotação.");
-      }
+      toast.success("Frete adicionado! Pedido liberado para pagamento.");
+      router.invalidate();
     } catch (err) {
       toast.error("Erro inesperado");
     } finally {

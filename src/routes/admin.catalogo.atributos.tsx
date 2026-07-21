@@ -35,10 +35,7 @@ import { listProductTypes, createProductType, updateProductType } from "@/servic
 export const Route = createFileRoute("/admin/catalogo/atributos")({
   head: () => ({ meta: [{ title: "Grupos de Opções & Atributos — Hr Shoes" }] }),
   loader: async () => {
-    const res = await listProductTypes();
-    if (res.status === "error") throw new Error(res.message);
-    if (res.status === "unconfigured") return [];
-    return res.data || [];
+    return await listProductTypes();
   },
   component: AtributosPage,
 });
@@ -123,7 +120,7 @@ function AtributosPage() {
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9]+/g, "-");
 
-      const res = await createProductType({
+      await createProductType({
         data: {
           name: preset.title,
           slug,
@@ -138,7 +135,6 @@ function AtributosPage() {
         },
       });
 
-      if (res.status === "error") throw new Error(res.message);
       toast.success(`Grupo "${preset.title}" importado com sucesso!`);
       router.invalidate();
     } catch (e: any) {
@@ -163,7 +159,7 @@ function AtributosPage() {
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9]+/g, "-");
 
-      const res = await createProductType({
+      await createProductType({
         data: {
           name: groupName,
           slug,
@@ -178,7 +174,6 @@ function AtributosPage() {
         },
       });
 
-      if (res.status === "error") throw new Error(res.message);
       toast.success("Grupo de opções criado!");
       setOpen(false);
       setGroupName("");

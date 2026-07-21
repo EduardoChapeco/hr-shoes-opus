@@ -51,7 +51,7 @@ function NewCollectionPage() {
         },
       });
 
-      if (res.status === "success") {
+      if (res) {
         toast.success("Coleção criada com sucesso!");
         navigate({ to: "/admin/catalogo/colecoes" });
       } else {

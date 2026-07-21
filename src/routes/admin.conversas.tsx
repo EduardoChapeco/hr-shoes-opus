@@ -16,8 +16,7 @@ export const Route = createFileRoute("/admin/conversas")({
   head: () => ({ meta: [{ title: "Conversas — Hr Shoes" }] }),
   loader: async () => {
     const res = await listChatThreads();
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: ChatInboxPage,
 });
@@ -34,8 +33,8 @@ function ChatInboxPage() {
     setSelectedThread(id);
     try {
       const res = await getChatMessages({ data: { threadId: id } });
-      if (res.status === "ok") {
-        setMessages(res.data);
+      if (res) {
+        setMessages(res);
       }
     } catch (e) {
       toast.error("Erro ao carregar mensagens");
@@ -78,7 +77,7 @@ function ChatInboxPage() {
     setIsSending(true);
     try {
       const res = await sendChatMessage({ data: { threadId: selectedThread, message: replyText } });
-      if (res.status === "success") {
+      if (res) {
         setReplyText("");
         // Reload messages for the active thread
         handleSelectThread(selectedThread);

@@ -183,18 +183,15 @@ export const listCustomerExchanges = createServerFn({ method: "GET" }).handler(a
 
     if (error) throw new Error(error.message);
 
-    return {
-      status: "ok" as const,
-      data: (data || []).map((ex: any) => ({
-        id: ex.id,
-        status: ex.status as string,
-        reason: ex.reason as string,
-        requestedAt: ex.requested_at as string,
-        orderToken: ex.orders?.public_token as string | null,
-        orderTotal: ex.orders?.total_cents as number | null,
-      })),
-    };
+    return (data || []).map((ex: any) => ({
+      id: ex.id,
+      status: ex.status as string,
+      reason: ex.reason as string,
+      requestedAt: ex.requested_at as string,
+      orderToken: ex.orders?.public_token as string | null,
+      orderTotal: ex.orders?.total_cents as number | null,
+    }));
   } catch (e: any) {
-    return { status: "error" as const, message: e.message || "Erro ao buscar trocas." };
+    throw new Error(e.message || "Erro ao buscar trocas." );
   }
 });

@@ -28,6 +28,8 @@ export interface OnboardingOverview {
   isStoreReadyToSell: boolean;
 }
 
+
+
 export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance", "stock", "content", "support"]);
@@ -432,12 +434,6 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
 }
 
 export const getOnboardingStatus = createServerFn({ method: "GET" }).handler(async () => {
-  try {
-    const data = await getOnboardingStatusHandler();
-    return { status: "ok" as const, data };
-  } catch (e: any) {
-    if (e instanceof SupabaseUnconfiguredError) return { status: "unconfigured" as const };
-    console.error("[onboarding.functions] getOnboardingStatus error:", e?.message || e);
-    return { status: "error" as const, message: e?.message || "Erro ao carregar etapas de configuração." };
-  }
+  const data = await getOnboardingStatusHandler();
+  return data;
 });

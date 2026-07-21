@@ -139,7 +139,10 @@ export const builderRegistry: Record<string, BlockManifest> = {
         mobile_image_url: z.string().optional(),
         link: z.string().optional(),
         button_text: z.string().optional()
-      }))
+      })),
+      showOverlay: z.boolean().default(true),
+      overlayOpacity: z.enum(["light", "medium", "dark"]).default("medium"),
+      desktopHeight: z.enum(["full", "proportional", "square"]).default("proportional")
     }),
     
     inspector: {
@@ -147,17 +150,31 @@ export const builderRegistry: Record<string, BlockManifest> = {
         { name: "autoPlay", label: "Autoplay", type: "boolean" },
         { name: "interval", label: "Intervalo (segundos)", type: "number" },
         { name: "banners", label: "Banners (Array)", type: "array", arrayFields: [
-          { name: "image_url", label: "Imagem (Upload)", type: "image" },
+          { name: "image_url", label: "Imagem Desktop (Recomendado 1920x800)", type: "image" },
+          { name: "mobile_image_url", label: "Imagem Mobile (Recomendado 1080x1350)", type: "image" },
           { name: "link", label: "Link do Banner", type: "text" },
           { name: "alt_text", label: "Texto Alt", type: "text" }
         ] }
+      ],
+      design: [
+        { name: "showOverlay", label: "Mostrar Sombra Frontal (Overlay)", type: "boolean" },
+        { name: "overlayOpacity", label: "Intensidade da Sombra", type: "select", options: [
+          { label: "Leve", value: "light" },
+          { label: "Média", value: "medium" },
+          { label: "Escura", value: "dark" }
+        ]},
+        { name: "desktopHeight", label: "Altura (Desktop)", type: "select", options: [
+          { label: "Proporcional (Original)", value: "proportional" },
+          { label: "Tela Cheia (Fullscreen)", value: "full" },
+          { label: "Quadrado (1:1)", value: "square" }
+        ]}
       ]
     },
     
     defaultProps: {
       node_type: "composition",
       block_type: "hero_carousel",
-      content: { autoPlay: true, interval: 5, banners: [] }
+      content: { autoPlay: true, interval: 5, banners: [], showOverlay: true, overlayOpacity: "medium", desktopHeight: "proportional" }
     }
   },
 
@@ -304,7 +321,10 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       title: z.string().optional(),
       layout: z.enum(["carousel", "grid"]).default("carousel"),
-      collection_slug: z.string().optional()
+      collection_slug: z.string().optional(),
+      itemsPerRowDesktop: z.enum(["3", "4", "5"]).default("4"),
+      itemsPerRowMobile: z.enum(["1", "2"]).default("2"),
+      freeScroll: z.boolean().default(true)
     }),
     inspector: { 
       content: [
@@ -315,13 +335,23 @@ export const builderRegistry: Record<string, BlockManifest> = {
         { name: "layout", label: "Layout de Exibição", type: "select", options: [
           { label: "Carrossel", value: "carousel" },
           { label: "Grid", value: "grid" }
-        ]}
+        ]},
+        { name: "itemsPerRowDesktop", label: "Produtos por linha (Desktop)", type: "select", options: [
+          { label: "3", value: "3" },
+          { label: "4", value: "4" },
+          { label: "5", value: "5" }
+        ]},
+        { name: "itemsPerRowMobile", label: "Produtos por linha (Mobile)", type: "select", options: [
+          { label: "1", value: "1" },
+          { label: "2", value: "2" }
+        ]},
+        { name: "freeScroll", label: "Rolagem Livre (Mobile Slider)", type: "boolean" }
       ]
     },
     defaultProps: {
       node_type: "composition",
       block_type: "product_rail",
-      content: { title: "Destaques", layout: "carousel" },
+      content: { title: "Destaques", layout: "carousel", itemsPerRowDesktop: "4", itemsPerRowMobile: "2", freeScroll: true },
       data_bindings: { type: "latest_products" }
     }
   },

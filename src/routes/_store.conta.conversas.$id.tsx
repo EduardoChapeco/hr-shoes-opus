@@ -13,8 +13,7 @@ export const Route = createFileRoute("/_store/conta/conversas/$id")({
   head: () => ({ meta: [{ title: "Suporte — Hr Shoes" }] }),
   loader: async ({ params }) => {
     const res = await getCustomerChatThread({ data: { threadId: params.id } });
-    if (res.status === "error") throw new Error(res.message);
-    return res.data;
+    return res;
   },
   component: Page,
 });
@@ -96,13 +95,7 @@ function Page() {
     setText("");
 
     try {
-      const res = await sendCustomerChatMessage({ data: { threadId: id, message: sent } });
-      if (res.status === "error") {
-        toast.error(res.message);
-        // Rollback optimistic update
-        setMessages((prev: any[]) => prev.filter((m: any) => m.id !== optimistic.id));
-        setText(sent);
-      }
+      await sendCustomerChatMessage({ data: { threadId: id, message: sent } });
     } catch {
       toast.error("Erro ao enviar mensagem.");
       setMessages((prev: any[]) => prev.filter((m: any) => m.id !== optimistic.id));

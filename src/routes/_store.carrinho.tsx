@@ -56,16 +56,12 @@ function StoreCartPage() {
     setIsCalculatingZip(true);
     try {
       const res = await calculateShipping({ data: { zipcode } });
-      if (res.status === "ok") {
-        setShippingRates(res.data);
-        if (res.data.length === 0) {
-          toast.info("Nenhum frete disponível para este CEP.");
-        }
-      } else {
-        toast.error(res.message);
+      setShippingRates(res);
+      if (res.length === 0) {
+        toast.info("Nenhum frete disponível para este CEP.");
       }
-    } catch {
-      toast.error("Erro ao calcular frete.");
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao calcular frete.");
     } finally {
       setIsCalculatingZip(false);
     }
@@ -80,7 +76,7 @@ function StoreCartPage() {
       const res = await updateCartShipping({
         data: { zipcode, method: rate.name, cents: rate.price_cents },
       });
-      if (res.status === "success") {
+      if (res) {
         toast.success("Frete adicionado ao carrinho!");
         router.invalidate();
       }
@@ -90,12 +86,12 @@ function StoreCartPage() {
   };
 
   const handleRemove = async (itemId: string) => {
-    const res = await removeFromCart({ data: { itemId } });
-    if (res.status === "error") {
-      toast.error(res.message || "Erro ao remover do carrinho.");
-      return;
+    try {
+      await removeFromCart({ data: { itemId } });
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao remover do carrinho.");
     }
-    router.invalidate();
   };
 
   const handleUpdateQty = async (variantId: string, delta: number) => {
@@ -113,15 +109,11 @@ function StoreCartPage() {
     setIsApplying(true);
     try {
       const res = await applyCouponToCart({ data: { code: coupon } });
-      if (res.status === "success") {
-        toast.success(res.message);
-        setCoupon("");
-        router.invalidate();
-      } else {
-        toast.error(res.message);
-      }
-    } catch {
-      toast.error("Erro ao aplicar cupom.");
+      toast.success(res.message);
+      setCoupon("");
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao aplicar cupom.");
     } finally {
       setIsApplying(false);
     }

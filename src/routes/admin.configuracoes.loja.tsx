@@ -22,7 +22,7 @@ export const Route = createFileRoute("/admin/configuracoes/loja")({
 function StoreSettings() {
   const res = Route.useLoaderData();
   const router = useRouter();
-  const store = res.status === "ok" ? res.data : null;
+  const store = res || null;
   const [form, setForm] = useState({
     name: (store as any)?.name || "",
     email: (store as any)?.email || "",
