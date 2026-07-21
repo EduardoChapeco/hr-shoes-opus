@@ -276,6 +276,7 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
   );
   const [isAdding, setIsAdding] = useState(false);
   const [activeMedia, setActiveMedia] = useState<ProductMediaDTO | null>(coverImage);
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const [zipcode, setZipcode] = useState("");
   const [shippingRates, setShippingRates] = useState<any[] | null>(null);
   const [loadingShipping, setLoadingShipping] = useState(false);
