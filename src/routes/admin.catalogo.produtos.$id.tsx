@@ -826,7 +826,7 @@ function VariantsManager({ product }: { product: any }) {
                             </TableCell>
                           </TableRow>
                         )}
-                      </React.Fragment>
+                      </Fragment>
                     );
                   })}
                   
