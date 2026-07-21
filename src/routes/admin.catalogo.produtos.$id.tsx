@@ -823,6 +823,7 @@ function VariantsManager({ product }: { product: any }) {
       width_cm: "",
       height_cm: "",
       length_cm: "",
+      display_name: "",
       status: "active" as "active" | "inactive" | "archived",
       stock: "",
     },
@@ -841,6 +842,7 @@ function VariantsManager({ product }: { product: any }) {
       width_cm: "",
       height_cm: "",
       length_cm: "",
+      display_name: "",
       status: "active",
       stock: "0",
     });
@@ -862,10 +864,29 @@ function VariantsManager({ product }: { product: any }) {
       width_cm: v.width_cm !== null && v.width_cm !== undefined ? String(v.width_cm) : "",
       height_cm: v.height_cm !== null && v.height_cm !== undefined ? String(v.height_cm) : "",
       length_cm: v.length_cm !== null && v.length_cm !== undefined ? String(v.length_cm) : "",
+      display_name: v.display_name || "",
       status: v.status || "active",
       stock: String(v.stock_on_hand || 0),
     });
     setOpen(true);
+  };
+
+  const handleVariantImage = async (url: string) => {
+    if (!url || !editingVariant?.id) return;
+    setIsSubmitting(true);
+    try {
+      const res = await addProductMediaLink({ data: { product_id: product.id, variant_id: editingVariant.id, url } });
+      if (res.status === "success") {
+        toast.success("Imagem exclusiva da variante salva!");
+        router.invalidate();
+      } else {
+        toast.error(res.message || "Erro ao salvar imagem.");
+      }
+    } catch {
+      toast.error("Erro inesperado ao salvar imagem da variante.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const onSubmitVariant = async (values: any) => {
@@ -907,7 +928,8 @@ function VariantsManager({ product }: { product: any }) {
           width_cm,
           height_cm,
           length_cm,
-          status: values.status,
+            display_name: values.display_name || null,
+            status: values.status,
           attributes,
         },
       });
@@ -972,7 +994,7 @@ function VariantsManager({ product }: { product: any }) {
                 <TableHeader>
                   <TableRow className="bg-muted/40">
                     <TableHead>SKU</TableHead>
-                    <TableHead>Atributos / Tamanho</TableHead>
+                    <TableHead>ExibiÃ§Ã£o / Atributos</TableHead>
                     <TableHead>Preço Override</TableHead>
                     <TableHead>Estoque Atual</TableHead>
                     <TableHead>Status</TableHead>
@@ -1029,6 +1051,10 @@ function VariantsManager({ product }: { product: any }) {
               <div className="space-y-2">
                 <Label>SKU Único *</Label>
                 <Input {...register("sku", { required: true })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Nome de ExibiÃ§Ã£o (Opcional)</Label>
+                <Input placeholder="Ex: Rosa BebÃª" {...register("display_name")} />
               </div>
               <div className="space-y-2">
                 <Label>Status da Variante</Label>

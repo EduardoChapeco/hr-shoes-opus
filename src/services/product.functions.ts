@@ -32,7 +32,7 @@ export const getProductBySlug = createServerFn({ method: "GET" })
            product_media(id, url, alt, media_type, sort_order, focal_point),
            product_variants(
              id, sku, status, price_override_cents,
-             stock_on_hand, stock_reserved, attributes,
+             stock_on_hand, stock_reserved, attributes, display_name,
              product_media(id, url, alt, media_type, sort_order, focal_point)
            ),
            reviews(id, rating, comment, created_at, status, reviewer_name)

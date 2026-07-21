@@ -86,6 +86,7 @@ export interface ProductMediaDTO {
 
 export interface VariantDTO {
   id: string;
+  displayName?: string | null;
   sku: string;
   /** Effective price cents (override or product default — server-computed). */
   effectivePriceCents: number;

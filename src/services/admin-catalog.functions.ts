@@ -759,7 +759,8 @@ export async function upsertProductVariantHandler(input: {
   width_cm?: number | null;
   height_cm?: number | null;
   length_cm?: number | null;
-  attributes: Record<string, any>;
+    display_name?: string | null;
+    attributes: Record<string, any>;
 }) {
   const db = getServerClient();
   const { id, product_id, ...payload } = input;
@@ -793,7 +794,8 @@ export const upsertProductVariant = createServerFn({ method: "POST" })
       width_cm: z.number().min(0).optional().nullable(),
       height_cm: z.number().min(0).optional().nullable(),
       length_cm: z.number().min(0).optional().nullable(),
-      attributes: z.record(z.any()).default({}),
+        display_name: z.string().optional().nullable(),
+        attributes: z.record(z.any()).default({}),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -1024,16 +1026,17 @@ export const deleteProductMedia = createServerFn({ method: "POST" })
     }
   });
 
-export async function addProductMediaLinkHandler(input: { product_id: string; url: string }) {
+export async function addProductMediaLinkHandler(input: { product_id: string; url: string; variant_id?: string | null }) {
   const db = getServerClient();
-  const { product_id, url } = input;
+  const { product_id, url, variant_id } = input;
 
   const { data, error } = await db
     .from("product_media")
     .insert({
       product_id,
-      url,
-      sort_order: 99,
+        url,
+        variant_id: variant_id || null,
+        sort_order: 99,
     })
     .select()
     .single();
@@ -1043,7 +1046,7 @@ export async function addProductMediaLinkHandler(input: { product_id: string; ur
 }
 
 export const addProductMediaLink = createServerFn({ method: "POST" })
-  .validator(z.object({ product_id: z.string().uuid(), url: z.string().url() }))
+  .validator(z.object({ product_id: z.string().uuid(), url: z.string().url(), variant_id: z.string().uuid().optional().nullable() }))
   .handler(async ({ data: input }) => {
     try {
       const data = await addProductMediaLinkHandler(input);
