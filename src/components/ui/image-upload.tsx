@@ -50,16 +50,50 @@ export function ImageUpload({
     if (!currentImageFile) return;
     setIsUploading(true);
     try {
-      const res = await uploadMedia({
-        data: { fileName: currentImageFile.name, fileBase64: croppedBase64.split(",")[1], bucket },
+      const { getSignedUploadUrl } = await import("@/services/storage.functions");
+      const res = await getSignedUploadUrl({
+        data: { 
+          fileName: currentImageFile.name, 
+          bucket, 
+          contentType: currentImageFile.type 
+        },
       });
 
-      if (res.status === "error") {
-        toast.error(res.message);
-      } else {
-        onChange(res.url);
-        toast.success("Imagem enviada com sucesso!");
+      if (res.status === "error" || !res.signedUrl) {
+        throw new Error(res.message || "Erro ao obter URL de upload");
       }
+
+      // Convert base64 to Blob for PUT request
+      const base64Data = croppedBase64.split(",")[1];
+      const byteCharacters = atob(base64Data);
+      const byteArrays = [];
+      for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+        const slice = byteCharacters.slice(offset, offset + 512);
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) {
+          byteNumbers[i] = slice.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        byteArrays.push(byteArray);
+      }
+      const blob = new Blob(byteArrays, { type: "image/webp" }); // Cropper returns WebP
+
+      // Upload directly to Supabase Storage via Signed URL
+      const uploadRes = await fetch(res.signedUrl, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${res.token}`,
+          "Content-Type": "image/webp",
+        },
+        body: blob,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("Falha no upload direto para o storage");
+      }
+
+      onChange(res.publicUrl!);
+      toast.success("Imagem enviada com sucesso!");
     } catch (error: any) {
       toast.error(error.message || "Erro ao fazer upload da imagem");
     } finally {

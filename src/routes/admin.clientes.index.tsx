@@ -43,7 +43,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { EmptyState } from "@/components/state/states";
 import {
   listCustomers,
   createCustomer,
@@ -169,11 +170,12 @@ function CustomersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        eyebrow="CRM"
         title="Clientes & Leads"
         description="Gestão integrada de fichas de clientes, funil de vendas e contatos de vitrines."
         actions={
-          <Button onClick={() => setIsOpen(true)} className="font-bold flex items-center gap-1.5 text-xs h-9">
-            <Plus className="size-4" />
+          <Button onClick={() => setIsOpen(true)} size="sm">
+            <Plus className="mr-1.5 size-4" aria-hidden />
             Cadastrar Cliente
           </Button>
         }
@@ -313,114 +315,122 @@ function CustomersPage() {
       </Dialog>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 max-w-md mb-6">
-          <TabsTrigger value="customers" className="text-xs">
-            Clientes CRM ({filteredCustomers.length})
-          </TabsTrigger>
-          <TabsTrigger value="kanban" className="text-xs">
-            Funil de Leads ({leads.length})
-          </TabsTrigger>
-          <TabsTrigger value="messages" className="text-xs">
-            Mensagens de Contato
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+          <TabsList className="grid grid-cols-3 h-9">
+            <TabsTrigger value="customers" className="text-xs">
+              Clientes CRM ({filteredCustomers.length})
+            </TabsTrigger>
+            <TabsTrigger value="kanban" className="text-xs">
+              Funil de Leads ({leads.length})
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="text-xs">
+              Mensagens
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Tab 1: Customers CRM List */}
-        <TabsContent value="customers" className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          {activeTab === "customers" && (
+            <div className="relative flex-1 max-w-sm w-full">
+              <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden />
               <Input
                 type="search"
                 placeholder="Buscar cliente ou tag..."
-                className="pl-8"
+                className="pl-9 text-xs w-full"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-          </div>
+          )}
+        </div>
 
-          <div className="rounded-xl border bg-card overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Desde</TableHead>
-                  <TableHead className="text-center">Pedidos</TableHead>
-                  <TableHead className="text-right">LTV</TableHead>
-                  <TableHead>Tags</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCustomers.map((c: any) => (
-                  <TableRow key={c.id}>
-                    <TableCell>
-                      <div className="font-semibold text-foreground text-sm flex items-center gap-2">
-                        {c.name}
-                        {c.isConsentLgpd && (
-                          <Badge variant="outline" className="text-[9px] text-emerald-600 border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50/50 h-4 px-1">
-                            LGPD
-                          </Badge>
-                        )}
-                      </div>
-                      {c.taxId && (
-                        <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{c.taxId}</p>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {new Date(c.joinedAt).toLocaleDateString("pt-BR", {
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </TableCell>
-                    <TableCell className="text-center text-sm font-semibold">{c.orderCount}</TableCell>
-                    <TableCell className="text-right text-sm font-bold text-foreground">{formatMoney(c.ltvCents)}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {c.tags.length > 0 ? (
-                          c.tags.slice(0, 2).map((tag: string) => (
-                            <Badge key={tag} variant="secondary" className="text-[10px] h-5">
-                              {tag}
-                            </Badge>
-                          ))
-                        ) : (
-                          <span className="text-xs text-muted-foreground">-</span>
-                        )}
-                        {c.tags.length > 2 && (
-                          <Badge variant="outline" className="text-[10px] h-5">
-                            +{c.tags.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" asChild className="h-8">
-                        <Link to="/admin/clientes/$id" params={{ id: c.id }}>
-                          Detalhes
-                          <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                        </Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filteredCustomers.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center text-xs text-muted-foreground">
-                      Nenhum cliente cadastrado.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+        {/* Tab 1: Customers CRM List */}
+        <TabsContent value="customers" className="space-y-4">
+          {filteredCustomers.length === 0 ? (
+            <EmptyState
+              title="Nenhum cliente encontrado"
+              description={
+                searchTerm 
+                  ? "Sua busca não retornou nenhum cliente." 
+                  : "Nenhum cliente cadastrado no CRM ainda."
+              }
+            />
+          ) : (
+            <div className="rounded-xl border border-border bg-card shadow-xs">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40">
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Desde</TableHead>
+                      <TableHead className="text-center">Pedidos</TableHead>
+                      <TableHead className="text-right">LTV</TableHead>
+                      <TableHead>Tags</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCustomers.map((c: any) => (
+                      <TableRow key={c.id} className="hover:bg-muted/30 transition-colors">
+                        <TableCell>
+                          <div className="font-semibold text-foreground text-sm flex items-center gap-2">
+                            {c.name}
+                            {c.isConsentLgpd && (
+                              <Badge variant="outline" className="text-[9px] text-emerald-600 border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50/50 h-4 px-1">
+                                LGPD
+                              </Badge>
+                            )}
+                          </div>
+                          {c.taxId && (
+                            <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{c.taxId}</p>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {new Date(c.joinedAt).toLocaleDateString("pt-BR", {
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </TableCell>
+                        <TableCell className="text-center text-sm font-semibold">{c.orderCount}</TableCell>
+                        <TableCell className="text-right text-sm font-bold text-foreground">{formatMoney(c.ltvCents)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {c.tags.length > 0 ? (
+                              c.tags.slice(0, 2).map((tag: string) => (
+                                <Badge key={tag} variant="secondary" className="text-[10px] h-5">
+                                  {tag}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
+                            {c.tags.length > 2 && (
+                              <Badge variant="outline" className="text-[10px] h-5">
+                                +{c.tags.length - 2}
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" asChild className="h-8">
+                            <Link to="/admin/clientes/$id" params={{ id: c.id }}>
+                              Detalhes
+                              <ArrowRight className="ml-1.5 size-3.5" />
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
         </TabsContent>
 
         {/* Tab 2: Funil Kanban Pipeline */}
         <TabsContent value="kanban" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
             {/* Column 1: New */}
-            <Card className="bg-muted/30 border border-muted-foreground/15">
+            <Card className="bg-muted/30 border border-border shadow-xs">
               <CardHeader className="p-3 pb-2 border-b">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-foreground">Novos Leads</span>
@@ -445,11 +455,11 @@ function CustomersPage() {
             </Card>
 
             {/* Column 2: Contacted */}
-            <Card className="bg-muted/30 border border-muted-foreground/15">
+            <Card className="bg-muted/30 border border-border shadow-xs">
               <CardHeader className="p-3 pb-2 border-b">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-amber-600">Em Contato</span>
-                  <Badge variant="warning" className="h-5 text-[10px] bg-amber-100 text-amber-800">{leadsContacted.length}</Badge>
+                  <Badge variant="warning" className="h-5 text-[10px] bg-amber-100 text-amber-800 border-transparent">{leadsContacted.length}</Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-2 space-y-2">
@@ -470,11 +480,11 @@ function CustomersPage() {
             </Card>
 
             {/* Column 3: Converted */}
-            <Card className="bg-muted/30 border border-muted-foreground/15">
+            <Card className="bg-muted/30 border border-border shadow-xs">
               <CardHeader className="p-3 pb-2 border-b">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-emerald-600">Convertidos</span>
-                  <Badge className="h-5 text-[10px] bg-emerald-100 text-emerald-800">{leadsConverted.length}</Badge>
+                  <Badge variant="outline" className="h-5 text-[10px] bg-emerald-100 text-emerald-800 border-transparent">{leadsConverted.length}</Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-2 space-y-2">
@@ -495,7 +505,7 @@ function CustomersPage() {
             </Card>
 
             {/* Column 4: Lost */}
-            <Card className="bg-muted/30 border border-muted-foreground/15">
+            <Card className="bg-muted/30 border border-border shadow-xs">
               <CardHeader className="p-3 pb-2 border-b">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-muted-foreground">Arquivados</span>
@@ -523,71 +533,73 @@ function CustomersPage() {
 
         {/* Tab 3: Message Logs */}
         <TabsContent value="messages" className="space-y-4">
-          <div className="rounded-xl border bg-card overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Remetente</TableHead>
-                  <TableHead>Mensagem</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {leads.map((l: any) => (
-                  <TableRow key={l.id}>
-                    <TableCell className="font-semibold text-sm">
-                      <div>
-                        <p>{l.full_name}</p>
-                        <p className="text-[10px] text-muted-foreground">{l.email}</p>
-                        {l.phone && <p className="text-[10px] text-muted-foreground">{l.phone}</p>}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs leading-relaxed max-w-md whitespace-pre-wrap py-3">
-                      {l.message || <span className="text-muted-foreground italic">Sem mensagem</span>}
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {new Date(l.created_at).toLocaleString("pt-BR", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          l.status === "new"
-                            ? "default"
-                            : l.status === "contacted"
-                              ? "warning"
-                              : l.status === "converted"
-                                ? "success"
-                                : "outline"
-                        }
-                        className="text-[10px] capitalize"
-                      >
-                        {l.status === "new"
-                          ? "Novo"
-                          : l.status === "contacted"
-                            ? "Em Contato"
-                            : l.status === "converted"
-                              ? "Convertido"
-                              : "Perdido"}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {leads.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center text-xs text-muted-foreground">
-                      Nenhuma mensagem registrada.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          {leads.length === 0 ? (
+            <EmptyState
+              title="Nenhuma mensagem registrada"
+              description="Mensagens enviadas através de formulários de contato aparecerão aqui."
+            />
+          ) : (
+            <div className="rounded-xl border border-border bg-card shadow-xs">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40">
+                      <TableHead>Remetente</TableHead>
+                      <TableHead>Mensagem</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {leads.map((l: any) => (
+                      <TableRow key={l.id} className="hover:bg-muted/30 transition-colors">
+                        <TableCell className="font-semibold text-sm">
+                          <div>
+                            <p>{l.full_name}</p>
+                            <p className="text-[10px] text-muted-foreground font-mono">{l.email}</p>
+                            {l.phone && <p className="text-[10px] text-muted-foreground font-mono">{l.phone}</p>}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs leading-relaxed max-w-md whitespace-pre-wrap py-3 text-muted-foreground">
+                          {l.message || <span className="italic">Sem mensagem</span>}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {new Date(l.created_at).toLocaleString("pt-BR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              l.status === "new"
+                                ? "default"
+                                : l.status === "contacted"
+                                  ? "warning"
+                                  : l.status === "converted"
+                                    ? "success"
+                                    : "outline"
+                            }
+                            className="text-[10px] capitalize"
+                          >
+                            {l.status === "new"
+                              ? "Novo"
+                              : l.status === "contacted"
+                                ? "Em Contato"
+                                : l.status === "converted"
+                                  ? "Convertido"
+                                  : "Perdido"}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

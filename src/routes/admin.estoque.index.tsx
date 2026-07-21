@@ -229,7 +229,7 @@ function AdminStockPage() {
             <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Estoque em Mãos
             </CardTitle>
-            <div className="flex size-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+            <div className="flex size-8 items-center justify-center rounded-full bg-success/15 text-success">
               <PackageCheck className="size-4" aria-hidden />
             </div>
           </CardHeader>
@@ -244,7 +244,7 @@ function AdminStockPage() {
             <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Reservado (Checkout)
             </CardTitle>
-            <div className="flex size-8 items-center justify-center rounded-full bg-blue-500/10 text-blue-600">
+            <div className="flex size-8 items-center justify-center rounded-full bg-info/15 text-info">
               <Clock className="size-4" aria-hidden />
             </div>
           </CardHeader>
@@ -259,7 +259,7 @@ function AdminStockPage() {
             <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Estoque Crítico
             </CardTitle>
-            <div className="flex size-8 items-center justify-center rounded-full bg-amber-500/10 text-amber-600">
+            <div className="flex size-8 items-center justify-center rounded-full bg-warning/15 text-warning-foreground">
               <ShieldAlert className="size-4" aria-hidden />
             </div>
           </CardHeader>
@@ -271,9 +271,9 @@ function AdminStockPage() {
       </div>
 
       {/* Toolbar & Filtros por Status */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
         <Tabs defaultValue="all" value={statusTab} onValueChange={setStatusTab} className="w-full sm:w-auto">
-          <TabsList className="grid grid-cols-4 w-full sm:w-auto">
+          <TabsList className="grid grid-cols-4 w-full sm:w-auto h-9">
             <TabsTrigger value="all" className="text-xs">
               Todos ({stock.length})
             </TabsTrigger>
@@ -354,15 +354,15 @@ function AdminStockPage() {
 
                     <TableCell className="text-center">
                       {available <= 0 ? (
-                        <Badge variant="destructive" className="text-xs">
+                        <Badge variant="destructive" className="text-[10px] uppercase tracking-wider">
                           Esgotado
                         </Badge>
                       ) : available <= 5 ? (
-                        <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs">
+                        <Badge variant="warning" className="text-[10px] uppercase tracking-wider">
                           Crítico
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs">
+                        <Badge variant="success" className="text-[10px] uppercase tracking-wider">
                           Regular
                         </Badge>
                       )}
@@ -373,7 +373,7 @@ function AdminStockPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-xs h-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                          className="text-xs h-8 text-success hover:text-success hover:bg-success/10"
                           onClick={() => handleOpenMovementModal(variant, "purchase")}
                         >
                           <Plus className="size-3.5 mr-1" /> Entrada
@@ -381,7 +381,7 @@ function AdminStockPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-xs h-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                          className="text-xs h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => handleOpenMovementModal(variant, "damage")}
                         >
                           <Minus className="size-3.5 mr-1" /> Avaria

@@ -240,13 +240,13 @@ function CustomerDetailPage() {
     <div className="space-y-6">
       <nav aria-label="Breadcrumb" className="flex items-center text-sm text-muted-foreground">
         <Link to="/admin/clientes" className="hover:text-foreground flex items-center">
-          <ChevronLeft className="mr-1 h-4 w-4" />
+          <ChevronLeft className="mr-1 size-4" />
           Voltar para Clientes
         </Link>
       </nav>
 
       {/* Identidade Resumida */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-card border rounded-xl shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-card border border-border rounded-xl shadow-xs">
         <div className="flex items-center gap-4">
           <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
             <User className="size-6" />
@@ -255,7 +255,7 @@ function CustomerDetailPage() {
             <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
               {data.profile.name}
               {data.profile.isConsentLgpd && (
-                <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50/50">
+                <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50/50 h-5 px-1.5">
                   LGPD Consentido
                 </Badge>
               )}
@@ -270,14 +270,14 @@ function CustomerDetailPage() {
       </div>
 
       <Tabs defaultValue="crm" className="w-full">
-        <TabsList className="grid grid-cols-3 max-w-md mb-6">
+        <TabsList className="grid grid-cols-3 max-w-md mb-6 h-9">
           <TabsTrigger value="crm" className="text-xs">Ficha CRM</TabsTrigger>
           <TabsTrigger value="enderecos" className="text-xs">Endereços ({data.addresses.length})</TabsTrigger>
           <TabsTrigger value="pedidos" className="text-xs">Pedidos ({data.orders.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="crm" className="space-y-4">
-          <div className="max-w-2xl rounded-xl border bg-card p-6 shadow-sm">
+          <div className="max-w-2xl rounded-xl border border-border bg-card p-6 shadow-xs">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
@@ -314,7 +314,7 @@ function CustomerDetailPage() {
                 />
 
                 <Button type="submit" disabled={isSubmitting} className="font-bold">
-                  <Save className="mr-2 h-4 w-4" />
+                  <Save className="mr-2 size-4" />
                   {isSubmitting ? "Salvando..." : "Salvar Ficha"}
                 </Button>
               </form>
@@ -335,7 +335,7 @@ function CustomerDetailPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {data.addresses.map((addr: any) => (
-              <Card key={addr.id} className={`relative overflow-hidden border shadow-sm ${addr.is_default ? "border-primary bg-primary/5" : "bg-card"}`}>
+              <Card key={addr.id} className={`relative overflow-hidden border shadow-xs ${addr.is_default ? "border-primary bg-primary/5" : "bg-card border-border"}`}>
                 {addr.is_default && (
                   <div className="absolute top-2 right-2 flex items-center gap-1 text-xs text-primary font-bold">
                     <Check className="size-3.5" /> Padrão
@@ -414,7 +414,7 @@ function CustomerDetailPage() {
             ))}
 
             {data.addresses.length === 0 && (
-              <div className="col-span-full border border-dashed rounded-xl p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
+              <div className="col-span-full border border-dashed border-border rounded-xl p-8 text-center text-xs text-muted-foreground flex flex-col items-center justify-center gap-2">
                 <AlertTriangle className="size-5 text-amber-500" />
                 Nenhum endereço de entrega cadastrado para este cliente.
               </div>
@@ -423,15 +423,15 @@ function CustomerDetailPage() {
         </TabsContent>
 
         <TabsContent value="pedidos">
-          <div className="rounded-xl border bg-card overflow-hidden shadow-sm">
+          <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
             {data.orders.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground text-xs">
                 Este cliente ainda não fez nenhum pedido no e-commerce ou balcão.
               </div>
             ) : (
-              <div className="divide-y">
+              <div className="divide-y divide-border">
                 {data.orders.map((o: any) => (
-                  <div key={o.id} className="flex items-center justify-between p-4 hover:bg-muted/10 transition-colors">
+                  <div key={o.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
                     <div>
                       <div className="font-semibold text-foreground text-sm">Pedido #{o.public_token}</div>
                       <div className="text-xs text-muted-foreground">

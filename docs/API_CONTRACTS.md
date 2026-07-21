@@ -5,7 +5,7 @@ Contratos versionados da camada BFF/server-function (`createServerFn` e rotas so
 Convenções globais:
 
 - Todos os contratos abaixo pertencem à versão **v1**; mudanças incompatíveis exigem `v2` publicada em paralelo.
-- Todo valor monetário é `{ amount_cents: number (integer), currency: "BRL" }`. Nunca ponto flutuante.
+- Todo valor monetário nos DTOs consumidos pelo frontend segue o sufixo `Cents` em camelCase (ex: `priceCents: number`, `amountCents: number`) ou, quando estritamente isolado, o formato `MoneyDTO` (`{ amountCents: number, currency: "BRL" }`). Nunca ponto flutuante. O banco de dados utiliza `_cents` (ex: `price_cents`).
 - Toda data é ISO 8601 UTC (`created_at`, `updated_at`, `expires_at`, etc.); conversão para `America/Sao_Paulo` é responsabilidade exclusiva da apresentação.
 - Toda resposta é envolvida em um envelope padrão de sucesso/erro (seção 1).
 - Respostas nunca incluem segredos (tokens de provedor, chaves de API, hashes de senha/código) nem PII além do estritamente necessário ao caso de uso do chamador autenticado.
@@ -78,10 +78,10 @@ type ProductListItemDTO = {
   id: string;
   slug: string;
   name: string;
-  cover_media_url: string; // URL assinada/publica processada, nunca original privado
-  price: { amount_cents: number; currency: "BRL" };
-  compare_at_price?: { amount_cents: number; currency: "BRL" };
-  in_stock: boolean;
+  coverUrl: string | null;
+  priceCents: number;
+  compareAtCents?: number | null;
+  isOutOfStock: boolean;
 };
 
 type ListProductsResponse = {
@@ -109,9 +109,9 @@ type ProductDetailDTO = {
   variants: {
     id: string;
     sku: string;
-    option_values: Record<string, string>;
-    price: { amount_cents: number; currency: "BRL" };
-    available: boolean;
+    attributes: Record<string, string>;
+    effectivePriceCents: number;
+    availableQty: number;
   }[];
   media: { url: string; alt: string; is_cover: boolean }[];
   categories: { slug: string; name: string }[];
@@ -155,20 +155,21 @@ type SyncCartRequest = {
 };
 
 type CartLineDTO = {
-  variant_id: string;
-  quantity: number;
-  unit_price: { amount_cents: number; currency: "BRL" };
-  line_total: { amount_cents: number; currency: "BRL" };
-  available: boolean; // reavaliado no servidor
+  variantId: string;
+  qty: number;
+  priceCents: number;
+  lineTotalCents: number;
+  isOutOfStock?: boolean;
 };
 
 type CartDTO = {
-  cart_id: string;
-  lines: CartLineDTO[];
-  subtotal: { amount_cents: number; currency: "BRL" };
-  discount: { amount_cents: number; currency: "BRL" };
-  total: { amount_cents: number; currency: "BRL" }; // sempre recomputado no servidor
-  coupon_applied?: { code: string; description: string };
+  id: string;
+  items: CartLineDTO[];
+  subtotalCents: number;
+  discountCents: number;
+  shippingCents: number;
+  totalCents: number;
+  couponCode?: string | null;
 };
 ```
 
@@ -188,15 +189,13 @@ type CreateOrderRequest = {
 };
 
 type OrderDTO = {
-  order_id: string;
+  id: string;
   status: OrderStatus; // ver seção 5
-  totals: {
-    subtotal: { amount_cents: number; currency: "BRL" };
-    discount: { amount_cents: number; currency: "BRL" };
-    shipping: { amount_cents: number; currency: "BRL" };
-    total: { amount_cents: number; currency: "BRL" };
-  };
-  created_at: string; // ISO UTC
+  subtotalCents: number;
+  discountCents: number;
+  shippingCents: number;
+  totalCents: number;
+  createdAt: string; // ISO UTC
 };
 ```
 
@@ -256,7 +255,7 @@ type ShippingQuoteOptionDTO = {
   quote_id: string;
   type: "pickup" | "manual_table" | "manual_quote" | "provider";
   label: string;
-  price: { amount_cents: number; currency: "BRL" };
+  priceCents: number;
   eta_days_min?: number;
   eta_days_max?: number;
   expires_at: string; // ISO UTC — cotações manuais/provider expiram
@@ -378,4 +377,4 @@ Comportamento: chave ausente nesses endpoints retorna `idempotency_key_missing` 
 
 - Nenhum contrato retorna: senha/hash, segredos/tokens de integração, código completo de gift card (apenas últimos dígitos/máscara), dados de cartão, `raw_payload` de webhook para consumidores externos ao domínio de pagamentos.
 - Endereços e documentos pessoais só são retornados ao próprio titular (`customer`) ou a roles com permissão explícita (`admin`, `finance`, `support` conforme caso), nunca em listagens públicas de catálogo/CMS.
-- Todo campo de dinheiro segue o formato `{ amount_cents: integer, currency: "BRL" }` em 100% dos contratos desta especificação.
+- Todo campo de dinheiro é trafegado no formato achatado `priceCents`, `amountCents`, etc. em 100% dos contratos desta especificação de DTOs, enquanto no banco de dados e APIs REST mantêm o sufixo numérico de `_cents`.

@@ -106,14 +106,17 @@ function CommissionsPage() {
                       <TableCell className="font-medium">{c.sellerName}</TableCell>
                       <TableCell>#{c.orderToken}</TableCell>
                       <TableCell>{formatMoney(c.orderTotal)}</TableCell>
-                      <TableCell className="font-bold text-primary">
+                      <TableCell className={`font-bold ${c.amountCents < 0 ? 'text-destructive' : 'text-primary'}`}>
                         {formatMoney(c.amountCents)}
+                        {c.amountCents < 0 && <span className="ml-2 text-xs font-normal text-muted-foreground">(Estorno)</span>}
                       </TableCell>
                       <TableCell>
                         {c.status === "paid" ? (
                           <Badge variant="success">Paga</Badge>
                         ) : c.status === "cancelled" ? (
-                          <Badge variant="destructive">Cancelada</Badge>
+                          <Badge variant="destructive">Cancelada (Pedido estornado)</Badge>
+                        ) : c.amountCents < 0 ? (
+                          <Badge variant="outline" className="text-destructive border-destructive">Estorno Pendente</Badge>
                         ) : (
                           <Badge variant="secondary">Pendente</Badge>
                         )}

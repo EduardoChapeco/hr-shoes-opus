@@ -206,9 +206,8 @@ function TeamPage() {
         }
       />
 
-      {/* Grid de Métricas de Equipe */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
+        <Card className="rounded-xl border border-border bg-card shadow-xs">
           <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Total da Equipe
@@ -221,12 +220,12 @@ function TeamPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-xl border border-border bg-card shadow-xs">
           <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Vendedoras de Balcão
             </span>
-            <Briefcase className="size-4 text-emerald-600" />
+            <Briefcase className="size-4 text-success" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-2xl font-bold">{sellersCount} vendedora(s)</div>
@@ -234,12 +233,12 @@ function TeamPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-xl border border-border bg-card shadow-xs">
           <CardHeader className="py-3 px-4 flex flex-row items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Gestão & Admin
             </span>
-            <ShieldCheck className="size-4 text-amber-600" />
+            <ShieldCheck className="size-4 text-warning" />
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-2xl font-bold">{managersCount} gestor(es)</div>

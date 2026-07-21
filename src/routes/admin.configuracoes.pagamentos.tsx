@@ -216,7 +216,7 @@ function ManualPaymentsPage() {
       />
 
       {/* PIX / Instruções Globais & Regras de Checkout */}
-      <div className="rounded-xl border bg-card p-6 space-y-5">
+      <div className="rounded-xl border border-border bg-card p-6 space-y-5 shadow-xs">
         <div className="flex items-center gap-3">
           <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
             <QrCode className="size-5 text-primary" />
@@ -356,7 +356,7 @@ function ManualPaymentsPage() {
             action={<Button onClick={openCreate}>Novo Método</Button>}
           />
         ) : (
-          <div className="rounded-md border bg-card">
+          <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -380,7 +380,7 @@ function ManualPaymentsPage() {
                         ? `+${method.surcharge_percentage}%`
                         : "-"}
                     </TableCell>
-                    <TableCell className="text-green-600 font-medium">
+                    <TableCell className="text-success font-medium">
                       {Number(method.discount_percentage) > 0
                         ? `-${method.discount_percentage}%`
                         : "-"}
@@ -389,7 +389,7 @@ function ManualPaymentsPage() {
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           method.is_active
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                            ? "bg-success/15 text-success"
                             : "bg-muted text-muted-foreground"
                         }`}
                       >

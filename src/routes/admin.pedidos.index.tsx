@@ -52,18 +52,18 @@ export const Route = createFileRoute("/admin/pedidos/")({
 });
 
 function getStatusLabel(status: string) {
-  const map: Record<string, { label: string; variant: any; bg: string }> = {
-    draft: { label: "Rascunho", variant: "secondary", bg: "bg-muted text-muted-foreground" },
-    awaiting_payment: { label: "Aguardando Pagto", variant: "outline", bg: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
-    payment_processing: { label: "Processando Pagto", variant: "outline", bg: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-    paid: { label: "Pago", variant: "default", bg: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
-    processing: { label: "Em Separação", variant: "secondary", bg: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
-    ready_for_pickup: { label: "Pronto p/ Retirada", variant: "default", bg: "bg-emerald-600 text-white" },
-    shipped: { label: "Enviado", variant: "default", bg: "bg-blue-600 text-white" },
-    delivered: { label: "Entregue", variant: "default", bg: "bg-emerald-700 text-white" },
-    cancelled: { label: "Cancelado", variant: "destructive", bg: "bg-rose-500/10 text-rose-600 border-rose-500/20" },
+  const map: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "info" | "success" | "warning" }> = {
+    draft: { label: "Rascunho", variant: "secondary" },
+    awaiting_payment: { label: "Aguardando Pagto", variant: "warning" },
+    payment_processing: { label: "Processando Pagto", variant: "info" },
+    paid: { label: "Pago", variant: "success" },
+    processing: { label: "Em Separação", variant: "secondary" },
+    ready_for_pickup: { label: "Pronto p/ Retirada", variant: "success" },
+    shipped: { label: "Enviado", variant: "info" },
+    delivered: { label: "Entregue", variant: "success" },
+    cancelled: { label: "Cancelado", variant: "destructive" },
   };
-  return map[status] || { label: status, variant: "outline", bg: "" };
+  return map[status] || { label: status, variant: "outline" };
 }
 
 function AdminOrdersPage() {
@@ -147,9 +147,9 @@ function AdminOrdersPage() {
       />
 
       {/* Toolbar & Filtros de Status */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
         <Tabs defaultValue="all" value={statusTab} onValueChange={setStatusTab} className="w-full sm:w-auto">
-          <TabsList className="grid grid-cols-6 w-full sm:w-auto">
+          <TabsList className="grid grid-cols-6 w-full sm:w-auto h-9">
             <TabsTrigger value="all" className="text-xs">
               Todos ({orders.length})
             </TabsTrigger>
@@ -246,7 +246,7 @@ function AdminOrdersPage() {
                     </TableCell>
 
                     <TableCell className="text-center">
-                      <Badge variant="outline" className={`text-xs px-2.5 py-0.5 font-bold ${badgeInfo.bg}`}>
+                      <Badge variant={badgeInfo.variant} className="text-[10px] uppercase tracking-wider">
                         {badgeInfo.label}
                       </Badge>
                     </TableCell>

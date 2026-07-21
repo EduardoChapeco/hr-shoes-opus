@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { Plus, MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Plus, MoreHorizontal, Edit, Trash2, Search } from "lucide-react";
+import { useState, useMemo } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,6 +42,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import {
   listProductTypes,
   createProductType,
@@ -79,6 +80,14 @@ function ProductTypesPage() {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingType, setEditingType] = useState<any | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredTypes = useMemo(() => {
+    return types.filter((t: any) =>
+      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.slug.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [types, searchQuery]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -174,16 +183,16 @@ function ProductTypesPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PageHeader
         eyebrow="Catálogo"
         title="Tipos de produto"
         description="Defina os esquemas de atributos dinâmicos para diferentes categorias de produtos."
         actions={
           <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) setEditingType(null); }}>
-            <Button onClick={handleOpenNew}>
-              <Plus className="mr-2 size-4" aria-hidden />
-              Novo tipo
+            <Button onClick={handleOpenNew} size="sm">
+              <Plus className="mr-1.5 size-4" aria-hidden />
+              Novo Tipo
             </Button>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
@@ -333,7 +342,7 @@ function ProductTypesPage() {
                     Cancelar
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Salvando..." : "Salvar tipo"}
+                    {isSubmitting ? "Salvando..." : "Salvar Tipo"}
                   </Button>
                 </DialogFooter>
               </form>
@@ -342,70 +351,92 @@ function ProductTypesPage() {
         }
       />
 
-      {types.length === 0 ? (
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-sm w-full">
+          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden />
+          <Input
+            type="search"
+            placeholder="Buscar por nome ou slug..."
+            className="pl-9 text-xs w-full"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {filteredTypes.length === 0 ? (
         <EmptyState
           title="Nenhum tipo de produto"
-          description="Crie tipos de produtos para definir esquemas adaptativos de atributos, como tamanhos e materiais."
+          description={
+            searchQuery
+              ? "Tente alterar os termos da sua busca."
+              : "Crie tipos de produtos para definir esquemas adaptativos de atributos, como tamanhos e materiais."
+          }
         />
       ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead>Campos Dinâmicos</TableHead>
-                <TableHead>Criado em</TableHead>
-                <TableHead className="w-[80px] text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {types.map(
-                (type: {
-                  id: string;
-                  name: string;
-                  slug: string;
-                  field_schema: unknown;
-                  created_at: string;
-                }) => (
-                  <TableRow key={type.id}>
-                    <TableCell className="font-medium">{type.name}</TableCell>
-                    <TableCell>{type.slug}</TableCell>
-                    <TableCell>
-                      {Array.isArray(type.field_schema) ? type.field_schema.length : 0} campos
-                    </TableCell>
-                    <TableCell>
-                      {new Date(type.created_at).toLocaleDateString("pt-BR")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleOpenEdit(type)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Editar tipo
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => handleDelete(type.id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Excluir tipo
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ),
-              )}
-            </TableBody>
-          </Table>
+        <div className="rounded-xl border border-border bg-card shadow-xs">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40">
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Campos Dinâmicos</TableHead>
+                  <TableHead>Criado em</TableHead>
+                  <TableHead className="w-[80px] text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTypes.map(
+                  (type: {
+                    id: string;
+                    name: string;
+                    slug: string;
+                    field_schema: unknown;
+                    created_at: string;
+                  }) => (
+                    <TableRow key={type.id} className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-semibold text-sm text-foreground">{type.name}</TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-xs">{type.slug}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs">
+                          {Array.isArray(type.field_schema) ? type.field_schema.length : 0} campos
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-xs">
+                        {new Date(type.created_at).toLocaleDateString("pt-BR")}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" aria-label="Ações do tipo">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleOpenEdit(type)}>
+                              <Edit className="mr-2 size-3.5" />
+                              Editar Tipo
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => handleDelete(type.id)}
+                            >
+                              <Trash2 className="mr-2 size-3.5" />
+                              Excluir Tipo
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ),
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
     </div>
   );
 }
+

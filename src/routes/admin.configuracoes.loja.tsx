@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getStoreSettings, saveStoreSettings } from "@/services/store.functions";
 import { MediaUploader } from "@/components/admin/builder/MediaUploader";
 
@@ -68,118 +69,127 @@ function StoreSettings() {
       />
 
       <form onSubmit={handleSave} className="space-y-6 max-w-2xl">
-        <fieldset className="space-y-4">
-          <legend className="text-sm font-semibold text-foreground border-b pb-2 w-full">
-            Informações Gerais
-          </legend>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="store-name">Nome da Loja *</Label>
-              <Input
-                id="store-name"
-                value={form.name}
-                onChange={update("name")}
-                placeholder="Hr Shoes"
-                required
-                minLength={2}
-              />
+        <Card className="rounded-xl border border-border bg-card shadow-xs">
+          <CardHeader className="pb-3 border-b border-border">
+            <CardTitle className="text-sm font-semibold text-foreground">Informações Gerais</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="store-name">Nome da Loja *</Label>
+                <Input
+                  id="store-name"
+                  value={form.name}
+                  onChange={update("name")}
+                  placeholder="Hr Shoes"
+                  required
+                  minLength={2}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="store-cnpj">CNPJ</Label>
+                <Input
+                  id="store-cnpj"
+                  value={form.cnpj}
+                  onChange={update("cnpj")}
+                  placeholder="00.000.000/0001-00"
+                  maxLength={18}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="store-cnpj">CNPJ</Label>
-              <Input
-                id="store-cnpj"
-                value={form.cnpj}
-                onChange={update("cnpj")}
-                placeholder="00.000.000/0001-00"
-                maxLength={18}
-              />
-            </div>
-          </div>
-        </fieldset>
+          </CardContent>
+        </Card>
 
-        <fieldset className="space-y-4">
-          <legend className="text-sm font-semibold text-foreground border-b pb-2 w-full">
-            Identidade Visual
-          </legend>
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Logotipo da Loja</Label>
-              <MediaUploader
-                value={form.logoUrl}
-                onChange={(url) => setForm((f) => ({ ...f, logoUrl: url }))}
-                bucket="cms-media"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Imagem retangular, preferencialmente transparente (PNG/SVG).</p>
+        <Card className="rounded-xl border border-border bg-card shadow-xs">
+          <CardHeader className="pb-3 border-b border-border">
+            <CardTitle className="text-sm font-semibold text-foreground">Identidade Visual</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Logotipo da Loja</Label>
+                <MediaUploader
+                  value={form.logoUrl}
+                  onChange={(url) => setForm((f) => ({ ...f, logoUrl: url }))}
+                  bucket="cms-media"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Imagem retangular, preferencialmente transparente (PNG/SVG).</p>
+              </div>
+              <div className="space-y-2">
+                <Label>Ícone da Aba (Favicon)</Label>
+                <MediaUploader
+                  value={form.faviconUrl}
+                  onChange={(url) => setForm((f) => ({ ...f, faviconUrl: url }))}
+                  bucket="cms-media"
+                />
+                <p className="text-xs text-muted-foreground mt-1">Imagem quadrada, ex: 64x64 (PNG/SVG).</p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Ícone da Aba (Favicon)</Label>
-              <MediaUploader
-                value={form.faviconUrl}
-                onChange={(url) => setForm((f) => ({ ...f, faviconUrl: url }))}
-                bucket="cms-media"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Imagem quadrada, ex: 64x64 (PNG/SVG).</p>
-            </div>
-          </div>
-        </fieldset>
+          </CardContent>
+        </Card>
 
-        <fieldset className="space-y-4">
-          <legend className="text-sm font-semibold text-foreground border-b pb-2 w-full">
-            Contato Comercial
-          </legend>
-          <div className="space-y-2">
-            <Label htmlFor="store-email">E-mail administrativo de contato</Label>
-            <Input
-              id="store-email"
-              type="email"
-              value={form.email}
-              onChange={update("email")}
-              placeholder="contato@hrshoes.com.br"
-            />
-          </div>
-        </fieldset>
-
-        <fieldset className="space-y-4">
-          <legend className="text-sm font-semibold text-foreground border-b pb-2 w-full">
-            Origem Logística (Faturamento)
-          </legend>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2 md:col-span-1">
-              <Label htmlFor="store-city">Cidade</Label>
-              <Input
-                id="store-city"
-                value={form.city}
-                onChange={update("city")}
-                placeholder="Chapecó"
-              />
-            </div>
+        <Card className="rounded-xl border border-border bg-card shadow-xs">
+          <CardHeader className="pb-3 border-b border-border">
+            <CardTitle className="text-sm font-semibold text-foreground">Contato Comercial</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
             <div className="space-y-2">
-              <Label htmlFor="store-state">UF</Label>
+              <Label htmlFor="store-email">E-mail administrativo de contato</Label>
               <Input
-                id="store-state"
-                value={form.state}
-                onChange={update("state")}
-                placeholder="SC"
-                maxLength={2}
+                id="store-email"
+                type="email"
+                value={form.email}
+                onChange={update("email")}
+                placeholder="contato@hrshoes.com.br"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="store-zip">CEP</Label>
-              <Input
-                id="store-zip"
-                value={form.zip_code}
-                onChange={update("zip_code")}
-                placeholder="89800-000"
-                maxLength={9}
-              />
-            </div>
-          </div>
-        </fieldset>
+          </CardContent>
+        </Card>
 
-        <Button type="submit" disabled={isSaving}>
-          {isSaving ? "Salvando..." : "Salvar Dados"}
+        <Card className="rounded-xl border border-border bg-card shadow-xs">
+          <CardHeader className="pb-3 border-b border-border">
+            <CardTitle className="text-sm font-semibold text-foreground">Origem Logística (Faturamento)</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2 md:col-span-1">
+                <Label htmlFor="store-city">Cidade</Label>
+                <Input
+                  id="store-city"
+                  value={form.city}
+                  onChange={update("city")}
+                  placeholder="Chapecó"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="store-state">UF</Label>
+                <Input
+                  id="store-state"
+                  value={form.state}
+                  onChange={update("state")}
+                  placeholder="SC"
+                  maxLength={2}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="store-zip">CEP</Label>
+                <Input
+                  id="store-zip"
+                  value={form.zip_code}
+                  onChange={update("zip_code")}
+                  placeholder="89800-000"
+                  maxLength={9}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Button type="submit" disabled={isSaving} size="lg" className="w-full font-bold">
+          {isSaving ? "Salvando..." : "Salvar Dados da Loja"}
         </Button>
       </form>
     </div>
   );
 }
+

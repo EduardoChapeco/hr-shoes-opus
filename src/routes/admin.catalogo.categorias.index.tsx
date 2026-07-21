@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { Plus, MoreHorizontal, Edit, Archive, RotateCcw, EyeOff, Check } from "lucide-react";
-import { useState } from "react";
+import { Plus, MoreHorizontal, Edit, Archive, RotateCcw, EyeOff, Check, Search } from "lucide-react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,10 +37,24 @@ export const Route = createFileRoute("/admin/catalogo/categorias/")({
 function AdminCategoriesPage() {
   const categories = Route.useLoaderData();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"active" | "archived">("active");
+  const [statusFilter, setStatusFilter] = useState<"active" | "archived">("active");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const activeCategories = categories.filter((c: any) => c.status !== "archived");
-  const archivedCategories = categories.filter((c: any) => c.status === "archived");
+  const activeCategoriesCount = categories.filter((c: any) => c.status !== "archived").length;
+  const archivedCategoriesCount = categories.filter((c: any) => c.status === "archived").length;
+
+  const filteredCategories = useMemo(() => {
+    return categories.filter((c: any) => {
+      const matchesSearch =
+        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        c.slug.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesStatus =
+        statusFilter === "active" ? c.status !== "archived" : c.status === "archived";
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [categories, searchQuery, statusFilter]);
 
   const handleUpdateStatus = async (id: string, newStatus: "active" | "inactive" | "archived") => {
     try {
@@ -59,138 +74,164 @@ function AdminCategoriesPage() {
     }
   };
 
-  const renderTable = (list: any[]) => {
-    if (list.length === 0) {
-      return (
-        <EmptyState
-          title={
-            activeTab === "active"
-              ? "Nenhuma categoria ativa cadastrada"
-              : "Nenhuma categoria no arquivo morto"
-          }
-          description={
-            activeTab === "active"
-              ? "Crie categorias para organizar seus produtos na vitrine."
-              : "Categorias arquivadas aparecerão aqui."
-          }
-          action={
-            activeTab === "active" ? (
-              <Button asChild>
-                <Link to="/admin/catalogo/categorias/novo">Nova categoria</Link>
-              </Button>
-            ) : undefined
-          }
-        />
-      );
-    }
-
-    return (
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[80px] text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {list.map((cat: any) => (
-              <TableRow key={cat.id}>
-                <TableCell className="font-medium">{cat.name}</TableCell>
-                <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
-                <TableCell>
-                  <Badge variant={cat.status === "active" ? "default" : "secondary"}>
-                    {cat.status === "active" ? "Ativa" : cat.status === "inactive" ? "Inativa" : "Arquivada"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {cat.status !== "archived" ? (
-                        <>
-                          <DropdownMenuItem asChild>
-                            <Link to={`/admin/catalogo/categorias/${cat.id}` as any}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar categoria
-                            </Link>
-                          </DropdownMenuItem>
-                          {cat.status === "active" ? (
-                            <DropdownMenuItem onClick={() => handleUpdateStatus(cat.id, "inactive")}>
-                              <EyeOff className="mr-2 h-4 w-4" />
-                              Desativar
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem onClick={() => handleUpdateStatus(cat.id, "active")}>
-                              <Check className="mr-2 h-4 w-4" />
-                              Ativar
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => handleUpdateStatus(cat.id, "archived")}
-                          >
-                            <Archive className="mr-2 h-4 w-4" />
-                            Arquivar
-                          </DropdownMenuItem>
-                        </>
-                      ) : (
-                        <DropdownMenuItem onClick={() => handleUpdateStatus(cat.id, "active")}>
-                          <RotateCcw className="mr-2 h-4 w-4" />
-                          Recuperar
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    );
-  };
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PageHeader
         eyebrow="Catálogo"
         title="Categorias"
         description="Organize seus produtos em categorias hierárquicas."
         actions={
-          <Button asChild>
+          <Button asChild size="sm">
             <Link to="/admin/catalogo/categorias/novo">
-              <Plus className="mr-2 size-4" aria-hidden />
-              Nova categoria
+              <Plus className="mr-1.5 size-4" aria-hidden />
+              Nova Categoria
             </Link>
           </Button>
         }
       />
 
-      <Tabs
-        defaultValue="active"
-        onValueChange={(val) => setActiveTab(val as "active" | "archived")}
-        className="w-full"
-      >
-        <TabsList className="grid w-[400px] grid-cols-2">
-          <TabsTrigger value="active">Ativas ({activeCategories.length})</TabsTrigger>
-          <TabsTrigger value="archived">Arquivo Morto ({archivedCategories.length})</TabsTrigger>
-        </TabsList>
+      {/* Toolbar & Filtros */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <Tabs
+          defaultValue="active"
+          value={statusFilter}
+          onValueChange={(val) => setStatusFilter(val as "active" | "archived")}
+          className="w-full sm:w-auto"
+        >
+          <TabsList className="grid w-full sm:w-[400px] grid-cols-2">
+            <TabsTrigger value="active">Ativas ({activeCategoriesCount})</TabsTrigger>
+            <TabsTrigger value="archived">Arquivo Morto ({archivedCategoriesCount})</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-        <TabsContent value="active" className="mt-4">
-          {renderTable(activeCategories)}
-        </TabsContent>
+        <div className="relative flex-1 max-w-sm w-full">
+          <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden />
+          <Input
+            type="search"
+            placeholder="Buscar por nome ou slug..."
+            className="pl-9 text-xs w-full"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
 
-        <TabsContent value="archived" className="mt-4">
-          {renderTable(archivedCategories)}
-        </TabsContent>
-      </Tabs>
+      {filteredCategories.length === 0 ? (
+        <EmptyState
+          title={
+            statusFilter === "active"
+              ? "Nenhuma categoria encontrada"
+              : "Nenhuma categoria no arquivo morto"
+          }
+          description={
+            searchQuery
+              ? "Tente alterar os termos da sua busca."
+              : statusFilter === "active"
+                ? "Crie categorias para organizar seus produtos na vitrine."
+                : "Categorias arquivadas aparecerão aqui."
+          }
+          action={
+            statusFilter === "active" ? (
+              <Button asChild size="sm">
+                <Link to="/admin/catalogo/categorias/novo">
+                  <Plus className="mr-1.5 size-4" />
+                  Nova Categoria
+                </Link>
+              </Button>
+            ) : undefined
+          }
+        />
+      ) : (
+        <div className="rounded-xl border border-border bg-card shadow-xs">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40">
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[80px] text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCategories.map((cat: any) => (
+                  <TableRow key={cat.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="font-semibold text-sm text-foreground">
+                      {cat.name}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground font-mono text-xs">
+                      {cat.slug}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          cat.status === "active"
+                            ? "default"
+                            : cat.status === "archived"
+                              ? "outline"
+                              : "secondary"
+                        }
+                        className="text-xs"
+                      >
+                        {cat.status === "active"
+                          ? "Ativa"
+                          : cat.status === "inactive"
+                            ? "Inativa"
+                            : "Arquivada"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" aria-label="Ações da categoria">
+                            <MoreHorizontal className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {cat.status !== "archived" ? (
+                            <>
+                              <DropdownMenuItem asChild>
+                                <Link to={`/admin/catalogo/categorias/${cat.id}` as any}>
+                                  <Edit className="mr-2 size-3.5" />
+                                  Editar Categoria
+                                </Link>
+                              </DropdownMenuItem>
+                              {cat.status === "active" ? (
+                                <DropdownMenuItem onClick={() => handleUpdateStatus(cat.id, "inactive")}>
+                                  <EyeOff className="mr-2 size-3.5" />
+                                  Desativar
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem onClick={() => handleUpdateStatus(cat.id, "active")}>
+                                  <Check className="mr-2 size-3.5 text-emerald-600" />
+                                  Ativar
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => handleUpdateStatus(cat.id, "archived")}
+                              >
+                                <Archive className="mr-2 size-3.5" />
+                                Arquivar
+                              </DropdownMenuItem>
+                            </>
+                          ) : (
+                            <DropdownMenuItem onClick={() => handleUpdateStatus(cat.id, "active")}>
+                              <RotateCcw className="mr-2 size-3.5" />
+                              Restaurar
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

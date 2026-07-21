@@ -71,6 +71,20 @@ export async function updateOrderStatusHandler(
 ) {
   const db = getServerClient();
 
+  if (status === "cancelled") {
+    // Phase 4: Atomic cancellation with stock and commission reversals
+    const { error: rpcError } = await db.rpc("cancel_order", {
+      p_order_id: orderId,
+      p_reason: "Cancelado pelo administrador.",
+    });
+
+    if (rpcError) {
+      throw new Error("Erro ao cancelar o pedido: " + rpcError.message);
+    }
+
+    return { status: "ok" as const, message: "Pedido cancelado com sucesso." };
+  }
+
   const { error } = await db.from("orders").update({ status }).eq("id", orderId);
   if (error) throw error;
   return { status: "ok" as const, message: "Status do pedido atualizado." };

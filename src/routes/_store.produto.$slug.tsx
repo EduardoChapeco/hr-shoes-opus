@@ -472,6 +472,14 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
           <Link to="/catalogo" className="hover:text-foreground">
             Catálogo
           </Link>
+          {product.categories && product.categories.length > 0 && (
+            <>
+              <ChevronRight className="size-3" aria-hidden />
+              <Link to={`/catalogo?category=${product.categories[0].slug}`} className="hover:text-foreground truncate max-w-[150px]">
+                {product.categories[0].name}
+              </Link>
+            </>
+          )}
           <ChevronRight className="size-3" aria-hidden />
           <span className="text-foreground font-medium truncate max-w-[200px]">
             {product.title}

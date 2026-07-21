@@ -407,10 +407,10 @@ function CashRegisterPage() {
           description="Abra o turno informando o fundo de troco inicial para iniciar as vendas de balcão."
         />
 
-        <Card className="border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10">
+        <Card className="border-warning/30 bg-warning/10 shadow-xs">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Lock className="size-5 text-amber-600" />
+              <Lock className="size-5 text-warning-foreground" />
               Abertura Obrigatória de Turno
             </CardTitle>
             <CardDescription>
@@ -467,7 +467,7 @@ function CashRegisterPage() {
         description={`Operador: ${register.opened_by_profile?.full_name || "Staff"} • Aberto às ${formatDateTime(register.opened_at)}`}
         actions={
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs px-3 py-1 font-bold">
+            <Badge variant="success" className="text-xs px-3 py-1 font-bold uppercase tracking-wider">
               Gaveta: {formatMoney(register.currentBalanceCents)}
             </Badge>
             <Button variant="outline" asChild size="sm">
@@ -541,7 +541,7 @@ function CashRegisterPage() {
 
             {/* LADO DIREITO: Carrinho do Balcão e Fechamento (5 Colunas) */}
             <div className="lg:col-span-5 space-y-4">
-              <Card className="border-primary/20 bg-card shadow-md">
+              <Card className="rounded-xl border border-border bg-card shadow-xs">
                 <CardHeader className="py-3 px-4 border-b bg-muted/30 flex flex-row items-center justify-between">
                   <CardTitle className="text-base flex items-center gap-2">
                     <ShoppingCart className="size-4 text-primary" />
@@ -694,7 +694,7 @@ function CashRegisterPage() {
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">Troco a Devolver</Label>
-                          <div className="h-8 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-extrabold text-sm text-emerald-600">
+                          <div className="h-8 rounded-md bg-success/15 border border-transparent flex items-center justify-center font-extrabold text-sm text-success">
                             {formatMoney(changeCents)}
                           </div>
                         </div>
@@ -708,7 +708,7 @@ function CashRegisterPage() {
                         <span>{formatMoney(cartSubtotalCents)}</span>
                       </div>
                       {discountCents > 0 && (
-                        <div className="flex justify-between text-xs text-emerald-600 font-semibold">
+                        <div className="flex justify-between text-xs text-success font-semibold">
                           <span>Desconto:</span>
                           <span>- {formatMoney(discountCents)}</span>
                         </div>
@@ -736,7 +736,7 @@ function CashRegisterPage() {
 
         {/* TAB 2: EXTRATO DE LANÇAMENTOS */}
         <TabsContent value="lancamentos" className="mt-6">
-          <Card>
+          <Card className="rounded-xl border border-border shadow-xs">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-base">Extrato de Lançamentos do Turno</CardTitle>
@@ -767,7 +767,7 @@ function CashRegisterPage() {
                           <Badge variant="outline">{entry.method}</Badge>
                         </TableCell>
                         <TableCell className="text-right font-bold text-xs">
-                          <span className={entry.amount_cents >= 0 ? "text-emerald-600" : "text-rose-600"}>
+                          <span className={entry.amount_cents >= 0 ? "text-success" : "text-destructive"}>
                             {entry.amount_cents >= 0 ? "+" : ""}{formatMoney(entry.amount_cents)}
                           </span>
                         </TableCell>
@@ -782,7 +782,7 @@ function CashRegisterPage() {
 
         {/* TAB 3: FECHAMENTO DE TURNO */}
         <TabsContent value="fechamento" className="mt-6">
-          <Card className="max-w-xl mx-auto">
+          <Card className="max-w-xl mx-auto rounded-xl border border-border shadow-xs">
             <CardHeader>
               <CardTitle className="text-base">Encerrar Turno de Caixa</CardTitle>
               <CardDescription>Efetue a contagem cega do dinheiro na gaveta para encerrar o caixa.</CardDescription>
@@ -830,7 +830,7 @@ function CashRegisterPage() {
       <Dialog open={Boolean(lastReceipt)} onOpenChange={(open) => !open && setLastReceipt(null)}>
         <DialogContent className="max-w-sm text-center">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-center gap-2 text-emerald-600">
+            <DialogTitle className="flex items-center justify-center gap-2 text-success">
               <CheckCircle2 className="size-6" /> Venda Concluída!
             </DialogTitle>
             <DialogDescription>Comprovante de Venda do Balcão</DialogDescription>
@@ -850,7 +850,7 @@ function CashRegisterPage() {
                   <span>{formatMoney(lastReceipt.subtotalCents)}</span>
                 </div>
                 {lastReceipt.discountCents > 0 && (
-                  <div className="flex justify-between text-emerald-600">
+                  <div className="flex justify-between text-success">
                     <span>Desconto:</span>
                     <span>-{formatMoney(lastReceipt.discountCents)}</span>
                   </div>
@@ -860,7 +860,7 @@ function CashRegisterPage() {
                   <span>{formatMoney(lastReceipt.totalCents)}</span>
                 </div>
                 {lastReceipt.changeCents > 0 && (
-                  <div className="flex justify-between font-bold text-emerald-600">
+                  <div className="flex justify-between font-bold text-success">
                     <span>Troco:</span>
                     <span>{formatMoney(lastReceipt.changeCents)}</span>
                   </div>

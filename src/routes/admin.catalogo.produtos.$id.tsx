@@ -17,11 +17,15 @@ import {
   TrendingUp,
   Package,
   CheckCircle2,
-  ShieldCheck,
-  ArrowRight,
   Settings,
+  LayoutList,
+  Box,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
+import { ProductEditorLayout } from "@/components/admin/product-editor/product-editor-layout";
+import { VariantFormRow } from "@/components/admin/product-editor/variant-form-row";
 import { PageHeader } from "@/components/commerce/page-header";
 import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
 import { Crop } from "lucide-react";
@@ -143,161 +147,90 @@ function EditProductPage() {
         }
       />
 
-      {/* Grid Duplo: Preview (Esquerda) vs Formulário (Direita) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* LADO ESQUERDO: Live Preview Responsivo */}
-        <div className="lg:col-span-4 lg:sticky lg:top-6 space-y-4">
-          <Card className="border-primary/20 bg-gradient-to-b from-card to-muted/20 shadow-md overflow-hidden">
-            <CardHeader className="py-3 px-4 border-b border-border/60 bg-muted/40 flex flex-row items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Sparkles className="size-3.5 text-primary" />
-                Preview em Tempo Real
-              </span>
-              <Badge variant={liveStatus === "published" ? "default" : "secondary"} className="text-[10px]">
-                {liveStatus === "published" ? "Publicado" : liveStatus === "archived" ? "Arquivado" : "Rascunho"}
-              </Badge>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              {/* Image Preview */}
-              <div className="relative aspect-square rounded-xl bg-muted/60 overflow-hidden border border-border flex items-center justify-center">
-                {coverImage ? (
-                  <img src={coverImage} alt={liveTitle} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <Package className="size-10 stroke-1" />
-                    <span className="text-xs">Sem foto de capa</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Product Info Preview */}
-              <div className="space-y-1.5">
-                {liveBrand && (
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-primary">
-                    {liveBrand}
-                  </span>
-                )}
-                <h3 className="text-base font-bold text-foreground line-clamp-2">
-                  {liveTitle || "Título do produto..."}
-                </h3>
-
-                {/* Price Display */}
-                <div className="pt-1">
-                  <PriceDisplay
-                    amountCents={livePriceCents}
-                    compareAtCents={liveCompareCents ?? undefined}
-                    size="lg"
-                  />
-                </div>
-
-                {/* Profit Margin Badge if cost provided */}
-                {profitMarginPercent !== null && (
-                  <div className="pt-2">
-                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs gap-1">
-                      <TrendingUp className="size-3.5" /> Margem Estimada: {profitMarginPercent}%
-                    </Badge>
-                  </div>
-                )}
-              </div>
-
-              {/* Real Product Variants / Attributes */}
-              {attributeKeys.length > 0 ? (
-                attributeKeys.map((key) => {
-                  const values = Array.from(
-                    new Set(
-                      (product.product_variants || [])
-                        .map((v: any) => v.attributes?.[key])
-                        .filter((val: any): val is string => typeof val === "string")
-                    )
-                  ) as string[];
-
-                  if (values.length === 0) return null;
-
-                  return (
-                    <div key={key} className="space-y-1.5 pt-2 border-t border-border/60">
-                      <span className="text-xs text-muted-foreground font-medium capitalize">
-                        Selecione o(a) {key}:
-                      </span>
-                      <div className="flex flex-wrap gap-1.5">
-                        {values.map((val, idx) => (
-                          <span
-                            key={val}
-                            className={`text-xs px-2.5 py-1 rounded-md border text-center font-medium ${
-                              idx === 0
-                                ? "border-primary bg-primary text-primary-foreground font-bold"
-                                : "border-border bg-card text-foreground"
-                            }`}
-                          >
-                            {val}
-                          </span>
-                        ))}
-                      </div>
+      <ProductEditorLayout
+        preview={
+          <div className="space-y-4">
+            <Card className="border-primary/20 bg-gradient-to-b from-card to-muted/20 shadow-md overflow-hidden">
+              <CardHeader className="py-3 px-4 border-b border-border/60 bg-muted/40 flex flex-row items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Sparkles className="size-3.5 text-primary" />
+                  Preview
+                </span>
+                <Badge variant={liveStatus === "published" ? "default" : "secondary"} className="text-[10px]">
+                  {liveStatus === "published" ? "Publicado" : liveStatus === "archived" ? "Arquivado" : "Rascunho"}
+                </Badge>
+              </CardHeader>
+              <CardContent className="p-4 space-y-4">
+                <div className="relative aspect-square rounded-xl bg-muted/60 overflow-hidden border border-border flex items-center justify-center">
+                  {coverImage ? (
+                    <img src={coverImage} alt={liveTitle} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <Package className="size-10 stroke-1" />
+                      <span className="text-xs">Sem foto de capa</span>
                     </div>
-                  );
-                })
-              ) : (
-                <div className="text-xs text-muted-foreground pt-2 border-t border-border/60">
-                  Nenhum atributo ou tamanho cadastrado.
+                  )}
                 </div>
-              )}
-
-              {/* Simulated CTA Buttons */}
-              <div className="space-y-2 pt-2">
-                <Button className="w-full text-xs font-bold" size="sm" type="button">
-                  <ShoppingBag className="size-3.5 mr-1.5" />
-                  Comprar Agora
-                </Button>
-                <Button variant="outline" className="w-full text-xs" size="sm" type="button">
-                  Adicionar ao Carrinho
-                </Button>
-              </div>
-
-              {/* Description Preview */}
-              {liveDescription && (
-                <div className="pt-3 border-t border-border/60">
-                  <span className="text-xs text-muted-foreground font-semibold block mb-1">Descrição:</span>
-                  <p className="text-xs text-muted-foreground line-clamp-4 leading-relaxed">
-                    {liveDescription}
-                  </p>
+                <div className="space-y-1.5">
+                  {liveBrand && (
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-primary">
+                      {liveBrand}
+                    </span>
+                  )}
+                  <h3 className="text-base font-bold text-foreground line-clamp-2">
+                    {liveTitle || "Título do produto..."}
+                  </h3>
+                  <div className="pt-1">
+                    <PriceDisplay amountCents={livePriceCents} compareAtCents={liveCompareCents ?? undefined} size="lg" />
+                  </div>
+                  {profitMarginPercent !== null && (
+                    <div className="pt-2">
+                      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs gap-1">
+                        <TrendingUp className="size-3.5" /> Margem Estimada: {profitMarginPercent}%
+                      </Badge>
+                    </div>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
+        }
+        sections={[
+          { id: "geral", label: "Informações Básicas", icon: <Box /> },
+          { id: "midias", label: "Galeria de Fotos", icon: <ImagePlus /> },
+          { id: "variantes", label: "Estoque & Variações", icon: <LayoutList /> },
+        ]}
+      >
+        <div id="geral" className="scroll-mt-32">
+          <GeneralForm
+            product={product}
+            categories={categories}
+            onTitleChange={setLiveTitle}
+            onDescriptionChange={setLiveDescription}
+            onBrandChange={setLiveBrand}
+            onPriceChange={setLivePriceCents}
+            onCompareChange={setLiveCompareCents}
+            onCostChange={setLiveCostCents}
+            onStatusChange={setLiveStatus}
+          />
         </div>
 
-        {/* LADO DIREITO: Form & Tabs Workspace */}
-        <div className="lg:col-span-8">
-          <Tabs defaultValue="geral" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="geral">Geral & Preço</TabsTrigger>
-              <TabsTrigger value="variantes">Variantes ({product.product_variants?.length || 0})</TabsTrigger>
-              <TabsTrigger value="midias">Galeria de Mídias ({product.product_media?.length || 0})</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="geral" className="mt-6">
-              <GeneralForm
-                product={product}
-                categories={categories}
-                onTitleChange={setLiveTitle}
-                onDescriptionChange={setLiveDescription}
-                onBrandChange={setLiveBrand}
-                onPriceChange={setLivePriceCents}
-                onCompareChange={setLiveCompareCents}
-                onCostChange={setLiveCostCents}
-                onStatusChange={setLiveStatus}
-              />
-            </TabsContent>
-
-            <TabsContent value="variantes" className="mt-6">
-              <VariantsManager product={product} />
-            </TabsContent>
-
-            <TabsContent value="midias" className="mt-6">
-              <MediaManager product={product} />
-            </TabsContent>
-          </Tabs>
+        <div id="midias" className="scroll-mt-32 pt-12 border-t">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold flex items-center gap-2"><ImagePlus className="size-5 text-primary" /> Galeria de Fotos</h2>
+            <p className="text-sm text-muted-foreground">Arraste para reordenar, gerencie fotos e vídeos e defina o focal point.</p>
+          </div>
+          <MediaManager product={product} />
         </div>
-      </div>
+
+        <div id="variantes" className="scroll-mt-32 pt-12 border-t">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold flex items-center gap-2"><LayoutList className="size-5 text-primary" /> Estoque & Variações</h2>
+            <p className="text-sm text-muted-foreground">Gerencie o saldo em estoque, variações de tamanho, cor, SKUs e EANs específicos.</p>
+          </div>
+          <VariantsManager product={product} />
+        </div>
+      </ProductEditorLayout>
     </div>
   );
 }
@@ -801,172 +734,8 @@ function VariantsManager({ product }: { product: any }) {
   };
 
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingVariant, setEditingVariant] = useState<any>(null);
-  const [attrFields, setAttrFields] = useState<{ k: string; v: string }[]>([]);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      sku: "",
-      price_override_cents: "",
-      cost_cents: "",
-      stock_alert_qty: "",
-      ean: "",
-      weight_kg: "",
-      width_cm: "",
-      height_cm: "",
-      length_cm: "",
-      display_name: "",
-      status: "active" as "active" | "inactive" | "archived",
-      stock: "",
-    },
-  });
-
-  const onOpenNew = () => {
-    setEditingVariant(null);
-    setAttrFields([{ k: "Tamanho", v: "" }]);
-    reset({
-      sku: `${product.slug}-${(product.product_variants?.length || 0) + 1}`,
-      price_override_cents: "",
-      cost_cents: "",
-      stock_alert_qty: "",
-      ean: "",
-      weight_kg: "",
-      width_cm: "",
-      height_cm: "",
-      length_cm: "",
-      display_name: "",
-      status: "active",
-      stock: "0",
-    });
-    setOpen(true);
-  };
-
-  const onOpenEdit = (v: any) => {
-    setEditingVariant(v);
-    const attrs = v.attributes || {};
-    const parsedAttrs = Object.entries(attrs).map(([k, val]) => ({ k, v: String(val) }));
-    setAttrFields(parsedAttrs.length > 0 ? parsedAttrs : [{ k: "Tamanho", v: "" }]);
-    reset({
-      sku: v.sku,
-      price_override_cents: v.price_override_cents ? (v.price_override_cents / 100).toFixed(2) : "",
-      cost_cents: v.cost_cents ? (v.cost_cents / 100).toFixed(2) : "",
-      stock_alert_qty: v.stock_alert_qty !== null && v.stock_alert_qty !== undefined ? String(v.stock_alert_qty) : "",
-      ean: v.ean || "",
-      weight_kg: v.weight_kg !== null && v.weight_kg !== undefined ? String(v.weight_kg) : "",
-      width_cm: v.width_cm !== null && v.width_cm !== undefined ? String(v.width_cm) : "",
-      height_cm: v.height_cm !== null && v.height_cm !== undefined ? String(v.height_cm) : "",
-      length_cm: v.length_cm !== null && v.length_cm !== undefined ? String(v.length_cm) : "",
-      display_name: v.display_name || "",
-      status: v.status || "active",
-      stock: String(v.stock_on_hand || 0),
-    });
-    setOpen(true);
-  };
-
-  const handleVariantImage = async (url: string) => {
-    if (!url || !editingVariant?.id) return;
-    setIsSubmitting(true);
-    try {
-      const res = await addProductMediaLink({ data: { product_id: product.id, variant_id: editingVariant.id, url } });
-      if (res.status === "success") {
-        toast.success("Imagem exclusiva da variante salva!");
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao salvar imagem.");
-      }
-    } catch {
-      toast.error("Erro inesperado ao salvar imagem da variante.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const onSubmitVariant = async (values: any) => {
-    setIsSubmitting(true);
-    try {
-      const attributes: Record<string, string> = {};
-      attrFields.forEach((f) => {
-        if (f.k.trim() && f.v.trim()) attributes[f.k.trim()] = f.v.trim();
-      });
-
-      const price_override_cents = values.price_override_cents
-        ? Math.round(parseFloat(values.price_override_cents.replace(",", ".")) * 100)
-        : null;
-
-      const cost_cents = values.cost_cents
-        ? Math.round(parseFloat(values.cost_cents.replace(",", ".")) * 100)
-        : null;
-
-      const stock_alert_qty = values.stock_alert_qty
-        ? parseInt(values.stock_alert_qty, 10)
-        : null;
-
-      const weight_kg = values.weight_kg ? parseFloat(values.weight_kg) : null;
-      const width_cm = values.width_cm ? parseFloat(values.width_cm) : null;
-      const height_cm = values.height_cm ? parseFloat(values.height_cm) : null;
-      const length_cm = values.length_cm ? parseFloat(values.length_cm) : null;
-
-      const res = await upsertProductVariant({
-        data: {
-          id: editingVariant?.id,
-          product_id: product.id,
-          sku: values.sku,
-          barcode: values.ean || null,
-          price_override_cents,
-          cost_cents,
-          stock_alert_qty,
-          ean: values.ean || null,
-          weight_kg,
-          width_cm,
-          height_cm,
-          length_cm,
-            display_name: values.display_name || null,
-            status: values.status,
-          attributes,
-        },
-      });
-
-      if (res.status === "success") {
-        const targetStock = parseInt(values.stock || "0", 10);
-        const currentStock = editingVariant ? (editingVariant.stock_on_hand || 0) : 0;
-        const diff = targetStock - currentStock;
-
-        if (diff !== 0) {
-          const adjRes = await adjustStock({
-            data: {
-              variantId: res.data.id,
-              qty: diff,
-              movementType: "adjustment",
-              note: editingVariant
-                ? `Ajuste manual via editor de produtos (anterior: ${currentStock}, novo: ${targetStock})`
-                : `Estoque inicial na criação da variante`,
-            },
-          });
-          if (adjRes.status === "error") {
-            toast.error("Variante salva, mas falhou ao ajustar estoque: " + adjRes.message);
-          }
-        }
-
-        toast.success(editingVariant ? "Variante atualizada!" : "Variante criada com estoque!");
-        setOpen(false);
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao salvar variante");
-      }
-    } catch (e) {
-      toast.error("Erro inesperado ao salvar variante.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
+  const [isAddingNew, setIsAddingNew] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -978,13 +747,13 @@ function VariantsManager({ product }: { product: any }) {
           </div>
           <div className="flex items-center gap-2">
             <GridBuilderDialog product={product} />
-            <Button size="sm" onClick={onOpenNew}>
+            <Button size="sm" onClick={() => { setIsAddingNew(true); setEditingVariantId(null); }}>
               <Plus className="mr-1.5 size-4" /> Nova Variante
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          {(!product.product_variants || product.product_variants.length === 0) ? (
+          {(!product.product_variants || product.product_variants.length === 0) && !isAddingNew ? (
             <div className="text-center py-6 text-xs text-muted-foreground">
               Nenhuma variação cadastrada. Clique em "Nova Variante" para adicionar tamanhos ou cores.
             </div>
@@ -994,7 +763,7 @@ function VariantsManager({ product }: { product: any }) {
                 <TableHeader>
                   <TableRow className="bg-muted/40">
                     <TableHead>SKU</TableHead>
-                    <TableHead>ExibiÃ§Ã£o / Atributos</TableHead>
+                    <TableHead>Exibição / Atributos</TableHead>
                     <TableHead>Preço Override</TableHead>
                     <TableHead>Estoque Atual</TableHead>
                     <TableHead>Status</TableHead>
@@ -1002,159 +771,82 @@ function VariantsManager({ product }: { product: any }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {product.product_variants.map((v: any) => {
+                  {product.product_variants?.map((v: any) => {
                     const attrsString = Object.entries(v.attributes || {})
                       .map(([k, val]) => `${k}: ${val}`)
                       .join(", ");
+                    
+                    const isEditing = editingVariantId === v.id;
+                    const availableQty = Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0));
 
                     return (
-                      <TableRow key={v.id}>
-                        <TableCell className="font-mono text-xs font-semibold">{v.sku}</TableCell>
-                        <TableCell className="text-xs">{attrsString || "Padrão"}</TableCell>
-                        <TableCell className="text-xs">
-                          {v.price_override_cents ? formatMoney(v.price_override_cents) : "Preço Base"}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={v.stock_on_hand > 0 ? "outline" : "destructive"} className="text-xs">
-                            {v.stock_on_hand ?? 0} un.
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={v.status === "active" ? "default" : "secondary"} className="text-[10px]">
-                            {v.status === "active" ? "Ativo" : v.status === "inactive" ? "Inativo" : "Arquivado"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" onClick={() => onOpenEdit(v)}>
-                            Editar SKU
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+                      <React.Fragment key={v.id}>
+                        <TableRow className={isEditing ? "bg-muted/30" : ""}>
+                          <TableCell className="font-mono text-xs font-semibold">{v.sku}</TableCell>
+                          <TableCell className="text-xs">
+                            <span className="font-medium text-foreground">{v.display_name || "Padrão"}</span>
+                            <br/>
+                            <span className="text-muted-foreground">{attrsString}</span>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {v.price_override_cents ? formatMoney(v.price_override_cents) : "Preço Base"}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col text-[11px]">
+                              <span className="font-bold text-emerald-600 dark:text-emerald-400">{availableQty} disp.</span>
+                              <span className="text-muted-foreground">{v.stock_reserved || 0} rsv. / {v.stock_on_hand || 0} tot.</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={v.status === "active" ? "default" : "secondary"} className="text-[10px]">
+                              {v.status === "active" ? "Ativo" : v.status === "inactive" ? "Inativo" : "Arquivado"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm" onClick={() => {
+                              setEditingVariantId(isEditing ? null : v.id);
+                              setIsAddingNew(false);
+                            }}>
+                              {isEditing ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                        {isEditing && (
+                          <TableRow className="bg-muted/10 border-b-2 border-primary/20">
+                            <TableCell colSpan={6} className="p-0">
+                              <div className="p-4 sm:p-6">
+                                <VariantFormRow 
+                                  variant={v} 
+                                  productId={product.id} 
+                                  onClose={() => setEditingVariantId(null)} 
+                                />
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
                     );
                   })}
+                  
+                  {isAddingNew && (
+                    <TableRow className="bg-muted/10 border-b-2 border-primary/20">
+                      <TableCell colSpan={6} className="p-0">
+                        <div className="p-4 sm:p-6">
+                          <h3 className="text-sm font-semibold mb-4 text-primary">Nova Variante</h3>
+                          <VariantFormRow 
+                            productId={product.id} 
+                            onClose={() => setIsAddingNew(false)} 
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* Dialog Formulário de Variante */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingVariant ? "Editar Variante" : "Nova Variante de Estoque"}</DialogTitle>
-            <DialogDescription>Cadastre o SKU, preços específicos e especificações logísticas.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmitVariant)} className="space-y-4 pt-2">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>SKU Único *</Label>
-                <Input {...register("sku", { required: true })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Nome de ExibiÃ§Ã£o (Opcional)</Label>
-                <Input placeholder="Ex: Rosa BebÃª" {...register("display_name")} />
-              </div>
-              <div className="space-y-2">
-                <Label>Status da Variante</Label>
-                <Select defaultValue="active" onValueChange={(val) => setValue("status", val as any)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
-                    <SelectItem value="archived">Arquivado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Sobretaxa Preço (R$)</Label>
-                <Input step="0.01" type="number" placeholder="Preço base se vazio" {...register("price_override_cents")} />
-              </div>
-              <div className="space-y-2">
-                <Label>Custo da Variante (R$)</Label>
-                <Input step="0.01" type="number" placeholder="Custo base se vazio" {...register("cost_cents")} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Estoque Inicial</Label>
-                <Input type="number" min="0" placeholder="Ex: 10" {...register("stock")} />
-              </div>
-              <div className="space-y-2">
-                <Label>Estoque Mínimo (Alerta)</Label>
-                <Input type="number" min="0" placeholder="Ex: 2" {...register("stock_alert_qty")} />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Código EAN / GTIN específico</Label>
-              <Input placeholder="Ex: 7890000000000" maxLength={14} {...register("ean")} />
-            </div>
-
-            <div className="border-t pt-4">
-              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dimensões da Variante (Caso divirja do Produto)</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
-                <div className="space-y-1">
-                  <Label className="text-[10px]">Peso (kg)</Label>
-                  <Input step="0.001" type="number" placeholder="0.000" {...register("weight_kg")} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px]">Largura (cm)</Label>
-                  <Input step="0.01" type="number" placeholder="0" {...register("width_cm")} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px]">Altura (cm)</Label>
-                  <Input step="0.01" type="number" placeholder="0" {...register("height_cm")} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px]">Comprimento (cm)</Label>
-                  <Input step="0.01" type="number" placeholder="0" {...register("length_cm")} />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-2 pt-2 border-t">
-              <Label>Atributos da Variante</Label>
-              {attrFields.map((field, index) => (
-                <div key={index} className="flex gap-2 items-center">
-                  <Input
-                    placeholder="Nome (ex: Tamanho)"
-                    value={field.k}
-                    onChange={(e) => {
-                      const next = [...attrFields];
-                      next[index].k = e.target.value;
-                      setAttrFields(next);
-                    }}
-                  />
-                  <Input
-                    placeholder="Valor (ex: 37)"
-                    value={field.v}
-                    onChange={(e) => {
-                      const next = [...attrFields];
-                      next[index].v = e.target.value;
-                      setAttrFields(next);
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <DialogFooter className="pt-4 border-t">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Salvando..." : "Salvar Variante"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

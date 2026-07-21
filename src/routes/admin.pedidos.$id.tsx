@@ -29,23 +29,23 @@ export const Route = createFileRoute("/admin/pedidos/$id")({
 });
 
 function getStatusLabel(status: string) {
-  const map: Record<string, string> = {
-    draft: "Rascunho",
-    awaiting_payment: "Aguardando Pagamento",
-    payment_processing: "Pagamento em Processamento",
-    paid: "Pago",
-    processing: "Em Separação",
-    ready_for_pickup: "Pronto para Retirada",
-    shipped: "Enviado",
-    delivered: "Entregue",
-    completed: "Concluído",
-    cancelled: "Cancelado",
-    payment_failed: "Falha no Pagamento",
-    return_requested: "Troca Solicitada",
-    returned: "Devolvido",
-    refunded: "Estornado",
+  const map: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "info" | "success" | "warning" }> = {
+    draft: { label: "Rascunho", variant: "secondary" },
+    awaiting_payment: { label: "Aguardando Pagamento", variant: "warning" },
+    payment_processing: { label: "Pagamento em Processamento", variant: "info" },
+    paid: { label: "Pago", variant: "success" },
+    processing: { label: "Em Separação", variant: "secondary" },
+    ready_for_pickup: { label: "Pronto para Retirada", variant: "success" },
+    shipped: { label: "Enviado", variant: "info" },
+    delivered: { label: "Entregue", variant: "success" },
+    completed: { label: "Concluído", variant: "success" },
+    cancelled: { label: "Cancelado", variant: "destructive" },
+    payment_failed: { label: "Falha no Pagamento", variant: "destructive" },
+    return_requested: { label: "Troca Solicitada", variant: "warning" },
+    returned: { label: "Devolvido", variant: "secondary" },
+    refunded: { label: "Estornado", variant: "secondary" },
   };
-  return map[status] ?? status;
+  return map[status] ?? { label: status, variant: "outline" };
 }
 
 function AdminOrderDetailPage() {
@@ -124,20 +124,20 @@ function AdminOrderDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Items */}
         <div className="md:col-span-2 space-y-6">
-          <div className="rounded-md border p-6 bg-card text-card-foreground">
-            <h3 className="font-semibold text-lg mb-4">Itens do Pedido</h3>
+          <div className="rounded-xl border border-border p-6 bg-card text-card-foreground shadow-xs">
+            <h3 className="font-semibold text-lg mb-4 text-foreground">Itens do Pedido</h3>
             <div className="space-y-4">
               {(order.order_items ?? []).map((item: any) => (
                 <div
                   key={item.id}
-                  className="flex justify-between items-center border-b pb-4 last:border-0 last:pb-0"
+                  className="flex justify-between items-center border-b border-border pb-4 last:border-0 last:pb-0"
                 >
                   <div>
-                    <p className="font-medium">{item.product_title}</p>
-                    <p className="text-sm text-muted-foreground">SKU: {item.variant_sku}</p>
+                    <p className="font-medium text-foreground">{item.product_title}</p>
+                    <p className="text-sm text-muted-foreground font-mono">SKU: {item.variant_sku}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium">{formatMoney(item.total_cents)}</p>
+                    <p className="font-bold text-foreground">{formatMoney(item.total_cents)}</p>
                     <p className="text-sm text-muted-foreground">
                       {item.qty}x {formatMoney(item.unit_price_cents)}
                     </p>
@@ -151,18 +151,18 @@ function AdminOrderDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Summary */}
-          <div className="rounded-md border p-6 bg-card text-card-foreground">
-            <h3 className="font-semibold text-lg mb-4">Resumo</h3>
-            <div className="space-y-2 text-sm">
+          <div className="rounded-xl border border-border p-6 bg-card text-card-foreground shadow-xs">
+            <h3 className="font-semibold text-lg mb-4 text-foreground">Resumo</h3>
+            <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>{formatMoney(order.subtotal_cents)}</span>
+                <span className="text-foreground">{formatMoney(order.subtotal_cents)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Frete</span>
-                <span>{formatMoney(order.shipping_cents)}</span>
+                <span className="text-foreground">{formatMoney(order.shipping_cents)}</span>
               </div>
-              <div className="flex justify-between font-bold text-base border-t pt-2 mt-2">
+              <div className="flex justify-between font-bold text-base border-t border-border pt-3 mt-1 text-foreground">
                 <span>Total</span>
                 <span>{formatMoney(order.total_cents)}</span>
               </div>
@@ -170,10 +170,10 @@ function AdminOrderDetailPage() {
           </div>
 
           {/* Status & Actions */}
-          <div className="rounded-md border p-6 bg-card text-card-foreground">
-            <h3 className="font-semibold text-lg mb-4">Status</h3>
-            <Badge variant="outline" className="text-base py-1 px-3 mb-4 block text-center">
-              {getStatusLabel(order.status)}
+          <div className="rounded-xl border border-border p-6 bg-card text-card-foreground shadow-xs">
+            <h3 className="font-semibold text-lg mb-4 text-foreground">Status</h3>
+            <Badge variant={getStatusLabel(order.status).variant} className="text-[11px] uppercase tracking-wider py-1 mb-4 flex justify-center">
+              {getStatusLabel(order.status).label}
             </Badge>
 
             {order.status === "awaiting_payment" && (
@@ -182,7 +182,7 @@ function AdminOrderDetailPage() {
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button
-                      className="w-full bg-green-600 hover:bg-green-700"
+                      className="w-full font-bold"
                       disabled={isConfirming || isRejecting}
                     >
                       {isConfirming ? "Confirmando..." : "Marcar como Pago"}
@@ -202,7 +202,7 @@ function AdminOrderDetailPage() {
                         className="h-24 flex flex-col gap-2"
                         onClick={() => handleApprove("cash")}
                       >
-                        <Banknote className="h-8 w-8 text-green-600" />
+                        <Banknote className="h-8 w-8 text-primary" />
                         <span>Dinheiro (Frente de Caixa)</span>
                       </Button>
                       <Button
@@ -210,7 +210,7 @@ function AdminOrderDetailPage() {
                         className="h-24 flex flex-col gap-2"
                         onClick={() => handleApprove("bank_transfer")}
                       >
-                        <Landmark className="h-8 w-8 text-blue-600" />
+                        <Landmark className="h-8 w-8 text-primary" />
                         <span>Pix / Transferência / Cartão</span>
                       </Button>
                     </div>
@@ -268,7 +268,7 @@ function AdminOrderDetailPage() {
             {order.status === "processing" && (
               <div className="space-y-3 mt-4">
                 <Button
-                  className="w-full"
+                  className="w-full font-bold"
                   onClick={() =>
                     handleStatusChange(
                       order.shipping_method === "pickup" ? "ready_for_pickup" : "shipped",
@@ -289,7 +289,7 @@ function AdminOrderDetailPage() {
             {(order.status === "shipped" || order.status === "ready_for_pickup") && (
               <div className="space-y-3 mt-4">
                 <Button
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full font-bold"
                   onClick={() => handleStatusChange("delivered")}
                   disabled={isUpdating}
                 >

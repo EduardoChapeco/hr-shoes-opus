@@ -51,7 +51,7 @@ function ShiftsPage() {
         description="Consulte os caixas fechados e abertos da loja, com consolidação de entradas, saídas e discrepâncias."
       />
 
-      <div className="rounded-md border bg-card overflow-hidden">
+      <div className="rounded-xl border border-border shadow-xs bg-card overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -98,10 +98,10 @@ function ShiftsPage() {
                   <TableCell className="text-right">
                     {formatMoney(s.initial_balance_cents)}
                   </TableCell>
-                  <TableCell className="text-right text-green-600 font-medium">
+                  <TableCell className="text-right text-success font-medium">
                     +{formatMoney(s.incomeCents)}
                   </TableCell>
-                  <TableCell className="text-right text-red-600 font-medium">
+                  <TableCell className="text-right text-destructive font-medium">
                     -{formatMoney(s.expenseCents)}
                   </TableCell>
                   <TableCell className="text-right font-medium">
@@ -111,7 +111,7 @@ function ShiftsPage() {
                     {s.final_balance_cents !== null ? formatMoney(s.final_balance_cents) : "-"}
                   </TableCell>
                   <TableCell
-                    className={`text-right font-bold ${discrepancyValue === 0 ? "text-muted-foreground" : discrepancyValue > 0 ? "text-green-600" : "text-red-600"}`}
+                    className={`text-right font-bold ${discrepancyValue === 0 ? "text-muted-foreground" : discrepancyValue > 0 ? "text-success" : "text-destructive"}`}
                   >
                     {s.final_balance_cents !== null
                       ? `${discrepancyValue > 0 ? "+" : ""}${formatMoney(discrepancyValue)}`

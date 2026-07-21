@@ -104,7 +104,7 @@ function ReceiptsPage() {
           description="Quando clientes enviarem comprovantes de pagamento, eles aparecerão aqui para revisão."
         />
       ) : (
-        <div className="rounded-md border bg-card">
+        <div className="rounded-xl border border-border shadow-xs bg-card overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -155,7 +155,7 @@ function ReceiptsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-green-600 border-green-300 hover:bg-green-50"
+                          className="text-success border-success/30 hover:bg-success/10 hover:text-success hover:border-success/50"
                           disabled={approvingId === orderId}
                           onClick={() => handleApprove(orderId)}
                         >
@@ -165,7 +165,7 @@ function ReceiptsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-red-600 border-red-300 hover:bg-red-50"
+                          className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
                           onClick={() => setRejectTarget(r)}
                         >
                           <X className="h-3.5 w-3.5 mr-1" />
