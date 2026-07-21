@@ -103,7 +103,7 @@ function StoreCartPage() {
       await updateCartItemQty({ data: { variantId, delta } });
       router.invalidate();
     } catch (e: any) {
-      toast.error("Erro ao atualizar carrinho.");
+      toast.error(e.message || "Estoque insuficiente ou erro de validação.");
     }
   };
 
