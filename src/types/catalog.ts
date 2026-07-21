@@ -82,19 +82,30 @@ export interface ProductMediaDTO {
   mediaType: "image" | "video";
   sortOrder: number;
   focalPoint?: { x: number; y: number } | null;
+  /** If set, this media belongs to a specific variant (for gallery switching). */
+  variantId?: string | null;
 }
 
 export interface VariantDTO {
   id: string;
-  displayName?: string | null;
   sku: string;
+  /** Human-readable display name (e.g. "Azul Bebê — Nº 38"). */
+  displayName?: string | null;
+  /** EAN/GTIN for this specific SKU. */
+  ean?: string | null;
   /** Effective price cents (override or product default — server-computed). */
   effectivePriceCents: number;
   /** Server-computed. Never trust a client-side stock value. */
   availableQty: number;
   /** Attribute key-value pairs. Only string values (e.g. color name, size). */
   attributes: Record<string, string>;
+  /** Variant-specific media; empty means use product-level gallery. */
   media: ProductMediaDTO[];
+  /** Logistics — cascades from variant → product (server-resolved). */
+  weightKg?: number | null;
+  widthCm?: number | null;
+  heightCm?: number | null;
+  lengthCm?: number | null;
 }
 
 export interface ProductDetailDTO {
@@ -102,22 +113,39 @@ export interface ProductDetailDTO {
   slug: string;
   title: string;
   description?: string | null;
+  /** Brief summary for cards and structured data. */
+  shortDescription?: string | null;
   brand?: string | null;
+  /** Manufacturer name for NF-e/compliance. */
+  manufacturer?: string | null;
+  /** EAN/GTIN at product level (fallback for variants without their own). */
+  ean?: string | null;
   priceCents: number;
   compareAtCents?: number | null;
+  /** All product-level media (general gallery + per-variant if variant_id set). */
   media: ProductMediaDTO[];
   variants: VariantDTO[];
   allowsPreorder: boolean;
+  /** Canonical SEO title (server resolves: meta_title → seo_title → title). */
   seoTitle?: string | null;
+  /** Canonical SEO description. */
   seoDescription?: string | null;
-  metaTitle?: string | null;
-  metaDescription?: string | null;
+  /** Product-level logistics (variants may override per-SKU). */
   weightKg?: number | null;
   widthCm?: number | null;
   heightCm?: number | null;
   lengthCm?: number | null;
   isPhysical?: boolean;
-  reviews?: { id: string; rating: number; comment: string | null; created_at: string; reviewer_name?: string | null }[] | null;
+  /** Days required to prepare the order before dispatch. */
+  preparationTimeDays?: number;
+  reviews?: {
+    id: string;
+    rating: number;
+    comment: string | null;
+    created_at: string;
+    reviewer_name?: string | null;
+  }[] | null;
+  categories?: { id: string; name: string; slug: string }[];
 }
 
 // ---------------------------------------------------------------------------

@@ -194,6 +194,33 @@ export const Route = createFileRoute("/_store/produto/$slug")({
         ...(coverUrl ? [{ name: "twitter:image", content: coverUrl }] : []),
       ],
       links: [{ rel: "canonical", href: canonical }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: product.title,
+            description: (product.shortDescription || (product.description || "").replace(/<[^>]+>/g, "")).slice(0, 300) || undefined,
+            image: product.media.filter((m: any) => m.mediaType === "image").map((m: any) => m.url),
+            brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
+            sku: product.variants?.[0]?.sku,
+            gtin: (product.variants?.[0]?.ean ?? product.ean) || undefined,
+            offers: {
+              "@type": "AggregateOffer",
+              priceCurrency: "BRL",
+              lowPrice: ((product.variants?.length > 0
+                ? Math.min(...product.variants.map((v: any) => v.effectivePriceCents))
+                : product.priceCents) / 100).toFixed(2),
+              offerCount: product.variants?.length || 1,
+              availability: product.variants?.some((v: any) => v.availableQty > 0)
+                ? "https://schema.org/InStock"
+                : "https://schema.org/OutOfStock",
+              seller: { "@type": "Organization", name: "Hr Shoes" },
+            },
+          }),
+        },
+      ],
     };
   },
   loader: async ({ params }) => {
@@ -817,7 +844,12 @@ function ProductContent({ product, templateTree }: { product: ProductDetailDTO, 
             </div>
 
             {/* Description */}
-            {product.description && (
+            {product.shortDescription && (
+                <p className="text-sm text-muted-foreground leading-relaxed border-l-2 border-primary/30 pl-3 italic">
+                  {product.shortDescription}
+                </p>
+              )}
+              {product.description && (
               <div className="border-t border-border/60 pt-5 space-y-2">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Descrição do Calçado</h2>
                 <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>

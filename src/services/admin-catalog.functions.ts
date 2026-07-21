@@ -207,7 +207,6 @@ export async function createProductHandler(input: {
   compare_at_cents?: number | null;
   cost_cents?: number | null;
   attributes: Record<string, any>;
-  weight_grams?: number | null;
   is_physical?: boolean;
   weight_kg?: number | null;
   width_cm?: number | null;
@@ -324,7 +323,6 @@ export const createProduct = createServerFn({ method: "POST" })
       compare_at_cents: z.number().int().min(0).optional().nullable(),
       cost_cents: z.number().int().min(0).optional().nullable(),
       attributes: z.record(z.any()).default({}), // Dynamic fields based on type
-      weight_grams: z.number().int().min(0).optional().nullable(),
       is_physical: z.boolean().default(true).optional(),
       weight_kg: z.number().min(0).optional().nullable(),
       width_cm: z.number().min(0).optional().nullable(),
@@ -673,7 +671,6 @@ export async function updateProductHandler(input: {
   compare_at_cents?: number | null;
   cost_cents?: number | null;
   attributes?: Record<string, any>;
-  weight_grams?: number | null;
   is_physical?: boolean;
   weight_kg?: number | null;
   width_cm?: number | null;
@@ -721,7 +718,6 @@ export const updateProduct = createServerFn({ method: "POST" })
       compare_at_cents: z.number().int().min(0).optional().nullable(),
       cost_cents: z.number().int().min(0).optional().nullable(),
       attributes: z.record(z.any()).optional(),
-      weight_grams: z.number().int().min(0).optional().nullable(),
       is_physical: z.boolean().optional(),
       weight_kg: z.number().min(0).optional().nullable(),
       width_cm: z.number().min(0).optional().nullable(),
