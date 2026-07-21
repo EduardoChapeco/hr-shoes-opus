@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Fragment } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
   ArrowLeft,
+  ArrowRight,
   Plus,
   ImagePlus,
   X,
@@ -567,7 +568,7 @@ function GeneralForm({
                 onValueChange={async (val) => {
                   const currentAttr = (product.attributes as any) || {};
                   const newAttr = { ...currentAttr, origin: val };
-                  await updateProduct({ data: { id: product.id, updates: { attributes: newAttr } } });
+                  await updateProduct({ data: { id: product.id, attributes: newAttr } });
                   toast.success("Origem atualizada com sucesso!");
                 }}
               >
@@ -632,6 +633,7 @@ function VariantsManager({ product }: { product: any }) {
   const [selectedVariantOptions, setSelectedVariantOptions] = useState<Record<string, string[]>>({});
   const [newCustomGroupName, setNewCustomGroupName] = useState("");
   const [customOptionInput, setCustomOptionInput] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const initialSelected: Record<string, string[]> = {};
@@ -667,7 +669,7 @@ function VariantsManager({ product }: { product: any }) {
         options: selectedVariantOptions[g.name]
       }));
       const newAttributes = { ...product.attributes, variant_options: activeGroups };
-      await updateProduct({ data: { id: product.id, updates: { attributes: newAttributes } } });
+      await updateProduct({ data: { id: product.id, attributes: newAttributes } });
       toast.success("Memória da matriz salva!");
     } catch (e) {
       toast.error("Erro ao salvar matriz");
@@ -780,7 +782,7 @@ function VariantsManager({ product }: { product: any }) {
                     const availableQty = Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0));
 
                     return (
-                      <React.Fragment key={v.id}>
+                      <Fragment key={v.id}>
                         <TableRow className={isEditing ? "bg-muted/30" : ""}>
                           <TableCell className="font-mono text-xs font-semibold">{v.sku}</TableCell>
                           <TableCell className="text-xs">
