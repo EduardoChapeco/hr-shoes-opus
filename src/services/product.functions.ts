@@ -28,13 +28,14 @@ export const getProductBySlug = createServerFn({ method: "GET" })
         .select(
           `id, slug, title, description, brand, price_cents, compare_at_cents,
            allows_preorder, seo_title, seo_description, status,
+           meta_title, meta_description, weight_kg, width_cm, height_cm, length_cm, is_physical,
            product_media(id, url, alt, media_type, sort_order, focal_point),
            product_variants(
              id, sku, status, price_override_cents,
              stock_on_hand, stock_reserved, attributes,
              product_media(id, url, alt, media_type, sort_order, focal_point)
            ),
-           reviews(id, rating, comment, created_at, status)
+           reviews(id, rating, comment, created_at, status, reviewer_name)
           `,
         )
         .eq("slug", slug)
@@ -118,11 +119,19 @@ export const getProductBySlug = createServerFn({ method: "GET" })
         allowsPreorder: Boolean(product.allows_preorder),
         seoTitle: (product.seo_title as string | null) ?? null,
         seoDescription: (product.seo_description as string | null) ?? null,
+        metaTitle: (product.meta_title as string | null) ?? null,
+        metaDescription: (product.meta_description as string | null) ?? null,
+        weightKg: (product.weight_kg as number | null) ?? null,
+        widthCm: (product.width_cm as number | null) ?? null,
+        heightCm: (product.height_cm as number | null) ?? null,
+        lengthCm: (product.length_cm as number | null) ?? null,
+        isPhysical: product.is_physical !== false,
         reviews: ((product.reviews as any[] | null) ?? []).map((r) => ({
           id: r.id,
           rating: r.rating,
           comment: r.comment,
           created_at: r.created_at,
+          reviewer_name: (r.reviewer_name as string | null) ?? null,
         })),
       };
 

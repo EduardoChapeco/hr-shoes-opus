@@ -168,9 +168,9 @@ export const Route = createFileRoute("/_store/produto/$slug")({
       return { meta: [{ title: "Produto — Hr Shoes" }] };
     }
     const product = result.data;
-    const title = product.seoTitle || `${product.title} — Hr Shoes`;
+    const title = product.metaTitle || product.seoTitle || `${product.title} — Hr Shoes`;
     const description =
-      product.seoDescription ||
+      product.metaDescription || product.seoDescription ||
       (product.description
         ? product.description.replace(/<[^>]+>/g, "").slice(0, 155)
         : `Compre ${product.title} na Hr Shoes. Frete rápido e parcelamento disponível.`);

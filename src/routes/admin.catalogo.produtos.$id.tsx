@@ -347,7 +347,6 @@ function GeneralForm({
       compare_at_cents: product.compare_at_cents ? (product.compare_at_cents / 100).toFixed(2) : "",
       cost_cents: product.cost_cents ? (product.cost_cents / 100).toFixed(2) : "",
       status: product.status,
-      weight_grams: product.weight_grams || "",
       short_description: product.short_description || "",
       manufacturer: product.manufacturer || "",
       ean: product.ean || "",
@@ -414,8 +413,6 @@ function GeneralForm({
       const cost_cents = values.cost_cents
         ? Math.round(parseFloat(values.cost_cents.replace(",", ".")) * 100)
         : null;
-      const weight_grams = values.weight_grams ? parseInt(values.weight_grams, 10) : null;
-
       const res = await updateProduct({
         data: {
           id: product.id,
@@ -426,7 +423,6 @@ function GeneralForm({
           price_cents,
           compare_at_cents,
           cost_cents,
-          weight_grams,
           short_description: values.short_description || null,
           manufacturer: values.manufacturer || null,
           ean: values.ean || null,
@@ -594,10 +590,7 @@ function GeneralForm({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label>Peso Antigo (gramas)</Label>
-            <Input type="number" placeholder="Ex: 600" {...register("weight_grams")} />
-          </div>
+          
         </CardContent>
       </Card>
 

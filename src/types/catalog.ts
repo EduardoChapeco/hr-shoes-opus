@@ -109,7 +109,14 @@ export interface ProductDetailDTO {
   allowsPreorder: boolean;
   seoTitle?: string | null;
   seoDescription?: string | null;
-  reviews?: { id: string; rating: number; comment: string | null; created_at: string }[] | null;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  weightKg?: number | null;
+  widthCm?: number | null;
+  heightCm?: number | null;
+  lengthCm?: number | null;
+  isPhysical?: boolean;
+  reviews?: { id: string; rating: number; comment: string | null; created_at: string; reviewer_name?: string | null }[] | null;
 }
 
 // ---------------------------------------------------------------------------
