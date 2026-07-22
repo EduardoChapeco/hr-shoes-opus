@@ -82,13 +82,13 @@ import { GridBuilderDialog } from "@/components/admin/grid-builder-dialog";
 export const Route = createFileRoute("/admin/catalogo/produtos/$id")({
   head: () => ({ meta: [{ title: "Editor Avançado de Produto — Hr Shoes" }] }),
   loader: async ({ params }) => {
-    const [res, catsRes] = await Promise.all([
+    const [product, catsRes] = await Promise.all([
       getProductById({ data: { id: params.id } }),
       listCategories(),
     ]);
-    if (res.status === "error") throw new Error(res.message);
+    if (!product) throw new Error("Produto não encontrado.");
     return {
-      product: res.data,
+      product,
       categories: catsRes || [],
     };
   },

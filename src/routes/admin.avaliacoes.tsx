@@ -53,15 +53,11 @@ function ReviewsPage() {
 
   const handleUpdateStatus = async (id: string, status: "approved" | "rejected") => {
     try {
-      const res = await updateReviewStatus({ data: { id, status } });
-      if (res) {
-        toast.success(`Avaliação ${status === "approved" ? "aprovada" : "rejeitada"}.`);
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao atualizar.");
-      }
+      await updateReviewStatus({ data: { id, status } });
+      toast.success(`Avaliação ${status === "approved" ? "aprovada" : "rejeitada"}.`);
+      router.invalidate();
     } catch (e) {
-      toast.error("Erro inesperado");
+      toast.error(e instanceof Error ? e.message : "Erro ao atualizar avaliação.");
     }
   };
 
@@ -74,7 +70,7 @@ function ReviewsPage() {
 
     setIsSubmitting(true);
     try {
-      const res = await createManualReview({
+      await createManualReview({
         data: {
           productId: newReview.productId,
           reviewerName: newReview.reviewerName,
@@ -82,17 +78,12 @@ function ReviewsPage() {
           comment: newReview.comment || undefined
         }
       });
-
-      if (res) {
-        toast.success("Avaliação adicionada com sucesso!");
-        setIsModalOpen(false);
-        setNewReview({ productId: "", reviewerName: "", rating: "5", comment: "" });
-        router.invalidate();
-      } else {
-        toast.error("Erro ao adicionar avaliação.");
-      }
+      toast.success("Avaliação adicionada com sucesso!");
+      setIsModalOpen(false);
+      setNewReview({ productId: "", reviewerName: "", rating: "5", comment: "" });
+      router.invalidate();
     } catch (e) {
-      toast.error("Erro inesperado ao adicionar avaliação.");
+      toast.error(e instanceof Error ? e.message : "Erro ao adicionar avaliação.");
     } finally {
       setIsSubmitting(false);
     }

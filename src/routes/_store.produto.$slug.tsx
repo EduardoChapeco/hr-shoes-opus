@@ -166,14 +166,13 @@ function SizeGuideDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
 
 export const Route = createFileRoute("/_store/produto/$slug")({
   head: ({ loaderData }) => {
-    const result = (loaderData as any)?.productResult;
-    if (!result || result.status !== "ok") {
+    const product = (loaderData as any)?.productResult as ProductDetailDTO;
+    if (!product || !product.id) {
       return { meta: [{ title: "Produto — Hr Shoes" }] };
     }
-    const product = result.data;
-    const title = product.metaTitle || product.seoTitle || `${product.title} — Hr Shoes`;
+    const title = product.seoTitle || `${product.title} — Hr Shoes`;
     const description =
-      product.metaDescription || product.seoDescription ||
+      product.seoDescription ||
       (product.description
         ? product.description.replace(/<[^>]+>/g, "").slice(0, 155)
         : `Compre ${product.title} na Hr Shoes. Frete rápido e parcelamento disponível.`);
@@ -229,12 +228,11 @@ export const Route = createFileRoute("/_store/produto/$slug")({
   loader: async ({ params }) => {
     const [productRes, templateRes] = await Promise.all([
       getProductBySlug({ data: { slug: params.slug } }),
-      // Busca o template global da loja para página de produtos (slug "default-product-template")
       getPublicExperienceDocumentBySlug({ data: { slug: "default-product-template", document_type: "product_template" } })
     ]);
     return {
       productResult: productRes,
-      templateTree: templateRes.status === "ok" ? templateRes.data.tree : []
+      templateTree: (templateRes as any)?.tree || []
     };
   },
   component: ProductPage,
@@ -242,9 +240,9 @@ export const Route = createFileRoute("/_store/produto/$slug")({
 
 
 function ProductPage() {
-  const { productResult: result, templateTree } = Route.useLoaderData() as any;
+  const { productResult: product, templateTree } = Route.useLoaderData() as any;
 
-  if (result.status === "not_found") {
+  if (!product || !product.id) {
     return (
       <div className="mx-auto max-w-screen-xl px-4 py-20 md:px-6">
         <EmptyState
@@ -260,23 +258,7 @@ function ProductPage() {
     );
   }
 
-  if (result.status === "unconfigured") {
-    return (
-      <div className="mx-auto max-w-screen-xl px-4 py-20 md:px-6">
-        <ErrorState description={result.reason} />
-      </div>
-    );
-  }
-
-  if (result.status === "empty") {
-    return (
-      <div className="mx-auto max-w-screen-xl px-4 py-20 md:px-6">
-        <ErrorState description="Loja não configurada corretamente." />
-      </div>
-    );
-  }
-
-  return <ProductContent product={result.data} templateTree={templateTree} />;
+  return <ProductContent product={product} templateTree={templateTree} />;
 }
 
 function ProductContent({ product: rawProduct, templateTree }: { product: ProductDetailDTO, templateTree?: any[] }) {
