@@ -229,7 +229,7 @@ function DashboardPage() {
             <Progress value={setupProgressPercentage} className="h-2 mt-3" />
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-            {setupChecklist.map((item) => (
+            {setupChecklist.map((item: any) => (
               <div
                 key={item.id}
                 className="flex items-start gap-3 p-3 rounded-lg border border-border/50 bg-card/80 transition-colors hover:bg-card"
@@ -365,7 +365,7 @@ function DashboardPage() {
               />
             ) : (
               <div className="space-y-3">
-                {lowStockItems.map((item) => (
+                {lowStockItems.map((item: any) => (
                   <div key={item.id} className="flex items-center justify-between p-2.5 rounded-lg border border-border/60 bg-card">
                     <div className="min-w-0 flex-1 pr-2">
                       <p className="text-xs font-semibold text-foreground truncate">{item.productTitle}</p>

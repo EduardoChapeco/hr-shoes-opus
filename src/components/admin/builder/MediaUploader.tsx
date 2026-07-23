@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
-import { getBrowserClient } from "@/lib/supabase";
 import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
 
 interface MediaUploaderProps {

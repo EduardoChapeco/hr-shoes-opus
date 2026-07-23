@@ -536,7 +536,7 @@ export const getProductDetail = createServerFn({ method: "GET" })
         .select(
           `
           id, slug, title, description, brand, price_cents, compare_at_cents,
-          status, seo_title, seo_description,
+          status, seo_title, seo_description, options,
           product_media(id, url, alt, media_type, sort_order),
           product_variants(
             id, sku, price_override_cents, stock_on_hand, stock_reserved, attributes,
@@ -598,6 +598,7 @@ export const getProductDetail = createServerFn({ method: "GET" })
           title: data.title,
           description: data.description,
           brand: data.brand,
+          options: data.options || [],
           priceCents: data.price_cents,
           compareAtCents: data.compare_at_cents,
           media,

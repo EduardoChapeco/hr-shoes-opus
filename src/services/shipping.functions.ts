@@ -165,29 +165,70 @@ export async function calculateShippingHandler(zipcode: string) {
     }
   }
 
-  // Phase 5 Logistics Integration (Correios / Melhor Envio API Fallback)
-  // If no internal manual rates match, or if we want to provide real-time rates automatically
-  if (matchedRates.length === 0 && cleanZip.length === 8) {
-    // TODO: In a production scenario, this will make a REST API call to the carrier using credentials from `store_settings` or `integration_credentials`.
-    // Example: fetch(`https://api.melhorenvio.com.br/v2/me/shipment/calculate`, { body: { to: { postal_code: cleanZip } } })
-    
-    // For now, we simulate the Carrier Response (Correios PAC & SEDEX) dynamically based on ZIP regions
-    const basePrice = cleanZip.startsWith("0") ? 1500 : 2500; // SP gets cheaper shipping
+  // Real Integration with Melhor Envio API (Real-time Freight & Carriers)
+  if (cleanZip.length === 8) {
+    try {
+      const { data: integration } = await db
+        .from("integration_credentials")
+        .select("is_active, credentials")
+        .eq("store_id", storeData.id)
+        .eq("provider", "melhor_envio")
+        .maybeSingle();
 
-    matchedRates.push(
-      {
-        id: "correios-pac",
-        name: "Correios PAC (Integração)",
-        price_cents: basePrice,
-        estimated_days: 7,
-      },
-      {
-        id: "correios-sedex",
-        name: "Correios Sedex (Integração)",
-        price_cents: basePrice + 1200,
-        estimated_days: 3,
+      if (integration?.is_active && integration.credentials?.api_token) {
+        const token = integration.credentials.api_token;
+        const fromZip = (integration.credentials.postal_code || "89900000").replace(/\D/g, "");
+        const isSandbox = integration.credentials.sandbox ?? true;
+        const baseUrl = isSandbox
+          ? "https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate"
+          : "https://melhorenvio.com.br/api/v2/me/shipment/calculate";
+
+        const response = await fetch(baseUrl, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "User-Agent": "HrShoesCommerce/1.0",
+          },
+          body: JSON.stringify({
+            from: { postal_code: fromZip },
+            to: { postal_code: cleanZip },
+            products: [
+              {
+                id: "shoe-box",
+                width: 20,
+                height: 15,
+                length: 30,
+                weight: 1,
+                insurance_value: 100,
+                quantity: 1,
+              },
+            ],
+          }),
+        });
+
+        if (response.ok) {
+          const ratesData = await response.json();
+          if (Array.isArray(ratesData)) {
+            for (const option of ratesData) {
+              if (option.error || !option.custom_price || !option.name) continue;
+              const priceCents = Math.round(parseFloat(option.custom_price) * 100);
+              const estimatedDays = option.delivery_time || option.custom_delivery_time || 5;
+              const companyName = option.company?.name ? ` (${option.company.name})` : "";
+              matchedRates.push({
+                id: `melhor-envio-${option.id}`,
+                name: `${option.name}${companyName}`,
+                price_cents: priceCents,
+                estimated_days: estimatedDays,
+              });
+            }
+          }
+        }
       }
-    );
+    } catch (err) {
+      console.error("[shipping] Error calculating freight with Melhor Envio API:", err);
+    }
   }
 
   return matchedRates;

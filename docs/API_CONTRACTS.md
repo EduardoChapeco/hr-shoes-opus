@@ -378,3 +378,43 @@ Comportamento: chave ausente nesses endpoints retorna `idempotency_key_missing` 
 - Nenhum contrato retorna: senha/hash, segredos/tokens de integração, código completo de gift card (apenas últimos dígitos/máscara), dados de cartão, `raw_payload` de webhook para consumidores externos ao domínio de pagamentos.
 - Endereços e documentos pessoais só são retornados ao próprio titular (`customer`) ou a roles com permissão explícita (`admin`, `finance`, `support` conforme caso), nunca em listagens públicas de catálogo/CMS.
 - Todo campo de dinheiro é trafegado no formato achatado `priceCents`, `amountCents`, etc. em 100% dos contratos desta especificação de DTOs, enquanto no banco de dados e APIs REST mantêm o sufixo numérico de `_cents`.
+
+## 11. Feeds Externos (Integrações Fase 5)
+
+### GET /api/feed/google.xml (ou /api/feed/meta.xml)
+Retorna um XML formatado para o Merchant Center (RSS 2.0).
+**Headers**: \Content-Type: application/xml\
+**Cache**: \Cache-Control: public, max-age=3600, s-maxage=3600\
+
+Mapeamento de colunas principais:
+- \<g:id>\: \product_variants.id\ (se houver variação, combinando com SKU) ou \products.id\
+- \<g:title>\: \products.title\
+- \<g:description>\: \products.short_description\ ou fallback para \description\
+- \<g:price>\: \product_variants.price_cents / 100\ formatado como "XX.XX BRL"
+- \<g:availability>\: \in stock\ se \stock_on_hand - stock_reserved > 0\, senão \out of stock\
+- \<g:image_link>\: O primeiro link de mídia da \product_media\ ou capa do produto.
+
+### PATCH /api/v1/carts/:cart_id/contact (Fase 5 - Carrinhos Abandonados)
+Atualiza as informações de contato do visitante (Guest) antes da efetivação do pedido.
+Request: { guest_email: string (optional), guest_phone: string (optional) }
+Response: { success: boolean }
+
+### POST /api/v1/shipping/calculate (Atualizado - Melhor Envio)
+Calcula opções de frete disponíveis combinando regras manuais da loja e cotações em tempo real via API do Melhor Envio (se ativa).
+Request: { zipcode: string }
+Response: Array<{ id: string, name: string, price_cents: number, estimated_days: number | null }>
+
+### GET /api/feed/xml (Fase 5 - Feed XML de Produtos)
+Gera um Feed RSS 2.0 com namespace g: (Google Base) compatível com Google Merchant Center e Meta Commerce Manager.
+Query Params: store (optional UUID)
+Response: Documento XML (Content-Type: application/xml; charset=utf-8)
+
+### POST /api/webhooks/shipment (Fase 5 - Webhook de Rastreamento)
+Recepção de eventos de transporte para atualização de rastreamento e status do pedido.
+Request: { order_id?: string, tracking_code?: string, carrier_name?: string, status?: 'shipped' | 'delivered', tracking_url?: string }
+Response: { success: boolean, order_id: string, new_status: string }
+
+### POST /api/v1/orders/:id/shipment (Fase 5 - Atualização de Rastreamento)
+Cadastra ou atualiza o código de rastreamento do envio no painel admin.
+Request: { orderId: string, trackingCode: string, carrierName?: string, trackingUrl?: string, newStatus?: 'shipped' | 'delivered' }
+Response: Order Object

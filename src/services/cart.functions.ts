@@ -527,3 +527,52 @@ export const updateCartShipping = createServerFn({ method: "POST" })
 
     return { status: "success", message: "Frete atualizado com sucesso" };
   });
+
+export const updateCartContact = createServerFn({ method: 'POST' })
+  .validator(
+    z.object({
+      guestEmail: z.string().email().optional(),
+      guestPhone: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data: { guestEmail, guestPhone } }) => {
+    try {
+      const identity = await getCurrentIdentity();
+      const cartId = await getOrCreateCartId(identity);
+      
+      if (!cartId) {
+        throw new Error('Nenhum carrinho ativo encontrado');
+      }
+
+      const db = getServerClient();
+      const { error } = await db
+        .from('carts')
+        .update({
+          guest_email: guestEmail,
+          guest_phone: guestPhone,
+        })
+        .eq('id', cartId);
+
+      if (error) throw error;
+      return { success: true };
+    } catch (e: any) {
+      console.error('[cart] updateCartContact error:', e);
+      throw new Error('Falha ao atualizar contato do carrinho');
+    }
+  });
+
+export const triggerAbandonedCartsEngine = createServerFn({ method: 'POST' }).handler(
+  async () => {
+    try {
+      // Idealmente isto é restrito a service_role/admin/webhook auth
+      const db = getServerClient();
+      const { error } = await db.rpc('process_abandoned_carts');
+      if (error) throw error;
+      return { success: true };
+    } catch (e: any) {
+      console.error('[cart] triggerAbandonedCartsEngine error:', e);
+      throw new Error('Falha ao disparar motor de carrinhos abandonados');
+    }
+  },
+);
+

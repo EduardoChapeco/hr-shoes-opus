@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Settings2, Save } from "lucide-react";
+import { Settings2, Save, Copy } from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -43,25 +43,25 @@ function IntegrationsPage() {
   const [melhorEnvio, setMelhorEnvio] = useState(getIntegration("melhor_envio"));
   const [googleMerchant, setGoogleMerchant] = useState(getIntegration("google_merchant_center"));
   const [isSaving, setIsSaving] = useState(false);
+  const storeId = integrations.length > 0 ? integrations[0].store_id : "";
+  const feedUrl = storeId 
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/feed/xml?store=${storeId}` 
+    : "Loja não identificada. Salve uma configuração primeiro.";
 
   const handleSave = async (provider: "meta_pixel" | "google_analytics" | "melhor_envio" | "google_merchant_center", state: any) => {
     setIsSaving(true);
     try {
-      const res = await upsertIntegration({
+      await upsertIntegration({
         data: {
           provider,
           is_active: state.is_active,
           credentials: state.credentials,
         },
       });
-      if (res) {
-        toast.success("Integração salva com sucesso!");
-        router.invalidate();
-      } else {
-        toast.error(res.message || "Erro ao salvar integração.");
-      }
-    } catch (e) {
-      toast.error("Erro inesperado");
+      toast.success("Integração salva com sucesso!");
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro inesperado ao salvar integração.");
     } finally {
       setIsSaving(false);
     }
@@ -199,6 +199,31 @@ function IntegrationsPage() {
                 }
               />
             </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">CEP de Origem da Loja</label>
+              <Input
+                placeholder="Ex: 89900000"
+                value={melhorEnvio.credentials?.postal_code || ""}
+                onChange={(e) =>
+                  setMelhorEnvio({
+                    ...melhorEnvio,
+                    credentials: { ...melhorEnvio.credentials, postal_code: e.target.value.replace(/\D/g, "") },
+                  })
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-sm font-medium">Modo Sandbox (Testes)</span>
+              <Switch
+                checked={melhorEnvio.credentials?.sandbox ?? true}
+                onCheckedChange={(c) =>
+                  setMelhorEnvio({
+                    ...melhorEnvio,
+                    credentials: { ...melhorEnvio.credentials, sandbox: c },
+                  })
+                }
+              />
+            </div>
           </CardContent>
           <CardFooter>
             <Button
@@ -241,12 +266,31 @@ function IntegrationsPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Feed XML URL (Gerado pelo sistema)</label>
-              <Input
-                readOnly
-                value={`https://api.hrshoes.com.br/feeds/google-merchant/${googleMerchant.credentials?.merchant_id || "ID"}`}
-                className="bg-muted text-muted-foreground"
-              />
+              <label className="text-sm font-medium">Feed XML URL (Catálogo)</label>
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  value={feedUrl}
+                  className="bg-muted text-muted-foreground"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    if (feedUrl && !feedUrl.startsWith("Loja")) {
+                      navigator.clipboard.writeText(feedUrl);
+                      toast.success("URL do Feed copiada para a área de transferência!");
+                    } else {
+                      toast.error("Salve a configuração primeiro para obter a URL.");
+                    }
+                  }}
+                >
+                  <Copy className="h-4 w-4 mr-1" /> Copiar
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Copie este link e adicione como fonte de dados (Feed) no Google Merchant Center ou Meta Commerce Manager.
+              </p>
             </div>
           </CardContent>
           <CardFooter>

@@ -56,6 +56,7 @@ import { Route as AdminClientesIndexRouteImport } from './routes/admin.clientes.
 import { Route as AdminCaixaIndexRouteImport } from './routes/admin.caixa.index'
 import { Route as AdminBuilderIndexRouteImport } from './routes/admin.builder.index'
 import { Route as StoreContaIndexRouteImport } from './routes/_store.conta.index'
+import { Route as ApiWebhooksShipmentRouteImport } from './routes/api.webhooks.shipment'
 import { Route as ApiWebhooksPagarmeRouteImport } from './routes/api.webhooks.pagarme'
 import { Route as ApiFeedXmlRouteImport } from './routes/api.feed.xml'
 import { Route as ApiAuthConfirmRouteImport } from './routes/api.auth.confirm'
@@ -353,6 +354,11 @@ const StoreContaIndexRoute = StoreContaIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => StoreContaRoute,
+} as any)
+const ApiWebhooksShipmentRoute = ApiWebhooksShipmentRouteImport.update({
+  id: '/api/webhooks/shipment',
+  path: '/api/webhooks/shipment',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWebhooksPagarmeRoute = ApiWebhooksPagarmeRouteImport.update({
   id: '/api/webhooks/pagarme',
@@ -774,6 +780,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
   '/api/feed/xml': typeof ApiFeedXmlRoute
   '/api/webhooks/pagarme': typeof ApiWebhooksPagarmeRoute
+  '/api/webhooks/shipment': typeof ApiWebhooksShipmentRoute
   '/conta/': typeof StoreContaIndexRoute
   '/admin/builder/': typeof AdminBuilderIndexRoute
   '/admin/caixa/': typeof AdminCaixaIndexRoute
@@ -883,6 +890,7 @@ export interface FileRoutesByTo {
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
   '/api/feed/xml': typeof ApiFeedXmlRoute
   '/api/webhooks/pagarme': typeof ApiWebhooksPagarmeRoute
+  '/api/webhooks/shipment': typeof ApiWebhooksShipmentRoute
   '/conta': typeof StoreContaIndexRoute
   '/admin/builder': typeof AdminBuilderIndexRoute
   '/admin/caixa': typeof AdminCaixaIndexRoute
@@ -996,6 +1004,7 @@ export interface FileRoutesById {
   '/api/auth/confirm': typeof ApiAuthConfirmRoute
   '/api/feed/xml': typeof ApiFeedXmlRoute
   '/api/webhooks/pagarme': typeof ApiWebhooksPagarmeRoute
+  '/api/webhooks/shipment': typeof ApiWebhooksShipmentRoute
   '/_store/conta/': typeof StoreContaIndexRoute
   '/admin/builder/': typeof AdminBuilderIndexRoute
   '/admin/caixa/': typeof AdminCaixaIndexRoute
@@ -1109,6 +1118,7 @@ export interface FileRouteTypes {
     | '/api/auth/confirm'
     | '/api/feed/xml'
     | '/api/webhooks/pagarme'
+    | '/api/webhooks/shipment'
     | '/conta/'
     | '/admin/builder/'
     | '/admin/caixa/'
@@ -1218,6 +1228,7 @@ export interface FileRouteTypes {
     | '/api/auth/confirm'
     | '/api/feed/xml'
     | '/api/webhooks/pagarme'
+    | '/api/webhooks/shipment'
     | '/conta'
     | '/admin/builder'
     | '/admin/caixa'
@@ -1330,6 +1341,7 @@ export interface FileRouteTypes {
     | '/api/auth/confirm'
     | '/api/feed/xml'
     | '/api/webhooks/pagarme'
+    | '/api/webhooks/shipment'
     | '/_store/conta/'
     | '/admin/builder/'
     | '/admin/caixa/'
@@ -1362,6 +1374,7 @@ export interface RootRouteChildren {
   ApiAuthConfirmRoute: typeof ApiAuthConfirmRoute
   ApiFeedXmlRoute: typeof ApiFeedXmlRoute
   ApiWebhooksPagarmeRoute: typeof ApiWebhooksPagarmeRoute
+  ApiWebhooksShipmentRoute: typeof ApiWebhooksShipmentRoute
   AdminPedidosIdReciboRoute: typeof AdminPedidosIdReciboRoute
 }
 
@@ -1695,6 +1708,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/conta/'
       preLoaderRoute: typeof StoreContaIndexRouteImport
       parentRoute: typeof StoreContaRoute
+    }
+    '/api/webhooks/shipment': {
+      id: '/api/webhooks/shipment'
+      path: '/api/webhooks/shipment'
+      fullPath: '/api/webhooks/shipment'
+      preLoaderRoute: typeof ApiWebhooksShipmentRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/webhooks/pagarme': {
       id: '/api/webhooks/pagarme'
@@ -2379,6 +2399,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthConfirmRoute: ApiAuthConfirmRoute,
   ApiFeedXmlRoute: ApiFeedXmlRoute,
   ApiWebhooksPagarmeRoute: ApiWebhooksPagarmeRoute,
+  ApiWebhooksShipmentRoute: ApiWebhooksShipmentRoute,
   AdminPedidosIdReciboRoute: AdminPedidosIdReciboRoute,
 }
 export const routeTree = rootRouteImport

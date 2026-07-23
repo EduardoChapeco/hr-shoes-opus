@@ -215,3 +215,48 @@ CashShift ──< Settlement (fechamento consolidado)
 5. SKU de variante é único e nunca reaproveitado.
 6. Webhooks são idempotentes via `provider_event_id`.
 7. Toda entidade sensível carrega `organization_id`/`store_id` para isolamento multi-tenant.
+
+## 16. Crescimento e Integrações (Feeds)
+
+- **Feed XML de Catálogo (Google Merchant Center / Meta)**:
+  - Gerado sob demanda pela rota /api/feed/google.
+  - Produtos e variantes com \status != 'active'\ ou estoque zerado (caso não configure over-selling) não devem aparecer no feed.
+  - A geração não consome limites de API em clientes, deve ter headers corretos (\Content-Type: application/xml\) e cache razoável.
+  - A tabela \integration_credentials\ gerencia quais provedores estão ativos; o Feed em si não exige credencial porque é público (porém obscurificado via ID da loja) ou usa tokens, mas na arquitetura atual, a rota da loja pública acessa via subdomínio/URL padrão da loja.
+
+## 17. Carrinhos Abandonados (Motor)
+
+- **Captura Antecipada (Funil de Conversão):** 
+  - Durante o checkout, o e-mail e/ou telefone do visitante (guest_email, guest_phone) são salvos na tabela carts na Etapa 1.
+- **Engine (process_abandoned_carts):**
+  - Identifica carrinhos com updated_at < now() - 2 horas que possuem itens e cujos usuários não completaram o pedido.
+  - Copia o snapshot dos itens e os dados de contato para a tabela append-only bandoned_carts_log (se ainda não existir).
+  - Status inicial é pending. Pode evoluir para contacted, ecovered ou lost através do painel admin.
+
+## 18. Integração de Logística Automatizada (Melhor Envio)
+
+- **Cotação Dinâmica de Frete:**
+  - Caso a integração \melhor_envio\ esteja com status \is_active: true\ e possua credencial configurada (\pi_token\ e \postal_code\ de origem), a plataforma realiza consulta em tempo real à API REST do Melhor Envio (\2/me/shipment/calculate\).
+  - **Higienização de CEPs:** CEPs de origem e destino possuem formatação removida antes da requisição.
+  - **Conversão Monetária:** Os valores retornados em BRL (\custom_price\) são convertidos para centavos inteiros (\price_cents = Math.round(price * 100)\).
+  - **Resiliência:** Em caso de indisponibilidade ou falha externa da API, o sistema não interrompe a operação e recorre graciosa e unicamente às taxas manuais cadastradas no painel (\shipping_rates\).
+
+## 19. Feeds de Produtos XML (Google Merchant & Meta Commerce)
+
+- **Geração de RSS XML Standard:**
+  - Endpoint de acesso público: \GET /api/feed/xml\ (com suporte ao parâmetro \?store=UUID\ ou fallback dinâmico para o tenant principal).
+  - **Especificações Google Shopping:**
+    - Identificador: \<g:id>\ contendo o SKU da variação ou ID.
+    - Agrupamento: \<g:item_group_id>\ contendo o ID do produto pai.
+    - Preço Padrão e Promocional: Convertidos de \price_cents\ e \compare_at_cents\ para o formato ISO \X.XX BRL\.
+    - Disponibilidade: \in stock\ se estoque líquido (\stock_on_hand - stock_reserved > 0\), senão \out of stock\.
+    - Categorização: Inclui \<g:google_product_category>Apparel & Accessories > Shoes</g:google_product_category>\ e \<g:identifier_exists>false</g:identifier_exists>\ para evitar avisos no Google Merchant Center.
+
+## 20. Rastreamento e Webhooks de Logística
+
+- **Rastreamento de Pedidos:**
+  - O pedido armazena \	racking_code\, \carrier_name\, \	racking_url\, \shipped_at\ e \delivered_at\.
+  - Links automáticos são gerados para Correios (\https://rastreamento.correios.com.br/...\) ou agregadores de frete (\Melhor Rastreio\).
+- **Webhooks de Logística (\POST /api/webhooks/shipment\):**
+  - Permite a parceiros de entrega notificar automaticamente mudanças de status (\shipped\, \delivered\).
+  - **Idempotência & Auditoria:** Toda notificação é registrada na tabela append-only \shipment_webhook_logs\.

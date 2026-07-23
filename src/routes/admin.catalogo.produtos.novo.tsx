@@ -22,9 +22,13 @@ import { createProduct, listCategories } from "@/services/admin-catalog.function
 export const Route = createFileRoute("/admin/catalogo/produtos/novo")({
   head: () => ({ meta: [{ title: "Criação Rápida — Hr Shoes" }] }),
   loader: async () => {
-    const catsRes = await listCategories();
+    const [catsRes, typesRes] = await Promise.all([
+      listCategories(),
+      import("@/services/admin-catalog.functions").then(m => m.listProductTypes())
+    ]);
     return {
       categories: catsRes || [],
+      productTypes: typesRes || [],
     };
   },
   component: QuickNewProductPage,
@@ -54,6 +58,7 @@ function QuickNewProductPage() {
       price_cents: "",
       status: "draft",
       category_id: "none",
+      type_id: "none",
     },
   });
 
@@ -69,9 +74,9 @@ function QuickNewProductPage() {
           price_cents: priceCents,
           status: values.status as "draft" | "published" | "archived",
           category_ids: values.category_id !== "none" ? [values.category_id] : [],
+          type_id: values.type_id !== "none" ? values.type_id : null,
           media_urls: mainImageUrl ? [mainImageUrl] : [],
           is_physical: true,
-          type_id: null,
           attributes: {},
         },
       });
@@ -159,9 +164,22 @@ function QuickNewProductPage() {
                 <Select defaultValue="none" onValueChange={(val) => setValue("category_id", val)}>
                   <SelectTrigger className="h-11"><SelectValue placeholder="Selecione uma categoria" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Sem Categoria</SelectItem>
+                    <SelectItem value="none">Sem categoria</SelectItem>
                     {categories.map((c: any) => (
                       <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Tipo de Produto (Ficha Técnica)</Label>
+                <Select defaultValue="none" onValueChange={(val) => setValue("type_id", val)}>
+                  <SelectTrigger className="h-11"><SelectValue placeholder="Selecione um tipo" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Produto Genérico</SelectItem>
+                    {Route.useLoaderData().productTypes.map((t: any) => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

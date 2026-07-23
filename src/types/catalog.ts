@@ -146,6 +146,12 @@ export interface ProductDetailDTO {
     reviewer_name?: string | null;
   }[] | null;
   categories?: { id: string; name: string; slug: string }[];
+  /** Flexible product options configuration for dynamic variant generation */
+  options?: { name: string; values: string[] }[];
+  /** Optional reference to a product type schema */
+  type_id?: string | null;
+  /** Custom dynamic attributes defined by the product type schema */
+  attributes?: Record<string, any>;
 }
 
 // ---------------------------------------------------------------------------
@@ -236,4 +242,5 @@ export interface AdminProductRow {
   cost_cents?: number | null;
   product_types: { name: string }[] | null;
   product_media: { url: string; alt?: string | null }[];
+  options?: { name: string; values: string[] }[];
 }

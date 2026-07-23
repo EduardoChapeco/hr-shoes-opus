@@ -55,6 +55,7 @@ export async function getOrderByIdHandler(orderId: string) {
       `
       id, public_token, status, total_cents, subtotal_cents, shipping_cents,
       customer_snapshot, created_at, shipping_method, shipping_address,
+      tracking_code, carrier_name, tracking_url, shipped_at, delivered_at,
       order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
     `,
     )
@@ -391,6 +392,70 @@ export const requestOrderReturn = createServerFn({ method: "POST" })
     } catch (e: any) {
       console.error("[order.functions] requestOrderReturn:", e);
       throw new Error(e.message || "Erro ao solicitar devolução." );
+    }
+  });
+
+
+export const updateOrderShipment = createServerFn({ method: 'POST' })
+  .validator(
+    z.object({
+      orderId: z.string().uuid(),
+      trackingCode: z.string().min(1, 'Código de rastreamento é obrigatório'),
+      carrierName: z.string().optional(),
+      trackingUrl: z.string().optional(),
+      newStatus: z.enum(['shipped', 'delivered']).optional(),
+    }),
+  )
+  .handler(async ({ data: { orderId, trackingCode, carrierName, trackingUrl, newStatus } }) => {
+    try {
+      const ssrClient = getSSRClient();
+      const {
+        data: { user },
+      } = await ssrClient.auth.getUser();
+      if (!user) throw new Error('Não autorizado');
+
+      const db = getServerClient();
+      const { data: profile } = await db
+        .from('profiles')
+        .select('role, store_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.store_id || !['owner', 'admin', 'manager', 'logistics'].includes(profile.role)) {
+        throw new Error('Acesso negado');
+      }
+
+      const generatedUrl =
+        trackingUrl ||
+        (trackingCode.length > 8 && /^[A-Z]{2}\d{9}[A-Z]{2}$/i.test(trackingCode)
+          ? `https://rastreamento.correios.com.br/app/index.php?codigo=${trackingCode}`
+          : `https://melhorrastreio.com.br/rastreio/${trackingCode}`);
+
+      const statusToApply = newStatus || 'shipped';
+      const updateData: Record<string, any> = {
+        tracking_code: trackingCode,
+        carrier_name: carrierName || 'Correios',
+        tracking_url: generatedUrl,
+        status: statusToApply,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (statusToApply === 'shipped') updateData.shipped_at = new Date().toISOString();
+      if (statusToApply === 'delivered') updateData.delivered_at = new Date().toISOString();
+
+      const { data, error } = await db
+        .from('orders')
+        .update(updateData)
+        .eq('id', orderId)
+        .eq('store_id', profile.store_id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (e: any) {
+      console.error('[order.functions] updateOrderShipment error:', e);
+      throw new Error(e.message || 'Erro ao atualizar rastreamento do pedido.');
     }
   });
 

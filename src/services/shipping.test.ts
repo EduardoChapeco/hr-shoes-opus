@@ -21,6 +21,7 @@ function createMockQueryBuilder(resolvedValue: any) {
     eq: vi.fn().mockImplementation(() => builder),
     order: vi.fn().mockImplementation(() => builder),
     single: vi.fn().mockImplementation(() => builder),
+    maybeSingle: vi.fn().mockImplementation(() => Promise.resolve(resolvedValue)),
     limit: vi.fn().mockImplementation(() => builder),
     then: vi.fn().mockImplementation((onfulfilled) => {
       return Promise.resolve(resolvedValue).then(onfulfilled);

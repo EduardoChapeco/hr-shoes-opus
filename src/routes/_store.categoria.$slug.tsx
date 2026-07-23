@@ -16,12 +16,55 @@ export const Route = createFileRoute("/_store/categoria/$slug")({
     ]);
     return { productsResult, categoriesResult, slug: params.slug };
   },
-  head: ({ params }) => ({
-    meta: [
-      { title: `Categoria — Hr Shoes` },
-      { name: "description", content: `Produtos da categoria ${params.slug} na Hr Shoes.` },
-    ],
-  }),
+  head: ({ loaderData }) => {
+    const data = loaderData as any;
+    const categoryName = data?.categoriesResult?.find((c: CategoryDTO) => c.slug === data?.slug)?.name ?? data?.slug ?? "Categoria";
+    const title = `${categoryName} — Hr Shoes`;
+    const description = `Confira os produtos da categoria ${categoryName} na Hr Shoes. Qualidade, estilo e conforto para o seu dia a dia.`;
+    const canonical = typeof window !== "undefined" ? `${window.location.origin}/categoria/${data?.slug}` : "";
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        ...(canonical ? [{ property: "og:url", content: canonical }] : []),
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
+      links: canonical ? [{ rel: "canonical", href: canonical }] : [],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Início",
+                "item": typeof window !== "undefined" ? window.location.origin : ""
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Catálogo",
+                "item": typeof window !== "undefined" ? `${window.location.origin}/catalogo` : ""
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": categoryName
+              }
+            ]
+          }),
+        },
+      ],
+    };
+  },
   component: CategoryPage,
 });
 

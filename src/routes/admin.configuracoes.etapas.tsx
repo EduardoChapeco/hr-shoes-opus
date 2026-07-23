@@ -104,10 +104,10 @@ function EtapasPage() {
   };
 
   const groupedSteps = {
-    fundamentos: steps.filter((s) => s.category === "fundamentos"),
-    catalogo: steps.filter((s) => s.category === "catalogo"),
-    vendas: steps.filter((s) => s.category === "vendas"),
-    divulgacao: steps.filter((s) => s.category === "divulgacao"),
+    fundamentos: steps.filter((s: any) => s.category === "fundamentos"),
+    catalogo: steps.filter((s: any) => s.category === "catalogo"),
+    vendas: steps.filter((s: any) => s.category === "vendas"),
+    divulgacao: steps.filter((s: any) => s.category === "divulgacao"),
   };
 
   return (
@@ -165,7 +165,7 @@ function EtapasPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="divide-y divide-border/50 p-0">
-              {groupedSteps[groupKey].map((step) => (
+              {groupedSteps[groupKey].map((step: any) => (
                 <div key={step.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
                   <div className="space-y-1 min-w-0 flex-1">
                     <div className="flex items-center gap-2.5 flex-wrap">

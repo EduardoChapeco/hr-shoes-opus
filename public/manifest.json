@@ -1,0 +1,29 @@
+{
+  "name": "Hr Shoes Commerce",
+  "short_name": "Hr Shoes",
+  "description": "Loja Oficial Hr Shoes - Calçados Femininos e Moda",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F3F1EC",
+  "theme_color": "#FF4FB8",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

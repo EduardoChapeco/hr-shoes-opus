@@ -107,7 +107,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: seoDesc,
       },
       { name: "author", content: storeName },
-      { name: "theme-color", content: theme?.background_color || "#F3F1EC" },
+      { name: "theme-color", content: theme?.background_color || "#FF4FB8" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { property: "og:title", content: seoTitle },
       {
         property: "og:description",
@@ -124,6 +127,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     return {
       meta: metaTags,
       links: [
+        { rel: "manifest", href: "/manifest.json" },
+        { rel: "apple-touch-icon", href: "/icons/icon-192x192.png" },
         { rel: "stylesheet", href: appCss },
         { rel: "icon", href: store?.faviconUrl || "/favicon.ico", type: "image/x-icon" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -183,6 +188,16 @@ import { Toaster } from "@/components/ui/sonner";
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch((err) => {
+          console.error("ServiceWorker registration failed: ", err);
+        });
+      });
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -87,13 +87,13 @@ function FilterChips({
     const cat = categories.find((c) => c.slug === search.categoria);
     chips.push({
       label: cat?.name ?? search.categoria,
-      onRemove: () => navigate({ to: Route.fullPath, search: (s) => ({ ...s, categoria: undefined }) }),
+      onRemove: () => navigate({ to: Route.fullPath, search: (s: Record<string, any>) => ({ ...s, categoria: undefined }) }),
     });
   }
   if (search.sort && search.sort !== "newest") {
     chips.push({
       label: SORT_LABELS[search.sort],
-      onRemove: () => navigate({ to: Route.fullPath, search: (s) => ({ ...s, sort: undefined }) }),
+      onRemove: () => navigate({ to: Route.fullPath, search: (s: Record<string, any>) => ({ ...s, sort: undefined }) }),
     });
   }
   if (search.minCents != null || search.maxCents != null) {
@@ -103,7 +103,7 @@ function FilterChips({
     chips.push({
       label: range?.label ?? `Faixa de preço`,
       onRemove: () =>
-        navigate({ to: Route.fullPath, search: (s) => ({ ...s, minCents: undefined, maxCents: undefined }) }),
+        navigate({ to: Route.fullPath, search: (s: Record<string, any>) => ({ ...s, minCents: undefined, maxCents: undefined }) }),
     });
   }
 
@@ -149,7 +149,7 @@ function FilterPanel({
   const navigate = useNavigate();
 
   const applyFilter = (patch: Partial<CatalogSearch>) => {
-    navigate({ to: Route.fullPath, search: (s) => ({ ...s, ...patch }) });
+    navigate({ to: Route.fullPath, search: (s: Record<string, any>) => ({ ...s, ...patch }) });
     onClose?.();
   };
 
@@ -301,7 +301,7 @@ function CatalogPage() {
                 key={value}
                 id={`sort-${value}`}
                 onClick={() =>
-                  navigate({ to: Route.fullPath, search: (s) => ({ ...s, sort: value as CatalogSearch["sort"] }) })
+                  navigate({ to: Route.fullPath, search: (s: Record<string, any>) => ({ ...s, sort: value as CatalogSearch["sort"] }) })
                 }
                 className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${
                   (search.sort ?? "newest") === value

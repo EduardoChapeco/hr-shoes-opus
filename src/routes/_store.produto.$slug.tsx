@@ -847,8 +847,27 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
               )}
               {product.description && (
               <div className="border-t border-border/60 pt-5 space-y-2">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Descrição do Calçado</h2>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Descrição do Produto</h2>
                 <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
+              </div>
+            )}
+
+            {/* Ficha Técnica Dinâmica (Product Type Attributes) */}
+            {product.attributes && Object.keys(product.attributes).length > 0 && (
+              <div className="border-t border-border/60 pt-5 space-y-3">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Ficha Técnica</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                  {Object.entries(product.attributes).map(([key, value]) => {
+                    // Ignora campos vazios ou booleanos falsos da renderização visual
+                    if (value === null || value === "" || value === false) return null;
+                    return (
+                      <div key={key} className="flex flex-col text-sm border-b border-border/40 pb-1.5">
+                        <span className="text-muted-foreground capitalize text-[11px] font-bold tracking-wide">{key}</span>
+                        <span className="font-medium text-foreground text-sm">{value === true ? "Sim" : String(value)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>

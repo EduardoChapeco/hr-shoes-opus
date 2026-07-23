@@ -209,6 +209,8 @@ export async function createProductHandler(input: {
   preparation_time_days?: number | null;
   media_urls?: string[];
   category_ids?: string[];
+  options?: any;
+
   variants?: {
     sku: string;
     attributes: Record<string, any>;
@@ -224,7 +226,7 @@ export async function createProductHandler(input: {
   const storeData = { id: store_id };
   if (!storeData) throw new Error("No store found");
 
-  const { media_urls, variants, category_ids, ...productInput } = input;
+  const { media_urls, variants, category_ids, options, ...productInput } = input;
 
   // -- CONTRACT SHIELD START --
   if (variants && variants.length > 0) {
@@ -257,6 +259,8 @@ export async function createProductHandler(input: {
     .insert({
       store_id: storeData.id,
       ...productInput,
+    options,
+
     })
     .select()
     .single();
@@ -343,6 +347,7 @@ export const createProduct = createServerFn({ method: "POST" })
       compare_at_cents: z.number().int().min(0).optional().nullable(),
       cost_cents: z.number().int().min(0).optional().nullable(),
       attributes: z.record(z.any()).default({}), // Dynamic fields based on type
+      options: z.any().optional(),
       is_physical: z.boolean().default(true).optional(),
       weight_kg: z.number().min(0).optional().nullable(),
       width_cm: z.number().min(0).optional().nullable(),
@@ -689,6 +694,8 @@ export async function updateProductHandler(input: {
   preparation_time_days?: number | null;
   type_id?: string | null;
   category_ids?: string[];
+  options?: any;
+
 }) {
   const db = getServerClient();
   const { id, category_ids, ...updates } = input;
@@ -736,6 +743,8 @@ export const updateProduct = createServerFn({ method: "POST" })
       preparation_time_days: z.number().int().min(0).optional().nullable(),
       type_id: z.string().uuid().optional().nullable(),
       category_ids: z.array(z.string().uuid()).optional(),
+      options: z.any().optional(),
+
     }),
   )
   .handler(async ({ data: input }) => {
@@ -846,8 +855,114 @@ export const upsertProductVariant = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] upsertProductVariant error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro ao salvar variante.",
-      );
+      throw new Error(e instanceof Error ? e.message : "Erro ao salvar variante.");
+    }
+  });
+export async function batchUpsertVariantMatrixHandler(input: {
+  product_id: string;
+  matrix: {
+    sku?: string;
+    attributes: Record<string, string>;
+    price_override_cents?: number | null;
+    stock: number;
+    image_url?: string | null;
+  }[];
+}) {
+  const db = getServerClient();
+  const { adjustStockHandler } = await import("@/services/stock.functions");
+
+  const results = [];
+
+  for (const item of input.matrix) {
+    const { data: existing } = await db
+      .from("product_variants")
+      .select("id, stock_on_hand, attributes")
+      .eq("product_id", input.product_id);
+
+    const match = existing?.find((v: any) => {
+      const vAttrs = v.attributes || {};
+      const keysA = Object.keys(vAttrs).sort();
+      const keysB = Object.keys(item.attributes).sort();
+      if (keysA.join("|") !== keysB.join("|")) return false;
+      return keysA.every((k) => String(vAttrs[k]).trim() === String(item.attributes[k]).trim());
+    });
+
+    const skuSuffix = Object.values(item.attributes)
+      .map((val) => String(val).substring(0, 3).toUpperCase())
+      .join("-");
+    const generatedSku = item.sku || `SKU-${input.product_id.split("-")[0].toUpperCase()}-${skuSuffix}`;
+
+
+    const upsertRes = await upsertProductVariantHandler({
+      id: match?.id,
+      product_id: input.product_id,
+      sku: generatedSku,
+      status: "active",
+      price_override_cents: item.price_override_cents ?? null,
+      attributes: item.attributes,
+    });
+
+    if (upsertRes && upsertRes.id) {
+      const currentStock = match ? (match.stock_on_hand || 0) : 0;
+      const diff = item.stock - currentStock;
+      if (diff !== 0) {
+        await adjustStockHandler({
+          variantId: upsertRes.id,
+          qty: diff,
+          movementType: "adjustment",
+          note: "Ajuste em lote via Matriz 2D de Variações",
+        });
+      }
+
+      if (item.image_url) {
+        const { data: existingMedia } = await db
+          .from("product_media")
+          .select("id")
+          .eq("product_id", input.product_id)
+          .eq("url", item.image_url)
+          .maybeSingle();
+
+        if (existingMedia) {
+          await db.from("product_media").update({ variant_id: upsertRes.id }).eq("id", existingMedia.id);
+        } else {
+          await db.from("product_media").insert({
+            product_id: input.product_id,
+            variant_id: upsertRes.id,
+            url: item.image_url,
+            media_type: "image",
+            sort_order: 99,
+          });
+        }
+      }
+
+      results.push(upsertRes);
+    }
+  }
+
+  return { success: true, count: results.length };
+}
+
+export const batchUpsertVariantMatrix = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      product_id: z.string().uuid(),
+      matrix: z.array(
+        z.object({
+          sku: z.string().optional(),
+          attributes: z.record(z.string()),
+          price_override_cents: z.number().int().min(0).optional().nullable(),
+          stock: z.number().int().min(0).default(0),
+          image_url: z.string().optional().nullable(),
+        })
+      ),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      return await batchUpsertVariantMatrixHandler(input);
+    } catch (e: unknown) {
+      console.error("[admin-catalog] batchUpsertVariantMatrix error:", e);
+      throw new Error(e instanceof Error ? e.message : "Erro ao salvar matriz de variações.");
     }
   });
 

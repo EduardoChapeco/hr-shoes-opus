@@ -22,7 +22,12 @@ export const Route = createFileRoute("/api/feed/xml")({
         try {
           const db = getServerClient();
           const url = new URL(request.url);
-          const storeId = url.searchParams.get("store");
+          let storeId = url.searchParams.get("store");
+
+          if (!storeId) {
+            const { resolveTenantStoreId } = await import("@/lib/tenant");
+            storeId = await resolveTenantStoreId();
+          }
 
           if (!storeId) {
             return new Response("Missing store parameter", { status: 400 });
@@ -33,7 +38,7 @@ export const Route = createFileRoute("/api/feed/xml")({
             .from("products")
             .select(`
               id, slug, title, short_description, description, manufacturer, price_cents, compare_at_cents, status,
-              product_variants(id, sku, price_cents, attributes, stock),
+              product_variants(id, sku, price_cents, attributes, stock_on_hand, stock_reserved),
               product_media(url, is_thumbnail)
             `)
             .eq("store_id", storeId)
@@ -66,7 +71,8 @@ export const Route = createFileRoute("/api/feed/xml")({
                 id: p.id,
                 sku: p.slug,
                 price_cents: p.price_cents,
-                stock: 1, // Assume available if published and no variant tracking
+                stock_on_hand: 1, // Assume available if published and no variant tracking
+                stock_reserved: 0,
                 attributes: {}
               });
             }
@@ -80,10 +86,11 @@ export const Route = createFileRoute("/api/feed/xml")({
                 ? (p.compare_at_cents / 100).toFixed(2) 
                 : priceBrl;
 
-              const link = `${url.origin}/produtos/${p.slug}?v=${v.sku}`;
+              const link = `${url.origin}/produtos/${p.slug}?v=${v.sku || v.id}`;
               
               const titleExt = Object.values(v.attributes || {}).join(" - ");
               const itemTitle = titleExt ? `${p.title} - ${titleExt}` : p.title;
+              const mpn = v.sku || `${p.slug}-${v.id.substring(0, 8)}`;
 
               xml += `<item>\n`;
               xml += `  <g:id>${escapeXml(v.sku || v.id)}</g:id>\n`;
@@ -98,12 +105,18 @@ export const Route = createFileRoute("/api/feed/xml")({
                 xml += `  <g:additional_image_link>${escapeXml(img.url)}</g:additional_image_link>\n`;
               }
               xml += `  <g:condition>new</g:condition>\n`;
-              xml += `  <g:availability>${v.stock > 0 ? "in stock" : "out of stock"}</g:availability>\n`;
+              
+              const availableQty = (v.stock_on_hand || 0) - (v.stock_reserved || 0);
+              xml += `  <g:availability>${availableQty > 0 ? "in stock" : "out of stock"}</g:availability>\n`;
               xml += `  <g:price>${regularPriceBrl} BRL</g:price>\n`;
               if (salePriceBrl) {
                 xml += `  <g:sale_price>${salePriceBrl} BRL</g:sale_price>\n`;
               }
               xml += `  <g:brand>${escapeXml(p.manufacturer || "Hr Shoes")}</g:brand>\n`;
+              xml += `  <g:mpn>${escapeXml(mpn)}</g:mpn>\n`;
+              xml += `  <g:identifier_exists>false</g:identifier_exists>\n`;
+              xml += `  <g:google_product_category>Apparel &amp; Accessories &gt; Shoes</g:google_product_category>\n`;
+              xml += `  <g:product_type>Calçados</g:product_type>\n`;
               
               if (v.attributes && typeof v.attributes === "object") {
                 if ((v.attributes as any)["Tamanho"]) xml += `  <g:size>${escapeXml((v.attributes as any)["Tamanho"])}</g:size>\n`;

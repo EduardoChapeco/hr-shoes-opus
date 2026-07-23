@@ -78,8 +78,11 @@ export function SlideOutCart() {
                           {item.productTitle}
                         </h4>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Cor: {item.variantAttributes?.color || "Padrão"} | Tam:{" "}
-                          {item.variantAttributes?.size || "Único"}
+                          {Object.entries(item.variantAttributes || {}).length > 0
+                            ? Object.entries(item.variantAttributes || {})
+                                .map(([k, v]) => `${k}: ${v}`)
+                                .join(" | ")
+                            : "Padrão"}
                         </p>
                       </div>
                       <button

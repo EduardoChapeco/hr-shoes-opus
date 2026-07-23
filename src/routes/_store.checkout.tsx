@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/money";
-import { getCart, updateCartShipping, applyCouponToCart } from "@/services/cart.functions";
+import { getCart, updateCartShipping, applyCouponToCart, updateCartContact } from "@/services/cart.functions";
 import { checkGiftCardBalance } from "@/services/giftcard.functions";
 import { processCheckout } from "@/services/checkout.functions";
 import { initiatePaymentTransaction, getPublicPaymentMethods } from "@/services/payment.functions";
@@ -107,8 +107,15 @@ function CheckoutPage() {
   const [formData, setFormData] = useState({
     customerName: "",
     customerEmail: "",
-    customerDocument: "",
     customerPhone: "",
+    customerDocument: "",
+    addressZipcode: "",
+    addressStreet: "",
+    addressNumber: "",
+    addressComplement: "",
+    addressDistrict: "",
+    addressCity: "",
+    addressState: "",
     paymentMethod: "pix" as "pix" | "manual" | "credit_card" | "receipt",
     paymentMethodId: "" as string, // UUID of chosen manual payment option
     shippingMethod: "manual_table" as "manual_table" | "pickup" | "manual_quote",
@@ -129,6 +136,22 @@ function CheckoutPage() {
   }, [initialCart]);
 
   // Cep autofill & dynamic shipping cost calculation
+  const handleAdvanceToDelivery = async () => {
+    try {
+      if (formData.customerEmail || formData.customerPhone) {
+        await updateCartContact({
+          data: {
+            guestEmail: formData.customerEmail || undefined,
+            guestPhone: formData.customerPhone || undefined,
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Falha silenciosa ao salvar lead", e);
+    }
+    setActiveStep(2);
+  };
+
   const handleCepChange = async (val: string) => {
     const cep = val.replace(/\D/g, "");
     setFormData((prev) => ({
@@ -438,7 +461,7 @@ function CheckoutPage() {
               transaction_id: res.orderToken,
               value: checkoutTotalCents / 100,
               currency: "BRL",
-              items: cart.items.map((item) => ({
+              items: cart.items.map((item: any) => ({
                 item_id: item.variantId,
                 item_name: item.productTitle,
                 price: item.priceCents / 100,
@@ -580,7 +603,7 @@ function CheckoutPage() {
                     disabled={
                       !formData.customerName || !formData.customerEmail || !formData.customerPhone
                     }
-                    onClick={() => setActiveStep(2)}
+                    onClick={handleAdvanceToDelivery}
                   >
                     Continuar para Entrega
                   </Button>
@@ -1172,11 +1195,11 @@ function CheckoutPage() {
                   </span>
                   <span>{formatMoney(item.lineTotalCents)}</span>
                 </div>
-                {(item.variantAttributes?.color || item.variantAttributes?.size) && (
+                {Object.entries(item.variantAttributes || {}).length > 0 && (
                   <span className="text-xs text-muted-foreground mt-0.5 font-normal">
-                    {item.variantAttributes?.color && `Cor: ${item.variantAttributes.color}`}
-                    {item.variantAttributes?.color && item.variantAttributes?.size && " | "}
-                    {item.variantAttributes?.size && `Tam: ${item.variantAttributes.size}`}
+                    {Object.entries(item.variantAttributes || {})
+                      .map(([k, v]) => `${k}: ${v}`)
+                      .join(" | ")}
                   </span>
                 )}
               </div>

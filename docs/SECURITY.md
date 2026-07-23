@@ -58,3 +58,18 @@ Backups automáticos regulares, restauração testada periodicamente, migraçõe
 ## 13. Fase 0
 
 RLS desde o primeiro schema, nenhuma confiança em dado de cliente para tenant/papel/preço, telas estruturais com PhaseGate não expõem endpoints reais.
+
+## 9. Auditoria de Segurança e Hardening (Fase 6)
+
+- **Políticas RLS (Row Level Security):**
+  - Todas as 21 migrações de banco possuem \ALTER TABLE ... ENABLE ROW LEVEL SECURITY;\ obrigatoriamente habilitado.
+  - Regra Deny-by-Default em vigência em todas as entidades. Acesso anon/público restrito estritamente a produtos publicados e tabelas manuais de frete ativas.
+  - Dados sensíveis (finanças, comissões, fechamento de caixa, pedidos, webhooks) exigem verificação de papéis RBAC (\owner\, \dmin\, \manager\, \cashier\, \logistics\) validados exclusivamente pelo servidor.
+- **Isolamento de Segredos:**
+  - Nenhuma chave de API privada (Pagar.me, Meta, Google, Melhor Envio) é exposta nos bundles JS do cliente.
+  - O acesso à \SUPABASE_SERVICE_ROLE_KEY\ é restrito aos ambientes de execução server-side (BFF / Server Functions).
+- **Proteção contra XSS:**
+  - Todo input e texto de CMS retornado ao DOM é escapado contra injeções XSS.
+  - Conteúdos em XML no feed RSS utilizam a função de escape \escapeXml()\.
+- **Sanitização de CEPs e Entradas:**
+  - Entradas de formulários de frete, cartões e dados pessoais passam por sanificação estrita via esquemas de validação \zod\ no BFF.

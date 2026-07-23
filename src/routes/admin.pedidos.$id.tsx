@@ -13,10 +13,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Printer, Banknote, Landmark, AlertTriangle } from "lucide-react";
-import { getOrderById } from "@/services/order.functions";
+import { Printer, Banknote, Landmark, AlertTriangle, Truck, ExternalLink, Package } from "lucide-react";
+import { getOrderById, updateOrderStatus, updateOrderShipment } from "@/services/order.functions";
 import { approvePayment, rejectPayment } from "@/services/payment.functions";
-import { updateOrderStatus } from "@/services/order.functions";
 
 export const Route = createFileRoute("/admin/pedidos/$id")({
   head: () => ({ meta: [{ title: "Detalhes do Pedido — Hr Shoes" }] }),
@@ -54,7 +53,38 @@ function AdminOrderDetailPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
+  const [trackingModalOpen, setTrackingModalOpen] = useState(false);
+  const [trackingForm, setTrackingForm] = useState({
+    trackingCode: order.tracking_code || "",
+    carrierName: order.carrier_name || "Correios",
+    trackingUrl: order.tracking_url || "",
+  });
+  const [isSavingTracking, setIsSavingTracking] = useState(false);
+
   const date = new Date(order.created_at).toLocaleDateString("pt-BR");
+
+  const handleSaveTracking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingTracking(true);
+    try {
+      await updateOrderShipment({
+        data: {
+          orderId: order.id,
+          trackingCode: trackingForm.trackingCode,
+          carrierName: trackingForm.carrierName,
+          trackingUrl: trackingForm.trackingUrl || undefined,
+          newStatus: order.status === "processing" ? "shipped" : undefined,
+        },
+      });
+      toast.success("Rastreamento do pedido atualizado!");
+      setTrackingModalOpen(false);
+      router.invalidate();
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar rastreamento");
+    } finally {
+      setIsSavingTracking(false);
+    }
+  };
 
   const handleStatusChange = async (newStatus: string) => {
     setIsUpdating(true);
@@ -295,6 +325,91 @@ function AdminOrderDetailPage() {
                 </Button>
               </div>
             )}
+
+            {/* Rastreamento & Logística */}
+            <div className="border-t pt-4 mt-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-sm flex items-center gap-1.5">
+                  <Truck className="h-4 w-4 text-primary" /> Logística e Rastreio
+                </span>
+                <Dialog open={trackingModalOpen} onOpenChange={setTrackingModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      {order.tracking_code ? "Editar Rastreio" : "Cadastrar Rastreio"}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Informações de Envio / Rastreio</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSaveTracking} className="space-y-4 pt-2">
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium">Transportadora</label>
+                        <input
+                          type="text"
+                          className="w-full rounded-md border px-3 py-2 text-sm"
+                          placeholder="Ex: Correios, Jadlog, Loggi"
+                          value={trackingForm.carrierName}
+                          onChange={(e) => setTrackingForm({ ...trackingForm, carrierName: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium">Código de Rastreamento</label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full rounded-md border px-3 py-2 text-sm"
+                          placeholder="Ex: AA123456789BR"
+                          value={trackingForm.trackingCode}
+                          onChange={(e) => setTrackingForm({ ...trackingForm, trackingCode: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium">Link de Rastreio (Opcional)</label>
+                        <input
+                          type="url"
+                          className="w-full rounded-md border px-3 py-2 text-sm"
+                          placeholder="Deixe em branco para gerar link automático"
+                          value={trackingForm.trackingUrl}
+                          onChange={(e) => setTrackingForm({ ...trackingForm, trackingUrl: e.target.value })}
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button type="button" variant="outline" onClick={() => setTrackingModalOpen(false)}>
+                          Cancelar
+                        </Button>
+                        <Button type="submit" disabled={isSavingTracking}>
+                          {isSavingTracking ? "Salvando..." : "Salvar Rastreio"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {order.tracking_code ? (
+                <div className="p-3 bg-muted/40 rounded-lg text-xs space-y-1.5">
+                  <div className="flex justify-between items-center font-medium">
+                    <span>{order.carrier_name || "Transportadora"}</span>
+                    <Badge variant="outline">{order.tracking_code}</Badge>
+                  </div>
+                  {order.tracking_url && (
+                    <a
+                      href={order.tracking_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center gap-1 font-semibold pt-1"
+                    >
+                      Acompanhar Rastreio Externo <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Nenhum código de rastreamento cadastrado para este envio.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>

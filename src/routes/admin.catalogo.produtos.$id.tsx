@@ -27,6 +27,9 @@ import {
 
 import { ProductEditorLayout } from "@/components/admin/product-editor/product-editor-layout";
 import { VariantFormRow } from "@/components/admin/product-editor/variant-form-row";
+import { VariantOptionsBuilder } from "@/components/admin/product-editor/variant-options-builder";
+import { VariantListGrid } from "@/components/admin/product-editor/variant-list-grid";
+
 import { PageHeader } from "@/components/commerce/page-header";
 import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
 import { Crop } from "lucide-react";
@@ -63,6 +66,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import {
   getProductById,
@@ -82,21 +86,23 @@ import { GridBuilderDialog } from "@/components/admin/grid-builder-dialog";
 export const Route = createFileRoute("/admin/catalogo/produtos/$id")({
   head: () => ({ meta: [{ title: "Editor Avançado de Produto — Hr Shoes" }] }),
   loader: async ({ params }) => {
-    const [product, catsRes] = await Promise.all([
+    const [product, catsRes, typesRes] = await Promise.all([
       getProductById({ data: { id: params.id } }),
       listCategories(),
+      import("@/services/admin-catalog.functions").then(m => m.listProductTypes())
     ]);
     if (!product) throw new Error("Produto não encontrado.");
     return {
       product,
       categories: catsRes || [],
+      productTypes: typesRes || [],
     };
   },
   component: EditProductPage,
 });
 
 function EditProductPage() {
-  const { product, categories } = Route.useLoaderData();
+  const { product, categories, productTypes } = Route.useLoaderData();
 
   // State for live preview updates
   const [liveTitle, setLiveTitle] = useState(product.title);
@@ -206,6 +212,7 @@ function EditProductPage() {
           <GeneralForm
             product={product}
             categories={categories}
+            productTypes={productTypes}
             onTitleChange={setLiveTitle}
             onDescriptionChange={setLiveDescription}
             onBrandChange={setLiveBrand}
@@ -239,6 +246,7 @@ function EditProductPage() {
 function GeneralForm({
   product,
   categories,
+  productTypes,
   onTitleChange,
   onDescriptionChange,
   onBrandChange,
@@ -249,6 +257,7 @@ function GeneralForm({
 }: {
   product: any;
   categories: any[];
+  productTypes: any[];
   onTitleChange: (v: string) => void;
   onDescriptionChange: (v: string) => void;
   onBrandChange: (v: string) => void;
@@ -292,6 +301,8 @@ function GeneralForm({
       height_cm: product.height_cm || "",
       length_cm: product.length_cm || "",
       preparation_time_days: product.preparation_time_days || 0,
+      type_id: product.type_id || "none",
+      attributes: product.attributes || {},
     },
   });
 
@@ -302,6 +313,10 @@ function GeneralForm({
   const watchCompare = watch("compare_at_cents");
   const watchCost = watch("cost_cents");
   const watchStatus = watch("status");
+  const watchTypeId = watch("type_id");
+  const selectedProductType = useMemo(() => {
+    return productTypes.find((t) => t.id === watchTypeId);
+  }, [watchTypeId, productTypes]);
 
   // Re-emit live updates to preview
   useEffect(() => {
@@ -369,6 +384,8 @@ function GeneralForm({
           length_cm: values.length_cm ? parseFloat(values.length_cm) : null,
           preparation_time_days: values.preparation_time_days ? parseInt(values.preparation_time_days, 10) : 0,
           category_ids: selectedCategory ? [selectedCategory] : [],
+          type_id: values.type_id !== "none" ? values.type_id : null,
+          attributes: values.attributes,
         },
       });
 
@@ -530,6 +547,92 @@ function GeneralForm({
 
       <Card>
         <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <LayoutList className="size-4" /> 
+            Ficha Técnica Dinâmica (Tipo de Produto)
+          </CardTitle>
+          <CardDescription>
+            Defina um tipo de produto para renderizar campos específicos (ex: Material, Voltagem, Indicação) de acordo com o seu nicho.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label>Tipo de Produto</Label>
+            <Select value={watchTypeId} onValueChange={(val) => setValue("type_id", val)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Produto Genérico" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Produto Genérico</SelectItem>
+                {productTypes.map((t: any) => (
+                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedProductType && selectedProductType.field_schema && selectedProductType.field_schema.length > 0 && (
+            <div className="pt-4 border-t space-y-4">
+              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                Campos de {selectedProductType.name}
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {selectedProductType.field_schema.map((field: any, idx: number) => {
+                  const fieldKey = `attributes.${field.name}`;
+                  return (
+                    <div key={idx} className="space-y-2">
+                      <Label className="flex items-center gap-1">
+                        {field.name}
+                        {field.required && <span className="text-destructive">*</span>}
+                      </Label>
+                      
+                      {field.kind === "text" && (
+                        <Input {...register(fieldKey as any, { required: field.required })} placeholder="Ex: Algodão" />
+                      )}
+                      
+                      {field.kind === "number" && (
+                        <Input type="number" step="any" {...register(fieldKey as any, { required: field.required })} placeholder="0" />
+                      )}
+
+                      {field.kind === "boolean" && (
+                        <div className="flex items-center h-10 space-x-2">
+                          <Checkbox
+                            id={fieldKey}
+                            checked={watch(fieldKey as any) === true}
+                            onCheckedChange={(checked: boolean) => setValue(fieldKey as any, checked === true)}
+                          />
+                          <label htmlFor={fieldKey} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                            Sim, possui {field.name.toLowerCase()}
+                          </label>
+                        </div>
+                      )}
+
+                      {(field.kind === "select_single" || field.kind === "option_group") && (
+                        <Select 
+                          value={watch(fieldKey as any) || ""} 
+                          onValueChange={(val) => setValue(fieldKey as any, val)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {field.options?.map((opt: string, i: number) => (
+                              <SelectItem key={i} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base">Logística Avançada & Dimensões</CardTitle>
           <CardDescription>Necessário para cálculo de frete e prazos.</CardDescription>
         </CardHeader>
@@ -626,229 +729,60 @@ function GeneralForm({
 }
 
 function VariantsManager({ product }: { product: any }) {
-
-  // Matrix State
-  const initialVariantOptions = (product.attributes?.variant_options || []) as {name: string, options: string[]}[];
-  const [customVariantGroups, setCustomVariantGroups] = useState<{name: string, options: string[]}[]>(initialVariantOptions);
-  const [selectedVariantOptions, setSelectedVariantOptions] = useState<Record<string, string[]>>({});
-  const [newCustomGroupName, setNewCustomGroupName] = useState("");
-  const [customOptionInput, setCustomOptionInput] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    const initialSelected: Record<string, string[]> = {};
-    initialVariantOptions.forEach(g => {
-      initialSelected[g.name] = g.options || [];
-    });
-    setSelectedVariantOptions(initialSelected);
-  }, []);
-
-  const toggleVariantOption = (groupName: string, optionValue: string) => {
-    setSelectedVariantOptions(prev => {
-      const current = prev[groupName] || [];
-      const newOpts = current.includes(optionValue)
-        ? current.filter(o => o !== optionValue)
-        : [...current, optionValue];
-      
-      // Update customVariantGroups to reflect the change
-      setCustomVariantGroups(groups => groups.map(g => {
-        if (g.name === groupName) {
-          return { ...g, options: newOpts };
-        }
-        return g;
-      }));
-      
-      return { ...prev, [groupName]: newOpts };
-    });
-  };
-
-  const handleSaveMatrixMemory = async () => {
-    try {
-      const activeGroups = customVariantGroups.filter(g => (selectedVariantOptions[g.name] || []).length > 0).map(g => ({
-        name: g.name,
-        options: selectedVariantOptions[g.name]
-      }));
-      const newAttributes = { ...product.attributes, variant_options: activeGroups };
-      await updateProduct({ data: { id: product.id, attributes: newAttributes } });
-      toast.success("Memória da matriz salva!");
-    } catch (e) {
-      toast.error("Erro ao salvar matriz");
-    }
-  };
-
-  const handleGenerateMissingVariants = async () => {
-    setIsSubmitting(true);
-    try {
-      await handleSaveMatrixMemory();
-      
-      const activeGroups = customVariantGroups.map(g => g.name).filter(name => (selectedVariantOptions[name] || []).length > 0);
-      if (activeGroups.length === 0) {
-        toast.error("Nenhuma opção selecionada");
-        setIsSubmitting(false);
-        return;
-      }
-      
-      const arraysToMultiply = activeGroups.map(name => selectedVariantOptions[name] || []);
-      const cartesian = arraysToMultiply.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())), [[]] as any[]);
-      
-      const existingVariants = product.product_variants || [];
-      let added = 0;
-      
-      for (const combination of cartesian) {
-        const comboArray = Array.isArray(combination) ? combination : [combination];
-        const attrs: Record<string, string> = {};
-        activeGroups.forEach((name, i) => {
-          attrs[name] = comboArray[i];
-        });
-        
-        // Check if exists
-        const exists = existingVariants.some((v: any) => {
-          const vAttrs = v.attributes || {};
-          return activeGroups.every(name => vAttrs[name] === attrs[name]);
-        });
-        
-        if (!exists) {
-          const skuSuffix = comboArray.map(v => v.substring(0, 3).toUpperCase()).join('-');
-          const sku = `${product.slug}-${skuSuffix}-${Date.now().toString().slice(-4)}`;
-          await upsertProductVariant({
-            data: {
-              product_id: product.id,
-              sku,
-              status: "active",
-              attributes: attrs,
-            }
-          });
-          added++;
-        }
-      }
-      
-      if (added > 0) {
-        toast.success(`${added} variantes geradas com sucesso!`);
-        router.invalidate();
-      } else {
-        toast.info("Nenhuma variante nova necessária.");
-      }
-    } catch (e) {
-      toast.error("Erro ao gerar variantes");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const router = useRouter();
   const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <div>
-            <CardTitle className="text-base">Variações de Estoque & Tamanho</CardTitle>
-            <CardDescription>SKUs específicos por numeração, cor ou especificação.</CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            <GridBuilderDialog product={product} />
-            <Button size="sm" onClick={() => { setIsAddingNew(true); setEditingVariantId(null); }}>
-              <Plus className="mr-1.5 size-4" /> Nova Variante
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {(!product.product_variants || product.product_variants.length === 0) && !isAddingNew ? (
-            <div className="text-center py-6 text-xs text-muted-foreground">
-              Nenhuma variação cadastrada. Clique em "Nova Variante" para adicionar tamanhos ou cores.
-            </div>
-          ) : (
-            <div className="rounded-md border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/40">
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Exibição / Atributos</TableHead>
-                    <TableHead>Preço Override</TableHead>
-                    <TableHead>Estoque Atual</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {product.product_variants?.map((v: any) => {
-                    const attrsString = Object.entries(v.attributes || {})
-                      .map(([k, val]) => `${k}: ${val}`)
-                      .join(", ");
-                    
-                    const isEditing = editingVariantId === v.id;
-                    const availableQty = Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0));
+      <Tabs defaultValue="rapido" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 h-12 mb-4">
+          <TabsTrigger value="rapido" className="flex items-center gap-2 font-semibold">
+            <Sparkles className="size-4" /> Modo Rápido (Opções)
+          </TabsTrigger>
+          <TabsTrigger value="avancado" className="flex items-center gap-2 font-semibold">
+            <Settings className="size-4" /> Modo Avançado (Tabela)
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="rapido" className="mt-0">
+          <VariantOptionsBuilder product={product} />
+        </TabsContent>
 
-                    return (
-                      <Fragment key={v.id}>
-                        <TableRow className={isEditing ? "bg-muted/30" : ""}>
-                          <TableCell className="font-mono text-xs font-semibold">{v.sku}</TableCell>
-                          <TableCell className="text-xs">
-                            <span className="font-medium text-foreground">{v.display_name || "Padrão"}</span>
-                            <br/>
-                            <span className="text-muted-foreground">{attrsString}</span>
-                          </TableCell>
-                          <TableCell className="text-xs">
-                            {v.price_override_cents ? formatMoney(v.price_override_cents) : "Preço Base"}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col text-[11px]">
-                              <span className="font-bold text-emerald-600 dark:text-emerald-400">{availableQty} disp.</span>
-                              <span className="text-muted-foreground">{v.stock_reserved || 0} rsv. / {v.stock_on_hand || 0} tot.</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={v.status === "active" ? "default" : "secondary"} className="text-[10px]">
-                              {v.status === "active" ? "Ativo" : v.status === "inactive" ? "Inativo" : "Arquivado"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="ghost" size="sm" onClick={() => {
-                              setEditingVariantId(isEditing ? null : v.id);
-                              setIsAddingNew(false);
-                            }}>
-                              {isEditing ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                        {isEditing && (
-                          <TableRow className="bg-muted/10 border-b-2 border-primary/20">
-                            <TableCell colSpan={6} className="p-0">
-                              <div className="p-4 sm:p-6">
-                                <VariantFormRow 
-                                  variant={v} 
-                                  productId={product.id} 
-                                  onClose={() => setEditingVariantId(null)} 
-                                />
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </Fragment>
-                    );
-                  })}
-                  
-                  {isAddingNew && (
-                    <TableRow className="bg-muted/10 border-b-2 border-primary/20">
-                      <TableCell colSpan={6} className="p-0">
-                        <div className="p-4 sm:p-6">
-                          <h3 className="text-sm font-semibold mb-4 text-primary">Nova Variante</h3>
-                          <VariantFormRow 
-                            productId={product.id} 
-                            onClose={() => setIsAddingNew(false)} 
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+        <TabsContent value="avancado" className="mt-0">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle className="text-base">Tabela de Variantes</CardTitle>
+                <CardDescription>Gerencie SKUs, imagens específicas, estoque e preços por variante.</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button size="sm" onClick={() => { setIsAddingNew(true); setEditingVariantId(null); }}>
+                  <Plus className="mr-1.5 size-4" /> Nova Variante Manual
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <VariantListGrid product={product} onEditVariant={setEditingVariantId} />
+            </CardContent>
+          </Card>
+
+          {editingVariantId && (
+             <VariantFormRow
+               productId={product.id}
+               variant={product.product_variants?.find((v: any) => v.id === editingVariantId)}
+               onClose={() => setEditingVariantId(null)}
+             />
           )}
-        </CardContent>
-      </Card>
+
+          {isAddingNew && (
+             <VariantFormRow
+               productId={product.id}
+               onClose={() => setIsAddingNew(false)}
+             />
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
