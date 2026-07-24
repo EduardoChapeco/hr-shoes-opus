@@ -215,17 +215,40 @@ export const getCart = createServerFn({ method: "GET" }).handler(
 );
 
 const AddToCartSchema = z.object({
-  variantId: z.string().uuid(),
+  variantId: z.string().uuid().optional(),
+  productId: z.string().uuid().optional(),
   quantity: z.number().int().min(1),
   sellerId: z.string().uuid().optional(),
 });
 
 export const addToCart = createServerFn({ method: "POST" })
   .validator(AddToCartSchema)
-  .handler(async ({ data: { variantId, quantity, sellerId } }) => {
+  .handler(async ({ data: { variantId: inputVariantId, productId, quantity, sellerId } }) => {
     const supabase = getServerClient();
     const identity = await getCurrentIdentity();
     const activeSellerId = sellerId || getSellerRefCookie();
+
+    let targetVariantId = inputVariantId;
+
+    // If only productId provided, fetch first available variant
+    if (!targetVariantId && productId) {
+      const { data: firstVariant } = await supabase
+        .from("product_variants")
+        .select("id")
+        .eq("product_id", productId)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .single();
+
+      if (firstVariant) {
+        targetVariantId = firstVariant.id;
+      }
+    }
+
+    if (!targetVariantId) {
+      throw new Error("Selecione uma opção de produto válida.");
+    }
+    const variantId = targetVariantId;
 
     // Check if store exists to use for cart
     const { resolveTenantStoreId } = await import("@/lib/tenant");

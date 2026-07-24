@@ -46,6 +46,23 @@ function QuickNewProductPage() {
   // Imagem principal única para criação rápida
   const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
 
+  // Gerador Rápido de Variações
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(["35", "36", "37", "38"]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [initialStock, setInitialStock] = useState<number>(10);
+
+  const shoeSizes = ["33", "34", "35", "36", "37", "38", "39", "40"];
+  const apparelSizes = ["PP", "P", "M", "G", "GG"];
+  const popularColors = ["Preto", "Nude", "Branco", "Caramelo", "Off-White", "Vermelho", "Ouro"];
+
+  const toggleSize = (size: string) => {
+    setSelectedSizes(prev => prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]);
+  };
+
+  const toggleColor = (color: string) => {
+    setSelectedColors(prev => prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]);
+  };
+
   const {
     register,
     handleSubmit,
@@ -66,11 +83,45 @@ function QuickNewProductPage() {
     setIsSubmitting(true);
     try {
       const priceCents = parseInt(values.price_cents.replace(/\D/g, ""), 10) || 0;
+      const targetSlug = values.slug || slugify(values.title);
+
+      // Geração da matriz de variações rápida
+      const variants: { sku: string; attributes: Record<string, any>; stock: number }[] = [];
+
+      if (selectedSizes.length > 0 && selectedColors.length > 0) {
+        for (const size of selectedSizes) {
+          for (const color of selectedColors) {
+            const cleanColor = color.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").slice(0, 3);
+            variants.push({
+              sku: `${targetSlug}-${cleanColor}-${size}`,
+              attributes: { Tamanho: size, Cor: color },
+              stock: initialStock,
+            });
+          }
+        }
+      } else if (selectedSizes.length > 0) {
+        for (const size of selectedSizes) {
+          variants.push({
+            sku: `${targetSlug}-${size}`,
+            attributes: { Tamanho: size },
+            stock: initialStock,
+          });
+        }
+      } else if (selectedColors.length > 0) {
+        for (const color of selectedColors) {
+          const cleanColor = color.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").slice(0, 3);
+          variants.push({
+            sku: `${targetSlug}-${cleanColor}`,
+            attributes: { Cor: color },
+            stock: initialStock,
+          });
+        }
+      }
       
       const res = await createProduct({
         data: {
           title: values.title,
-          slug: values.slug || slugify(values.title),
+          slug: targetSlug,
           price_cents: priceCents,
           status: values.status as "draft" | "published" | "archived",
           category_ids: values.category_id !== "none" ? [values.category_id] : [],
@@ -78,18 +129,19 @@ function QuickNewProductPage() {
           media_urls: mainImageUrl ? [mainImageUrl] : [],
           is_physical: true,
           attributes: {},
+          variants: variants.length > 0 ? variants : undefined,
         },
       });
 
       if (res) {
-        toast.success("Rascunho criado! Redirecionando para o editor completo...");
+        toast.success(`Rascunho criado com ${variants.length || 1} variação(ões)!`);
         navigate({ to: "/admin/catalogo/produtos/$id", params: { id: res.id } });
       } else {
-        toast.error(res.message || "Erro ao criar produto");
+        toast.error("Erro ao criar produto");
         setIsSubmitting(false);
       }
     } catch (e: unknown) {
-      toast.error("Erro inesperado ao salvar produto");
+      toast.error(e instanceof Error ? e.message : "Erro inesperado ao salvar produto");
       setIsSubmitting(false);
     }
   };
@@ -211,6 +263,99 @@ function QuickNewProductPage() {
                   /produto/
                 </span>
                 <Input {...register("slug")} className="h-9 rounded-l-none text-xs bg-muted/30 text-muted-foreground" readOnly />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card do Gerador Rápido de Variações */}
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="text-base font-bold flex items-center justify-between">
+              <span>Variações & Estoque Rápido</span>
+              <span className="text-xs font-normal text-muted-foreground">
+                {selectedSizes.length * (selectedColors.length || 1) || selectedColors.length || 1} variação(ões) selecionada(s)
+              </span>
+            </CardTitle>
+            <CardDescription>
+              Marque os tamanhos e cores desejados para gerar a matriz de variações com estoque inicial pronto para venda.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Seção de Tamanhos Calçados */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <Label className="text-xs font-bold uppercase tracking-wider text-foreground">Tamanhos (Calçados)</Label>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setSelectedSizes(shoeSizes)} className="text-[11px] text-primary hover:underline font-medium">Todos</button>
+                  <span className="text-[11px] text-muted-foreground">|</span>
+                  <button type="button" onClick={() => setSelectedSizes([])} className="text-[11px] text-muted-foreground hover:underline font-medium">Limpar</button>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {shoeSizes.map(size => {
+                  const active = selectedSizes.includes(size);
+                  return (
+                    <button
+                      type="button"
+                      key={size}
+                      onClick={() => toggleSize(size)}
+                      className={`h-9 min-w-10 px-3 rounded-lg text-sm font-semibold border transition-all ${
+                        active ? "bg-primary text-primary-foreground border-primary shadow-sm scale-105" : "bg-background text-muted-foreground border-input hover:border-primary/50"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Seção de Cores Populares */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <Label className="text-xs font-bold uppercase tracking-wider text-foreground">Cores Principais (Opcional)</Label>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setSelectedColors(popularColors)} className="text-[11px] text-primary hover:underline font-medium">Todas</button>
+                  <span className="text-[11px] text-muted-foreground">|</span>
+                  <button type="button" onClick={() => setSelectedColors([])} className="text-[11px] text-muted-foreground hover:underline font-medium">Limpar</button>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {popularColors.map(color => {
+                  const active = selectedColors.includes(color);
+                  return (
+                    <button
+                      type="button"
+                      key={color}
+                      onClick={() => toggleColor(color)}
+                      className={`h-9 px-3 rounded-lg text-xs font-medium border transition-all ${
+                        active ? "bg-primary text-primary-foreground border-primary shadow-sm" : "bg-background text-muted-foreground border-input hover:border-primary/50"
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Configuração do Estoque Inicial por Variação */}
+            <div className="pt-2 border-t flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <Label className="text-sm font-semibold">Estoque Inicial por Variação</Label>
+                <p className="text-xs text-muted-foreground">Quantidade reservável alocada para cada tamanho/cor selecionada.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  max="999"
+                  value={initialStock}
+                  onChange={e => setInitialStock(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                  className="w-24 h-10 text-center font-bold text-base"
+                />
+                <span className="text-xs text-muted-foreground font-medium">unidades / variação</span>
               </div>
             </div>
           </CardContent>

@@ -325,10 +325,10 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [shippingOrigin, setShippingOrigin] = useState<"national" | "international">("national");
 
-  // Find the matching variant
+  // Find the matching variant or default to first if single variant
   const selectedVariant = product.variants.find((v: VariantDTO) => {
     return Object.entries(selectedAttributes).every(([key, val]) => v.attributes[key] === val);
-  });
+  }) || (product.variants.length === 1 ? product.variants[0] : null);
 
   // Watch selected variant to change active media automatically if variant has custom media
   useMemo(() => {
@@ -340,19 +340,17 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
   const { refreshCart, setIsCartOpen, setCartData } = useCartContext();
 
   const handleAddToCart = async () => {
-    if (!selectedVariant) {
-      toast.error("Por favor, selecione as opções do produto.");
-      return;
-    }
-
-    if (selectedVariant.availableQty <= 0) {
-      toast.error("Esta opção está sem estoque no momento.");
-      return;
-    }
+    const targetVariantId = selectedVariant?.id;
 
     setIsAdding(true);
     try {
-      const res = await addToCart({ data: { variantId: selectedVariant.id, quantity: 1 } });
+      const res = await addToCart({
+        data: {
+          variantId: targetVariantId,
+          productId: product.id,
+          quantity: 1,
+        },
+      });
       toast.success("Adicionado ao carrinho");
       if (res.session_token) {
         document.cookie = `hr_shoes_guest_session=${res.session_token}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;

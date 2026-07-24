@@ -304,16 +304,28 @@ export async function createProductHandler(input: {
       }
     }
   } else {
-    // Create a default variant if none provided
-    const { error: variantError } = await db.from("product_variants").insert({
-      product_id: data.id,
-      sku: `${input.slug}-01`,
-      price_override_cents: input.price_cents,
-      attributes: input.attributes,
-      stock_on_hand: 0,
-    });
+    // Create a default variant if none provided with positive initial stock
+    const { data: defaultVariant, error: variantError } = await db
+      .from("product_variants")
+      .insert({
+        product_id: data.id,
+        sku: `${input.slug}-01`,
+        price_override_cents: input.price_cents,
+        attributes: input.attributes || {},
+        stock_on_hand: 10,
+      })
+      .select()
+      .single();
 
     if (variantError) throw variantError;
+
+    await db.from("stock_movements").insert({
+      variant_id: defaultVariant.id,
+      store_id: storeData.id,
+      movement_type: "adjustment",
+      qty: 10,
+      note: "Estoque Inicial (Padrão)",
+    });
   }
 
   // Insert media if provided
