@@ -10,7 +10,7 @@ export const builderResolvers: Record<string, (args?: any) => Promise<any>> = {
   latest_products: async (args: { limit?: number } = {}) => {
     try {
       const res = await listPublishedProducts({ data: { limit: args.limit || 8 } });
-      return res || [];
+      return res?.status === "ok" ? res.data : [];
     } catch (e) {
       console.error("[builder-resolvers] latest_products error:", e);
       return [];
@@ -24,7 +24,7 @@ export const builderResolvers: Record<string, (args?: any) => Promise<any>> = {
       const res = await listPublishedProducts({ 
         data: { categorySlug: args.categorySlug, limit: args.limit || 8 } 
       });
-      return res || [];
+      return res?.status === "ok" ? res.data : [];
     } catch (e) {
       console.error("[builder-resolvers] category_products error:", e);
       return [];

@@ -93,7 +93,7 @@ export async function fetchCartDTO(identity: {
           attributes,
           product:products (
             id,
-            name,
+            title,
             slug,
             price_cents,
             product_media ( url )
@@ -124,7 +124,7 @@ export async function fetchCartDTO(identity: {
       attributes: Record<string, string>;
       product: {
         id: string;
-        name: string;
+        title: string;
         slug: string;
         price_cents: number;
         product_media?: { url: string }[];
@@ -153,7 +153,7 @@ export async function fetchCartDTO(identity: {
       priceCents: price,
       compareAtCents: variant.compare_at_cents ?? null,
       lineTotalCents: lineTotal,
-      productTitle: product.name,
+      productTitle: product.title ?? "",
       variantSku: variant.sku,
       variantAttributes: variant.attributes || {},
       coverUrl: image,

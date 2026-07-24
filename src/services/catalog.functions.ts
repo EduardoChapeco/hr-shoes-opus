@@ -164,7 +164,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       }
 
       if (!data || data.length === 0) {
-        return [];
+        return { status: "empty" };
       }
 
       let products: ProductCardDTO[] = data.map(mapProductCardDTO);
@@ -181,13 +181,13 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       // Trim to requested limit after sorting
       products = products.slice(0, params.limit);
 
-      return products ;
+      return { status: "ok", data: products };
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) {
-        throw new Error("Nossa vitrine está passando por uma rápida atualização técnica.");
+        return { status: "unconfigured", reason: "Nossa vitrine está passando por uma rápida atualização técnica." };
       }
       console.error("[catalog.functions] unexpected error:", e);
-      throw new Error("Erro inesperado ao carregar produtos." );
+      return { status: "error", message: e instanceof Error ? e.message : "Erro inesperado ao carregar produtos." };
     }
   });
 

@@ -75,6 +75,8 @@ function CategoryPage() {
     ? categoriesResult.find((c: CategoryDTO) => c.slug === slug)
     : undefined;
 
+  const products: ProductCardDTO[] = productsResult?.status === "ok" ? productsResult.data : [];
+
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       {/* Breadcrumb */}
@@ -100,7 +102,7 @@ function CategoryPage() {
       />
 
       <div className="mt-8">
-        {productsResult.length === 0 ? (
+        {products.length === 0 ? (
           <EmptyState
             title="Nenhum produto nesta categoria"
             description="Ainda não há produtos publicados nesta categoria."
@@ -112,7 +114,7 @@ function CategoryPage() {
           />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {productsResult.map((product: ProductCardDTO) => (
+            {products.map((product: ProductCardDTO) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

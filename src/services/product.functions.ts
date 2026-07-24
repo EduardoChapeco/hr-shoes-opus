@@ -25,11 +25,9 @@ export async function getProductBySlugHandler(slug: string) {
     const { data: product, error } = await db
       .from("products")
       .select(
-        `id, slug, title, description, short_description, brand,
+        `id, slug, title, description, brand,
          price_cents, compare_at_cents, allows_preorder,
-         seo_title, seo_description, meta_title, meta_description,
-         manufacturer, ean, is_physical, preparation_time_days,
-         weight_kg, width_cm, height_cm, length_cm, status,
+         seo_title, seo_description, status,
          product_media(id, url, alt, media_type, sort_order, focal_point, variant_id),
          product_variants(
            id, sku, display_name, status, price_override_cents,
@@ -41,12 +39,11 @@ export async function getProductBySlugHandler(slug: string) {
            category_id,
            categories(id, name, slug)
          ),
-         reviews(id, rating, comment, created_at, status, reviewer_name)
+         reviews(id, rating, comment, created_at, status)
         `,
       )
       .eq("slug", slug)
       .eq("status", "published")
-      .eq("reviews.status", "approved")
       .single();
 
     if (error || !product) {

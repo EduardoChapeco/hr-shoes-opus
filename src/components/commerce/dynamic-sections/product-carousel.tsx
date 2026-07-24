@@ -65,7 +65,7 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
     queryKey: ["editorLatestProducts", data_bindings?.limit],
     queryFn: async () => {
       const res = await listPublishedProducts({ data: { limit: data_bindings?.limit || 12 } });
-      return Array.isArray(res) ? res : [];
+      return res?.status === "ok" ? res.data : [];
     },
     enabled: !!(shouldFetchClient && isLatest)
   });
