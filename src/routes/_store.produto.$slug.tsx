@@ -325,10 +325,23 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [shippingOrigin, setShippingOrigin] = useState<"national" | "international">("national");
 
-  // Find the matching variant or default to first if single variant
-  const selectedVariant = product.variants.find((v: VariantDTO) => {
-    return Object.entries(selectedAttributes).every(([key, val]) => v.attributes[key] === val);
-  }) || (product.variants.length === 1 ? product.variants[0] : null);
+  // Find the matching variant or default to first available variant
+  const selectedVariant = useMemo(() => {
+    if (!product.variants || product.variants.length === 0) return null;
+
+    const exact = product.variants.find((v: VariantDTO) => {
+      return Object.entries(selectedAttributes).every(([key, val]) => {
+        const matchKey = Object.keys(v.attributes).find((k) => k.toLowerCase() === key.toLowerCase());
+        return matchKey ? v.attributes[matchKey] === val : false;
+      });
+    });
+
+    if (exact) return exact;
+
+    // Fallback: first variant with stock or simply the first variant
+    const inStock = product.variants.find((v: VariantDTO) => v.availableQty > 0);
+    return inStock || product.variants[0];
+  }, [product.variants, selectedAttributes]);
 
   // Watch selected variant to change active media automatically if variant has custom media
   useMemo(() => {
@@ -341,6 +354,11 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
 
   const handleAddToCart = async () => {
     const targetVariantId = selectedVariant?.id;
+
+    if (!targetVariantId) {
+      toast.error("Por favor, selecione um tamanho ou opção do produto.");
+      return;
+    }
 
     setIsAdding(true);
     try {
