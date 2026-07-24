@@ -792,7 +792,7 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                 className="w-full font-bold text-sm h-12 uppercase tracking-wider bg-primary hover:bg-primary/95 transition-transform duration-100 hover:scale-[1.01]"
                 onClick={handleAddToCart}
                 disabled={
-                  isAdding || allOutOfStock || (selectedVariant && selectedVariant.availableQty <= 0)
+                  Boolean(isAdding) || Boolean(allOutOfStock) || Boolean(selectedVariant && selectedVariant.availableQty <= 0)
                 }
               >
                 <ShoppingBag className="size-5 mr-2" aria-hidden />
