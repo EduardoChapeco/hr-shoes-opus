@@ -26,11 +26,16 @@ import { SplitBanner } from "./dynamic-sections/split-banner";
 import { StoreProfileHero } from "./dynamic-sections/store-profile-hero";
 import { StoreHours } from "./dynamic-sections/store-hours";
 import { StoreContact } from "./dynamic-sections/store-contact";
+import { ImageHotspots } from "./dynamic-sections/image-hotspots";
+import { RoutineSteps } from "./dynamic-sections/routine-steps";
+import { IngredientSpotlight } from "./dynamic-sections/ingredient-spotlight";
+import { BeforeAfterSlider } from "./dynamic-sections/before-after-slider";
 import { TrackView } from "./analytics-provider";
 
 // Mapeamento dinâmico dos componentes React para cada bloco
 const componentMap: Record<string, React.FC<any>> = {
   hero_carousel: HeroCarousel,
+  hero_banner: HeroCarousel,
   rich_text: RichText,
   bento_grid: BentoGrid,
   countdown_timer: CountdownTimer,
@@ -53,6 +58,10 @@ const componentMap: Record<string, React.FC<any>> = {
   store_profile_hero: StoreProfileHero,
   store_hours: StoreHours,
   store_contact: StoreContact,
+  image_hotspots: ImageHotspots,
+  routine_steps: RoutineSteps,
+  ingredient_spotlight: IngredientSpotlight,
+  before_after_slider: BeforeAfterSlider,
 };
 
 interface ExperienceRendererProps {

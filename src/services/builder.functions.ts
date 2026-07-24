@@ -69,7 +69,6 @@ async function hydrateBindings(
   db: ReturnType<typeof getServerClient>,
   store_id: string
 ): Promise<ExperienceNode[]> {
-  // Eagerly resolve store_profile once for all matching nodes
   const needsStoreProfile = nodes.some(
     (n) => n.data_bindings && (n.data_bindings.source === "store_profile")
   );
@@ -85,36 +84,34 @@ async function hydrateBindings(
       }
 
       if (bindingType === "product_collection" && bindings.collection_slug) {
-        const { getProductsByCollection } = await import("@/services/catalog.functions");
-        // Use the exact store_id, bypass public resolveTenantStoreId to avoid spoofing issues in admin
-          const { data: col } = await db.from("collections").select("id").eq("slug", bindings.collection_slug).eq("store_id", store_id).eq("status", "active").single();
-            let res = null;
-            if (col) {
-              const { data: junction } = await db.from("product_collections").select("product_id").eq("collection_id", col.id);
-              const pIds = junction?.map((j: any) => j.product_id) || [];
-              if (pIds.length > 0) {
-                const { data } = await db.from("products")
-                  .select("id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)")
-                  .eq("status", "published")
-                  .eq("store_id", store_id)
-                  .in("id", pIds)
-                  .order("created_at", { ascending: false })
-                  .limit(12);
-                if (data) {
-                  const formatted = data.map((p: any) => {
-                    const sortedMedia = p.media ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order) : [];
-                    return {
-                      id: p.id, title: p.title, slug: p.slug,
-                      priceCents: p.price_cents, compareAtCents: p.compare_at_cents,
-                      coverUrl: sortedMedia[0]?.url || null,
-                      hoverUrl: sortedMedia[1]?.url || null,
-                      isOutOfStock: false,
-                    };
-                  });
-                  res = { status: "ok", data: formatted };
-                }
-              }
+        const { data: col } = await db.from("collections").select("id").eq("slug", bindings.collection_slug).eq("store_id", store_id).eq("status", "active").single();
+        let res = null;
+        if (col) {
+          const { data: junction } = await db.from("product_collections").select("product_id").eq("collection_id", col.id);
+          const pIds = junction?.map((j: any) => j.product_id) || [];
+          if (pIds.length > 0) {
+            const { data } = await db.from("products")
+              .select("id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)")
+              .eq("status", "published")
+              .eq("store_id", store_id)
+              .in("id", pIds)
+              .order("created_at", { ascending: false })
+              .limit(12);
+            if (data) {
+              const formatted = data.map((p: any) => {
+                const sortedMedia = p.media ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order) : [];
+                return {
+                  id: p.id, title: p.title, slug: p.slug,
+                  priceCents: p.price_cents, compareAtCents: p.compare_at_cents,
+                  coverUrl: sortedMedia[0]?.url || null,
+                  hoverUrl: sortedMedia[1]?.url || null,
+                  isOutOfStock: false,
+                };
+              });
+              res = { status: "ok", data: formatted };
             }
+          }
+        }
         if (res && res.status === "ok") {
           return { ...node, transient_data: { products: res.data } };
         }
@@ -154,6 +151,41 @@ async function hydrateBindings(
             };
           });
           return { ...node, transient_data: { reviews: formatted } };
+        }
+      }
+
+      if (node.block_type === "image_hotspots" && Array.isArray(node.content?.hotspots)) {
+        const slugs = node.content.hotspots
+          .map((h: any) => h.product_slug)
+          .filter((s: string | undefined): s is string => Boolean(s));
+
+        if (slugs.length > 0) {
+          const { data: prods } = await db
+            .from("products")
+            .select("id, title, slug, price_cents, compare_at_cents")
+            .eq("store_id", store_id)
+            .eq("status", "published")
+            .in("slug", slugs);
+
+          if (prods && prods.length > 0) {
+            const prodMap = new Map(prods.map(p => [p.slug, p]));
+            const enrichedHotspots = node.content.hotspots.map((h: any) => {
+              if (h.product_slug && prodMap.has(h.product_slug)) {
+                const p = prodMap.get(h.product_slug)!;
+                return {
+                  ...h,
+                  title: h.title || p.title,
+                  price_cents: p.price_cents,
+                  product_id: p.id,
+                };
+              }
+              return h;
+            });
+            return {
+              ...node,
+              content: { ...node.content, hotspots: enrichedHotspots },
+            };
+          }
         }
       }
 
@@ -727,6 +759,70 @@ export const getOrCreateHomeDocument = createServerFn({ method: "POST" })
     } catch (e) {
       console.error("[builder.functions] getOrCreateHomeDocument error:", e);
       throw new Error("Erro ao criar vitrine principal." );
+    }
+  });
+
+export const applyHomeTemplate = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      document_id: z.string().uuid(),
+      template_id: z.string(),
+    })
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const db = getServerClient();
+      const { HOME_TEMPLATES_LIBRARY } = await import("@/lib/home-templates-library");
+      const { randomUUID } = await import("crypto");
+
+      const preset = HOME_TEMPLATES_LIBRARY[input.template_id];
+      if (!preset) {
+        throw new Error("Template de vitrine não encontrado.");
+      }
+
+      // 1. Get current Draft version or create one
+      const { data: versions } = await db
+        .from("experience_versions")
+        .select("*")
+        .eq("document_id", input.document_id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      let version = versions && versions.length > 0 ? versions[0] : null;
+
+      if (!version) {
+        const { data: newVersion, error: vError } = await db
+          .from("experience_versions")
+          .insert({
+            document_id: input.document_id,
+            version_number: 1,
+            status: "draft",
+          })
+          .select()
+          .single();
+
+        if (vError) throw vError;
+        version = newVersion;
+      }
+
+      // 2. Delete existing nodes in draft version
+      await db.from("experience_nodes").delete().eq("version_id", version.id);
+
+      // 3. Generate template nodes and insert
+      const seedNodes = preset.nodesFactory(() => randomUUID());
+      if (seedNodes.length > 0) {
+        const nodesToInsert = seedNodes.map((n: any) => ({
+          ...n,
+          version_id: version.id,
+        }));
+        const { error: insError } = await db.from("experience_nodes").insert(nodesToInsert);
+        if (insError) throw insError;
+      }
+
+      return { status: "success" as const, data: { versionId: version.id, templateId: input.template_id } };
+    } catch (e: any) {
+      console.error("[builder.functions] applyHomeTemplate error:", e);
+      throw new Error(e.message || "Erro ao aplicar template de vitrine.");
     }
   });
 

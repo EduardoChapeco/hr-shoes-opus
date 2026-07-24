@@ -881,5 +881,218 @@ export const builderRegistry: Record<string, BlockManifest> = {
       data_bindings: { source: "store_profile" },
     }
   },
+
+  image_hotspots: {
+    type: "image_hotspots",
+    version: "1.0.0",
+    name: "Imagem com Hotspots (Shop the Look)",
+    description: "Imagem interativa com pontos clicáveis para visualizar e comprar produtos",
+    category: "commerce",
+    icon: "Target",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      image_url: z.string().url(),
+      mobile_image_url: z.string().optional(),
+      hotspots: z.array(
+        z.object({
+          id: z.string(),
+          xPercent: z.number().min(0).max(100),
+          yPercent: z.number().min(0).max(100),
+          product_slug: z.string().optional(),
+          product_id: z.string().optional(),
+          title: z.string().optional(),
+          price_cents: z.number().optional(),
+        })
+      ),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Seção", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+        { name: "image_url", label: "Imagem Desktop", type: "image" },
+        { name: "mobile_image_url", label: "Imagem Mobile (Opcional)", type: "image" },
+        {
+          name: "hotspots",
+          label: "Pontos Clicáveis (Hotspots)",
+          type: "array",
+          arrayFields: [
+            { name: "title", label: "Nome do Produto", type: "text" },
+            { name: "product_slug", label: "Slug do Produto no Catálogo", type: "text" },
+            { name: "xPercent", label: "Posição X (%)", type: "number" },
+            { name: "yPercent", label: "Posição Y (%)", type: "number" },
+          ],
+        },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "image_hotspots",
+      content: {
+        title: "Shop the Look",
+        subtitle: "Clique nos marcadores para ver os produtos",
+        image_url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1600",
+        hotspots: [
+          { id: "h1", xPercent: 35, yPercent: 40, title: "Jaqueta Leather Premium", product_slug: "jaqueta-leather" },
+          { id: "h2", xPercent: 65, yPercent: 75, title: "Tênis Urban Comfort", product_slug: "tenis-urban" },
+        ],
+      },
+    },
+  },
+
+  routine_steps: {
+    type: "routine_steps",
+    version: "1.0.0",
+    name: "Passos da Rotina",
+    description: "Etapas numeradas de cuidados ou estilos com produtos recomendados",
+    category: "marketing",
+    icon: "ListOrdered",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      steps: z.array(
+        z.object({
+          step_number: z.number(),
+          title: z.string(),
+          description: z.string(),
+          image_url: z.string().optional(),
+          product_slug: z.string().optional(),
+        })
+      ),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Rotina", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "textarea" },
+        {
+          name: "steps",
+          label: "Passos da Rotina",
+          type: "array",
+          arrayFields: [
+            { name: "step_number", label: "Número do Passo", type: "number" },
+            { name: "title", label: "Título do Passo", type: "text" },
+            { name: "description", label: "Instrução / Descrição", type: "textarea" },
+            { name: "image_url", label: "Imagem de Suporte", type: "image" },
+            { name: "product_slug", label: "Slug do Produto Recomendado", type: "text" },
+          ],
+        },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "routine_steps",
+      content: {
+        title: "Sua Rotina Diária",
+        subtitle: "Siga este passo a passo para melhores resultados",
+        steps: [
+          { step_number: 1, title: "Limpeza Profunda", description: "Remova as impurezas com nosso limpador suave.", product_slug: "" },
+          { step_number: 2, title: "Hidratação Intensa", description: "Aplique o sérum restaurador para nutrição duradoura.", product_slug: "" },
+          { step_number: 3, title: "Proteção Final", description: "Proteja contra agressões diárias com a camada selante.", product_slug: "" },
+        ],
+      },
+    },
+  },
+
+  ingredient_spotlight: {
+    type: "ingredient_spotlight",
+    version: "1.0.0",
+    name: "Destaque de Ingredientes/Materiais",
+    description: "Cards explicativos de ingredientes ativos ou matérias-primas nobres",
+    category: "content",
+    icon: "Sparkles",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      items: z.array(
+        z.object({
+          title: z.string(),
+          benefit: z.string(),
+          description: z.string(),
+          image_url: z.string().optional(),
+        })
+      ),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Seção", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "textarea" },
+        {
+          name: "items",
+          label: "Itens / Ingredientes",
+          type: "array",
+          arrayFields: [
+            { name: "title", label: "Nome do Ingrediente / Material", type: "text" },
+            { name: "benefit", label: "Benefício Principal", type: "text" },
+            { name: "description", label: "Detalhamento Técnico", type: "textarea" },
+            { name: "image_url", label: "Imagem / Ícone", type: "image" },
+          ],
+        },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "ingredient_spotlight",
+      content: {
+        title: "Tecnologia & Ingredientes",
+        subtitle: "Fórmulas puras e matérias-primas selecionadas",
+        items: [
+          { title: "Ácido Hialurônico Vegano", benefit: "Hidratação Multicamadas", description: "Atrai e retém água nas camadas mais profundas." },
+          { title: "Couro Legítimo Solado Flex", benefit: "Durabilidade & Leveza", description: "Desenvolvido com couro nobre de acabamento natural." },
+        ],
+      },
+    },
+  },
+
+  before_after_slider: {
+    type: "before_after_slider",
+    version: "1.0.0",
+    name: "Comparador Antes e Depois",
+    description: "Slider interativo para comparar duas imagens lado a lado",
+    category: "media",
+    icon: "Columns",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container", "section"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+      before_image: z.string().url(),
+      after_image: z.string().url(),
+      before_label: z.string().optional(),
+      after_label: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título da Comparação", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "text" },
+        { name: "before_image", label: "Imagem 'Antes'", type: "image" },
+        { name: "after_image", label: "Imagem 'Depois'", type: "image" },
+        { name: "before_label", label: "Rótulo 'Antes'", type: "text" },
+        { name: "after_label", label: "Rótulo 'Depois'", type: "text" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "before_after_slider",
+      content: {
+        title: "Resultados Reais",
+        subtitle: "Arraste a barra central para comparar a transformação",
+        before_image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
+        after_image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=80&w=800",
+        before_label: "Antes",
+        after_label: "Depois de 14 Dias",
+      },
+    },
+  },
 };
+
 

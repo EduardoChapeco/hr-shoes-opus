@@ -43,7 +43,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getExperienceDocument, saveBuilderNodes, publishBuilderVersion } from "@/services/builder.functions";
+import { getExperienceDocument, saveBuilderNodes, publishBuilderVersion, applyHomeTemplate } from "@/services/builder.functions";
+import { HOME_TEMPLATES_LIBRARY } from "@/lib/home-templates-library";
 import { listCollections, listCategories } from "@/services/admin-catalog.functions";
 import type { ExperienceNode } from "@/lib/builder-types";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
@@ -341,10 +342,31 @@ function BuilderEditorIDE() {
 
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isApplyingTemplate, setIsApplyingTemplate] = useState(false);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [activePanel, setActivePanel] = useState<"sections" | "blocks" | "layers">("sections");
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null);
   const [dragOverNodeId, setDragOverNodeId] = useState<string | null>(null);
+
+  const handleApplyPresetTemplate = async (templateId: string) => {
+    if (!document?.id) return;
+    setIsApplyingTemplate(true);
+    try {
+      const res = await applyHomeTemplate({ data: { document_id: document.id, template_id: templateId } });
+      if (res && res.status === "success") {
+        toast.success("Template aplicado com sucesso! Carregando rascunho...");
+        window.location.reload();
+      } else {
+        toast.error("Erro ao aplicar template.");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Falha ao aplicar template.");
+    } finally {
+      setIsApplyingTemplate(false);
+      setIsTemplateModalOpen(false);
+    }
+  };
 
   // Keyboard Shortcuts for Undo/Redo
   useEffect(() => {
@@ -668,6 +690,16 @@ function BuilderEditorIDE() {
             </button>
           </div>
           
+          {(document?.slug === "home" || document?.document_type === "storefront") && (
+            <button
+              onClick={() => setIsTemplateModalOpen(true)}
+              className="flex items-center gap-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs px-3 py-1.5 rounded-lg border border-amber-500/30 transition-colors font-medium mr-1"
+            >
+              <LayoutTemplate className="h-3.5 w-3.5" />
+              Trocar Template (Temas)
+            </button>
+          )}
+
           <Link
             to="/admin/configuracoes/loja"
             className="flex items-center gap-1.5 text-white/60 hover:text-white text-xs transition-colors hidden md:flex border-r border-white/10 pr-3 mr-1"
@@ -1101,6 +1133,86 @@ function BuilderEditorIDE() {
           )}
         </aside>
       </div>
+
+      {/* ── Modal de Seleção de Temas/Templates para Vitrine ──────────────────────── */}
+      {isTemplateModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 md:p-8 animate-in fade-in">
+          <div className="bg-[#18181b] border border-white/10 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <LayoutTemplate className="w-5 h-5 text-amber-400" />
+                  Biblioteca de Temas & Presets de Vitrine
+                </h3>
+                <p className="text-sm text-white/60 mt-1">
+                  Escolha um tema inicial para renovar a tela da sua loja. Você poderá editar 100% das seções, textos e imagens depois.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsTemplateModalOpen(false)}
+                className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <ScrollArea className="flex-1 p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Object.values(HOME_TEMPLATES_LIBRARY).map((preset) => (
+                  <div
+                    key={preset.id}
+                    className="bg-[#242427] border border-white/10 rounded-xl overflow-hidden flex flex-col hover:border-amber-500/50 transition-all group shadow-md"
+                  >
+                    <div className="relative h-44 bg-muted overflow-hidden">
+                      <img
+                        src={preset.thumbnail}
+                        alt={preset.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <span className="absolute top-3 right-3 bg-black/70 backdrop-blur-md text-amber-400 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-amber-500/30">
+                        {preset.category}
+                      </span>
+                    </div>
+
+                    <div className="p-4 flex-1 flex flex-col">
+                      <h4 className="font-bold text-white text-base mb-1">{preset.name}</h4>
+                      <p className="text-xs text-white/60 line-clamp-3 mb-4 leading-relaxed flex-1">
+                        {preset.description}
+                      </p>
+
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {preset.tags.map((tag) => (
+                          <span key={tag} className="text-[10px] bg-white/5 text-white/70 px-2 py-0.5 rounded border border-white/5">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      <Button
+                        onClick={() => handleApplyPresetTemplate(preset.id)}
+                        disabled={isApplyingTemplate}
+                        className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold text-xs h-9"
+                      >
+                        {isApplyingTemplate ? "Aplicando..." : "Aplicar Este Tema"}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-[#121214] border-t border-white/10 flex items-center justify-between text-xs text-white/50">
+              <span>Ao aplicar, o rascunho atual da sua vitrine será substituído pela estrutura do tema escolhido.</span>
+              <Button variant="ghost" onClick={() => setIsTemplateModalOpen(false)} className="text-white/70 hover:text-white">
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

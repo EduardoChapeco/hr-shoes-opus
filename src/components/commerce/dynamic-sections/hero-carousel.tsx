@@ -9,7 +9,17 @@ import { useBuilderClickTracking } from "../analytics-provider";
 export function HeroCarousel({ content, node_id, block_type }: { content: Record<string, unknown>; node_id?: string; block_type?: string }) {
   const autoPlay = content.autoPlay !== false;
   const interval = Number(content.interval || 5) * 1000;
-  const banners = (Array.isArray(content.banners) ? content.banners : []) as any[];
+  let banners = (Array.isArray(content.banners) ? content.banners : []) as any[];
+  if (banners.length === 0 && (content.image_url || content.title)) {
+    banners = [{
+      title: content.title,
+      subtitle: content.subtitle,
+      image_url: content.image_url,
+      mobile_image_url: content.mobile_image_url,
+      link: content.link,
+      button_text: content.button_text || content.primaryCtaText,
+    }];
+  }
   const trackClick = useBuilderClickTracking(node_id || "", block_type || "");
 
   const showOverlay = content.showOverlay !== false;
