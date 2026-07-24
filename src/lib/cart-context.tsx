@@ -26,12 +26,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Used by the root layout to seed the initial cart state
   const initCart = (initialCart: CartDTO | null) => {
-    if (!cart) {
+    // Apenas sobrecreve se for o carregamento inicial (cart null) 
+    // ou se o carrinho do layout possuir atualizações mais recentes de SSR
+    if (!cart || (initialCart && initialCart.id === cart.id)) {
       setCart(initialCart);
     }
   };
 
   const refreshCart = async () => {
+    // Previne concorrência visual mas permite refresh contínuo em background
+    if (isCartUpdating) return;
+    
     setIsCartUpdating(true);
     try {
       const updatedCart = await getCart();
@@ -39,10 +44,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
       router.invalidate(); // also invalidate to sync TanStack Router loaders
     } catch (e) {
       console.error("Failed to refresh cart", e);
+      // Não exibe erro na UI pois pode ser apenas um sync falho em background
     } finally {
       setIsCartUpdating(false);
     }
   };
+
+  // Cross-tab synchronization
+  useEffect(() => {
+    const handleFocus = () => {
+      // Revalida automaticamente o carrinho quando a aba ganha foco, caso haja alterações em outra aba
+      if (!isCartUpdating) {
+        refreshCart();
+      }
+    };
+    
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [isCartUpdating]);
 
   const updateQty = async (variantId: string, delta: number) => {
     setIsCartUpdating(true);

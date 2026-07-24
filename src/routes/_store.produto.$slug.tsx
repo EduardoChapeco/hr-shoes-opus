@@ -351,15 +351,21 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
           quantity: 1,
         },
       });
-      toast.success("Adicionado ao carrinho");
+
+      if (!res || !res.cart || res.status !== "success") {
+        throw new Error("Falha ao adicionar ao carrinho. Nenhuma confirmação do servidor.");
+      }
+
       if (res.session_token) {
+        // Apenas como fallback caso o backend não suporte Set-Cookie nativo.
+        // O backend real deve gerir via cabeçalhos httpOnly.
         document.cookie = `hr_shoes_guest_session=${res.session_token}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
       }
-      if (res.cart) {
-        setCartData(res.cart as any);
-      } else {
-        await refreshCart();
-      }
+
+      setCartData(res.cart as any);
+      
+      // Toast exibido somento APÓS hidratação do Context
+      toast.success("Adicionado ao carrinho");
       setIsCartOpen(true);
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Erro ao adicionar ao carrinho.");

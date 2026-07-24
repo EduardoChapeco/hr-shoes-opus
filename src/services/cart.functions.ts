@@ -107,7 +107,14 @@ export async function fetchCartDTO(identity: {
   if (identity.customer_id) query = query.eq("customer_id", identity.customer_id);
   else query = query.eq("session_token", identity.session_token);
 
-  const { data: cart } = await query.maybeSingle();
+  const { data: cart, error } = await query
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error && error.code !== "PGRST116") {
+    console.error("Error fetching cart DTO:", error);
+  }
 
   if (!cart) return null;
 
@@ -265,7 +272,10 @@ export const addToCart = createServerFn({ method: "POST" })
     else cartQuery = cartQuery.eq("session_token", identity.session_token);
 
     let cartId;
-    const { data: existingCart } = await cartQuery.maybeSingle();
+    const { data: existingCart } = await cartQuery
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (existingCart) {
       cartId = existingCart.id;
@@ -392,7 +402,10 @@ export const updateCartItemQty = createServerFn({ method: "POST" })
     if (identity.customer_id) cartQuery = cartQuery.eq("customer_id", identity.customer_id);
     else cartQuery = cartQuery.eq("session_token", identity.session_token);
 
-    const { data: cart } = await cartQuery.maybeSingle();
+    const { data: cart } = await cartQuery
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     if (!cart) throw new Error("Carrinho não encontrado");
 
     const { data: existingItem } = await supabase
