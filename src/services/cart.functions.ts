@@ -134,32 +134,34 @@ export async function fetchCartDTO(identity: {
 
   // Map to DTO
   let totalCents = 0;
-  const rawItems = cart.cart_items as unknown as CartItemRaw[];
-  const items = rawItems.map((item) => {
-    const variant = item.product_variants;
-    const product = variant.product;
-    const image = product.product_media?.[0]?.url;
-    const price = variant.price_override_cents ?? product.price_cents;
-    const lineTotal = price * item.qty;
-    totalCents += lineTotal;
-    
-    const availableStock = (variant.stock_on_hand || 0) - (variant.stock_reserved || 0);
-    const isOutOfStock = availableStock < item.qty;
+  const rawItems = (cart.cart_items || []) as unknown as CartItemRaw[];
+  const items = rawItems
+    .filter((item) => item && item.product_variants && item.product_variants.product)
+    .map((item) => {
+      const variant = item.product_variants;
+      const product = variant.product;
+      const image = product.product_media?.[0]?.url;
+      const price = variant.price_override_cents ?? product.price_cents;
+      const lineTotal = price * item.qty;
+      totalCents += lineTotal;
+      
+      const availableStock = (variant.stock_on_hand || 0) - (variant.stock_reserved || 0);
+      const isOutOfStock = availableStock < item.qty;
 
-    return {
-      id: item.id,
-      variantId: item.variant_id,
-      qty: item.qty,
-      priceCents: price,
-      compareAtCents: variant.compare_at_cents ?? null,
-      lineTotalCents: lineTotal,
-      productTitle: product.title ?? "",
-      variantSku: variant.sku,
-      variantAttributes: variant.attributes || {},
-      coverUrl: image,
-      isOutOfStock,
-    };
-  });
+      return {
+        id: item.id,
+        variantId: item.variant_id,
+        qty: item.qty,
+        priceCents: price,
+        compareAtCents: variant.compare_at_cents ?? null,
+        lineTotalCents: lineTotal,
+        productTitle: product.title ?? "",
+        variantSku: variant.sku,
+        variantAttributes: variant.attributes || {},
+        coverUrl: image,
+        isOutOfStock,
+      };
+    });
   // Dynamic Recalculation (M-08-F2)
   // Always recompute the discount based on the latest subtotal if a coupon is present.
   let dynamicDiscountCents = cart.discount_cents || 0;
@@ -313,11 +315,11 @@ export const addToCart = createServerFn({ method: "POST" })
     // Fetch snapshot price for safety
     const { data: vInfo } = await supabase
       .from("product_variants")
-      .select("price_cents, product_id, products(price_cents)")
+      .select("price_override_cents, product_id, products(price_cents)")
       .eq("id", variantId)
       .single();
 
-    const priceCents = vInfo?.price_cents ?? (vInfo?.products as any)?.price_cents ?? 0;
+    const priceCents = vInfo?.price_override_cents ?? (vInfo?.products as any)?.price_cents ?? 0;
 
     // 4. Add or update item in cart
     if (existingItem) {
