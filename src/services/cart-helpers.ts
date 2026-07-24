@@ -60,6 +60,8 @@ export async function mergeGuestCartLogic(
     .select("id")
     .eq("session_token", session_token)
     .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (!guestCart) return { status: "success" as const };
@@ -69,6 +71,8 @@ export async function mergeGuestCartLogic(
     .select("id")
     .eq("customer_id", customerId)
     .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (!userCart) {
