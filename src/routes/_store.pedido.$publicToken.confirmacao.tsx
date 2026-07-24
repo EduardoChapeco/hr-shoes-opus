@@ -26,16 +26,17 @@ function ConfirmationPage() {
     );
   }
 
-  const items = (order.items_snapshot || []) as {
-    productName: string;
-    priceCents: number;
-    quantity: number;
-  }[];
+  const rawItems = order.items_snapshot || order.order_items || [];
+  const items = rawItems.map((item: any) => ({
+    productName: item.product_title || item.productName || item.title || "Produto",
+    priceCents: item.unit_price_cents || item.price_snapshot_cents || item.priceCents || 0,
+    quantity: item.qty || item.quantity || 1,
+  }));
   const subtotal =
-    order.subtotal_cents || items.reduce((acc, item) => acc + item.priceCents * item.quantity, 0);
+    order.subtotal_cents || items.reduce((acc: number, item: any) => acc + item.priceCents * item.quantity, 0);
   const shipping = order.shipping_cents || 0;
   const discount = order.discount_cents || 0;
-  const total = order.total_cents || subtotal + shipping - discount;
+  const total = order.total_cents || Math.max(0, subtotal + shipping - discount);
 
   const pixKey =
     "00020101021226830014br.gov.bcb.pix2561pix.hrshoes.com.br/qr/v2/cobv/7ff34b92-9642-4f33-8a30-fef0d27038cf5204000053039865802BR5908Hr Shoes6009Chapeco62070503***6304D1A2";
