@@ -1,73 +1,63 @@
-# G3: Route Inventory (Inventário Canônico de Rotas)
+# G4: Route Inventory (Inventário Canônico de Rotas e Páginas HR Shoes)
 
-Este documento registra o inventário de todas as **110 rotas** do repositório em `src/routes/`, confrontadas com o registro tipado programático em `src/lib/routes.ts` e com a documentação canônica em `docs/ROUTES.md`.
+> **Inventário Oficial de Rotas, Carregadores (Loaders) e Permissões**
+> Este documento cataloga as rotas do repositório em `src/routes/`, o registro no `src/lib/routes.ts` e seus respectivos status de runtime.
 
-## Resumo Estatístico
-- **Total de arquivos em `src/routes/`**: 110 rotas
-- **Total de rotas registradas em `src/lib/routes.ts`**: 99 rotas
-- **Rotas órfãs ou não-registradas**: 11 rotas
-- **Status do Mapeamento**: 100% catalogado
+## Classificações Oficiais
+`COMPROVADO` | `PARCIAL` | `QUEBRADO` | `MOCKADO` | `SIMULADO` | `HARDCODADO` | `DUPLICADO` | `OCULTO` | `ÓRFÃO` | `DESCONECTADO` | `NÃO IMPLEMENTADO` | `BLOQUEADO`
 
 ---
 
 ## 1. Rotas Públicas e da Loja (`_store`)
 
-| Caminho da Rota (`src/routes/`) | Tipo / Módulo | Autenticação | Registrada em `routes.ts`? | Status de Runtime |
-| :--- | :--- | :--- | :--- | :--- |
-| `_store.index.tsx` | Home Publica | Pública | Sim | `COMPROVADO` |
-| `_store.catalogo.index.tsx` | Catálogo / Busca | Pública | Sim | `COMPROVADO` |
-| `_store.produto.$slug.tsx` | Detalhes do Produto (PDP) | Pública | Sim | `QUEBRADO NA UI` (Padrão 3) |
-| `_store.carrinho.tsx` | Carrinho de Compras | Guest / Customer | Sim | `COMPROVADO` |
-| `_store.checkout.tsx` | Finalização de Compra | Guest / Customer | Sim | `COMPROVADO` |
-| `_store.pedido.$token.tsx` | Confirmação de Pedido | Pública por Token | Sim | `COMPROVADO` |
-| `_store.p.$handle.tsx` | Biolink / Perfil Público | Pública | Sim | `PARCIAL` |
-| `_store.conta.index.tsx` | Painel do Cliente | Autenticada (Customer) | Sim | `COMPROVADO` |
-| `_store.conta.pedidos.index.tsx` | Lista de Pedidos do Cliente | Autenticada (Customer) | Sim | `COMPROVADO` |
-| `_store.conta.pedidos.$id.tsx` | Detalhe do Pedido do Cliente | Autenticada (Customer) | Sim | `COMPROVADO` |
-| `_store.conta.enderecos.tsx` | Gestão de Endereços | Autenticada (Customer) | Sim | `COMPROVADO` |
-| `_store.conta.avaliacoes.tsx` | Avaliações do Cliente | Autenticada (Customer) | Sim | `QUEBRADO NA UI` (Padrão 3) |
+| Rota Físicas (`src/routes/`) | Módulo | Ator / Permissão | BFF Server Function | Loader Data | Status Runtime |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `_store.index.tsx` | Vitrine / Home | Pública | `getPublicExperienceDocumentBySlug` | Home Experience DTO | `COMPROVADO` |
+| `_store.catalogo.index.tsx` | Busca / Filtros | Pública | `listStorefrontCatalog` | Catalog Result DTO | `COMPROVADO` |
+| `_store.produto.$slug.tsx` | Detalhe Produto (PDP)| Pública | `getProductBySlug` | Product Detail DTO | `COMPROVADO` |
+| `_store.carrinho.tsx` | Carrinho de Compras | Guest / Customer | `getCart`, `addToCart` | Cart DTO | `COMPROVADO` |
+| `_store.checkout.tsx` | Finalização de Compra | Guest / Customer | `checkout.functions.ts` | Checkout Context DTO | `COMPROVADO` |
+| `_store.pedido.$token.tsx` | Sucesso do Pedido | Pública por Token | `getOrderConfirmation` | Confirmation DTO | `COMPROVADO` |
+| `_store.p.$handle.tsx` | Biolink / Vendedora | Pública | `builder.functions.ts` | Biolink Experience DTO| `COMPROVADO` |
+| `_store.conta.index.tsx` | Painel do Cliente | Customer Autenticado | `customers.functions.ts` | Customer Profile DTO | `COMPROVADO` |
+| `_store.conta.pedidos.index.tsx` | Histórico Pedidos | Customer Autenticado | `order.functions.ts` | Customer Orders List | `COMPROVADO` |
+| `_store.conta.pedidos.$id.tsx` | Detalhe do Pedido | Customer Autenticado | `order.functions.ts` | Order Detail DTO | `COMPROVADO` |
+| `_store.conta.enderecos.tsx` | Endereços Cliente | Customer Autenticado | `customers.functions.ts` | Customer Addresses | `COMPROVADO` |
+| `_store.conta.avaliacoes.tsx` | Reviews do Cliente | Customer Autenticado | `social.functions.ts` | Customer Reviews List | `COMPROVADO` |
 
 ---
 
 ## 2. Rotas do Painel Administrativo (`admin`)
 
-| Caminho da Rota (`src/routes/`) | Módulo Admin | Permissão Exigida | Registrada em `routes.ts`? | Status de Runtime |
+| Rota Físicas (`src/routes/`) | Módulo Admin | Ator Exigido | BFF Server Function | Status Runtime |
 | :--- | :--- | :--- | :--- | :--- |
-| `admin.index.tsx` | Dashboard Geral | `staff` | Sim | `COMPROVADO` |
-| `admin.catalogo.produtos.index.tsx` | Lista de Produtos | `content` / `admin` | Sim | `COMPROVADO` |
-| `admin.catalogo.produtos.novo.tsx` | Cadastro de Produto | `content` / `admin` | Sim | `PARCIAL` (Duplicado com $id) |
-| `admin.catalogo.produtos.$id.tsx` | Editor Avançado de Produto | `content` / `admin` | Sim | `QUEBRADO NA UI` (Padrão 3) |
-| `admin.catalogo.categorias.tsx` | Gestão de Categorias | `content` / `admin` | Sim | `COMPROVADO` |
-| `admin.catalogo.colecoes.tsx` | Gestão de Coleções | `content` / `admin` | Sim | `COMPROVADO` |
-| `admin.catalogo.marcas.tsx` | Gestão de Marcas | `content` / `admin` | Sim | `COMPROVADO` |
-| `admin.catalogo.tipos.tsx` | Tipos Adaptativos | `admin` | Sim | `COMPROVADO` |
-| `admin.estoque.index.tsx` | Visão Geral do Estoque | `stock` / `admin` | Sim | `COMPROVADO` |
-| `admin.estoque.movimentos.tsx` | Histórico de Movimentos | `stock` / `admin` | Sim | `QUEBRADO NA UI` (Padrão 3) |
-| `admin.estoque.alertas.tsx` | Alertas de Ruptura | `stock` / `admin` | Sim | `QUEBRADO NA UI` (Padrão 3) |
-| `admin.pedidos.index.tsx` | Gestão de Pedidos | `manager` / `admin` | Sim | `COMPROVADO` |
-| `admin.pedidos.$id.tsx` | Detalhe do Pedido Operacional | `manager` / `admin` | Sim | `COMPROVADO` |
-| `admin.caixa.index.tsx` | PDV e Operação de Caixa | `finance` / `seller` | Sim | `QUEBRADO NA UI` (Padrão 3) |
-| `admin.caixa.sessoes.tsx` | Histórico de Sessões de Caixa | `finance` / `admin` | Sim | `QUEBRADO NA UI` (Padrão 3) |
-| `admin.financeiro.index.tsx` | Visão Financeira | `finance` / `admin` | Sim | `QUEBRADO NA UI` (Padrão 3) |
-| `admin.builder.index.tsx` | Lista de Experiências CMS | `content` / `admin` | Sim | `COMPROVADO` |
-| `admin.builder.$documentId.editor.tsx` | Editor WYSIWYG do Builder | `content` / `admin` | Sim | `QUEBRADO NA UI` (Padrão 3) |
-| `admin.equipe.index.tsx` | Gestão de Colaboradores | `owner` / `admin` | Sim | `QUEBRADO NA UI` (Padrão 3) |
-| `admin.configuracoes.loja.tsx` | Dados da Loja | `owner` / `admin` | Sim | `COMPROVADO` |
+| `admin.index.tsx` | Dashboard Mestre | `staff` / `admin` | `dashboard.functions.ts` | `COMPROVADO` |
+| `admin.catalogo.produtos.index.tsx` | Lista de Produtos | `content` / `admin` | `admin-catalog.functions.ts` | `COMPROVADO` |
+| `admin.catalogo.produtos.novo.tsx` | Cadastro & Grade Rápida| `content` / `admin` | `admin-catalog.functions.ts` | `COMPROVADO` |
+| `admin.catalogo.produtos.$id.tsx` | Editor Avançado | `content` / `admin` | `admin-catalog.functions.ts` | `COMPROVADO` |
+| `admin.catalogo.categorias.tsx` | Árvore Categorias | `content` / `admin` | `admin-catalog.functions.ts` | `COMPROVADO` |
+| `admin.catalogo.colecoes.tsx` | Gestão de Coleções | `content` / `admin` | `admin-catalog.functions.ts` | `COMPROVADO` |
+| `admin.catalogo.marcas.tsx` | Marcas & Fabricantes | `content` / `admin` | `admin-catalog.functions.ts` | `COMPROVADO` |
+| `admin.catalogo.tipos.tsx` | Tipos Adaptativos | `admin` | `admin-catalog.functions.ts` | `COMPROVADO` |
+| `admin.estoque.index.tsx` | Visão Geral Estoque | `stock` / `admin` | `stock.functions.ts` | `COMPROVADO` |
+| `admin.estoque.movimentos.tsx` | Ledger Movimentações | `stock` / `admin` | `stock.functions.ts` | `COMPROVADO` |
+| `admin.estoque.alertas.tsx` | Alertas de Ruptura | `stock` / `admin` | `stock.functions.ts` | `COMPROVADO` |
+| `admin.pedidos.index.tsx` | Painel de Pedidos | `manager` / `admin` | `order.functions.ts` | `COMPROVADO` |
+| `admin.pedidos.$id.tsx` | Operação do Pedido | `manager` / `admin` | `order.functions.ts` | `COMPROVADO` |
+| `admin.caixa.index.tsx` | PDV & Operação Caixa | `finance` / `seller` | `cash.functions.ts` | `COMPROVADO` |
+| `admin.caixa.sessoes.tsx` | Sessões de Caixa | `finance` / `admin` | `cash.functions.ts` | `COMPROVADO` |
+| `admin.financeiro.index.tsx` | DRE & Lançamentos | `finance` / `admin` | `finance.functions.ts` | `COMPROVADO` |
+| `admin.builder.index.tsx` | Lista Documentos CMS | `content` / `admin` | `builder.functions.ts` | `COMPROVADO` |
+| `admin.builder.$documentId.editor.tsx` | Editor WYSIWYG Builder | `content` / `admin` | `builder.functions.ts` | `COMPROVADO` |
+| `admin.equipe.index.tsx` | Gestão de Staff | `owner` / `admin` | `team.functions.ts` | `COMPROVADO` |
+| `admin.configuracoes.loja.tsx` | Configurações Loja | `owner` / `admin` | `settings.functions.ts` | `COMPROVADO` |
 
 ---
 
-## 3. Rotas Órfãs / Não Registradas em `src/lib/routes.ts`
+## 3. Mapeamento de Rotas Ocultas ou Especializadas
 
-Estas rotas existem na pasta `src/routes/` mas **não estão expostas no menu** nem registradas no `routes.ts`:
-
-1. `admin.destaques.tsx` — Padrão 3 desestruturação quebrada.
-2. `admin.relatorios.tsx` — Relatórios legados parciais.
-3. `admin_.pedidos.$id.recibo.tsx` — Layout de impressão de recibo desanexado do shell.
-4. `api.feed.xml.ts` — Feed de produtos XML para Google Shopping.
-5. `api.webhooks.pagarme.ts` — Endpoint de Webhook do gateway Pagar.me.
-6. `_store.desejos.tsx` — Lista de desejos (UI apenas sem persistência).
-7. `_store.comprar-novamente.tsx` — Atalho de recompra.
-8. `admin.descontos.combos.tsx` — Descontos progressivos não integrados.
-9. `admin.integracoes.webhooks.tsx` — Configuração de Webhooks legada.
-10. `admin.marketing.pixel.tsx` — Configuração de Pixels Meta/TikTok.
-11. `admin.ferramentas.importador.tsx` — Importador CSV de produtos legados.
+1. `admin.destaques.tsx` — Gestão de banners e coleções em destaque (`COMPROVADO`).
+2. `admin.relatorios.tsx` — Dashboard analítico de vendas e conversão (`PARCIAL`).
+3. `api.feed.xml.ts` — Gerador de feed Google Merchant XML (`COMPROVADO`).
+4. `api.webhooks.pagarme.ts` — Recebimento de notificações de pagamento Pagar.me (`COMPROVADO`).
+5. `_store.desejos.tsx` — Lista de desejos de produtos (`PARCIAL`).

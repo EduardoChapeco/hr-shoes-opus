@@ -1,16 +1,15 @@
-# G6: Integration Matrix (Matriz de Integrações Externas)
+# G8: Integration Matrix (Matriz Canônica de Integrações HR Shoes)
 
-Este documento registra o status de todas as integrações com serviços terceiros e gateways de pagamento/logística na plataforma HR Shoes Commerce, conforme exigido pelas diretrizes da arquitetura (`unconfigured | testing | active | error`).
+> **Matriz de Integrações com Serviços Terceiros, Gateways e Invalidações**
 
 ---
 
-## Matriz Canônica de Integrações
+## 1. Status das Integrações Terceiras
 
-| Provedor / Serviço | Finalidade de Negócio | Status Oficial | Variáveis de Ambiente Necessárias | Comportamento quando Ausente (`unconfigured`) |
+| Provedor / Serviço | Finalidade de Negócio | Status Oficial | Variáveis / Credenciais | Comportamento sem Credencial |
 | :--- | :--- | :--- | :--- | :--- |
-| **Supabase Database & Auth** | Banco de dados relacional e gestão de identidades/JWT. | `active` | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Lança `SupabaseUnconfiguredError` e exibe `UnconfiguredState`. |
-| **Supabase Storage** | Armazenamento de imagens de produtos, banners e mídias. | `active` | `VITE_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Componentes de upload exibem estado desabilitado com aviso. |
-| **Pagar.me Gateway** | Processamento de PIX, Cartão de Crédito e Boleto. | `unconfigured` | `PAGARME_API_KEY`, `PAGARME_ENCRYPTION_KEY` | Opcional no checkout; checkout fallback para modo manual / PIX direto. Nunca simula sucesso falso. |
-| **Correios / Melhorenvio**| Cotação de frete por CEP em tempo real e geração de etiquetas. | `unconfigured` | `MELHORENVIO_TOKEN`, `CORREIOS_USER` | Simulador usa a tabela local de regras de frete (`shipping_rules`). |
-| **Meta Pixel / TikTok** | Rastreamento de conversões e eventos de e-commerce. | `unconfigured` | `VITE_META_PIXEL_ID`, `VITE_TIKTOK_PIXEL_ID` | Scripts não são injetados no HTML; sem erros de runtime no console. |
-| **WhatsApp API (Z-API)** | Disparo de notificações de pedido (criado, pago, enviado). | `unconfigured` | `ZAPI_INSTANCE_ID`, `ZAPI_TOKEN` | Disparos são ignorados silenciosamente sem travar a transação de checkout. |
+| **Supabase Database & Auth** | Persistência SQL e Autenticação JWT. | `active` | `VITE_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Lança exceção de configuração ausente. |
+| **Supabase Storage** | Upload de mídias e assets do Builder. | `active` | `VITE_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Exibe estado desabilitado seguro. |
+| **Pagar.me Gateway** | Processamento de PIX e Cartões. | `unconfigured` | `PAGARME_API_KEY` | Fallback para pagamento manual / PIX direto sem simulação falsa. |
+| **Melhor Envio / Correios**| Cotação de frete e etiquetas. | `unconfigured` | `MELHORENVIO_TOKEN` | Utiliza a tabela local de regras `shipping_rules`. |
+| **Google Merchant Feed** | Exportação de catálogo XML. | `active` | N/A (Endpoint `/api/feed.xml`) | Retorna XML sintaticamente válido. |
