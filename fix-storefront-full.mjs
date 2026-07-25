@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-const filePath = path.join(process.cwd(), 'src/routes/_store.produto.$slug.tsx');
-let content = fs.readFileSync(filePath, 'utf8');
+const filePath = path.join(process.cwd(), "src/routes/_store.produto.$slug.tsx");
+let content = fs.readFileSync(filePath, "utf8");
 
 // =========================================================
 // FIX 1: Add JSON-LD Schema.org script to head function
@@ -45,7 +45,7 @@ if (content.includes('links: [{ rel: "canonical", href: canonical }],\n    };'))
 }
 
 // =========================================================
-// FIX 2: Gallery strip now shows variant media when a 
+// FIX 2: Gallery strip now shows variant media when a
 // variant is selected — filter product.media by variant_id
 // =========================================================
 const galleryTarget = `            {product.media.length > 0 && (
@@ -103,7 +103,7 @@ console.log("FIX 3 applied: Active media on variant change");
 // FIX 4: Display variant displayName in h2 under h1
 // Already added in previous cycle but validate it
 // =========================================================
-if (!content.includes('activeVariant?.displayName')) {
+if (!content.includes("activeVariant?.displayName")) {
   const h1Target = `<h1 className="text-2xl sm:text-3xl font-black text-foreground mb-1 font-heading leading-tight tracking-tight">
               {product.title}
             </h1>`;
@@ -131,7 +131,10 @@ const shortDescReplacement = `{product.shortDescription && (
                 </p>
               )}
               {product.description && (`;
-if (!content.includes('product.shortDescription') || !content.includes('text-sm text-muted-foreground leading-relaxed border-l-2')) {
+if (
+  !content.includes("product.shortDescription") ||
+  !content.includes("text-sm text-muted-foreground leading-relaxed border-l-2")
+) {
   content = content.replace(shortDescTarget, shortDescReplacement);
   console.log("FIX 5 applied: shortDescription display");
 } else {
@@ -163,7 +166,7 @@ console.log("FIX 6 applied: preparationTimeDays display");
 const videoTarget = `{activeMedia.mediaType === "video" ? (`;
 const videoReplacement = `{activeMedia.mediaType === "video" ? (`;
 // The video section — check if it shows an <video> tag or iframe
-if (!content.includes('<video ') && !content.includes('<iframe')) {
+if (!content.includes("<video ") && !content.includes("<iframe")) {
   const videoBlockTarget = `{activeMedia && activeMedia.mediaType === "video" ? (`;
   // Inline search for existing video rendering in main viewport
   const videoFallbackTarget = `{parseYoutubeId(activeMedia.url) ? (`;
@@ -171,7 +174,7 @@ if (!content.includes('<video ') && !content.includes('<iframe')) {
     // Find the existing video block and ensure autoPlay/controls
     content = content.replace(
       `src={\`https://www.youtube.com/embed/\${parseYoutubeId(activeMedia.url)}\`}`,
-      `src={\`https://www.youtube.com/embed/\${parseYoutubeId(activeMedia.url)}?autoplay=1&rel=0\`}`
+      `src={\`https://www.youtube.com/embed/\${parseYoutubeId(activeMedia.url)}?autoplay=1&rel=0\`}`,
     );
     console.log("FIX 7 applied: YouTube autoplay");
   }
@@ -182,7 +185,7 @@ if (!content.includes('<video ') && !content.includes('<iframe')) {
 // =========================================================
 content = content.replace(
   `className="size-full object-cover transition-transform duration-500 group-hover:scale-105"`,
-  `className="size-full object-cover transition-transform duration-500 group-hover:scale-105" style={activeMedia?.focalPoint ? { objectPosition: \`\${(activeMedia.focalPoint.x * 100).toFixed(0)}% \${(activeMedia.focalPoint.y * 100).toFixed(0)}%\` } : {}}`
+  `className="size-full object-cover transition-transform duration-500 group-hover:scale-105" style={activeMedia?.focalPoint ? { objectPosition: \`\${(activeMedia.focalPoint.x * 100).toFixed(0)}% \${(activeMedia.focalPoint.y * 100).toFixed(0)}%\` } : {}}`,
 );
 console.log("FIX 8 applied: focal_point → object-position");
 
@@ -209,7 +212,7 @@ if (content.includes(productInfoTarget)) {
                     <span className="font-medium">EAN:</span>
                     <span className="font-mono">{selectedVariant?.ean || product.ean}</span>
                   </div>
-                )}`
+                )}`,
   );
   console.log("FIX 9 applied: EAN display");
 }
@@ -217,10 +220,10 @@ if (content.includes(productInfoTarget)) {
 // =========================================================
 // FIX 10: Add missing import for calculateShipping if absent
 // =========================================================
-if (!content.includes('calculateShipping')) {
+if (!content.includes("calculateShipping")) {
   content = content.replace(
     `import { addToCart } from "@/services/cart.functions";`,
-    `import { addToCart } from "@/services/cart.functions";\nimport { calculateShipping } from "@/services/shipping.functions";`
+    `import { addToCart } from "@/services/cart.functions";\nimport { calculateShipping } from "@/services/shipping.functions";`,
   );
   console.log("FIX 10 applied: calculateShipping import");
 } else {
@@ -230,15 +233,15 @@ if (!content.includes('calculateShipping')) {
 // =========================================================
 // FIX 11: Ensure ProductMediaDTO and VariantDTO are imported
 // =========================================================
-if (!content.includes('ProductMediaDTO') && !content.includes('import type')) {
+if (!content.includes("ProductMediaDTO") && !content.includes("import type")) {
   content = content.replace(
     `import { getProductBySlug } from "@/services/product.functions";`,
-    `import { getProductBySlug } from "@/services/product.functions";\nimport type { ProductDetailDTO, ProductMediaDTO, VariantDTO } from "@/types/catalog";`
+    `import { getProductBySlug } from "@/services/product.functions";\nimport type { ProductDetailDTO, ProductMediaDTO, VariantDTO } from "@/types/catalog";`,
   );
   console.log("FIX 11 applied: Type imports");
 } else {
   console.log("FIX 11 SKIPPED (types already imported)");
 }
 
-fs.writeFileSync(filePath, content, 'utf8');
+fs.writeFileSync(filePath, content, "utf8");
 console.log("\n✅ All storefront fixes applied successfully!");

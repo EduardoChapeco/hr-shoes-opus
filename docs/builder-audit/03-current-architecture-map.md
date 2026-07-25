@@ -1,7 +1,7 @@
 # 03 — Current Architecture Map
 
 > Data: 2026-07-24  
-> Projeto: Hr Shoes Commerce  
+> Projeto: Hr Shoes Commerce
 
 ---
 
@@ -38,4 +38,5 @@
 ```
 
 ### Decisão Arquitetural Confirmada
+
 Nenhum subsistema paralelo ou tabela duplicada foi criado. Todas as mutações e leituras respeitam rigorosamente as 3 tabelas principais da Migration 0048.

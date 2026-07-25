@@ -82,7 +82,13 @@ interface ManualPaymentOption {
 }
 
 function CheckoutPage() {
-  const { cart: initialCart, paymentMethods, storeProfile, userProfile, userAddresses } = Route.useLoaderData();
+  const {
+    cart: initialCart,
+    paymentMethods,
+    storeProfile,
+    userProfile,
+    userAddresses,
+  } = Route.useLoaderData();
   const navigate = useNavigate();
   const router = useRouter();
 
@@ -501,7 +507,8 @@ function CheckoutPage() {
         try {
           await initiatePaymentTransaction({
             data: {
-              orderId: res.orderToken,
+              orderId: res.orderId || res.orderToken,
+              publicToken: res.orderToken,
               method: formData.paymentMethod === "credit_card" ? "credit_card" : "pix",
               amountCents: checkoutTotalCents,
             },
@@ -585,7 +592,10 @@ function CheckoutPage() {
                 {userProfile && (
                   <div className="flex items-center gap-2 p-3 bg-primary/5 text-primary rounded-lg text-xs font-medium border border-primary/10">
                     <User className="size-4 shrink-0" />
-                    <span>Conectado como <strong>{userProfile.email}</strong>. Seus dados foram preenchidos automaticamente.</span>
+                    <span>
+                      Conectado como <strong>{userProfile.email}</strong>. Seus dados foram
+                      preenchidos automaticamente.
+                    </span>
                   </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -732,12 +742,18 @@ function CheckoutPage() {
                                 }`}
                               >
                                 <div className="flex items-center justify-between font-semibold">
-                                  <span className="truncate">{addr.street}, {addr.number}</span>
+                                  <span className="truncate">
+                                    {addr.street}, {addr.number}
+                                  </span>
                                   {addr.is_default && (
-                                    <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-mono">Padrão</span>
+                                    <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-mono">
+                                      Padrão
+                                    </span>
                                   )}
                                 </div>
-                                <p className="text-muted-foreground truncate">{addr.neighborhood} - {addr.city}/{addr.state}</p>
+                                <p className="text-muted-foreground truncate">
+                                  {addr.neighborhood} - {addr.city}/{addr.state}
+                                </p>
                                 <p className="font-mono text-muted-foreground">{addr.zipcode}</p>
                               </button>
                             );

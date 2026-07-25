@@ -696,3 +696,73 @@ export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(a
     throw new Error("Erro inesperado ao carregar perfil da loja.");
   }
 });
+
+// ---------------------------------------------------------------------------
+// getPublicFaqs
+// ---------------------------------------------------------------------------
+
+export const getPublicFaqs = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = await getAnonServerClient();
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) return [];
+
+    // 1. Check if store has faqs in settings
+    const { data: store } = await db
+      .from("stores")
+      .select("settings")
+      .eq("id", storeId)
+      .single();
+
+    const storeFaqs = store?.settings?.faqs;
+    if (Array.isArray(storeFaqs) && storeFaqs.length > 0) {
+      return storeFaqs;
+    }
+
+    // 2. Check if active experience document has a faq_accordion block
+    const { data: doc } = await db
+      .from("experience_documents")
+      .select("nodes")
+      .eq("store_id", storeId)
+      .eq("status", "published")
+      .limit(1)
+      .maybeSingle();
+
+    if (doc?.nodes && Array.isArray(doc.nodes)) {
+      const faqBlock = doc.nodes.find(
+        (n: any) => n.blockType === "faq_accordion" && n.props?.faqs?.length > 0,
+      );
+      if (faqBlock?.props?.faqs) {
+        return faqBlock.props.faqs;
+      }
+    }
+
+    // Default canonical FAQs when not yet custom-configured
+    return [
+      {
+        question: "Como funciona a entrega e o prazo de envio?",
+        answer:
+          "Os pedidos são processados em até 2 dias úteis após a confirmação do pagamento. O prazo de entrega varia conforme a região e a modalidade de frete escolhida no checkout.",
+      },
+      {
+        question: "Como posso rastrear meu pedido?",
+        answer:
+          "Assim que seu pedido for despachado, você receberá o código e o link de rastreamento por e-mail e poderá acompanhar diretamente no painel 'Meus Pedidos'.",
+      },
+      {
+        question: "Qual é a política de trocas e devoluções?",
+        answer:
+          "Você tem até 7 dias corridos após o recebimento do produto para solicitar a troca ou devolução gratuitamente através da nossa central de atendimento ou pelo painel do cliente.",
+      },
+      {
+        question: "Quais são as formas de pagamento aceitas?",
+        answer:
+          "Aceitamos Pix com aprovação imediata, Cartões de Crédito (em até 12x), Boleto Bancário e Pagamento Manual na entrega/retirada.",
+      },
+    ];
+  } catch (e) {
+    console.error("[catalog.functions] getPublicFaqs error:", e);
+    return [];
+  }
+});

@@ -87,8 +87,6 @@ function StorePerfil() {
   return <PerfilView store={store} session={session} />;
 }
 
-
-
 const BUTTON_ICONS: Record<string, any> = {
   phone: Phone,
   external: ExternalLink,
@@ -143,31 +141,46 @@ const renderRichSectionContent = (sec: any) => {
     return (
       <div className="flex flex-wrap gap-2 pt-1">
         {data.pix && (
-          <Badge variant="outline" className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 border-emerald-500/20 font-bold py-1 px-2.5">
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 border-emerald-500/20 font-bold py-1 px-2.5"
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             Pix
           </Badge>
         )}
         {data.credit && (
-          <Badge variant="outline" className="flex items-center gap-1.5 bg-blue-500/10 text-blue-700 border-blue-500/20 font-bold py-1 px-2.5">
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1.5 bg-blue-500/10 text-blue-700 border-blue-500/20 font-bold py-1 px-2.5"
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
             Cartão de Crédito
           </Badge>
         )}
         {data.debit && (
-          <Badge variant="outline" className="flex items-center gap-1.5 bg-indigo-500/10 text-indigo-700 border-indigo-500/20 font-bold py-1 px-2.5">
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1.5 bg-indigo-500/10 text-indigo-700 border-indigo-500/20 font-bold py-1 px-2.5"
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
             Cartão de Débito
           </Badge>
         )}
         {data.installments && (
-          <Badge variant="outline" className="flex items-center gap-1.5 bg-purple-500/10 text-purple-700 border-purple-500/20 font-bold py-1 px-2.5">
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1.5 bg-purple-500/10 text-purple-700 border-purple-500/20 font-bold py-1 px-2.5"
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-purple-500" />
             Ficha / Carnê
           </Badge>
         )}
         {data.manual && (
-          <Badge variant="outline" className="flex items-center gap-1.5 bg-amber-500/10 text-amber-700 border-amber-500/20 font-bold py-1 px-2.5">
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1.5 bg-amber-500/10 text-amber-700 border-amber-500/20 font-bold py-1 px-2.5"
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
             Pagamento Manual
           </Badge>
@@ -180,8 +193,15 @@ const renderRichSectionContent = (sec: any) => {
     return (
       <div className="grid grid-cols-3 gap-3 pt-1">
         {data.map((url: string, index: number) => (
-          <div key={index} className="aspect-square rounded-xl overflow-hidden border bg-muted shadow-xs">
-            <img src={url} alt={`Gallery item ${index}`} className="h-full w-full object-cover hover:scale-105 transition-transform duration-300" />
+          <div
+            key={index}
+            className="aspect-square rounded-xl overflow-hidden border bg-muted shadow-xs"
+          >
+            <img
+              src={url}
+              alt={`Gallery item ${index}`}
+              className="h-full w-full object-cover hover:scale-105 transition-transform duration-300"
+            />
           </div>
         ))}
       </div>
@@ -221,15 +241,29 @@ const renderRichSectionContent = (sec: any) => {
         {data.desc && <p className="text-sm text-muted-foreground leading-relaxed">{data.desc}</p>}
         <div className="flex flex-col sm:flex-row gap-3">
           {data.phone && (
-            <Button size="sm" variant="outline" className="flex-1 flex items-center justify-center gap-2 text-xs h-10 border-primary/20 hover:bg-primary/5" asChild>
-              <a href={`https://wa.me/${data.phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer">
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 flex items-center justify-center gap-2 text-xs h-10 border-primary/20 hover:bg-primary/5"
+              asChild
+            >
+              <a
+                href={`https://wa.me/${data.phone.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <MessageCircle className="h-4 w-4 text-emerald-500 fill-emerald-500" />
                 WhatsApp: {data.phone}
               </a>
             </Button>
           )}
           {data.email && (
-            <Button size="sm" variant="outline" className="flex-1 flex items-center justify-center gap-2 text-xs h-10 border-primary/20 hover:bg-primary/5" asChild>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 flex items-center justify-center gap-2 text-xs h-10 border-primary/20 hover:bg-primary/5"
+              asChild
+            >
               <a href={`mailto:${data.email}`}>
                 <Mail className="h-4 w-4 text-primary" />
                 E-mail: {data.email}
@@ -245,7 +279,10 @@ const renderRichSectionContent = (sec: any) => {
     return (
       <div className="space-y-3 pt-1">
         {data.map((item: any, idx: number) => (
-          <details key={idx} className="group border rounded-xl bg-muted/20 overflow-hidden transition-all duration-300">
+          <details
+            key={idx}
+            className="group border rounded-xl bg-muted/20 overflow-hidden transition-all duration-300"
+          >
             <summary className="flex items-center justify-between p-4 font-bold text-xs sm:text-sm cursor-pointer hover:bg-muted/40 transition-colors list-none select-none">
               <span>{item.q}</span>
               <span className="text-primary transition-transform group-open:rotate-180">
@@ -278,7 +315,7 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
   const isStaff =
     session &&
     ["owner", "admin", "manager", "seller", "stock", "finance", "content", "support"].includes(
-      session.role
+      session.role,
     );
 
   return (
@@ -286,7 +323,7 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
       {/* Hero Banner */}
       <div
         className={cn(
-          "relative overflow-hidden pb-16 pt-20 bg-cover bg-center transition-all duration-300"
+          "relative overflow-hidden pb-16 pt-20 bg-cover bg-center transition-all duration-300",
         )}
         style={coverUrl ? { backgroundImage: `url(${coverUrl})` } : {}}
       >
@@ -295,7 +332,7 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
             "absolute inset-0 z-0",
             coverUrl
               ? "bg-black/50 backdrop-blur-xs"
-              : "bg-gradient-to-br from-primary/10 via-primary/5 to-background"
+              : "bg-gradient-to-br from-primary/10 via-primary/5 to-background",
           )}
         />
         {!coverUrl && (
@@ -326,7 +363,7 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
               <h1
                 className={cn(
                   "text-3xl font-bold tracking-tight md:text-4xl",
-                  coverUrl ? "text-white" : "text-foreground"
+                  coverUrl ? "text-white" : "text-foreground",
                 )}
               >
                 {store.name}
@@ -335,7 +372,7 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
                 <p
                   className={cn(
                     "mt-1 flex items-center justify-center gap-1.5 text-sm md:justify-start",
-                    coverUrl ? "text-white/80" : "text-muted-foreground"
+                    coverUrl ? "text-white/80" : "text-muted-foreground",
                   )}
                 >
                   <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
@@ -346,7 +383,7 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
                 <p
                   className={cn(
                     "mt-3 max-w-xl text-base",
-                    coverUrl ? "text-white/90" : "text-foreground/80"
+                    coverUrl ? "text-white/90" : "text-foreground/80",
                   )}
                 >
                   {store.description}
@@ -365,7 +402,7 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
                     size="sm"
                     asChild
                     className={cn(
-                      coverUrl && "bg-white/10 hover:bg-white/20 text-white border-white/20"
+                      coverUrl && "bg-white/10 hover:bg-white/20 text-white border-white/20",
                     )}
                   >
                     <a
@@ -373,8 +410,7 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <Instagram className="mr-1.5 h-4 w-4" />
-                      @{store.instagramHandle}
+                      <Instagram className="mr-1.5 h-4 w-4" />@{store.instagramHandle}
                     </a>
                   </Button>
                 )}
@@ -390,7 +426,7 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
                         size="sm"
                         asChild
                         className={cn(
-                          coverUrl && "bg-white/10 hover:bg-white/20 text-white border-white/20"
+                          coverUrl && "bg-white/10 hover:bg-white/20 text-white border-white/20",
                         )}
                       >
                         <a href={btn.url} target="_blank" rel="noopener noreferrer">
@@ -408,7 +444,7 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
                     asChild
                     className={cn(
                       "border border-border/60",
-                      coverUrl && "text-white bg-white/5 border-white/10 hover:bg-white/15"
+                      coverUrl && "text-white bg-white/5 border-white/10 hover:bg-white/15",
                     )}
                   >
                     <Link to="/admin/perfil-publico">
@@ -459,7 +495,10 @@ function PerfilView({ store, session }: { store: PublicStoreProfileDTO; session:
         {customSections.length > 0 && (
           <div className="grid gap-6 md:grid-cols-2 mt-10">
             {customSections.map((sec: any) => (
-              <div key={sec.id} className="rounded-2xl border bg-card p-6 shadow-sm hover:shadow-md transition-shadow text-left">
+              <div
+                key={sec.id}
+                className="rounded-2xl border bg-card p-6 shadow-sm hover:shadow-md transition-shadow text-left"
+              >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
                     <div className="text-primary">{renderIcon(sec.icon)}</div>
@@ -562,9 +601,9 @@ function AddressCard({
     // Load leaflet stylesheet
     let cssLink = document.querySelector('link[href*="leaflet.css"]');
     if (!cssLink) {
-      cssLink = document.createElement('link');
-      (cssLink as any).rel = 'stylesheet';
-      (cssLink as any).href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      cssLink = document.createElement("link");
+      (cssLink as any).rel = "stylesheet";
+      (cssLink as any).href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
       document.head.appendChild(cssLink);
     }
 
@@ -587,12 +626,12 @@ function AddressCard({
 
       mapInstanceRef.current = map;
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap contributors",
       }).addTo(map);
 
       const customIcon = L.divIcon({
-        className: 'custom-leaflet-marker',
+        className: "custom-leaflet-marker",
         html: `
           <div class="flex items-center justify-center h-10 w-10 rounded-full bg-primary text-primary-foreground border-4 border-background shadow-lg transform -translate-x-1/2 -translate-y-1/2">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -602,19 +641,24 @@ function AddressCard({
         iconAnchor: [20, 20],
       });
 
-      L.marker([lat, lng], { icon: customIcon }).addTo(map).bindPopup(`
+      L.marker([lat, lng], { icon: customIcon })
+        .addTo(map)
+        .bindPopup(
+          `
         <div class="text-center p-1 font-sans">
           <p class="font-bold text-xs text-foreground mb-0.5">Hr Shoes</p>
-          <p class="text-[10px] text-muted-foreground">${address.split(',')[0]}</p>
+          <p class="text-[10px] text-muted-foreground">${address.split(",")[0]}</p>
         </div>
-      `).openPopup();
+      `,
+        )
+        .openPopup();
     };
 
     if ((window as any).L) {
       setTimeout(initMap, 100);
     } else {
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      const script = document.createElement("script");
+      script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
       script.async = true;
       script.onload = initMap;
       document.body.appendChild(script);
@@ -634,13 +678,15 @@ function AddressCard({
   const latVal = latitude ? parseFloat(latitude) : null;
   const lngVal = longitude ? parseFloat(longitude) : null;
 
-  const wazeUrl = latVal && lngVal 
-    ? `https://waze.com/ul?ll=${latVal},${lngVal}&navigate=yes` 
-    : `https://waze.com/ul?q=${encodeURIComponent(address)}`;
+  const wazeUrl =
+    latVal && lngVal
+      ? `https://waze.com/ul?ll=${latVal},${lngVal}&navigate=yes`
+      : `https://waze.com/ul?q=${encodeURIComponent(address)}`;
 
-  const appleMapsUrl = latVal && lngVal
-    ? `http://maps.apple.com/?ll=${latVal},${lngVal}&q=Hr%20Shoes`
-    : `http://maps.apple.com/?q=${encodeURIComponent(address)}`;
+  const appleMapsUrl =
+    latVal && lngVal
+      ? `http://maps.apple.com/?ll=${latVal},${lngVal}&q=Hr%20Shoes`
+      : `http://maps.apple.com/?q=${encodeURIComponent(address)}`;
 
   return (
     <div className="rounded-2xl border bg-card p-6 shadow-sm transition-shadow hover:shadow-md flex flex-col justify-between md:col-span-2 lg:col-span-1">
@@ -671,19 +717,36 @@ function AddressCard({
       </div>
 
       <div className="mt-4 space-y-2">
-        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Rotas no GPS:</span>
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+          Rotas no GPS:
+        </span>
         <div className="grid grid-cols-3 gap-2">
-          <Button variant="outline" size="sm" className="h-9 text-[11px] flex gap-1 justify-center items-center font-bold bg-emerald-500/5 border-emerald-500/20 text-emerald-700 hover:bg-emerald-500/10" asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 text-[11px] flex gap-1 justify-center items-center font-bold bg-emerald-500/5 border-emerald-500/20 text-emerald-700 hover:bg-emerald-500/10"
+            asChild
+          >
             <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
               Google Maps
             </a>
           </Button>
-          <Button variant="outline" size="sm" className="h-9 text-[11px] flex gap-1 justify-center items-center font-bold bg-blue-500/5 border-blue-500/20 text-blue-700 hover:bg-blue-500/10" asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 text-[11px] flex gap-1 justify-center items-center font-bold bg-blue-500/5 border-blue-500/20 text-blue-700 hover:bg-blue-500/10"
+            asChild
+          >
             <a href={wazeUrl} target="_blank" rel="noopener noreferrer">
               Waze
             </a>
           </Button>
-          <Button variant="outline" size="sm" className="h-9 text-[11px] flex gap-1 justify-center items-center font-bold bg-purple-500/5 border-purple-500/20 text-purple-700 hover:bg-purple-500/10" asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 text-[11px] flex gap-1 justify-center items-center font-bold bg-purple-500/5 border-purple-500/20 text-purple-700 hover:bg-purple-500/10"
+            asChild
+          >
             <a href={appleMapsUrl} target="_blank" rel="noopener noreferrer">
               Apple Maps
             </a>
@@ -734,14 +797,20 @@ function HoursCard({
             {extendedHours.map((h) => (
               <div key={h.day} className="flex justify-between py-0.5">
                 <span className="text-muted-foreground font-medium">{h.day}</span>
-                <span className={h.open ? "font-bold text-foreground" : "text-muted-foreground/60 italic"}>
+                <span
+                  className={
+                    h.open ? "font-bold text-foreground" : "text-muted-foreground/60 italic"
+                  }
+                >
                   {h.open ? `${h.openTime} - ${h.closeTime}` : "Fechado"}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground whitespace-pre-line">{hours || "Não configurado."}</p>
+          <p className="text-sm text-muted-foreground whitespace-pre-line">
+            {hours || "Não configurado."}
+          </p>
         )}
 
         {/* Display holiday/special exceptions list if any */}
@@ -835,15 +904,29 @@ function OnlineSupportCard({ phone, email }: { phone: string | null; email: stri
         </p>
         <div className="space-y-3">
           {phone && (
-            <Button size="sm" variant="outline" className="w-full flex items-center justify-start gap-2 h-10" asChild>
-              <a href={`https://wa.me/${phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer">
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full flex items-center justify-start gap-2 h-10"
+              asChild
+            >
+              <a
+                href={`https://wa.me/${phone.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <MessageCircle className="h-4 w-4 text-emerald-500 fill-emerald-500 shrink-0" />
                 <span className="truncate text-xs">WhatsApp: {phone}</span>
               </a>
             </Button>
           )}
           {email && (
-            <Button size="sm" variant="outline" className="w-full flex items-center justify-start gap-2 h-10" asChild>
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full flex items-center justify-start gap-2 h-10"
+              asChild
+            >
               <a href={`mailto:${email}`}>
                 <Mail className="h-4 w-4 text-primary shrink-0" />
                 <span className="truncate text-xs">E-mail: {email}</span>

@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-const file = path.join(process.cwd(), 'src/services/builder.functions.ts');
-let content = fs.readFileSync(file, 'utf8');
+const file = path.join(process.cwd(), "src/services/builder.functions.ts");
+let content = fs.readFileSync(file, "utf8");
 
 // Fix "active" to "published"
 content = content.replace(/eq\("status", "active"\)/g, 'eq("status", "published")');
@@ -28,5 +28,5 @@ const newCollectionMapping = `            const { data } = await db.from("produc
 
 content = content.replace(oldCollectionMapping, newCollectionMapping);
 
-fs.writeFileSync(file, content, 'utf8');
+fs.writeFileSync(file, content, "utf8");
 console.log("builder.functions.ts updated");

@@ -11,9 +11,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 async function runAudit() {
   console.log("=== INICIANDO AUDITORIA DE PRODUTOS E VARIANTES ===\n");
 
-  const { data: products, error: pError } = await supabase
-    .from("products")
-    .select(`
+  const { data: products, error: pError } = await supabase.from("products").select(`
       id, title, status,
       product_variants (
         id, sku, attributes
@@ -47,7 +45,9 @@ async function runAudit() {
 
       // Issue: Empty attributes
       if (keys.length === 0 && variants.length > 1) {
-        issues.push(`Variante [${v.sku}] não possui nenhum atributo, mas o produto tem múltiplas variantes.`);
+        issues.push(
+          `Variante [${v.sku}] não possui nenhum atributo, mas o produto tem múltiplas variantes.`,
+        );
       }
 
       // Check key names
@@ -58,15 +58,22 @@ async function runAudit() {
           issues.push(`Variante [${v.sku}] tem chave com espaços em branco invisíveis: "${key}"`);
         }
         if (key.includes(":")) {
-          issues.push(`Variante [${v.sku}] tem chave suspeita com dois pontos (possível concatenação manual): "${key}"`);
+          issues.push(
+            `Variante [${v.sku}] tem chave suspeita com dois pontos (possível concatenação manual): "${key}"`,
+          );
         }
       });
 
       // Issue: Duplicate combinations
       // Sort keys to ensure deterministic combination strings
-      const comboStr = keys.sort().map(k => `${k}=${attrs[k]}`).join("|");
+      const comboStr = keys
+        .sort()
+        .map((k) => `${k}=${attrs[k]}`)
+        .join("|");
       if (variantsCombinations.has(comboStr)) {
-        issues.push(`Variante [${v.sku}] possui a mesma exata combinação de atributos que outra variante: "${comboStr}"`);
+        issues.push(
+          `Variante [${v.sku}] possui a mesma exata combinação de atributos que outra variante: "${comboStr}"`,
+        );
       } else {
         variantsCombinations.add(comboStr);
       }
@@ -77,9 +84,11 @@ async function runAudit() {
     if (variants.length > 1) {
       for (const v of variants) {
         const keys = Object.keys(v.attributes || {});
-        const missingKeys = allKeysArr.filter(k => !keys.includes(k));
+        const missingKeys = allKeysArr.filter((k) => !keys.includes(k));
         if (missingKeys.length > 0) {
-          issues.push(`Variante [${v.sku}] não possui os atributos da matriz geral: faltando [${missingKeys.join(", ")}]`);
+          issues.push(
+            `Variante [${v.sku}] não possui os atributos da matriz geral: faltando [${missingKeys.join(", ")}]`,
+          );
         }
       }
     }
@@ -90,14 +99,16 @@ async function runAudit() {
         productId: product.id,
         title: product.title,
         status: product.status,
-        issues: [...new Set(issues)] // dedupe
+        issues: [...new Set(issues)], // dedupe
       });
     }
   }
 
   console.log(`Auditoria concluída em ${totalProducts} produtos e ${totalVariants} variantes.`);
-  console.log(`Encontrados ${productsWithIssues} produtos com anomalias de dados na matriz de variação.\n`);
-  
+  console.log(
+    `Encontrados ${productsWithIssues} produtos com anomalias de dados na matriz de variação.\n`,
+  );
+
   if (productsWithIssues > 0) {
     console.log("=== RELATÓRIO DE INCONSISTÊNCIAS ===\n");
     issuesLog.forEach((log) => {

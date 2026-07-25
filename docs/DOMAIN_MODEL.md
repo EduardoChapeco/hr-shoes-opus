@@ -226,12 +226,13 @@ CashShift ──< Settlement (fechamento consolidado)
 
 ## 17. Carrinhos Abandonados (Motor)
 
-- **Captura Antecipada (Funil de Conversão):** 
+- **Captura Antecipada (Funil de Conversão):**
   - Durante o checkout, o e-mail e/ou telefone do visitante (guest_email, guest_phone) são salvos na tabela carts na Etapa 1.
 - **Engine (process_abandoned_carts):**
   - Identifica carrinhos com updated_at < now() - 2 horas que possuem itens e cujos usuários não completaram o pedido.
   - Copia o snapshot dos itens e os dados de contato para a tabela append-only bandoned_carts_log (se ainda não existir).
-  - Status inicial é pending. Pode evoluir para contacted, ecovered ou lost através do painel admin.
+  - Status inicial é pending. Pode evoluir para contacted,
+    ecovered ou lost através do painel admin.
 
 ## 18. Integração de Logística Automatizada (Melhor Envio)
 
@@ -255,7 +256,7 @@ CashShift ──< Settlement (fechamento consolidado)
 ## 20. Rastreamento e Webhooks de Logística
 
 - **Rastreamento de Pedidos:**
-  - O pedido armazena \	racking_code\, \carrier_name\, \	racking_url\, \shipped_at\ e \delivered_at\.
+  - O pedido armazena \ racking_code\, \carrier_name\, \ racking_url\, \shipped_at\ e \delivered_at\.
   - Links automáticos são gerados para Correios (\https://rastreamento.correios.com.br/...\) ou agregadores de frete (\Melhor Rastreio\).
 - **Webhooks de Logística (\POST /api/webhooks/shipment\):**
   - Permite a parceiros de entrega notificar automaticamente mudanças de status (\shipped\, \delivered\).

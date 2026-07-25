@@ -1,9 +1,9 @@
-# Auditoria A2 — Inventário de Controles
+# Auditoria A2 ï¿½ Inventï¿½rio de Controles
 
-> **Data da Revisão:** 21/07/2026  
+> **Data da Revisï¿½o:** 21/07/2026  
 > **Commit Analisado:** 5865d731  
-> **Status:** Finalizado (Inventário, sem correção em código).  
-> **Métrica Macro:** 101 arquivos de interface contêm controles interativos de mutação (Forms, Inputs, Buttons).
+> **Status:** Finalizado (Inventï¿½rio, sem correï¿½ï¿½o em cï¿½digo).  
+> **Mï¿½trica Macro:** 101 arquivos de interface contï¿½m controles interativos de mutaï¿½ï¿½o (Forms, Inputs, Buttons).
 
 ## 1. Cadeias Funcionais Validadas (As que persistem via Contrato)
 
@@ -11,12 +11,13 @@ As entidades centrais operam sob arquitetura estrita:
 \CONTROLE VISUAL -> evento do usuario -> handler de estado -> validacao do cliente -> server function -> repository -> tabela -> invalidate router.\
 
 Exemplos Auditados:
-- **CheckoutForm (_store.checkout.tsx)**:
-  - *Fluxo*: onChange (CEP) -> calculateShipping -> updateCartShipping. onClick Finalizar -> processCheckout -> initiatePaymentTransaction -> Success.
-  - *Status*: COMPROVADO. Nao ha concorrencia com o BD na interface.
+
+- **CheckoutForm (\_store.checkout.tsx)**:
+  - _Fluxo_: onChange (CEP) -> calculateShipping -> updateCartShipping. onClick Finalizar -> processCheckout -> initiatePaymentTransaction -> Success.
+  - _Status_: COMPROVADO. Nao ha concorrencia com o BD na interface.
 - **QuickNewProductPage (admin.catalogo.produtos.novo.tsx)**:
-  - *Fluxo*: useForm -> onSubmit -> createProduct -> Supabase Auth/RPC -> toast.success -> navigate.
-  - *Status*: COMPROVADO.
+  - _Fluxo_: useForm -> onSubmit -> createProduct -> Supabase Auth/RPC -> toast.success -> navigate.
+  - _Status_: COMPROVADO.
 
 ## 2. Controles Orfaos e Mortos (CONTROLE_ORFAO)
 
@@ -30,8 +31,8 @@ Componentes com botoes ou formularios desenhados na tela, mas que nao possuem ac
 - **routes/admin.configuracoes.etapas.tsx**: Formularios renderizados quebram por falta de action server-side.
 - **routes/admin.destaques.tsx**: Tabela de Destaques estatica.
 - **routes/admin.index.tsx**: Graficos sem reload actions.
-- **routes/_store.conta.index.tsx**: Atalhos mortos.
-- **routes/_store.index.tsx**: Banners hardcoded de placeholder.
+- **routes/\_store.conta.index.tsx**: Atalhos mortos.
+- **routes/\_store.index.tsx**: Banners hardcoded de placeholder.
 
 ## 3. Controles Suspeitos
 

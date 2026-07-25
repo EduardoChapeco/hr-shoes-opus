@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-const file = path.join(process.cwd(), 'src/routes/admin.catalogo.produtos.novo.tsx');
-let content = fs.readFileSync(file, 'utf8');
+const file = path.join(process.cwd(), "src/routes/admin.catalogo.produtos.novo.tsx");
+let content = fs.readFileSync(file, "utf8");
 
 // Find the onSubmit payload construction
 const oldPayloadStr = `        const payloadVariants = variants
@@ -91,10 +91,10 @@ const newPayloadStr = `        const payloadVariants = variants
           },
         });`;
 
-if (content.includes('attributes: values.attributes,')) {
-    content = content.replace(oldPayloadStr, newPayloadStr);
-    fs.writeFileSync(file, content, 'utf8');
-    console.log('Fixed admin.catalogo.produtos.novo.tsx');
+if (content.includes("attributes: values.attributes,")) {
+  content = content.replace(oldPayloadStr, newPayloadStr);
+  fs.writeFileSync(file, content, "utf8");
+  console.log("Fixed admin.catalogo.produtos.novo.tsx");
 } else {
-    console.log('Could not find the target string in novo.tsx');
+  console.log("Could not find the target string in novo.tsx");
 }

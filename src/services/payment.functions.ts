@@ -15,11 +15,10 @@ import { getEnvVar } from "@/lib/env";
 
 // Schema for initiating a payment
 const InitiatePaymentSchema = z.object({
-  orderId: z.string().uuid(),
+  orderId: z.string().min(1),
   method: z.enum(["pix", "credit_card", "boleto"]),
   amountCents: z.number().int().positive(),
-  publicToken: z.string().optional(), // Used for guests
-  // For real integration, you'd add credit card tokens here
+  publicToken: z.string().optional(),
 });
 
 /**
@@ -36,14 +35,21 @@ export const initiatePaymentTransaction = createServerFn({ method: "POST" })
     } = await ssrClient.auth.getUser();
 
     // 1. Validate order state
-    let query = supabase.from("orders").select("id, status, total_cents").eq("id", orderId);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+    let query = supabase.from("orders").select("id, status, total_cents");
+
+    if (isUuid) {
+      query = query.eq("id", orderId);
+    } else {
+      query = query.eq("public_token", orderId);
+    }
+
+    const token = publicToken || (!isUuid ? orderId : undefined);
 
     if (user) {
       query = query.eq("customer_id", user.id);
-    } else if (publicToken) {
-      query = query.eq("public_token", publicToken);
-    } else {
-      throw new Error("Autenticação ou token público obrigatórios.");
+    } else if (token) {
+      query = query.eq("public_token", token);
     }
 
     const { data: order, error: orderError } = await query.single();

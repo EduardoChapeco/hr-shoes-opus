@@ -1,10 +1,11 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-const file = path.join(process.cwd(), 'src/routes/admin.builder.$documentId.editor.tsx');
-let content = fs.readFileSync(file, 'utf8');
+const file = path.join(process.cwd(), "src/routes/admin.builder.$documentId.editor.tsx");
+let content = fs.readFileSync(file, "utf8");
 
-const regex = /onChange=\{e => updateNode\(selectedNode\.id, "content", field\.name, Number\(e\.target\.value\)\)\}\n\s*\/>\n\s*\)\s*:\s*\(/;
+const regex =
+  /onChange=\{e => updateNode\(selectedNode\.id, "content", field\.name, Number\(e\.target\.value\)\)\}\n\s*\/>\n\s*\)\s*:\s*\(/;
 
 const replacement = `onChange={e => updateNode(selectedNode.id, "content", field.name, Number(e.target.value))}
                             />
@@ -33,5 +34,5 @@ const replacement = `onChange={e => updateNode(selectedNode.id, "content", field
                           ) : (`;
 
 content = content.replace(regex, replacement);
-fs.writeFileSync(file, content, 'utf8');
+fs.writeFileSync(file, content, "utf8");
 console.log("admin.builder.$documentId.editor.tsx updated");

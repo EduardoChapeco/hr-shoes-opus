@@ -111,24 +111,34 @@ export const getProductReviewsList = createServerFn({ method: "GET" })
   .validator(z.object({ productId: z.string().uuid() }))
   .handler(async ({ data: { productId } }) => {
     const supabase = getServerClient();
-    const { data, error } = await supabase
+    const { data: reviewsData, error } = await supabase
       .from("reviews")
-      .select(
-        "id, rating, comment, created_at, reviewer_name, user:auth.users(id, raw_user_meta_data)",
-      )
+      .select("id, rating, comment, created_at, reviewer_name, user_id")
       .eq("product_id", productId)
       .eq("status", "approved")
       .order("created_at", { ascending: false })
       .limit(20);
 
-    if (error) return [];
+    if (error || !reviewsData) return [];
 
-    return data.map((d: any) => ({
+    const userIds = Array.from(new Set(reviewsData.map((r: any) => r.user_id).filter(Boolean)));
+    let profileMap = new Map<string, string>();
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+      if (profiles) {
+        profileMap = new Map(profiles.map((p: any) => [p.id, p.full_name]));
+      }
+    }
+
+    return reviewsData.map((d: any) => ({
       id: d.id,
       rating: d.rating,
       comment: d.comment,
       createdAt: d.created_at,
-      userName: d.reviewer_name || d.user?.raw_user_meta_data?.full_name || "Cliente Anonimo",
+      userName: d.reviewer_name || profileMap.get(d.user_id) || "Cliente Anônimo",
     }));
   });
 

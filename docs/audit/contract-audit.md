@@ -6,18 +6,18 @@
 
 ## 1. Mapeamento de Contratos por Módulo
 
-| Módulo | Nome do Schema Zod / DTO | Input Validado | Retorno do BFF | Status do Contrato |
-| :--- | :--- | :--- | :--- | :--- |
-| **Catálogo** | `ProductCreateSchema` | `{ title, slug, price_cents, category_ids, variants }` | `ProductDTO` | `COMPROVADO` |
-| **Catálogo** | `ProductUpdateSchema` | `{ id, title, price_cents, attributes, variants }` | `ProductDTO` | `COMPROVADO` |
-| **Carrinho** | `AddToCartSchema` | `{ variantId?, productId?, quantity, sellerId? }` | `{ status, cart, session_token }` | `COMPROVADO` |
-| **Carrinho** | `UpdateCartQtySchema` | `{ variantId, delta }` | `CartDTO` | `COMPROVADO` |
-| **Checkout** | `CheckoutSchema` | `{ items, shippingAddress, paymentMethod }` | `{ orderId, status }` | `COMPROVADO` |
-| **Estoque** | `StockAdjustSchema` | `{ variantId, qty, type, note }` | `StockMovementDTO` | `COMPROVADO` |
-| **Builder** | `ApplyHomeTemplateSchema`| `{ templateId }` | `ExperienceDocumentDTO` | `COMPROVADO` |
-| **Builder** | `DocumentUpdateSchema` | `{ documentId, tree }` | `ExperienceDocumentDTO` | `COMPROVADO` |
-| **Avaliações**| `ReviewSubmitSchema` | `{ productId, rating, comment, title }` | `ReviewDTO` | `COMPROVADO` |
-| **Caixa** | `CashSessionSchema` | `{ initialBalanceCents, notes }` | `CashSessionDTO` | `COMPROVADO` |
+| Módulo         | Nome do Schema Zod / DTO  | Input Validado                                         | Retorno do BFF                    | Status do Contrato |
+| :------------- | :------------------------ | :----------------------------------------------------- | :-------------------------------- | :----------------- |
+| **Catálogo**   | `ProductCreateSchema`     | `{ title, slug, price_cents, category_ids, variants }` | `ProductDTO`                      | `COMPROVADO`       |
+| **Catálogo**   | `ProductUpdateSchema`     | `{ id, title, price_cents, attributes, variants }`     | `ProductDTO`                      | `COMPROVADO`       |
+| **Carrinho**   | `AddToCartSchema`         | `{ variantId?, productId?, quantity, sellerId? }`      | `{ status, cart, session_token }` | `COMPROVADO`       |
+| **Carrinho**   | `UpdateCartQtySchema`     | `{ variantId, delta }`                                 | `CartDTO`                         | `COMPROVADO`       |
+| **Checkout**   | `CheckoutSchema`          | `{ items, shippingAddress, paymentMethod }`            | `{ orderId, status }`             | `COMPROVADO`       |
+| **Estoque**    | `StockAdjustSchema`       | `{ variantId, qty, type, note }`                       | `StockMovementDTO`                | `COMPROVADO`       |
+| **Builder**    | `ApplyHomeTemplateSchema` | `{ templateId }`                                       | `ExperienceDocumentDTO`           | `COMPROVADO`       |
+| **Builder**    | `DocumentUpdateSchema`    | `{ documentId, tree }`                                 | `ExperienceDocumentDTO`           | `COMPROVADO`       |
+| **Avaliações** | `ReviewSubmitSchema`      | `{ productId, rating, comment, title }`                | `ReviewDTO`                       | `COMPROVADO`       |
+| **Caixa**      | `CashSessionSchema`       | `{ initialBalanceCents, notes }`                       | `CashSessionDTO`                  | `COMPROVADO`       |
 
 ---
 

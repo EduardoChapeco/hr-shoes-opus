@@ -7,6 +7,7 @@
 ## 1. Casos de Uso do Catálogo e Produtos
 
 ### UC-PRODUCT-001 — Criar Produto com Matriz Rápida de Tamanho e Cor
+
 - **Ator**: Administrador, Gerente de Catálogo
 - **Pré-condições**: Usuário autenticado com role `staff`/`admin` e loja ativa.
 - **Entrada**: Título "Tênis Runner Pro", Preço Base "299,90", Tamanhos `35, 36, 37, 38`, Cores `Preto, Nude`, Estoque Inicial `10`.
@@ -26,6 +27,7 @@
 ## 2. Casos de Uso do Carrinho e Checkout
 
 ### UC-CART-001 — Adicionar ao Carrinho e Reservar Estoque
+
 - **Ator**: Cliente (Guest ou Autenticado)
 - **Pré-condições**: Produto ativo na loja com pelo menos 1 variante com saldo `available > 0`.
 - **Entrada**: `productId` ou `variantId`, `quantity: 1`.
@@ -43,6 +45,7 @@
 ## 3. Casos de Uso do Builder e Temas
 
 ### UC-BUILDER-001 — Selecionar e Aplicar Tema da Vitrine
+
 - **Ator**: Lojista, Designer da Loja
 - **Pré-condições**: Rascunho da experiência Home ativo em `experience_documents`.
 - **Entrada**: Seleção do preset `pipeline-minimal` no modal de temas.

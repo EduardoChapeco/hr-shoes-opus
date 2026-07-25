@@ -382,11 +382,13 @@ Comportamento: chave ausente nesses endpoints retorna `idempotency_key_missing` 
 ## 11. Feeds Externos (Integrações Fase 5)
 
 ### GET /api/feed/google.xml (ou /api/feed/meta.xml)
+
 Retorna um XML formatado para o Merchant Center (RSS 2.0).
 **Headers**: \Content-Type: application/xml\
 **Cache**: \Cache-Control: public, max-age=3600, s-maxage=3600\
 
 Mapeamento de colunas principais:
+
 - \<g:id>\: \product_variants.id\ (se houver variação, combinando com SKU) ou \products.id\
 - \<g:title>\: \products.title\
 - \<g:description>\: \products.short_description\ ou fallback para \description\
@@ -395,26 +397,31 @@ Mapeamento de colunas principais:
 - \<g:image_link>\: O primeiro link de mídia da \product_media\ ou capa do produto.
 
 ### PATCH /api/v1/carts/:cart_id/contact (Fase 5 - Carrinhos Abandonados)
+
 Atualiza as informações de contato do visitante (Guest) antes da efetivação do pedido.
 Request: { guest_email: string (optional), guest_phone: string (optional) }
 Response: { success: boolean }
 
 ### POST /api/v1/shipping/calculate (Atualizado - Melhor Envio)
+
 Calcula opções de frete disponíveis combinando regras manuais da loja e cotações em tempo real via API do Melhor Envio (se ativa).
 Request: { zipcode: string }
 Response: Array<{ id: string, name: string, price_cents: number, estimated_days: number | null }>
 
 ### GET /api/feed/xml (Fase 5 - Feed XML de Produtos)
+
 Gera um Feed RSS 2.0 com namespace g: (Google Base) compatível com Google Merchant Center e Meta Commerce Manager.
 Query Params: store (optional UUID)
 Response: Documento XML (Content-Type: application/xml; charset=utf-8)
 
 ### POST /api/webhooks/shipment (Fase 5 - Webhook de Rastreamento)
+
 Recepção de eventos de transporte para atualização de rastreamento e status do pedido.
 Request: { order_id?: string, tracking_code?: string, carrier_name?: string, status?: 'shipped' | 'delivered', tracking_url?: string }
 Response: { success: boolean, order_id: string, new_status: string }
 
 ### POST /api/v1/orders/:id/shipment (Fase 5 - Atualização de Rastreamento)
+
 Cadastra ou atualiza o código de rastreamento do envio no painel admin.
 Request: { orderId: string, trackingCode: string, carrierName?: string, trackingUrl?: string, newStatus?: 'shipped' | 'delivered' }
 Response: Order Object

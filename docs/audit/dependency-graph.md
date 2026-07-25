@@ -27,14 +27,14 @@ Este documento mapeia o acoplamento entre os serviços do BFF, as rotas do TanSt
 
 ## 2. Invalidações de Cache Exigidas por Mutação (TanStack Query)
 
-| Operação de Mutação | Serviço BFF Chamado | Chaves de Cache Afetadas (Query Keys) | Efeito Esperado na UI |
-| :--- | :--- | :--- | :--- |
-| **Atualizar Produto** | `updateProduct` | `["products"]`, `["product", id]`, `["catalog"]` | Atualiza a tabela do Admin e a PDP pública. |
-| **Ajustar Estoque** | `adjustStock` | `["stock"]`, `["product", id]`, `["cart"]` | Atualiza o saldo disponível e recalcula itens do carrinho. |
-| **Adicionar ao Carrinho**| `addToCart` | `["cart"]`, `["cartCount"]` | Abre o Drawer do Carrinho e atualiza o badge do Header. |
-| **Aplicar Cupom** | `applyCouponToCart` | `["cart"]` | Recalcula descontos e subtotal do carrinho. |
-| **Processar Checkout** | `processCheckout` | `["cart"]`, `["orders"]`, `["stock"]` | Limpa o carrinho ativo e redireciona para a confirmação. |
-| **Salvar Builder** | `updateExperienceDocument` | `["builder", slug]`, `["publicExperience"]` | Atualiza o preview e a renderização da vitrine. |
+| Operação de Mutação       | Serviço BFF Chamado        | Chaves de Cache Afetadas (Query Keys)            | Efeito Esperado na UI                                      |
+| :------------------------ | :------------------------- | :----------------------------------------------- | :--------------------------------------------------------- |
+| **Atualizar Produto**     | `updateProduct`            | `["products"]`, `["product", id]`, `["catalog"]` | Atualiza a tabela do Admin e a PDP pública.                |
+| **Ajustar Estoque**       | `adjustStock`              | `["stock"]`, `["product", id]`, `["cart"]`       | Atualiza o saldo disponível e recalcula itens do carrinho. |
+| **Adicionar ao Carrinho** | `addToCart`                | `["cart"]`, `["cartCount"]`                      | Abre o Drawer do Carrinho e atualiza o badge do Header.    |
+| **Aplicar Cupom**         | `applyCouponToCart`        | `["cart"]`                                       | Recalcula descontos e subtotal do carrinho.                |
+| **Processar Checkout**    | `processCheckout`          | `["cart"]`, `["orders"]`, `["stock"]`            | Limpa o carrinho ativo e redireciona para a confirmação.   |
+| **Salvar Builder**        | `updateExperienceDocument` | `["builder", slug]`, `["publicExperience"]`      | Atualiza o preview e a renderização da vitrine.            |
 
 ---
 

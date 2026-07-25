@@ -75,9 +75,9 @@
 
 ## 4. Matriz de Auditoria de Linhagens
 
-| Entidade / Campo | UI Form | Schema Zod | BFF Handler | Tabela SQL | Storefront Consumer | Status |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `product_price` | `price_cents` | `z.number().int()` | `admin-catalog` | `products.price_cents` | `PriceDisplay` / PDP | `COMPROVADO` |
-| `variant_grid` | `selectedSizes/Colors`| Matrix Zod | `admin-catalog` | `product_variants` | PDP Swatches | `COMPROVADO` |
-| `cart_reservation`| `handleAddToCart` | `AddToCartSchema` | `cart.functions` | `stock_reservations` | `CartDrawer` | `COMPROVADO` |
-| `checkout_order` | `CheckoutForm` | `CheckoutSchema` | `checkout.functions`| `orders` / `order_items`| Order Confirmation | `COMPROVADO` |
+| Entidade / Campo   | UI Form                | Schema Zod         | BFF Handler          | Tabela SQL               | Storefront Consumer  | Status       |
+| :----------------- | :--------------------- | :----------------- | :------------------- | :----------------------- | :------------------- | :----------- |
+| `product_price`    | `price_cents`          | `z.number().int()` | `admin-catalog`      | `products.price_cents`   | `PriceDisplay` / PDP | `COMPROVADO` |
+| `variant_grid`     | `selectedSizes/Colors` | Matrix Zod         | `admin-catalog`      | `product_variants`       | PDP Swatches         | `COMPROVADO` |
+| `cart_reservation` | `handleAddToCart`      | `AddToCartSchema`  | `cart.functions`     | `stock_reservations`     | `CartDrawer`         | `COMPROVADO` |
+| `checkout_order`   | `CheckoutForm`         | `CheckoutSchema`   | `checkout.functions` | `orders` / `order_items` | Order Confirmation   | `COMPROVADO` |

@@ -1,12 +1,12 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-const file = path.join(process.cwd(), 'src/routes/admin.catalogo.produtos.$id.tsx');
-let content = fs.readFileSync(file, 'utf8');
+const file = path.join(process.cwd(), "src/routes/admin.catalogo.produtos.$id.tsx");
+let content = fs.readFileSync(file, "utf8");
 
 const importStatement = `import { useState, useMemo, useEffect } from "react";`;
-if (!content.includes('useEffect')) {
-    content = content.replace('import { useState, useMemo } from "react";', importStatement);
+if (!content.includes("useEffect")) {
+  content = content.replace('import { useState, useMemo } from "react";', importStatement);
 }
 
 // Find VariantsManager and replace its start
@@ -222,15 +222,20 @@ const renderMatrixUi = `      <Card className="mb-6">
 `;
 
 if (content.includes(startMarker)) {
-    content = content.replace(startMarker, matrixCode);
+  content = content.replace(startMarker, matrixCode);
 }
 
-if (content.includes('<Card>\n        <CardHeader>\n          <CardTitle className="text-base">Variantes Cadastradas</CardTitle>')) {
-    content = content.replace(
-        '<Card>\n        <CardHeader>\n          <CardTitle className="text-base">Variantes Cadastradas</CardTitle>',
-        renderMatrixUi + '\n        <CardHeader>\n          <CardTitle className="text-base">Variantes Cadastradas</CardTitle>'
-    );
+if (
+  content.includes(
+    '<Card>\n        <CardHeader>\n          <CardTitle className="text-base">Variantes Cadastradas</CardTitle>',
+  )
+) {
+  content = content.replace(
+    '<Card>\n        <CardHeader>\n          <CardTitle className="text-base">Variantes Cadastradas</CardTitle>',
+    renderMatrixUi +
+      '\n        <CardHeader>\n          <CardTitle className="text-base">Variantes Cadastradas</CardTitle>',
+  );
 }
 
-fs.writeFileSync(file, content, 'utf8');
-console.log('Fixed admin.catalogo.produtos.$id.tsx');
+fs.writeFileSync(file, content, "utf8");
+console.log("Fixed admin.catalogo.produtos.$id.tsx");

@@ -7,9 +7,11 @@
 Este documento consolida o estado do projeto exatamente como estava no momento em que a Microfase G0 de preservação foi iniciada.
 
 ## 1. Modificações em Aberto (Working Tree)
+
 Foram encontradas massivas modificações não commitadas, resultado de refatorações de arquitetura (remoção do envelope `{status, data}`) via scripts geradores de regex, que quebraram a compilação de diversos consumers e foram abandonadas de forma parcial.
 
 ### Modificações (M)
+
 ```text
  M src/components/admin/admin-shell.tsx
  M src/components/admin/builder/MediaUploader.tsx
@@ -115,6 +117,7 @@ Foram encontradas massivas modificações não commitadas, resultado de refatora
 ```
 
 ### Untracked / Arquivos Locais da IA (??)
+
 ```text
 ?? audit_variants.ts
 ?? fix_components.ts
@@ -126,6 +129,7 @@ Foram encontradas massivas modificações não commitadas, resultado de refatora
 ```
 
 ## 2. Banco de Dados / Migrations Locais
+
 O supabase local lista 78 migrations aplicadas sincronicamente com o banco remoto (`local` === `remote`), do número `0001` até `0077`, além de um timestamp avulso de hotfix (`20260717115318`).
 
 ```text
@@ -136,7 +140,9 @@ O supabase local lista 78 migrations aplicadas sincronicamente com o banco remot
 ```
 
 ## 3. Estado da Compilação (`tsc --noEmit`)
+
 O runtime está fundamentalmente instável. O tsc falha com dezenas de `Property 'data' does not exist on type...` em dezenas de rotas:
+
 - `src/routes/admin.configuracoes.politicas.tsx`
 - `src/routes/admin.equipe.tsx`
 - `src/routes/admin.estoque.alertas.tsx`
@@ -146,4 +152,5 @@ O runtime está fundamentalmente instável. O tsc falha com dezenas de `Property
 - ... e mais 150+ linhas de erro.
 
 ## Veredito da Preservação
+
 O working tree foi mantido congelado. Nenhuma dessas alterações será revertida (`git reset --hard`) ou confirmada (`git commit`) neste momento. Este é o ponto exato da fratura da refatoração onde a Microfase G0 repousa.

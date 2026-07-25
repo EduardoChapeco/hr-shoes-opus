@@ -1866,7 +1866,7 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
         .order("sort_order", { ascending: true });
 
       if (nodesError) throw nodesError;
-      let nodes = nodesData as ExperienceNode[];
+      const nodes = nodesData as ExperienceNode[];
 
       // 4. Hydrate Data Bindings — shared helper covers store_profile, products, reviews
       const { resolveTenantStoreId } = await import("@/lib/tenant");

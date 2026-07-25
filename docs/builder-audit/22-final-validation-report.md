@@ -1,7 +1,7 @@
 # 22 — Final Validation Report
 
 > Data: 2026-07-24  
-> Projeto: Hr Shoes Commerce  
+> Projeto: Hr Shoes Commerce
 
 ---
 

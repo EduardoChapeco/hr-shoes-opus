@@ -86,7 +86,12 @@ export async function updateOrderStatusHandler(
     return { status: "ok" as const, message: "Pedido cancelado com sucesso." };
   }
 
-  const { error } = await db.from("orders").update({ status }).eq("id", orderId);
+  const updatePayload: Record<string, any> = { status };
+  if (status === "paid") updatePayload.paid_at = new Date().toISOString();
+  if (status === "shipped") updatePayload.shipped_at = new Date().toISOString();
+  if (status === "delivered") updatePayload.delivered_at = new Date().toISOString();
+
+  const { error } = await db.from("orders").update(updatePayload).eq("id", orderId);
   if (error) throw error;
   return { status: "ok" as const, message: "Status do pedido atualizado." };
 }

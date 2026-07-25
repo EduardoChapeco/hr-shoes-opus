@@ -4,6 +4,7 @@
 > Este livro-razão consolida 100% dos requisitos solicitados nos Prompts Foundation, Incremental, Delta 01 e Auditorias Mestre.
 
 ## Status Permitidos
+
 `NÃO INVENTARIADO` | `INVENTARIADO` | `NÃO IMPLEMENTADO` | `IMPLEMENTADO PARCIALMENTE` | `QUEBRADO` | `MOCKADO` | `SIMULADO` | `HARDCODADO` | `DUPLICADO` | `DESCONECTADO` | `OCULTO` | `ÓRFÃO` | `FUNCIONA NA CAMADA ERRADA` | `ALTERADO, MAS NÃO COMPROVADO` | `COMPROVADO` | `BLOQUEADO` | `REFUTADO`
 
 ---
@@ -11,6 +12,7 @@
 ## 1. Arquitetura, Segurança e Multi-Tenancy (BFF & Server Functions)
 
 ### REQ-ARCH-001 — Acesso Deny-by-Default via BFF
+
 - **ID**: `REQ-ARCH-001`
 - **Descrição**: Nenhuma requisição direta ao Supabase Client em componentes React do Frontend. Toda leitura e mutação passa por Server Functions BFF em `src/services/*`.
 - **Origem**: `AGENTS.md` §1, `ARCHITECTURE.md`
@@ -30,6 +32,7 @@
 - **Status**: `COMPROVADO`
 
 ### REQ-ARCH-002 — Cálculo Comercial Estritamente no Servidor
+
 - **ID**: `REQ-ARCH-002`
 - **Descrição**: Preço, desconto, frete, comissão, estoque e totais são calculados e validados exclusivamente no servidor.
 - **Origem**: `AGENTS.md` §2
@@ -53,6 +56,7 @@
 ## 2. Catálogo de Produtos e Matriz de Variantes
 
 ### REQ-CAT-001 — Matriz de Variantes Invariante
+
 - **ID**: `REQ-CAT-001`
 - **Descrição**: Todas as variantes de um produto devem compartilhar o mesmo conjunto exato de atributos (ex: Tamanho x Cor) sem duplicatas.
 - **Origem**: `Prompt Foundation`, `AGENTS.md`
@@ -72,6 +76,7 @@
 - **Status**: `COMPROVADO`
 
 ### REQ-CAT-002 — Gerador Rápido de Variações (Tamanhos / Cores / Estoque Inicial)
+
 - **ID**: `REQ-CAT-002`
 - **Descrição**: Interface de criação rápida de produtos com seleção de 1 clique para Tamanhos (33 a 40) e Cores (Preto, Nude, Branco, etc.) e estoque configurável.
 - **Origem**: Requisito Incremental do Usuário
@@ -95,6 +100,7 @@
 ## 3. Estoque, Carrinho e Checkout Transacional
 
 ### REQ-CART-001 — Resolução e Adição Atômica ao Carrinho
+
 - **ID**: `REQ-CART-001`
 - **Descrição**: O consumidor pode adicionar itens ao carrinho a partir da PDP ou de vitrines passando `variantId` ou `productId` com reserva imediata no banco de dados.
 - **Origem**: Requisito Incremental do Usuário
@@ -118,6 +124,7 @@
 ## 4. E-Commerce Builder & Temas de Vitrine
 
 ### REQ-BLD-001 — Biblioteca de Temas de Vitrine (10 Presets 100% Editáveis)
+
 - **ID**: `REQ-BLD-001`
 - **Descrição**: Biblioteca de 10 presets de temas de vitrine (Shopify-like) para onboarding e personalização total da Home pelo lojista.
 - **Origem**: Requisito Mestre do Usuário
@@ -140,12 +147,12 @@
 
 ## 5. Auditoria de Cobertura e Resumo de Requisitos
 
-| Categoria | Total Requisitos | Comprovados | Parciais | Quebrados | Status Geral |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Arquitetura & BFF** | 8 | 7 | 1 | 0 | `ESTÁVEL` |
-| **Catálogo & Variantes** | 12 | 11 | 1 | 0 | `ESTÁVEL` |
-| **Estoque & Carrinho** | 10 | 10 | 0 | 0 | `ESTÁVEL` |
-| **Builder & CMS** | 15 | 15 | 0 | 0 | `ESTÁVEL` |
-| **Checkout & Pedidos** | 14 | 13 | 1 | 0 | `ESTÁVEL` |
-| **Financeiro & Caixa** | 8 | 6 | 2 | 0 | `REVISÃO PENDENTE` |
-| **CRM & Leads** | 6 | 5 | 1 | 0 | `REVISÃO PENDENTE` |
+| Categoria                | Total Requisitos | Comprovados | Parciais | Quebrados |    Status Geral    |
+| :----------------------- | :--------------: | :---------: | :------: | :-------: | :----------------: |
+| **Arquitetura & BFF**    |        8         |      7      |    1     |     0     |     `ESTÁVEL`      |
+| **Catálogo & Variantes** |        12        |     11      |    1     |     0     |     `ESTÁVEL`      |
+| **Estoque & Carrinho**   |        10        |     10      |    0     |     0     |     `ESTÁVEL`      |
+| **Builder & CMS**        |        15        |     15      |    0     |     0     |     `ESTÁVEL`      |
+| **Checkout & Pedidos**   |        14        |     13      |    1     |     0     |     `ESTÁVEL`      |
+| **Financeiro & Caixa**   |        8         |      6      |    2     |     0     | `REVISÃO PENDENTE` |
+| **CRM & Leads**          |        6         |      5      |    1     |     0     | `REVISÃO PENDENTE` |

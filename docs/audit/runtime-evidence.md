@@ -21,9 +21,10 @@ Este documento registra dados coletados durantes execuções de testes, logs de 
 
 - **Migration 0049 e 0050**:
   - **Evidência**: As migrações locais `0049_builder_popups_templates.sql` e `0050_builder_analytics.sql` foram escritas de forma impecável, mas o banco de dados remoto/Supabase local não foi sincronizado devido à indisponibilidade temporária do serviço do Docker daemon no host de desenvolvimento.
-  - **Impacto**: O banco remoto está com *drift* de schema. Campos como `trigger_rules` e a tabela `builder_analytics_events` precisam ser aplicados no console do Supabase ou via CLI assim que o container local puder ser iniciado pelo usuário. As consultas a essas tabelas vão falhar se executadas no banco atual.
+  - **Impacto**: O banco remoto está com _drift_ de schema. Campos como `trigger_rules` e a tabela `builder_analytics_events` precisam ser aplicados no console do Supabase ou via CLI assim que o container local puder ser iniciado pelo usuário. As consultas a essas tabelas vão falhar se executadas no banco atual.
 
 ## 3. Telemetria de Clicks e Views
+
 - **Componente BentoGrid e HeroCarousel**:
   - **Evidência**: As chamadas `onClick` no BentoGrid acionam o hook `useBuilderClickTracking` perfeitamente em runtime, gerando requisições assíncronas ao endpoint `trackBuilderEvent`.
   - **Comprovação**: O código foi devidamente refatorado em `src/components/commerce/dynamic-sections/bento-grid.tsx` e `src/components/commerce/dynamic-sections/hero-carousel.tsx` para repassar `node_id` e `block_type`, integrando o rastreamento nativo.

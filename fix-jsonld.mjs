@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-const filePath = path.join(process.cwd(), 'src/routes/_store.produto.$slug.tsx');
-let content = fs.readFileSync(filePath, 'utf8');
+const filePath = path.join(process.cwd(), "src/routes/_store.produto.$slug.tsx");
+let content = fs.readFileSync(filePath, "utf8");
 
 // FIX 1: JSON-LD — the canonical link block has different format
 // Find the closing of head function by looking for 'links' near canonical
@@ -47,10 +47,10 @@ if (content.includes(headTarget)) {
     console.log("FIX 1 found alternate pattern");
   } else {
     // Dump what we have around 'canonical'
-    const idx = content.indexOf('canonical');
+    const idx = content.indexOf("canonical");
     console.log("FIX 1 context:", JSON.stringify(content.slice(Math.max(0, idx - 50), idx + 200)));
   }
 }
 
-fs.writeFileSync(filePath, content, 'utf8');
+fs.writeFileSync(filePath, content, "utf8");
 console.log("Done.");

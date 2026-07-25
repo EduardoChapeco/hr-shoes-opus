@@ -6,18 +6,31 @@ export function CookieBanner() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    // Look for hr_shoes_cookie_consent in actual browser cookies
-    const hasConsent = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("hr_shoes_cookie_consent="));
+    // 1. Check localStorage fallback
+    const localConsent = typeof window !== "undefined" ? localStorage.getItem("hr_shoes_cookie_consent") : null;
+    if (localConsent === "accepted") {
+      return;
+    }
+
+    // 2. Check browser cookies
+    const cookies = document.cookie.split(";").map((c) => c.trim());
+    const hasConsent = cookies.some((c) => c.startsWith("hr_shoes_cookie_consent="));
     if (!hasConsent) {
       setShow(true);
     }
   }, []);
 
   const handleAccept = () => {
-    // Set cookie to expire in 1 year (31536000 seconds)
-    document.cookie = "hr_shoes_cookie_consent=accepted; path=/; max-age=31536000; SameSite=Lax";
+    // Set localStorage fallback
+    if (typeof window !== "undefined") {
+      localStorage.setItem("hr_shoes_cookie_consent", "accepted");
+    }
+
+    // Set cookie with Secure flag on HTTPS
+    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+    const secureFlag = isHttps ? "; Secure" : "";
+    document.cookie = `hr_shoes_cookie_consent=accepted; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
+
     setShow(false);
   };
 

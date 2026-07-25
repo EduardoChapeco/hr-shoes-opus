@@ -1199,6 +1199,55 @@ export const addProductMediaLink = createServerFn({ method: "POST" })
     }
   });
 
+export async function toggleProductCollectionHandler(input: {
+  productId: string;
+  collectionId?: string;
+  collectionSlug?: string;
+  add?: boolean;
+}) {
+  const db = getServerClient();
+  const { productId, collectionId, collectionSlug, add = true } = input;
+
+  let targetCollectionId = collectionId;
+
+  if (!targetCollectionId && collectionSlug) {
+    const { data: col, error: colErr } = await db
+      .from("collections")
+      .select("id")
+      .eq("slug", collectionSlug)
+      .single();
+
+    if (colErr || !col) {
+      throw new Error("Coleção não encontrada com o slug fornecido");
+    }
+    targetCollectionId = col.id;
+  }
+
+  if (!targetCollectionId) {
+    throw new Error("Identificador de coleção (id ou slug) é obrigatório");
+  }
+
+  if (add) {
+    const { error } = await db.from("product_collections").upsert(
+      {
+        product_id: productId,
+        collection_id: targetCollectionId,
+      },
+      { onConflict: "product_id,collection_id" },
+    );
+    if (error) throw error;
+  } else {
+    const { error } = await db
+      .from("product_collections")
+      .delete()
+      .eq("product_id", productId)
+      .eq("collection_id", targetCollectionId);
+    if (error) throw error;
+  }
+
+  return { status: "success" as const };
+}
+
 export const toggleProductCollection = createServerFn({ method: "POST" })
   .validator(
     z.object({
@@ -1208,9 +1257,18 @@ export const toggleProductCollection = createServerFn({ method: "POST" })
       add: z.boolean().optional(),
     }),
   )
-  .handler(async (): Promise<{ status: "success" } | { status: "error"; message: string }> => {
-    return { status: "success" as const };
-  });
+  .handler(
+    async ({
+      data: input,
+    }): Promise<{ status: "success" } | { status: "error"; message: string }> => {
+      try {
+        return await toggleProductCollectionHandler(input);
+      } catch (e: any) {
+        console.error("[admin-catalog] toggleProductCollection error:", e);
+        return { status: "error" as const, message: e.message || "Erro ao vincular coleção" };
+      }
+    },
+  );
 
 // ---------------------------------------------------------------------------
 // Ações de Gestão em Lote e Duplicação de Produtos

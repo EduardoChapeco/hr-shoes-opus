@@ -38,9 +38,18 @@ function ConfirmationPage() {
   const shipping = order.shipping_cents || 0;
   const discount = order.discount_cents || 0;
   const total = order.total_cents || Math.max(0, subtotal + shipping - discount);
-
+  const storeSettings = order?.stores?.settings || {};
   const pixKey =
-    "00020101021226830014br.gov.bcb.pix2561pix.hrshoes.com.br/qr/v2/cobv/7ff34b92-9642-4f33-8a30-fef0d27038cf5204000053039865802BR5908Hr Shoes6009Chapeco62070503***6304D1A2";
+    storeSettings.payment_settings?.pix_key ||
+    storeSettings.pix_key ||
+    "Consulte a loja para obter a Chave PIX oficial de pagamento.";
+  const rawPhone =
+    storeSettings.whatsapp_phone ||
+    storeSettings.phone ||
+    storeSettings.whatsapp ||
+    storeSettings.contact_phone ||
+    "";
+  const whatsappPhone = rawPhone.replace(/\D/g, "");
 
   const handleCopyPix = () => {
     navigator.clipboard.writeText(pixKey);
@@ -91,16 +100,22 @@ function ConfirmationPage() {
             ) : order.payment_method === "manual" ? (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Sua reserva foi registrada! Para confirmar seu pedido e combinar o pagamento e entrega, fale com a nossa equipe no WhatsApp:
+                  Sua reserva foi registrada! Para confirmar seu pedido e combinar o pagamento e
+                  entrega, fale com a nossa equipe no WhatsApp:
                 </p>
-                
-                <Button 
-                  size="lg" 
+
+                <Button
+                  size="lg"
                   className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white gap-2"
                   onClick={() => {
-                    const phone = "5511999999999"; // TODO: Substituir pelo WhatsApp da loja
-                    const message = encodeURIComponent(`Olá! Acabei de realizar o pedido #${order.public_token} no site no valor de ${formatMoney(total)}. Gostaria de combinar o pagamento e a entrega/retirada!`);
-                    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+                    if (!whatsappPhone) {
+                      toast.info("Telefone de atendimento não configurado no painel da loja.");
+                      return;
+                    }
+                    const message = encodeURIComponent(
+                      `Olá! Acabei de realizar o pedido #${order.public_token} no site no valor de ${formatMoney(total)}. Gostaria de combinar o pagamento e a entrega/retirada!`,
+                    );
+                    window.open(`https://wa.me/${whatsappPhone}?text=${message}`, "_blank");
                   }}
                 >
                   <MessageCircle className="h-5 w-5" /> Falar com Vendedora no WhatsApp

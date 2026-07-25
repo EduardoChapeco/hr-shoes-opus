@@ -5,6 +5,7 @@
 ---
 
 ## 1. Fluxo Vertical de Produto & Catalogo
+
 ```
 Admin Form (/admin/catalogo/produtos/novo)
   ➔ BFF createProduct (valida Contract Shield)
@@ -15,6 +16,7 @@ Admin Form (/admin/catalogo/produtos/novo)
 ```
 
 ## 2. Fluxo Vertical de Carrinho & Reserva de Estoque
+
 ```
 Cliente clica em "Adicionar ao Carrinho"
   ➔ BFF addToCart (resolve variante)
@@ -25,6 +27,7 @@ Cliente clica em "Adicionar ao Carrinho"
 ```
 
 ## 3. Fluxo Vertical de Checkout & Transação
+
 ```
 Cliente clica em "Finalizar Compra" (/checkout)
   ➔ BFF processCheckout
@@ -35,6 +38,7 @@ Cliente clica em "Finalizar Compra" (/checkout)
 ```
 
 ## 4. Fluxo Vertical do Builder & Temas de Vitrine
+
 ```
 Lojista seleciona preset no Editor Visual
   ➔ BFF applyHomeTemplate
@@ -45,6 +49,7 @@ Lojista seleciona preset no Editor Visual
 ```
 
 ## 5. Fluxo Vertical de Caixa & Operação PDV
+
 ```
 Vendedora acessa /admin/caixa
   ➔ Abertura de Sessão de Caixa (openCashSession)
@@ -54,6 +59,7 @@ Vendedora acessa /admin/caixa
 ```
 
 ## 6. Fluxo Vertical de Avaliações & Prova Social
+
 ```
 Cliente acessa PDP e preenche formulário de avaliação
   ➔ BFF submitProductReview
@@ -63,6 +69,7 @@ Cliente acessa PDP e preenche formulário de avaliação
 ```
 
 ## 7. Fluxo Vertical de CRM & Gestão de Clientes
+
 ```
 Cliente realiza primeira compra ou se cadastra
   ➔ Criação de registro em customers e customer_addresses
@@ -71,6 +78,7 @@ Cliente realiza primeira compra ou se cadastra
 ```
 
 ## 8. Fluxo Vertical de Logística & Expedição
+
 ```
 Pedido é marcado como pago (paid)
   ➔ Criação automática de registro em shipments

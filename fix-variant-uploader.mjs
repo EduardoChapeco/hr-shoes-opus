@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-const filePath = path.join(process.cwd(), 'src/routes/admin.catalogo.produtos.$id.tsx');
-let content = fs.readFileSync(filePath, 'utf8');
+const filePath = path.join(process.cwd(), "src/routes/admin.catalogo.produtos.$id.tsx");
+let content = fs.readFileSync(filePath, "utf8");
 
 // 1. We need to add handleVariantImage function to VariantsManager.
 const target1 = `  const onSubmitVariant = async (values: any) => {`;
@@ -46,5 +46,5 @@ const replace2 = `            {editingVariant && (
 
 content = content.replace(target2, replace2);
 
-fs.writeFileSync(filePath, content, 'utf8');
+fs.writeFileSync(filePath, content, "utf8");
 console.log("Variant image uploader added successfully!");

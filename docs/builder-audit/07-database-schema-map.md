@@ -1,13 +1,14 @@
 # 07 — Database Schema Map
 
 > Data: 2026-07-24  
-> Projeto: Hr Shoes Commerce  
+> Projeto: Hr Shoes Commerce
 
 ---
 
 ## Mapeamento de Tabelas e Constraints (Migration `0048_builder_platform_core.sql`)
 
 ### 1. `public.experience_documents`
+
 - `id`: `uuid PRIMARY KEY DEFAULT gen_random_uuid()`
 - `store_id`: `uuid NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE`
 - `title`: `text NOT NULL`
@@ -18,6 +19,7 @@
 - **Unique Constraint**: `UNIQUE (store_id, slug, document_type)`
 
 ### 2. `public.experience_versions`
+
 - `id`: `uuid PRIMARY KEY DEFAULT gen_random_uuid()`
 - `document_id`: `uuid NOT NULL REFERENCES public.experience_documents(id) ON DELETE CASCADE`
 - `version_number`: `integer NOT NULL`
@@ -26,6 +28,7 @@
 - `created_at`: `timestamptz DEFAULT now()`
 
 ### 3. `public.experience_nodes`
+
 - `id`: `uuid PRIMARY KEY DEFAULT gen_random_uuid()`
 - `version_id`: `uuid NOT NULL REFERENCES public.experience_versions(id) ON DELETE CASCADE`
 - `parent_id`: `uuid NULL REFERENCES public.experience_nodes(id) ON DELETE CASCADE`
@@ -40,4 +43,5 @@
 - `created_at`, `updated_at`: `timestamptz DEFAULT now()`
 
 ### Status de Integridade
+
 Integridade referencial mantida com `ON DELETE CASCADE`. O multi-tenancy é isolado estritamente por `store_id`.

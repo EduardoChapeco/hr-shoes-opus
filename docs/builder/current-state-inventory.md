@@ -2,7 +2,7 @@
 
 > Data: 2026-07-24  
 > Projeto: Hr Shoes Commerce  
-> Status: Fase 0 — Concluída  
+> Status: Fase 0 — Concluída
 
 ---
 
@@ -30,15 +30,15 @@ O sistema possui duas camadas históricas coexistentes no banco de dados e nos s
 
 ## 2. Inventário de Arquivos e Componentes
 
-| Arquivo / Diretório | Responsabilidade | Status | Evidência / Diagnóstico |
-|---|---|---|---|
-| `src/lib/builder-types.ts` | Definição de interfaces TypeScript (`ExperienceDocument`, `ExperienceNode`, `BlockManifest`, `InspectorField`) | **Reutilizar & Estender** | Define a base tipada da árvore DOM e dos campos de inspeção do sidepanel. |
-| `src/lib/builder-registry.ts` | Registry canônico de todos os blocos suportados (`hero_carousel`, `bento_grid`, `product_rail`, `stories_ring`, etc.) | **Reutilizar & Estender** | Contém a definição de 18+ blocos com schemas Zod e definições de inspetor. |
-| `src/lib/cms-templates.ts` & `templates-default.ts` | Mapeamento de presets estáticos de templates de páginas | **Refatorar & Unificar** | Atualmente existem definições paralelas de templates em `cms-templates.ts` e `builder.functions.ts`. Devem ser consolidadas na nova Biblioteca Canônica de Templates. |
-| `src/services/builder.functions.ts` | BFF / Server Functions (TanStack Start) para CRUD de documentos, nodes e hidratação de bindings | **Reutilizar & Estender** | Hidrata `data_bindings` reais (`store_profile`, `product_collection`, `latest_products`, `dynamic_reviews`) sem duplicar catálogo no JSON. |
-| `src/routes/admin.builder.$documentId.editor.tsx` | Painel visual do editor de páginas (Tree View, Preview responsivo, Sidepanel de propriedades, Drag-and-Drop) | **Reutilizar & Estender** | Editor totalmente funcional com navegação visual por iframe/preview, inspeção dinâmica via schema e salvamento em rascunho. |
-| `src/components/commerce/experience-renderer.tsx` | Renderizador dinâmico de nós no storefront público | **Reutilizar & Estender** | Renderiza recursivamente nós da árvore DOM `experience_nodes`, associando aos componentes visuais de `dynamic-sections`. |
-| `src/components/commerce/dynamic-sections/*` | Biblioteca de 23 componentes React visuais (`hero-carousel`, `bento-grid`, `mosaic-banners`, etc.) | **Reutilizar & Expandir** | Componentes estilizados com Tailwind v4. Necessitam de suporte a hotspots, variantes adicionais, PDP configurável e filtros. |
+| Arquivo / Diretório                                 | Responsabilidade                                                                                                      | Status                    | Evidência / Diagnóstico                                                                                                                                               |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/builder-types.ts`                          | Definição de interfaces TypeScript (`ExperienceDocument`, `ExperienceNode`, `BlockManifest`, `InspectorField`)        | **Reutilizar & Estender** | Define a base tipada da árvore DOM e dos campos de inspeção do sidepanel.                                                                                             |
+| `src/lib/builder-registry.ts`                       | Registry canônico de todos os blocos suportados (`hero_carousel`, `bento_grid`, `product_rail`, `stories_ring`, etc.) | **Reutilizar & Estender** | Contém a definição de 18+ blocos com schemas Zod e definições de inspetor.                                                                                            |
+| `src/lib/cms-templates.ts` & `templates-default.ts` | Mapeamento de presets estáticos de templates de páginas                                                               | **Refatorar & Unificar**  | Atualmente existem definições paralelas de templates em `cms-templates.ts` e `builder.functions.ts`. Devem ser consolidadas na nova Biblioteca Canônica de Templates. |
+| `src/services/builder.functions.ts`                 | BFF / Server Functions (TanStack Start) para CRUD de documentos, nodes e hidratação de bindings                       | **Reutilizar & Estender** | Hidrata `data_bindings` reais (`store_profile`, `product_collection`, `latest_products`, `dynamic_reviews`) sem duplicar catálogo no JSON.                            |
+| `src/routes/admin.builder.$documentId.editor.tsx`   | Painel visual do editor de páginas (Tree View, Preview responsivo, Sidepanel de propriedades, Drag-and-Drop)          | **Reutilizar & Estender** | Editor totalmente funcional com navegação visual por iframe/preview, inspeção dinâmica via schema e salvamento em rascunho.                                           |
+| `src/components/commerce/experience-renderer.tsx`   | Renderizador dinâmico de nós no storefront público                                                                    | **Reutilizar & Estender** | Renderiza recursivamente nós da árvore DOM `experience_nodes`, associando aos componentes visuais de `dynamic-sections`.                                              |
+| `src/components/commerce/dynamic-sections/*`        | Biblioteca de 23 componentes React visuais (`hero-carousel`, `bento-grid`, `mosaic-banners`, etc.)                    | **Reutilizar & Expandir** | Componentes estilizados com Tailwind v4. Necessitam de suporte a hotspots, variantes adicionais, PDP configurável e filtros.                                          |
 
 ---
 
@@ -53,6 +53,6 @@ O sistema possui duas camadas históricas coexistentes no banco de dados e nos s
 ## 4. Avaliação de Riscos e Compatibilidade
 
 1. **Risco de Duplicação de Templates**: Existência de presets legados no schema de `pages` versus `experience_documents`.
-   - *Mitigação*: Concentrar 100% da biblioteca de presets no motor de `experience_documents`/`experience_nodes`, mantendo compatibilidade de hidratação.
+   - _Mitigação_: Concentrar 100% da biblioteca de presets no motor de `experience_documents`/`experience_nodes`, mantendo compatibilidade de hidratação.
 2. **Risco de Hydration Mismatch**: Renderização SSR x Client-side no TanStack Start em blocos dinâmicos como `countdown_timer` e `product_rail`.
-   - *Mitigação*: Utilizar `transient_data` resolvido exclusivamente via BFF no servidor em `builder.functions.ts`.
+   - _Mitigação_: Utilizar `transient_data` resolvido exclusivamente via BFF no servidor em `builder.functions.ts`.

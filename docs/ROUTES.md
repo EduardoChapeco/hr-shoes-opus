@@ -122,14 +122,16 @@
 | `/admin/configuracoes/auditoria` | Log de auditoria             | owner, admin                                                    | 4    | Planejado (Fase 4) |
 | `/admin/configuracoes/seo`       | Configurações de SEO         | owner, admin, content                                           | 3    | Planejado (Fase 3) |
 
-
 ## Auditoria A1 — Inventário de Rastreabilidade
+
 > **Data da Revisão:** 21/07/2026
 > **Commit Analisado:** 5865d731
 > **Evidência:** 110 arquivos físicos vs 99 caminhos registrados em src/lib/routes.ts.
 
 ### Rotas Órfãs e Desconectadas
+
 Encontradas rotas físicas que não possuem registro no ROUTES.md e não recebem navegação oficial:
+
 - dmin_.pedidos..recibo.tsx (Possível duplicação/legado de impressão de recibo)
 - _store.bio..tsx (Rota de Link na Bio não registrada na fonte de verdade pública)
 - _store.match-time.tsx (Rota de Match Time não registrada na vitrine)
@@ -138,5 +140,6 @@ Encontradas rotas físicas que não possuem registro no ROUTES.md e não recebem
 - _store.vendedora..tsx (URL de vendedor/afiliado órfã)
 
 ### Status Geral
-- **Administração (admin.*):** Predominantemente BLOQUEADO via <PhaseGate>. Possuem componentes renderizados, mas sem acesso orgânico em runtime.
-- **Vitrine e Conta (_store.*):** A maioria COMPROVADO para leitura, mas com pendências de validação estrita de Supabase direto vs Server Functions em sub-rotas como avaliações e chats.
+
+- **Administração (admin.\*):** Predominantemente BLOQUEADO via <PhaseGate>. Possuem componentes renderizados, mas sem acesso orgânico em runtime.
+- **Vitrine e Conta (\_store.\*):** A maioria COMPROVADO para leitura, mas com pendências de validação estrita de Supabase direto vs Server Functions em sub-rotas como avaliações e chats.

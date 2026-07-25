@@ -1,10 +1,11 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-const file = path.join(process.cwd(), 'src/services/builder.functions.ts');
-let content = fs.readFileSync(file, 'utf8');
+const file = path.join(process.cwd(), "src/services/builder.functions.ts");
+let content = fs.readFileSync(file, "utf8");
 
-const regex = /const \{ data: col \} = await db\.from\("product_collections"\)(.*?)res = \{ status: "ok", data: formatted \};\s*\}\s*\}/s;
+const regex =
+  /const \{ data: col \} = await db\.from\("product_collections"\)(.*?)res = \{ status: "ok", data: formatted \};\s*\}\s*\}/s;
 
 const newQuery = `const { data: col } = await db.from("collections").select("id").eq("slug", bindings.collection_slug).eq("store_id", store_id).eq("status", "active").single();
             let res = null;
@@ -37,5 +38,5 @@ const newQuery = `const { data: col } = await db.from("collections").select("id"
 
 content = content.replace(regex, newQuery);
 
-fs.writeFileSync(file, content, 'utf8');
+fs.writeFileSync(file, content, "utf8");
 console.log("builder.functions.ts collection query fixed");
