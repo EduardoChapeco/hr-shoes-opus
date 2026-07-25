@@ -187,7 +187,7 @@ function CheckoutPage() {
           };
         });
         if (cleanZip.length === 8) {
-          handleCepChange(cleanZip);
+          handleCepChange(cleanZip, true);
         }
       }
     }
@@ -210,7 +210,7 @@ function CheckoutPage() {
     setActiveStep(2);
   };
 
-  const handleCepChange = async (val: string) => {
+  const handleCepChange = async (val: string, skipAutofill = false) => {
     const cep = val.replace(/\D/g, "");
     setFormData((prev) => ({
       ...prev,
@@ -221,20 +221,22 @@ function CheckoutPage() {
       setIsCalculatingShipping(true);
       setNoShippingRatesFound(false);
       try {
-        // Auto-fill address fields from ViaCep
-        const zipRes = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-        const zipData = await zipRes.json();
-        if (!zipData.erro) {
-          setFormData((prev) => ({
-            ...prev,
-            shippingAddress: {
-              ...prev.shippingAddress,
-              street: zipData.logradouro || "",
-              neighborhood: zipData.bairro || "",
-              city: zipData.localidade || "",
-              state: zipData.uf || "",
-            },
-          }));
+        if (!skipAutofill) {
+          // Auto-fill address fields from ViaCep
+          const zipRes = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+          const zipData = await zipRes.json();
+          if (!zipData.erro) {
+            setFormData((prev) => ({
+              ...prev,
+              shippingAddress: {
+                ...prev.shippingAddress,
+                street: zipData.logradouro || prev.shippingAddress.street,
+                neighborhood: zipData.bairro || prev.shippingAddress.neighborhood,
+                city: zipData.localidade || prev.shippingAddress.city,
+                state: zipData.uf || prev.shippingAddress.state,
+              },
+            }));
+          }
         }
 
         // Calculate shipping rates
@@ -721,19 +723,21 @@ function CheckoutPage() {
                                 key={addr.id}
                                 type="button"
                                 onClick={() => {
+                                  const selectedStreet =
+                                    addr.street || addr.address_line1 || addr.logradouro || "";
                                   setFormData((prev) => ({
                                     ...prev,
                                     shippingAddress: {
                                       zipcode: cleanZip,
-                                      street: addr.street || "",
+                                      street: selectedStreet,
                                       number: addr.number || "",
                                       complement: addr.complement || "",
-                                      neighborhood: addr.neighborhood || "",
+                                      neighborhood: addr.neighborhood || addr.bairro || "",
                                       city: addr.city || "",
                                       state: addr.state || "",
                                     },
                                   }));
-                                  handleCepChange(cleanZip);
+                                  handleCepChange(cleanZip, true);
                                 }}
                                 className={`p-3 border rounded-xl text-left text-xs space-y-1 transition-all ${
                                   isSelected
