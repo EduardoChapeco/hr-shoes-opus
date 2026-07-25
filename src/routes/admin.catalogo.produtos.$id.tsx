@@ -22,7 +22,7 @@ import {
   LayoutList,
   Box,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
 } from "lucide-react";
 
 import { ProductEditorLayout } from "@/components/admin/product-editor/product-editor-layout";
@@ -89,7 +89,7 @@ export const Route = createFileRoute("/admin/catalogo/produtos/$id")({
     const [product, catsRes, typesRes] = await Promise.all([
       getProductById({ data: { id: params.id } }),
       listCategories(),
-      import("@/services/admin-catalog.functions").then(m => m.listProductTypes())
+      import("@/services/admin-catalog.functions").then((m) => m.listProductTypes()),
     ]);
     if (!product) throw new Error("Produto não encontrado.");
     return {
@@ -116,7 +116,9 @@ function EditProductPage() {
   // Collect unique attribute keys from actual variants
   const attributeKeys: string[] = useMemo(() => {
     return Array.from(
-      new Set((product.product_variants || []).flatMap((v: any) => Object.keys(v.attributes || {}))),
+      new Set(
+        (product.product_variants || []).flatMap((v: any) => Object.keys(v.attributes || {})),
+      ),
     );
   }, [product.product_variants]);
 
@@ -163,8 +165,15 @@ function EditProductPage() {
                   <Sparkles className="size-3.5 text-primary" />
                   Preview
                 </span>
-                <Badge variant={liveStatus === "published" ? "default" : "secondary"} className="text-[10px]">
-                  {liveStatus === "published" ? "Publicado" : liveStatus === "archived" ? "Arquivado" : "Rascunho"}
+                <Badge
+                  variant={liveStatus === "published" ? "default" : "secondary"}
+                  className="text-[10px]"
+                >
+                  {liveStatus === "published"
+                    ? "Publicado"
+                    : liveStatus === "archived"
+                      ? "Arquivado"
+                      : "Rascunho"}
                 </Badge>
               </CardHeader>
               <CardContent className="p-4 space-y-4">
@@ -188,11 +197,18 @@ function EditProductPage() {
                     {liveTitle || "Título do produto..."}
                   </h3>
                   <div className="pt-1">
-                    <PriceDisplay amountCents={livePriceCents} compareAtCents={liveCompareCents ?? undefined} size="lg" />
+                    <PriceDisplay
+                      amountCents={livePriceCents}
+                      compareAtCents={liveCompareCents ?? undefined}
+                      size="lg"
+                    />
                   </div>
                   {profitMarginPercent !== null && (
                     <div className="pt-2">
-                      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs gap-1">
+                      <Badge
+                        variant="outline"
+                        className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs gap-1"
+                      >
                         <TrendingUp className="size-3.5" /> Margem Estimada: {profitMarginPercent}%
                       </Badge>
                     </div>
@@ -225,16 +241,24 @@ function EditProductPage() {
 
         <div id="midias" className="scroll-mt-32 pt-12 border-t">
           <div className="mb-6">
-            <h2 className="text-xl font-bold flex items-center gap-2"><ImagePlus className="size-5 text-primary" /> Galeria de Fotos</h2>
-            <p className="text-sm text-muted-foreground">Arraste para reordenar, gerencie fotos e vídeos e defina o focal point.</p>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <ImagePlus className="size-5 text-primary" /> Galeria de Fotos
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Arraste para reordenar, gerencie fotos e vídeos e defina o focal point.
+            </p>
           </div>
           <MediaManager product={product} />
         </div>
 
         <div id="variantes" className="scroll-mt-32 pt-12 border-t">
           <div className="mb-6">
-            <h2 className="text-xl font-bold flex items-center gap-2"><LayoutList className="size-5 text-primary" /> Estoque & Variações</h2>
-            <p className="text-sm text-muted-foreground">Gerencie o saldo em estoque, variações de tamanho, cor, SKUs e EANs específicos.</p>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <LayoutList className="size-5 text-primary" /> Estoque & Variações
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Gerencie o saldo em estoque, variações de tamanho, cor, SKUs e EANs específicos.
+            </p>
           </div>
           <VariantsManager product={product} />
         </div>
@@ -382,7 +406,9 @@ function GeneralForm({
           width_cm: values.width_cm ? parseFloat(values.width_cm) : null,
           height_cm: values.height_cm ? parseFloat(values.height_cm) : null,
           length_cm: values.length_cm ? parseFloat(values.length_cm) : null,
-          preparation_time_days: values.preparation_time_days ? parseInt(values.preparation_time_days, 10) : 0,
+          preparation_time_days: values.preparation_time_days
+            ? parseInt(values.preparation_time_days, 10)
+            : 0,
           category_ids: selectedCategory ? [selectedCategory] : [],
           type_id: values.type_id !== "none" ? values.type_id : null,
           attributes: values.attributes,
@@ -405,13 +431,18 @@ function GeneralForm({
     if (!newCategoryName.trim()) return;
     setIsCreatingCategory(true);
     try {
-      const slug = newCategoryName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+      const slug = newCategoryName
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
       const res = await createCategory({
         data: {
           name: newCategoryName,
           slug,
-          status: "active"
-        }
+          status: "active",
+        },
       });
       if (res) {
         toast.success("Categoria criada!");
@@ -434,7 +465,9 @@ function GeneralForm({
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Informações Comerciais Principais</CardTitle>
-          <CardDescription>Defina o título, marca e descrição detalhada do produto.</CardDescription>
+          <CardDescription>
+            Defina o título, marca e descrição detalhada do produto.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -444,7 +477,11 @@ function GeneralForm({
           </div>
           <div className="space-y-2">
             <Label>Descrição Completa (Rich Text / Texto)</Label>
-            <Textarea {...register("description")} rows={5} placeholder="Descreva os materiais, conforto, altura do salto e indicações de uso..." />
+            <Textarea
+              {...register("description")}
+              rows={5}
+              placeholder="Descreva os materiais, conforto, altura do salto e indicações de uso..."
+            />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -456,7 +493,10 @@ function GeneralForm({
                 <Label>Categoria Principal</Label>
                 <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
                   <DialogTrigger asChild>
-                    <button type="button" className="text-xs text-primary hover:underline font-medium">
+                    <button
+                      type="button"
+                      className="text-xs text-primary hover:underline font-medium"
+                    >
                       + Nova Categoria
                     </button>
                   </DialogTrigger>
@@ -467,8 +507,8 @@ function GeneralForm({
                     <div className="space-y-4 py-4">
                       <div className="space-y-2">
                         <Label>Nome da Categoria</Label>
-                        <Input 
-                          value={newCategoryName} 
+                        <Input
+                          value={newCategoryName}
                           onChange={(e) => setNewCategoryName(e.target.value)}
                           placeholder="Ex: Lançamentos"
                           autoFocus
@@ -476,8 +516,14 @@ function GeneralForm({
                       </div>
                     </div>
                     <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsCategoryModalOpen(false)}>Cancelar</Button>
-                      <Button type="button" onClick={handleCreateCategory} disabled={isCreatingCategory || !newCategoryName.trim()}>
+                      <Button variant="outline" onClick={() => setIsCategoryModalOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleCreateCategory}
+                        disabled={isCreatingCategory || !newCategoryName.trim()}
+                      >
                         {isCreatingCategory ? "Criando..." : "Criar Categoria"}
                       </Button>
                     </DialogFooter>
@@ -505,7 +551,9 @@ function GeneralForm({
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Precificação & Lucratividade</CardTitle>
-          <CardDescription>Valores em Reais (R$). Cálculos de margem de lucro acontecem em tempo real.</CardDescription>
+          <CardDescription>
+            Valores em Reais (R$). Cálculos de margem de lucro acontecem em tempo real.
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-2">
@@ -514,7 +562,12 @@ function GeneralForm({
           </div>
           <div className="space-y-2">
             <Label>Preço Comparativo De (R$)</Label>
-            <Input step="0.01" type="number" placeholder="Ex: 299.90" {...register("compare_at_cents")} />
+            <Input
+              step="0.01"
+              type="number"
+              placeholder="Ex: 299.90"
+              {...register("compare_at_cents")}
+            />
           </div>
           <div className="space-y-2">
             <Label>Custo por Item (R$)</Label>
@@ -541,18 +594,18 @@ function GeneralForm({
               </SelectContent>
             </Select>
           </div>
-          
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <LayoutList className="size-4" /> 
+            <LayoutList className="size-4" />
             Ficha Técnica Dinâmica (Tipo de Produto)
           </CardTitle>
           <CardDescription>
-            Defina um tipo de produto para renderizar campos específicos (ex: Material, Voltagem, Indicação) de acordo com o seu nicho.
+            Defina um tipo de produto para renderizar campos específicos (ex: Material, Voltagem,
+            Indicação) de acordo com o seu nicho.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -565,69 +618,88 @@ function GeneralForm({
               <SelectContent>
                 <SelectItem value="none">Produto Genérico</SelectItem>
                 {productTypes.map((t: any) => (
-                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {selectedProductType && selectedProductType.field_schema && selectedProductType.field_schema.length > 0 && (
-            <div className="pt-4 border-t space-y-4">
-              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                Campos de {selectedProductType.name}
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {selectedProductType.field_schema.map((field: any, idx: number) => {
-                  const fieldKey = `attributes.${field.name}`;
-                  return (
-                    <div key={idx} className="space-y-2">
-                      <Label className="flex items-center gap-1">
-                        {field.name}
-                        {field.required && <span className="text-destructive">*</span>}
-                      </Label>
-                      
-                      {field.kind === "text" && (
-                        <Input {...register(fieldKey as any, { required: field.required })} placeholder="Ex: Algodão" />
-                      )}
-                      
-                      {field.kind === "number" && (
-                        <Input type="number" step="any" {...register(fieldKey as any, { required: field.required })} placeholder="0" />
-                      )}
+          {selectedProductType &&
+            selectedProductType.field_schema &&
+            selectedProductType.field_schema.length > 0 && (
+              <div className="pt-4 border-t space-y-4">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                  Campos de {selectedProductType.name}
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {selectedProductType.field_schema.map((field: any, idx: number) => {
+                    const fieldKey = `attributes.${field.name}`;
+                    return (
+                      <div key={idx} className="space-y-2">
+                        <Label className="flex items-center gap-1">
+                          {field.name}
+                          {field.required && <span className="text-destructive">*</span>}
+                        </Label>
 
-                      {field.kind === "boolean" && (
-                        <div className="flex items-center h-10 space-x-2">
-                          <Checkbox
-                            id={fieldKey}
-                            checked={watch(fieldKey as any) === true}
-                            onCheckedChange={(checked: boolean) => setValue(fieldKey as any, checked === true)}
+                        {field.kind === "text" && (
+                          <Input
+                            {...register(fieldKey as any, { required: field.required })}
+                            placeholder="Ex: Algodão"
                           />
-                          <label htmlFor={fieldKey} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            Sim, possui {field.name.toLowerCase()}
-                          </label>
-                        </div>
-                      )}
+                        )}
 
-                      {(field.kind === "select_single" || field.kind === "option_group") && (
-                        <Select 
-                          value={watch(fieldKey as any) || ""} 
-                          onValueChange={(val) => setValue(fieldKey as any, val)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {field.options?.map((opt: string, i: number) => (
-                              <SelectItem key={i} value={opt}>{opt}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </div>
-                  );
-                })}
+                        {field.kind === "number" && (
+                          <Input
+                            type="number"
+                            step="any"
+                            {...register(fieldKey as any, { required: field.required })}
+                            placeholder="0"
+                          />
+                        )}
+
+                        {field.kind === "boolean" && (
+                          <div className="flex items-center h-10 space-x-2">
+                            <Checkbox
+                              id={fieldKey}
+                              checked={watch(fieldKey as any) === true}
+                              onCheckedChange={(checked: boolean) =>
+                                setValue(fieldKey as any, checked === true)
+                              }
+                            />
+                            <label
+                              htmlFor={fieldKey}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              Sim, possui {field.name.toLowerCase()}
+                            </label>
+                          </div>
+                        )}
+
+                        {(field.kind === "select_single" || field.kind === "option_group") && (
+                          <Select
+                            value={watch(fieldKey as any) || ""}
+                            onValueChange={(val) => setValue(fieldKey as any, val)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {field.options?.map((opt: string, i: number) => (
+                                <SelectItem key={i} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </CardContent>
       </Card>
 
@@ -638,13 +710,25 @@ function GeneralForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-2">
-            <input type="checkbox" id="is_physical" {...register("is_physical")} className="size-4 rounded border-gray-300 text-primary focus:ring-primary" />
-            <Label htmlFor="is_physical" className="text-sm font-semibold">Este é um produto físico que requer frete</Label>
+            <input
+              type="checkbox"
+              id="is_physical"
+              {...register("is_physical")}
+              className="size-4 rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            <Label htmlFor="is_physical" className="text-sm font-semibold">
+              Este é um produto físico que requer frete
+            </Label>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label>Peso (kg)</Label>
-              <Input {...register("weight_kg")} type="number" step="0.001" placeholder="Ex: 0.500" />
+              <Input
+                {...register("weight_kg")}
+                type="number"
+                step="0.001"
+                placeholder="Ex: 0.500"
+              />
             </div>
             <div className="space-y-2">
               <Label>Largura (cm)</Label>
@@ -706,7 +790,11 @@ function GeneralForm({
           </div>
           <div className="space-y-2">
             <Label>Resumo Curto (Short Description)</Label>
-            <Textarea {...register("short_description")} placeholder="Visualização rápida do produto..." className="min-h-16" />
+            <Textarea
+              {...register("short_description")}
+              placeholder="Visualização rápida do produto..."
+              className="min-h-16"
+            />
           </div>
           <div className="space-y-2">
             <Label>Meta Title (SEO)</Label>
@@ -744,7 +832,7 @@ function VariantsManager({ product }: { product: any }) {
             <Settings className="size-4" /> Modo Avançado (Tabela)
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="rapido" className="mt-0">
           <VariantOptionsBuilder product={product} />
         </TabsContent>
@@ -754,10 +842,18 @@ function VariantsManager({ product }: { product: any }) {
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
                 <CardTitle className="text-base">Tabela de Variantes</CardTitle>
-                <CardDescription>Gerencie SKUs, imagens específicas, estoque e preços por variante.</CardDescription>
+                <CardDescription>
+                  Gerencie SKUs, imagens específicas, estoque e preços por variante.
+                </CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                <Button size="sm" onClick={() => { setIsAddingNew(true); setEditingVariantId(null); }}>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setIsAddingNew(true);
+                    setEditingVariantId(null);
+                  }}
+                >
                   <Plus className="mr-1.5 size-4" /> Nova Variante Manual
                 </Button>
               </div>
@@ -768,18 +864,15 @@ function VariantsManager({ product }: { product: any }) {
           </Card>
 
           {editingVariantId && (
-             <VariantFormRow
-               productId={product.id}
-               variant={product.product_variants?.find((v: any) => v.id === editingVariantId)}
-               onClose={() => setEditingVariantId(null)}
-             />
+            <VariantFormRow
+              productId={product.id}
+              variant={product.product_variants?.find((v: any) => v.id === editingVariantId)}
+              onClose={() => setEditingVariantId(null)}
+            />
           )}
 
           {isAddingNew && (
-             <VariantFormRow
-               productId={product.id}
-               onClose={() => setIsAddingNew(false)}
-             />
+            <VariantFormRow productId={product.id} onClose={() => setIsAddingNew(false)} />
           )}
         </TabsContent>
       </Tabs>
@@ -853,7 +946,7 @@ function MediaManager({ product }: { product: any }) {
     const formData = new FormData(e.currentTarget);
     const alt = formData.get("alt") as string;
     const media_type = formData.get("media_type") as "image" | "video";
-    const variant_id = formData.get("variant_id") as string || null;
+    const variant_id = (formData.get("variant_id") as string) || null;
 
     try {
       await updateProductMediaMetadata({
@@ -895,16 +988,24 @@ function MediaManager({ product }: { product: any }) {
           {product.product_media
             ?.sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
             .map((m: any, idx: number) => {
-              const matchedVariant = product.product_variants?.find((v: any) => v.id === m.variant_id);
-              const variantText = matchedVariant
-                ? `Variação: ${matchedVariant.sku}`
-                : "Uso Geral";
+              const matchedVariant = product.product_variants?.find(
+                (v: any) => v.id === m.variant_id,
+              );
+              const variantText = matchedVariant ? `Variação: ${matchedVariant.sku}` : "Uso Geral";
 
               return (
-                <div key={m.id || idx} className="relative group border rounded-xl overflow-hidden bg-card shadow-sm flex flex-col justify-between">
+                <div
+                  key={m.id || idx}
+                  className="relative group border rounded-xl overflow-hidden bg-card shadow-sm flex flex-col justify-between"
+                >
                   <div className="relative aspect-[4/3] bg-muted overflow-hidden flex items-center justify-center">
                     {m.media_type === "video" ? (
-                      <video src={m.url} className="w-full h-full object-cover" controls={false} muted />
+                      <video
+                        src={m.url}
+                        className="w-full h-full object-cover"
+                        controls={false}
+                        muted
+                      />
                     ) : (
                       <img src={m.url} alt={m.alt || ""} className="w-full h-full object-cover" />
                     )}
@@ -940,9 +1041,7 @@ function MediaManager({ product }: { product: any }) {
                     </div>
                   </div>
                   <div className="p-3 space-y-1">
-                    <p className="text-[11px] font-semibold text-primary truncate">
-                      {variantText}
-                    </p>
+                    <p className="text-[11px] font-semibold text-primary truncate">{variantText}</p>
                     <p className="text-[10px] text-muted-foreground truncate italic">
                       {m.alt ? `"${m.alt}"` : "Sem legenda"}
                     </p>
@@ -957,7 +1056,9 @@ function MediaManager({ product }: { product: any }) {
                       >
                         <ArrowLeft className="size-3.5" />
                       </Button>
-                      <span className="text-[10px] text-muted-foreground font-mono">Pos: {idx + 1}</span>
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        Pos: {idx + 1}
+                      </span>
                       <Button
                         type="button"
                         variant="outline"
@@ -982,19 +1083,26 @@ function MediaManager({ product }: { product: any }) {
             <DialogHeader>
               <DialogTitle>Editar Detalhes da Mídia</DialogTitle>
               <DialogDescription>
-                Adicione legendas de acessibilidade ou vincule esta imagem a uma variante específica.
+                Adicione legendas de acessibilidade ou vincule esta imagem a uma variante
+                específica.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSaveMetadata} className="space-y-4 pt-2">
               <div className="space-y-2">
                 <Label>Legenda / Texto Alternativo (Acessibilidade)</Label>
-                <Input name="alt" defaultValue={editingMedia.alt || ""} placeholder="Ex: Tênis vermelho de couro sob luz natural" />
+                <Input
+                  name="alt"
+                  defaultValue={editingMedia.alt || ""}
+                  placeholder="Ex: Tênis vermelho de couro sob luz natural"
+                />
               </div>
 
               <div className="space-y-2">
                 <Label>Tipo de Mídia</Label>
                 <Select name="media_type" defaultValue={editingMedia.media_type || "image"}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="image">Imagem</SelectItem>
                     <SelectItem value="video">Vídeo</SelectItem>
@@ -1005,7 +1113,9 @@ function MediaManager({ product }: { product: any }) {
               <div className="space-y-2">
                 <Label>Vincular à Variante</Label>
                 <Select name="variant_id" defaultValue={editingMedia.variant_id || "none"}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Uso Geral (Vitrine Principal)</SelectItem>
                     {product.product_variants?.map((v: any) => {

@@ -1,10 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState, useRef } from "react";
-import {
-  getProfile,
-  updateProfile,
-  requestAccountDeletion,
-} from "@/services/auth.functions";
+import { getProfile, updateProfile, requestAccountDeletion } from "@/services/auth.functions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -155,7 +151,9 @@ function ProfilePage() {
           avatarUrl: formData.avatarUrl || undefined,
           cpf: formData.cpf.replace(/\D/g, "") || undefined,
           birthDate: formData.birthDate || undefined,
-          gender: (formData.gender as "feminino" | "masculino" | "outro" | "prefiro_nao_dizer") || undefined,
+          gender:
+            (formData.gender as "feminino" | "masculino" | "outro" | "prefiro_nao_dizer") ||
+            undefined,
           newsletterOptIn: formData.newsletterOptIn,
         },
       });
@@ -218,7 +216,11 @@ function ProfilePage() {
               <Mail className="size-3.5 text-muted-foreground" aria-hidden />
               E-mail
             </Label>
-            <Input value={profile.email ?? ""} disabled className="bg-muted text-muted-foreground" />
+            <Input
+              value={profile.email ?? ""}
+              disabled
+              className="bg-muted text-muted-foreground"
+            />
             <p className="text-xs text-muted-foreground">O e-mail não pode ser alterado aqui.</p>
           </div>
 
@@ -302,10 +304,7 @@ function ProfilePage() {
                 opcional
               </Badge>
             </Label>
-            <Select
-              value={formData.gender}
-              onValueChange={(v) => set("gender", v)}
-            >
+            <Select value={formData.gender} onValueChange={(v) => set("gender", v)}>
               <SelectTrigger id="perfil-genero">
                 <SelectValue placeholder="Prefiro não informar" />
               </SelectTrigger>
@@ -362,21 +361,16 @@ function ProfilePage() {
           <div>
             <h3 className="text-sm font-semibold text-foreground">Privacidade e dados</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              De acordo com a LGPD (Lei 13.709/2018), você tem o direito de solicitar a exclusão
-              dos seus dados pessoais. O histórico de compras é mantido por exigência fiscal
-              (5 anos), mas seus dados de identificação serão anonimizados imediatamente.
+              De acordo com a LGPD (Lei 13.709/2018), você tem o direito de solicitar a exclusão dos
+              seus dados pessoais. O histórico de compras é mantido por exigência fiscal (5 anos),
+              mas seus dados de identificação serão anonimizados imediatamente.
             </p>
           </div>
         </div>
 
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button
-              id="btn-excluir-conta"
-              variant="destructive"
-              size="sm"
-              className="gap-1.5"
-            >
+            <Button id="btn-excluir-conta" variant="destructive" size="sm" className="gap-1.5">
               <Trash2 className="size-3.5" aria-hidden />
               Solicitar exclusão da minha conta
             </Button>

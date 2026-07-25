@@ -132,7 +132,7 @@ export async function calculateShippingHandler(zipcode: string) {
   const db = getServerClient();
   const { resolveTenantStoreId } = await import("@/lib/tenant");
   const storeId = await resolveTenantStoreId();
-  if (!storeId) throw new Error("Loja nÃ£o encontrada");
+  if (!storeId) throw new Error("Loja não encontrada");
   const storeData = { id: storeId };
   if (!storeData) throw new Error("Loja não encontrada");
 
@@ -245,7 +245,7 @@ export const listShippingZones = createServerFn({ method: "GET" }).handler(async
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[shipping] listShippingZones error:", e);
-    throw new Error("Erro ao listar zonas de frete." );
+    throw new Error("Erro ao listar zonas de frete.");
   }
 });
 
@@ -266,7 +266,7 @@ export const upsertShippingZone = createServerFn({ method: "POST" })
       return data;
     } catch (e: any) {
       console.error("[shipping] upsertShippingZone error:", e);
-      throw new Error(e.message || "Erro ao salvar zona de frete." );
+      throw new Error(e.message || "Erro ao salvar zona de frete.");
     }
   });
 
@@ -278,7 +278,7 @@ export const deleteShippingZone = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[shipping] deleteShippingZone error:", e);
-      throw new Error(e.message || "Erro ao excluir zona de frete." );
+      throw new Error(e.message || "Erro ao excluir zona de frete.");
     }
   });
 
@@ -300,7 +300,7 @@ export const upsertShippingRate = createServerFn({ method: "POST" })
       return data;
     } catch (e: any) {
       console.error("[shipping] upsertShippingRate error:", e);
-      throw new Error(e.message || "Erro ao salvar taxa de frete." );
+      throw new Error(e.message || "Erro ao salvar taxa de frete.");
     }
   });
 
@@ -312,7 +312,7 @@ export const deleteShippingRate = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[shipping] deleteShippingRate error:", e);
-      throw new Error(e.message || "Erro ao excluir taxa." );
+      throw new Error(e.message || "Erro ao excluir taxa.");
     }
   });
 
@@ -324,6 +324,6 @@ export const calculateShipping = createServerFn({ method: "POST" })
       return data;
     } catch (e: any) {
       console.error("[shipping] calculateShipping error:", e);
-      throw new Error(e.message || "Erro ao calcular frete." );
+      throw new Error(e.message || "Erro ao calcular frete.");
     }
   });

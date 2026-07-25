@@ -38,7 +38,15 @@ describe("Product Functions (BFF)", () => {
       brand: "Hr Shoes",
       price_cents: 29990,
       compare_at_cents: 35000,
-      product_media: [{ id: "m-1", url: "https://img.com/1.jpg", alt: "Foto", media_type: "image", sort_order: 0 }],
+      product_media: [
+        {
+          id: "m-1",
+          url: "https://img.com/1.jpg",
+          alt: "Foto",
+          media_type: "image",
+          sort_order: 0,
+        },
+      ],
       product_variants: [
         {
           id: "v-1",
@@ -69,8 +77,8 @@ describe("Product Functions (BFF)", () => {
   it("deve lançar exceção quando o produto não for encontrado (404 / PGRST116)", async () => {
     mockSingle.mockResolvedValueOnce({ data: null, error: { code: "PGRST116" } });
 
-    await expect(
-      getProductBySlugHandler("produto-inexistente"),
-    ).rejects.toThrow("Produto não encontrado");
+    await expect(getProductBySlugHandler("produto-inexistente")).rejects.toThrow(
+      "Produto não encontrado",
+    );
   });
 });

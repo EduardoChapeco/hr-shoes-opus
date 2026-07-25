@@ -34,9 +34,12 @@ export function ProductGrid({
     return <UnconfiguredState title="Catálogo não disponível" description={result.reason} />;
   }
 
-
-
-  if (result.status === "empty" || !("data" in result) || !result.data || result.data.length === 0) {
+  if (
+    result.status === "empty" ||
+    !("data" in result) ||
+    !result.data ||
+    result.data.length === 0
+  ) {
     return (
       <EmptyState
         title="Nenhum produto publicado ainda"

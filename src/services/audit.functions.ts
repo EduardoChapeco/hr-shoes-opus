@@ -18,7 +18,7 @@ export async function getAuditLogHandler() {
     throw new Error("Erro ao buscar logs de auditoria: " + error.message);
   }
 
-  return data || [] ;
+  return data || [];
 }
 
 export const getAuditLog = createServerFn({ method: "GET" }).handler(getAuditLogHandler);

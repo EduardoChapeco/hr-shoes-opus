@@ -45,7 +45,7 @@ function Page() {
 
     setProgress(0);
     const intervalTime = 50; // Update every 50ms
-    const totalTime = 5000;  // 5 seconds
+    const totalTime = 5000; // 5 seconds
     const increment = (intervalTime / totalTime) * 100;
 
     timerRef.current = setInterval(() => {
@@ -179,12 +179,7 @@ function Page() {
                   <div
                     className="h-full bg-primary transition-all duration-75"
                     style={{
-                      width:
-                        idx < activeIdx!
-                          ? "100%"
-                          : idx === activeIdx!
-                            ? `${progress}%`
-                            : "0%",
+                      width: idx < activeIdx! ? "100%" : idx === activeIdx! ? `${progress}%` : "0%",
                     }}
                   />
                 </div>
@@ -199,13 +194,13 @@ function Page() {
                 </div>
                 <div>
                   <span className="text-xs font-bold block">Hr Shoes Oficial</span>
-                  <span className="text-[10px] text-white/60">Story {activeIdx! + 1} de {stories.length}</span>
+                  <span className="text-[10px] text-white/60">
+                    Story {activeIdx! + 1} de {stories.length}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                {isPaused && (
-                  <Pause className="size-4 text-white/80 animate-pulse" />
-                )}
+                {isPaused && <Pause className="size-4 text-white/80 animate-pulse" />}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

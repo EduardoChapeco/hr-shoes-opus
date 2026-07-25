@@ -75,10 +75,7 @@ export function getBrowserClient(): SupabaseClient {
     throw new SupabaseUnconfiguredError(env.error.issues.map((i) => i.message).join("; "));
   }
 
-  _browserClient = createBrowserClient(
-    env.data.VITE_SUPABASE_URL,
-    env.data.VITE_SUPABASE_ANON_KEY
-  );
+  _browserClient = createBrowserClient(env.data.VITE_SUPABASE_URL, env.data.VITE_SUPABASE_ANON_KEY);
 
   return _browserClient;
 }

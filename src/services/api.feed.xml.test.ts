@@ -4,11 +4,16 @@ function escapeXml(unsafe: string): string {
   if (!unsafe) return "";
   return unsafe.replace(/[<>&'"]/g, (c) => {
     switch (c) {
-      case "<": return "&lt;";
-      case ">": return "&gt;";
-      case "&": return "&amp;";
-      case "'": return "&apos;";
-      case '"': return "&quot;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case "&":
+        return "&amp;";
+      case "'":
+        return "&apos;";
+      case '"':
+        return "&quot;";
     }
     return c;
   });
@@ -17,7 +22,9 @@ function escapeXml(unsafe: string): string {
 describe("Feed XML Helper Functions", () => {
   it("should escape special XML characters correctly", () => {
     expect(escapeXml("Calçados & Acessórios")).toBe("Calçados &amp; Acessórios");
-    expect(escapeXml("<script>alert('xss')</script>")).toBe("&lt;script&gt;alert(&apos;xss&apos;)&lt;/script&gt;");
+    expect(escapeXml("<script>alert('xss')</script>")).toBe(
+      "&lt;script&gt;alert(&apos;xss&apos;)&lt;/script&gt;",
+    );
     expect(escapeXml('"Tênis Premium"')).toBe("&quot;Tênis Premium&quot;");
   });
 

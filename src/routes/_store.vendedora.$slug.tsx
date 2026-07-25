@@ -5,10 +5,10 @@ import { useEffect } from "react";
 
 export const Route = createFileRoute("/_store/vendedora/$slug")({
   loader: async ({ params }) => {
-    const res = await getPublicExperienceDocumentBySlug({ 
-      data: { slug: params.slug, document_type: "seller_showcase" } 
+    const res = await getPublicExperienceDocumentBySlug({
+      data: { slug: params.slug, document_type: "seller_showcase" },
     });
-    
+
     if (res.status === "not_found") throw notFound();
 
     return {
@@ -20,7 +20,10 @@ export const Route = createFileRoute("/_store/vendedora/$slug")({
     if (!loaderData || !loaderData.document) return { meta: [{ title: "Vitrine não encontrada" }] };
     return {
       meta: [
-        { title: loaderData.document.seo_metadata?.title || `${loaderData.document.title} — Hr Shoes` },
+        {
+          title:
+            loaderData.document.seo_metadata?.title || `${loaderData.document.title} — Hr Shoes`,
+        },
         { name: "description", content: loaderData.document.seo_metadata?.description || "" },
       ],
     };

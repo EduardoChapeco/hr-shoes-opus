@@ -16,7 +16,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getCategoryById, listCategories, updateCategory } from "@/services/admin-catalog.functions";
+import {
+  getCategoryById,
+  listCategories,
+  updateCategory,
+} from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/categorias/$id")({
   head: () => ({ meta: [{ title: "Editar Categoria — Hr Shoes" }] }),
@@ -120,13 +124,17 @@ function EditCategoryPage() {
                   setValue("slug", slug);
                 }}
               />
-              {errors.name?.message && <p className="text-xs text-destructive">{String(errors.name.message)}</p>}
+              {errors.name?.message && (
+                <p className="text-xs text-destructive">{String(errors.name.message)}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label>Slug</Label>
               <Input {...register("slug", { required: "Obrigatório" })} />
-              {errors.slug?.message && <p className="text-xs text-destructive">{String(errors.slug.message)}</p>}
+              {errors.slug?.message && (
+                <p className="text-xs text-destructive">{String(errors.slug.message)}</p>
+              )}
             </div>
 
             <div className="space-y-2">

@@ -272,7 +272,9 @@ export const cmsRegistry: Record<string, CmsBlockDef> = {
       cards: z
         .array(
           z.object({
-            icon: z.enum(["truck", "rotate-ccw", "shield", "credit-card", "tag", "star"]).default("truck"),
+            icon: z
+              .enum(["truck", "rotate-ccw", "shield", "credit-card", "tag", "star"])
+              .default("truck"),
             title: z.string().min(1, "Obrigatório"),
             description: z.string().optional(),
           }),
@@ -286,7 +288,12 @@ export const cmsRegistry: Record<string, CmsBlockDef> = {
     description: "Mosaico estético de fotos do Instagram",
     fields: [
       { name: "username", label: "Nome do Usuário (@instagram)", type: "string", required: true },
-      { name: "title", label: "Título da Seção", type: "string", defaultValue: "Siga-nos no Instagram" },
+      {
+        name: "title",
+        label: "Título da Seção",
+        type: "string",
+        defaultValue: "Siga-nos no Instagram",
+      },
       {
         name: "posts",
         label: "Fotos do Feed",
@@ -315,11 +322,31 @@ export const cmsRegistry: Record<string, CmsBlockDef> = {
     label: "Formulário de Contato",
     description: "Campos de contato e mensagem para leads",
     fields: [
-      { name: "title", label: "Título do Formulário", type: "string", defaultValue: "Fale Conosco" },
-      { name: "subtitle", label: "Subtítulo explicativo", type: "string", defaultValue: "Envie sua mensagem que responderemos em breve!" },
+      {
+        name: "title",
+        label: "Título do Formulário",
+        type: "string",
+        defaultValue: "Fale Conosco",
+      },
+      {
+        name: "subtitle",
+        label: "Subtítulo explicativo",
+        type: "string",
+        defaultValue: "Envie sua mensagem que responderemos em breve!",
+      },
       { name: "email_recipient", label: "E-mail de Destino", type: "string", required: true },
-      { name: "submit_text", label: "Texto do Botão", type: "string", defaultValue: "Enviar Mensagem" },
-      { name: "show_phone", label: "Exibir Campo de Telefone", type: "boolean", defaultValue: true },
+      {
+        name: "submit_text",
+        label: "Texto do Botão",
+        type: "string",
+        defaultValue: "Enviar Mensagem",
+      },
+      {
+        name: "show_phone",
+        label: "Exibir Campo de Telefone",
+        type: "boolean",
+        defaultValue: true,
+      },
     ],
     schema: z.object({
       title: z.string().optional(),
@@ -335,7 +362,12 @@ export const cmsRegistry: Record<string, CmsBlockDef> = {
     description: "Vídeo incorporado do YouTube, Vimeo ou arquivo MP4",
     fields: [
       { name: "title", label: "Título do Vídeo (Opcional)", type: "string" },
-      { name: "video_url", label: "Link do Vídeo (YouTube, Vimeo ou MP4)", type: "string", required: true },
+      {
+        name: "video_url",
+        label: "Link do Vídeo (YouTube, Vimeo ou MP4)",
+        type: "string",
+        required: true,
+      },
       { name: "auto_play", label: "Reprodução Automática", type: "boolean", defaultValue: false },
       { name: "loop", label: "Repetição Infinita", type: "boolean", defaultValue: true },
     ],

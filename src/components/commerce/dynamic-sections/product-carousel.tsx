@@ -40,15 +40,29 @@ interface ProductCarouselProps {
 import { listPublishedProducts, getProductsByCollection } from "@/services/catalog.functions";
 import { Loader2 } from "lucide-react";
 
-export function ProductCarousel({ content, design_tokens, data_bindings, transientData, resolvedData, isEditing }: ProductCarouselProps) {
+export function ProductCarousel({
+  content,
+  design_tokens,
+  data_bindings,
+  transientData,
+  resolvedData,
+  isEditing,
+}: ProductCarouselProps) {
   // Support both object wrapped products and direct products array
-  const products: any[] = resolvedData?.products || (Array.isArray(resolvedData) ? resolvedData : null) || transientData?.products || [];
+  const products: any[] =
+    resolvedData?.products ||
+    (Array.isArray(resolvedData) ? resolvedData : null) ||
+    transientData?.products ||
+    [];
 
   const bindingType = data_bindings?.type || data_bindings?.source;
   const collectionSlug = data_bindings?.collection_slug || content?.collection_slug;
 
   const isCollection = bindingType === "product_collection" && collectionSlug;
-  const isLatest = bindingType === "latest_products" || bindingType === "dynamic_products" || (!bindingType && products.length === 0);
+  const isLatest =
+    bindingType === "latest_products" ||
+    bindingType === "dynamic_products" ||
+    (!bindingType && products.length === 0);
 
   const shouldFetchClient = !!isEditing && products.length === 0;
 
@@ -58,7 +72,7 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
       const res = await getProductsByCollection({ data: { slug: collectionSlug! } });
       return Array.isArray(res) ? res : [];
     },
-    enabled: !!(shouldFetchClient && isCollection)
+    enabled: !!(shouldFetchClient && isCollection),
   });
 
   const { data: clientLatestProducts, isLoading: isLatestLoading } = useQuery({
@@ -67,14 +81,17 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
       const res = await listPublishedProducts({ data: { limit: data_bindings?.limit || 12 } });
       return res?.status === "ok" ? res.data : [];
     },
-    enabled: !!(shouldFetchClient && isLatest)
+    enabled: !!(shouldFetchClient && isLatest),
   });
 
   const isLoading = shouldFetchClient && (isCollectionLoading || isLatestLoading);
 
-  const activeProducts = products.length > 0
-    ? products
-    : (isCollection ? (clientCollectionProducts || []) : (clientLatestProducts || []));
+  const activeProducts =
+    products.length > 0
+      ? products
+      : isCollection
+        ? clientCollectionProducts || []
+        : clientLatestProducts || [];
 
   const itemsPerRowDesktop = String(content?.itemsPerRowDesktop || "4");
   const itemsPerRowMobile = String(content?.itemsPerRowMobile || "2");
@@ -82,18 +99,23 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
 
   const getDesktopBasis = (cols: string) => {
     switch (cols) {
-      case "3": return "@md:basis-1/3 @lg:basis-1/3";
-      case "5": return "@md:basis-1/4 @lg:basis-1/5";
+      case "3":
+        return "@md:basis-1/3 @lg:basis-1/3";
+      case "5":
+        return "@md:basis-1/4 @lg:basis-1/5";
       case "4":
-      default: return "@md:basis-1/3 @lg:basis-1/4";
+      default:
+        return "@md:basis-1/3 @lg:basis-1/4";
     }
   };
 
   const getMobileBasis = (cols: string) => {
     switch (cols) {
-      case "1": return freeScroll ? "basis-[85%] @sm:basis-[85%]" : "basis-full @sm:basis-full";
+      case "1":
+        return freeScroll ? "basis-[85%] @sm:basis-[85%]" : "basis-full @sm:basis-full";
       case "2":
-      default: return freeScroll ? "basis-[45%] @sm:basis-1/2" : "basis-1/2 @sm:basis-1/2";
+      default:
+        return freeScroll ? "basis-[45%] @sm:basis-1/2" : "basis-1/2 @sm:basis-1/2";
     }
   };
 
@@ -116,9 +138,7 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
               </h2>
             )}
             {content?.subtitle && (
-              <p className="text-muted-foreground text-sm @md:text-lg">
-                {content.subtitle}
-              </p>
+              <p className="text-muted-foreground text-sm @md:text-lg">{content.subtitle}</p>
             )}
           </div>
           <Button variant="ghost" className="hidden @md:flex gap-2 group" asChild>
@@ -141,7 +161,9 @@ export function ProductCarousel({ content, design_tokens, data_bindings, transie
             <ShoppingBag className="h-10 w-10 opacity-30" />
             <div>
               <p className="font-medium">Nenhum produto disponível</p>
-              <p className="text-sm mt-1">Cadastre produtos ativos no painel para que apareçam aqui.</p>
+              <p className="text-sm mt-1">
+                Cadastre produtos ativos no painel para que apareçam aqui.
+              </p>
             </div>
           </div>
         ) : (

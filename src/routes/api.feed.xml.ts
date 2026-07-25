@@ -5,11 +5,16 @@ function escapeXml(unsafe: string): string {
   if (!unsafe) return "";
   return unsafe.replace(/[<>&'"]/g, (c) => {
     switch (c) {
-      case "<": return "&lt;";
-      case ">": return "&gt;";
-      case "&": return "&amp;";
-      case "'": return "&apos;";
-      case '"': return "&quot;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case "&":
+        return "&amp;";
+      case "'":
+        return "&apos;";
+      case '"':
+        return "&quot;";
     }
     return c;
   });
@@ -36,11 +41,13 @@ export const Route = createFileRoute("/api/feed/xml")({
           // Fetch products + variants + media
           const { data: products, error } = await db
             .from("products")
-            .select(`
+            .select(
+              `
               id, slug, title, short_description, description, manufacturer, price_cents, compare_at_cents, status,
               product_variants(id, sku, price_cents, attributes, stock_on_hand, stock_reserved),
               product_media(url, is_thumbnail)
-            `)
+            `,
+            )
             .eq("store_id", storeId)
             .eq("status", "published");
 
@@ -61,7 +68,7 @@ export const Route = createFileRoute("/api/feed/xml")({
             // For simple products or configurable ones, we export variants as items
             const variants = p.product_variants || [];
             const medias = p.product_media || [];
-            
+
             const thumb = medias.find((m: any) => m.is_thumbnail)?.url || medias[0]?.url || "";
             const additionalImages = medias.filter((m: any) => m.url !== thumb).slice(0, 10);
 
@@ -73,21 +80,20 @@ export const Route = createFileRoute("/api/feed/xml")({
                 price_cents: p.price_cents,
                 stock_on_hand: 1, // Assume available if published and no variant tracking
                 stock_reserved: 0,
-                attributes: {}
+                attributes: {},
               });
             }
 
             for (const v of variants) {
               const priceBrl = (v.price_cents / 100).toFixed(2);
-              const salePriceBrl = p.compare_at_cents && p.compare_at_cents > v.price_cents
-                ? priceBrl
-                : undefined;
-              const regularPriceBrl = salePriceBrl 
-                ? (p.compare_at_cents / 100).toFixed(2) 
+              const salePriceBrl =
+                p.compare_at_cents && p.compare_at_cents > v.price_cents ? priceBrl : undefined;
+              const regularPriceBrl = salePriceBrl
+                ? (p.compare_at_cents / 100).toFixed(2)
                 : priceBrl;
 
               const link = `${url.origin}/produtos/${p.slug}?v=${v.sku || v.id}`;
-              
+
               const titleExt = Object.values(v.attributes || {}).join(" - ");
               const itemTitle = titleExt ? `${p.title} - ${titleExt}` : p.title;
               const mpn = v.sku || `${p.slug}-${v.id.substring(0, 8)}`;
@@ -105,7 +111,7 @@ export const Route = createFileRoute("/api/feed/xml")({
                 xml += `  <g:additional_image_link>${escapeXml(img.url)}</g:additional_image_link>\n`;
               }
               xml += `  <g:condition>new</g:condition>\n`;
-              
+
               const availableQty = (v.stock_on_hand || 0) - (v.stock_reserved || 0);
               xml += `  <g:availability>${availableQty > 0 ? "in stock" : "out of stock"}</g:availability>\n`;
               xml += `  <g:price>${regularPriceBrl} BRL</g:price>\n`;
@@ -117,10 +123,12 @@ export const Route = createFileRoute("/api/feed/xml")({
               xml += `  <g:identifier_exists>false</g:identifier_exists>\n`;
               xml += `  <g:google_product_category>Apparel &amp; Accessories &gt; Shoes</g:google_product_category>\n`;
               xml += `  <g:product_type>Calçados</g:product_type>\n`;
-              
+
               if (v.attributes && typeof v.attributes === "object") {
-                if ((v.attributes as any)["Tamanho"]) xml += `  <g:size>${escapeXml((v.attributes as any)["Tamanho"])}</g:size>\n`;
-                if ((v.attributes as any)["Cor"]) xml += `  <g:color>${escapeXml((v.attributes as any)["Cor"])}</g:color>\n`;
+                if ((v.attributes as any)["Tamanho"])
+                  xml += `  <g:size>${escapeXml((v.attributes as any)["Tamanho"])}</g:size>\n`;
+                if ((v.attributes as any)["Cor"])
+                  xml += `  <g:color>${escapeXml((v.attributes as any)["Cor"])}</g:color>\n`;
               }
 
               xml += `</item>\n`;
@@ -134,14 +142,14 @@ export const Route = createFileRoute("/api/feed/xml")({
             status: 200,
             headers: {
               "Content-Type": "application/xml; charset=utf-8",
-              "Cache-Control": "public, max-age=3600"
-            }
+              "Cache-Control": "public, max-age=3600",
+            },
           });
         } catch (e: any) {
           console.error("Feed XML Exception:", e);
           return new Response("Internal Server Error", { status: 500 });
         }
-      }
-    }
-  }
+      },
+    },
+  },
 });

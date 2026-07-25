@@ -18,7 +18,7 @@ import {
   Info,
   Loader2,
   Sparkles,
-  ChevronRight as ChevronIcon
+  ChevronRight as ChevronIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,13 @@ import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
-import { getProductReviewStats, getProductReviewsList, getStoreFollowStatus, toggleStoreFollow, submitProductReview } from "@/services/social.functions";
+import {
+  getProductReviewStats,
+  getProductReviewsList,
+  getStoreFollowStatus,
+  toggleStoreFollow,
+  submitProductReview,
+} from "@/services/social.functions";
 import {
   Dialog,
   DialogContent,
@@ -88,7 +94,7 @@ const getColorHex = (name: string): string => {
   };
   const clean = name.toLowerCase().trim();
   if (colors[clean]) return colors[clean];
-  
+
   // Hash fallback
   let hash = 0;
   for (let i = 0; i < clean.length; i++) {
@@ -98,7 +104,13 @@ const getColorHex = (name: string): string => {
   return "#" + "00000".substring(0, 6 - c.length) + c;
 };
 
-function SizeGuideDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+function SizeGuideDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -157,7 +169,8 @@ function SizeGuideDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
           </table>
         </div>
         <p className="mt-2 text-[10px] text-muted-foreground leading-normal">
-          * Dica: Se ficar entre dois tamanhos, recomendamos escolher a numeração maior para maior conforto.
+          * Dica: Se ficar entre dois tamanhos, recomendamos escolher a numeração maior para maior
+          conforto.
         </p>
       </DialogContent>
     </Dialog>
@@ -203,7 +216,10 @@ export const Route = createFileRoute("/_store/produto/$slug")({
             "@context": "https://schema.org",
             "@type": "Product",
             name: product.title,
-            description: (product.shortDescription || (product.description || "").replace(/<[^>]+>/g, "")).slice(0, 300) || undefined,
+            description:
+              (
+                product.shortDescription || (product.description || "").replace(/<[^>]+>/g, "")
+              ).slice(0, 300) || undefined,
             image: product.media.filter((m: any) => m.mediaType === "image").map((m: any) => m.url),
             brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
             sku: product.variants?.[0]?.sku,
@@ -211,9 +227,11 @@ export const Route = createFileRoute("/_store/produto/$slug")({
             offers: {
               "@type": "AggregateOffer",
               priceCurrency: "BRL",
-              lowPrice: ((product.variants?.length > 0
-                ? Math.min(...product.variants.map((v: any) => v.effectivePriceCents))
-                : product.priceCents) / 100).toFixed(2),
+              lowPrice: (
+                (product.variants?.length > 0
+                  ? Math.min(...product.variants.map((v: any) => v.effectivePriceCents))
+                  : product.priceCents) / 100
+              ).toFixed(2),
               offerCount: product.variants?.length || 1,
               availability: product.variants?.some((v: any) => v.availableQty > 0)
                 ? "https://schema.org/InStock"
@@ -228,16 +246,17 @@ export const Route = createFileRoute("/_store/produto/$slug")({
   loader: async ({ params }) => {
     const [productRes, templateRes] = await Promise.all([
       getProductBySlug({ data: { slug: params.slug } }),
-      getPublicExperienceDocumentBySlug({ data: { slug: "default-product-template", document_type: "product_template" } })
+      getPublicExperienceDocumentBySlug({
+        data: { slug: "default-product-template", document_type: "product_template" },
+      }),
     ]);
     return {
       productResult: productRes,
-      templateTree: (templateRes as any)?.tree || []
+      templateTree: (templateRes as any)?.tree || [],
     };
   },
   component: ProductPage,
 });
-
 
 function ProductPage() {
   const { productResult: product, templateTree } = Route.useLoaderData() as any;
@@ -261,7 +280,13 @@ function ProductPage() {
   return <ProductContent product={product} templateTree={templateTree} />;
 }
 
-function ProductContent({ product: rawProduct, templateTree }: { product: ProductDetailDTO, templateTree?: any[] }) {
+function ProductContent({
+  product: rawProduct,
+  templateTree,
+}: {
+  product: ProductDetailDTO;
+  templateTree?: any[];
+}) {
   const coverImage: ProductMediaDTO | null = rawProduct.media[0] ?? null;
 
   // Sanitize variant attributes to avoid UI breakage due to trailing spaces in keys or values
@@ -303,19 +328,19 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
   const { data: reviewStats } = useQuery({
     queryKey: ["reviewStats", product.id],
     queryFn: () => getProductReviewStats({ data: { productId: product.id } }),
-    initialData: { average_rating: 0, total_reviews: 0 }
+    initialData: { average_rating: 0, total_reviews: 0 },
   });
 
   const { data: reviewsList, refetch: refetchReviews } = useQuery({
     queryKey: ["reviewsList", product.id],
     queryFn: () => getProductReviewsList({ data: { productId: product.id } }),
-    initialData: []
+    initialData: [],
   });
 
   const { data: followStatus, refetch: refetchFollowStatus } = useQuery({
     queryKey: ["storeFollow"],
     queryFn: () => getStoreFollowStatus(),
-    initialData: { following: false }
+    initialData: { following: false },
   });
 
   const isFollowingStore = followStatus.following;
@@ -331,7 +356,9 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
 
     const exact = product.variants.find((v: VariantDTO) => {
       return Object.entries(selectedAttributes).every(([key, val]) => {
-        const matchKey = Object.keys(v.attributes).find((k) => k.toLowerCase() === key.toLowerCase());
+        const matchKey = Object.keys(v.attributes).find(
+          (k) => k.toLowerCase() === key.toLowerCase(),
+        );
         return matchKey ? v.attributes[matchKey] === val : false;
       });
     });
@@ -371,18 +398,14 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
       });
 
       if (!res || !res.cart || res.status !== "success") {
-        throw new Error("Falha ao adicionar ao carrinho. Nenhuma confirmação do servidor.");
-      }
-
-      if (res.session_token) {
-        // Apenas como fallback caso o backend não suporte Set-Cookie nativo.
-        // O backend real deve gerir via cabeçalhos httpOnly.
-        document.cookie = `hr_shoes_guest_session=${res.session_token}; path=/; max-age=${60 * 60 * 24 * 30}; samesite=lax`;
+        throw new Error(
+          "Falha ao adicionar ao carrinho. Verifique sua conexão ou tente novamente.",
+        );
       }
 
       setCartData(res.cart as any);
-      
-      // Toast exibido somento APÓS hidratação do Context
+
+      // Toast exibido somente APÓS hidratação do Context
       toast.success("Adicionado ao carrinho");
       setIsCartOpen(true);
     } catch (error: unknown) {
@@ -432,7 +455,7 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
           productId: product.id,
           rating: newRating,
           comment: newComment,
-        }
+        },
       });
 
       if (res.success) {
@@ -454,7 +477,9 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
   const handleToggleFollow = async () => {
     try {
       const res = await toggleStoreFollow();
-      toast.success(res.following ? "Você agora está seguindo a loja!" : "Você deixou de seguir a loja.");
+      toast.success(
+        res.following ? "Você agora está seguindo a loja!" : "Você deixou de seguir a loja.",
+      );
       refetchFollowStatus();
     } catch (err: any) {
       toast.error(err.message || "Você precisa estar autenticado como cliente para seguir a loja.");
@@ -485,7 +510,11 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
           {product.categories && product.categories.length > 0 && (
             <>
               <ChevronRight className="size-3" aria-hidden />
-              <Link to="/catalogo" search={{ categoria: product.categories[0].slug }} className="hover:text-foreground truncate max-w-[150px]">
+              <Link
+                to="/catalogo"
+                search={{ categoria: product.categories[0].slug }}
+                className="hover:text-foreground truncate max-w-[150px]"
+              >
                 {product.categories[0].name}
               </Link>
             </>
@@ -511,7 +540,9 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                       key={m.id}
                       onClick={() => setActiveMedia(m)}
                       className={`relative aspect-square w-14 shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-200 ${
-                        active ? "border-primary scale-[1.03]" : "border-border/60 hover:border-primary/50 bg-secondary"
+                        active
+                          ? "border-primary scale-[1.03]"
+                          : "border-border/60 hover:border-primary/50 bg-secondary"
                       }`}
                     >
                       {isVideo ? (
@@ -595,13 +626,23 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
               {/* Preços Autorizados pelo Servidor com Badges de Desconto */}
               <div className="flex items-baseline gap-3 pt-2">
                 <PriceDisplay
-                  amountCents={selectedVariant ? selectedVariant.effectivePriceCents : product.priceCents}
+                  amountCents={
+                    selectedVariant ? selectedVariant.effectivePriceCents : product.priceCents
+                  }
                   compareAtCents={product.compareAtCents}
                   size="lg"
                 />
                 {product.compareAtCents && product.compareAtCents > product.priceCents && (
-                  <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20 text-xs font-bold px-2 py-0.5">
-                    Estimado -{Math.round(((product.compareAtCents - product.priceCents) / product.compareAtCents) * 100)}%
+                  <Badge
+                    variant="outline"
+                    className="bg-red-500/10 text-red-600 border-red-500/20 text-xs font-bold px-2 py-0.5"
+                  >
+                    Estimado -
+                    {Math.round(
+                      ((product.compareAtCents - product.priceCents) / product.compareAtCents) *
+                        100,
+                    )}
+                    %
                   </Badge>
                 )}
               </div>
@@ -633,9 +674,12 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                     <div key={key} className="space-y-2.5">
                       <div className="flex justify-between items-center text-sm font-medium text-foreground">
                         <span className="capitalize">
-                          {key}: <span className="text-muted-foreground font-normal">{selectedAttributes[key]}</span>
+                          {key}:{" "}
+                          <span className="text-muted-foreground font-normal">
+                            {selectedAttributes[key]}
+                          </span>
                         </span>
-                        
+
                         {/* Guia de tamanhos link */}
                         {isSize && (
                           <button
@@ -660,7 +704,9 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                                 key={val}
                                 type="button"
                                 title={val}
-                                onClick={() => setSelectedAttributes((prev) => ({ ...prev, [key]: val }))}
+                                onClick={() =>
+                                  setSelectedAttributes((prev) => ({ ...prev, [key]: val }))
+                                }
                                 className={`group relative w-8 h-8 rounded-full border transition-all duration-200 ${
                                   isSelected
                                     ? "ring-2 ring-primary ring-offset-2 border-primary scale-110"
@@ -683,26 +729,31 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                         <div className="flex flex-wrap gap-2">
                           {values.map((val: string) => {
                             const isSelected = selectedAttributes[key] === val;
-                            
+
                             // Check if this specific option is in stock by finding the variant matching selectedAttributes but with this value
                             const hypotheticVariant = product.variants.find((v: VariantDTO) => {
                               const testAttrs = { ...selectedAttributes, [key]: val };
-                              return Object.entries(testAttrs).every(([tk, tv]) => v.attributes[tk] === tv);
+                              return Object.entries(testAttrs).every(
+                                ([tk, tv]) => v.attributes[tk] === tv,
+                              );
                             });
-                            const isOptionOutOfStock = hypotheticVariant && hypotheticVariant.availableQty <= 0;
+                            const isOptionOutOfStock =
+                              hypotheticVariant && hypotheticVariant.availableQty <= 0;
 
                             return (
                               <button
                                 key={val}
                                 type="button"
                                 disabled={isOptionOutOfStock && !product.allowsPreorder}
-                                onClick={() => setSelectedAttributes((prev) => ({ ...prev, [key]: val }))}
+                                onClick={() =>
+                                  setSelectedAttributes((prev) => ({ ...prev, [key]: val }))
+                                }
                                 className={`min-h-10 rounded-xl border px-4 py-2.5 text-xs font-semibold tracking-wide transition-all duration-150 ${
                                   isSelected
                                     ? "border-primary bg-primary text-primary-foreground font-bold shadow-xs scale-[1.02]"
                                     : isOptionOutOfStock && !product.allowsPreorder
-                                    ? "border-dashed border-border/40 text-muted-foreground/40 bg-muted/20 cursor-not-allowed line-through opacity-50"
-                                    : "border-border bg-card text-foreground hover:border-primary hover:text-primary"
+                                      ? "border-dashed border-border/40 text-muted-foreground/40 bg-muted/20 cursor-not-allowed line-through opacity-50"
+                                      : "border-border bg-card text-foreground hover:border-primary hover:text-primary"
                                 }`}
                               >
                                 {val}
@@ -719,7 +770,9 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
 
             {/* Origem de Envio ("Enviado por") */}
             <div className="space-y-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Enviado por</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Enviado por
+              </span>
               <div className="flex gap-2">
                 <div
                   className={`flex-1 py-2 px-3 border rounded-xl text-xs font-bold transition-all border-primary bg-primary/5 text-primary text-center`}
@@ -732,7 +785,8 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                 <div className="p-3 border border-amber-500/20 bg-amber-500/5 rounded-xl text-[11px] text-amber-800 leading-normal flex items-start gap-2">
                   <Info className="size-4 text-amber-600 shrink-0 mt-0.5" />
                   <span>
-                    Produto Internacional sujeito à declaração de importação e eventuais tributos alfandegários estaduais e federais.
+                    Produto Internacional sujeito à declaração de importação e eventuais tributos
+                    alfandegários estaduais e federais.
                   </span>
                 </div>
               )}
@@ -744,7 +798,7 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                 <Truck className="size-4 text-primary" />
                 <span>Simulador de Frete</span>
               </div>
-              
+
               <form onSubmit={handleCalculateShipping} className="flex gap-2">
                 <Input
                   placeholder="Digite seu CEP (Ex: 89801-000)"
@@ -752,7 +806,12 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                   onChange={(e) => setZipcode(e.target.value)}
                   className="h-9 text-xs bg-muted/40"
                 />
-                <Button type="submit" size="sm" className="h-9 font-bold px-4" disabled={loadingShipping}>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="h-9 font-bold px-4"
+                  disabled={loadingShipping}
+                >
                   {loadingShipping ? <Loader2 className="size-4 animate-spin" /> : "Calcular"}
                 </Button>
               </form>
@@ -760,10 +819,15 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
               {shippingRates ? (
                 <div className="space-y-2 pt-1">
                   {shippingRates.map((rate) => (
-                    <div key={rate.id} className="flex justify-between items-center text-xs p-2.5 border rounded-lg bg-muted/10">
+                    <div
+                      key={rate.id}
+                      className="flex justify-between items-center text-xs p-2.5 border rounded-lg bg-muted/10"
+                    >
                       <div>
                         <p className="font-bold text-foreground">{rate.name}</p>
-                        <p className="text-[10px] text-muted-foreground">Prazo estimado: {rate.estimated_days} dias úteis</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          Prazo estimado: {rate.estimated_days} dias úteis
+                        </p>
                       </div>
                       <span className="font-bold text-primary">
                         {rate.price_cents === 0 ? (
@@ -781,7 +845,9 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                   <div className="flex items-start gap-2.5">
                     <Check className="size-4 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-bold text-foreground">Frete grátis (pedidos acima de R$ 69,00)</p>
+                      <p className="font-bold text-foreground">
+                        Frete grátis (pedidos acima de R$ 69,00)
+                      </p>
                       <p className="text-[10px] text-muted-foreground leading-normal">
                         Entrega estimada em 12 a 18 dias úteis para a sua localidade.
                       </p>
@@ -790,7 +856,8 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                   <div className="flex items-start gap-2.5 pt-1 border-t border-border/40">
                     <RotateCcw className="size-4 text-primary shrink-0 mt-0.5" />
                     <p className="text-muted-foreground leading-normal">
-                      Os itens desta categoria possuem garantia e podem ser devolvidos ou trocados em até 7 dias.
+                      Os itens desta categoria possuem garantia e podem ser devolvidos ou trocados
+                      em até 7 dias.
                     </p>
                   </div>
                 </div>
@@ -816,7 +883,9 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                 className="w-full font-bold text-sm h-12 uppercase tracking-wider bg-primary hover:bg-primary/95 transition-transform duration-100 hover:scale-[1.01]"
                 onClick={handleAddToCart}
                 disabled={
-                  Boolean(isAdding) || Boolean(allOutOfStock) || Boolean(selectedVariant && selectedVariant.availableQty <= 0)
+                  Boolean(isAdding) ||
+                  Boolean(allOutOfStock) ||
+                  Boolean(selectedVariant && selectedVariant.availableQty <= 0)
                 }
               >
                 <ShoppingBag className="size-5 mr-2" aria-hidden />
@@ -838,7 +907,9 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-sm text-foreground">{product.brand || "Hr Shoes"}</h3>
+                    <h3 className="font-bold text-sm text-foreground">
+                      {product.brand || "Hr Shoes"}
+                    </h3>
                     <Badge className="bg-primary/15 text-primary hover:bg-primary/20 text-[9px] uppercase tracking-wider px-1.5 py-0">
                       Marca Oficial
                     </Badge>
@@ -863,29 +934,42 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
 
             {/* Description */}
             {product.shortDescription && (
-                <p className="text-sm text-muted-foreground leading-relaxed border-l-2 border-primary/30 pl-3 italic">
-                  {product.shortDescription}
-                </p>
-              )}
-              {product.description && (
+              <p className="text-sm text-muted-foreground leading-relaxed border-l-2 border-primary/30 pl-3 italic">
+                {product.shortDescription}
+              </p>
+            )}
+            {product.description && (
               <div className="border-t border-border/60 pt-5 space-y-2">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Descrição do Produto</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                  Descrição do Produto
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                  {product.description}
+                </p>
               </div>
             )}
 
             {/* Ficha Técnica Dinâmica (Product Type Attributes) */}
             {product.attributes && Object.keys(product.attributes).length > 0 && (
               <div className="border-t border-border/60 pt-5 space-y-3">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Ficha Técnica</h2>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                  Ficha Técnica
+                </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                   {Object.entries(product.attributes).map(([key, value]) => {
                     // Ignora campos vazios ou booleanos falsos da renderização visual
                     if (value === null || value === "" || value === false) return null;
                     return (
-                      <div key={key} className="flex flex-col text-sm border-b border-border/40 pb-1.5">
-                        <span className="text-muted-foreground capitalize text-[11px] font-bold tracking-wide">{key}</span>
-                        <span className="font-medium text-foreground text-sm">{value === true ? "Sim" : String(value)}</span>
+                      <div
+                        key={key}
+                        className="flex flex-col text-sm border-b border-border/40 pb-1.5"
+                      >
+                        <span className="text-muted-foreground capitalize text-[11px] font-bold tracking-wide">
+                          {key}
+                        </span>
+                        <span className="font-medium text-foreground text-sm">
+                          {value === true ? "Sim" : String(value)}
+                        </span>
                       </div>
                     );
                   })}
@@ -900,30 +984,42 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
       <div className="border-t border-border bg-muted/20 py-12">
         <div className="mx-auto max-w-screen-xl px-4 md:px-6">
           <div className="grid gap-10 md:grid-cols-12">
-            
             {/* Esquerda: Média Geral das Notas */}
             <div className="md:col-span-4 space-y-4 text-left">
-              <h2 className="text-xl font-bold uppercase tracking-tight text-foreground">Comentários dos Clientes</h2>
-              
+              <h2 className="text-xl font-bold uppercase tracking-tight text-foreground">
+                Comentários dos Clientes
+              </h2>
+
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-extrabold text-foreground">{reviewStats.average_rating > 0 ? reviewStats.average_rating.toFixed(1) : "-"}</span>
+                <span className="text-4xl font-extrabold text-foreground">
+                  {reviewStats.average_rating > 0 ? reviewStats.average_rating.toFixed(1) : "-"}
+                </span>
                 <span className="text-sm text-muted-foreground">/ 5.0</span>
               </div>
 
               <div className="flex items-center gap-0.5 text-amber-500">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <Star key={star} className={`size-5 ${star <= Math.round(reviewStats.average_rating) ? "fill-current" : "text-muted-foreground/30"}`} />
+                  <Star
+                    key={star}
+                    className={`size-5 ${star <= Math.round(reviewStats.average_rating) ? "fill-current" : "text-muted-foreground/30"}`}
+                  />
                 ))}
               </div>
 
               <p className="text-xs text-muted-foreground">
-                Baseado em {reviewStats.total_reviews} avaliações de clientes. Compartilhe sua experiência de uso abaixo.
+                Baseado em {reviewStats.total_reviews} avaliações de clientes. Compartilhe sua
+                experiência de uso abaixo.
               </p>
 
               {/* Formulário para Inserir Avaliação Real */}
-              <form onSubmit={handleSubmitReview} className="p-4 border rounded-xl bg-card space-y-3.5 shadow-xs">
-                <h3 className="font-bold text-xs uppercase text-muted-foreground">Escrever uma Avaliação</h3>
-                
+              <form
+                onSubmit={handleSubmitReview}
+                className="p-4 border rounded-xl bg-card space-y-3.5 shadow-xs"
+              >
+                <h3 className="font-bold text-xs uppercase text-muted-foreground">
+                  Escrever uma Avaliação
+                </h3>
+
                 <div className="space-y-1">
                   <span className="text-[11px] font-bold text-foreground">Sua Nota:</span>
                   <div className="flex gap-1">
@@ -933,7 +1029,9 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                         type="button"
                         onClick={() => setNewRating(star)}
                         className={`size-6 transition-colors ${
-                          star <= newRating ? "text-amber-500 fill-amber-500" : "text-border hover:text-amber-400"
+                          star <= newRating
+                            ? "text-amber-500 fill-amber-500"
+                            : "text-border hover:text-amber-400"
                         }`}
                       >
                         <Star className="size-5 fill-current" />
@@ -953,7 +1051,12 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                   />
                 </div>
 
-                <Button type="submit" size="sm" className="w-full font-bold text-xs" disabled={isSubmittingReview}>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="w-full font-bold text-xs"
+                  disabled={isSubmittingReview}
+                >
                   {isSubmittingReview ? "Enviando..." : "Publicar Avaliação"}
                 </Button>
               </form>
@@ -987,13 +1090,16 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                             </Badge>
                           </p>
                           <p className="text-[10px] text-muted-foreground">
-                            {new Date(review.createdAt).toLocaleDateString('pt-BR')}
+                            {new Date(review.createdAt).toLocaleDateString("pt-BR")}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-0.5 text-amber-500">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <Star key={star} className={`size-3.5 ${star <= review.rating ? "fill-current" : "text-muted-foreground/30"}`} />
+                          <Star
+                            key={star}
+                            className={`size-3.5 ${star <= review.rating ? "fill-current" : "text-muted-foreground/30"}`}
+                          />
                         ))}
                       </div>
                     </div>
@@ -1006,7 +1112,6 @@ function ProductContent({ product: rawProduct, templateTree }: { product: Produc
                 ))
               )}
             </div>
-
           </div>
         </div>
       </div>

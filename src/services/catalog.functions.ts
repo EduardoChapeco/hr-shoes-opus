@@ -33,8 +33,8 @@ import type {
 
 import { resolveTenantStoreId } from "@/lib/tenant";
 
-/** 
- * Helper to map Supabase joined row into ProductCardDTO, 
+/**
+ * Helper to map Supabase joined row into ProductCardDTO,
  * applying business rules for out-of-stock and effective price.
  */
 function mapProductCardDTO(row: any): ProductCardDTO {
@@ -47,27 +47,32 @@ function mapProductCardDTO(row: any): ProductCardDTO {
   const compareAt = row.compare_at_cents ?? row.compareAtCents ?? null;
 
   const variants = Array.isArray(row.product_variants || row.variants)
-    ? (row.product_variants || row.variants)
+    ? row.product_variants || row.variants
     : [];
-  
+
   const activeVariants = variants.filter((v: any) => v.status === "active");
-  
+
   let isOutOfStock = true;
   let displayPrice = basePrice;
 
   if (activeVariants.length > 0) {
     const totalAvailable = activeVariants.reduce(
       (sum: number, v: any) => sum + Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0)),
-      0
+      0,
     );
     isOutOfStock = totalAvailable <= 0;
 
-    const variantsForPrice = totalAvailable > 0 
-      ? activeVariants.filter((v: any) => Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0)) > 0) 
-      : activeVariants;
-    
+    const variantsForPrice =
+      totalAvailable > 0
+        ? activeVariants.filter(
+            (v: any) => Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0)) > 0,
+          )
+        : activeVariants;
+
     if (variantsForPrice.length > 0) {
-      const minPrice = Math.min(...variantsForPrice.map((v: any) => v.price_override_cents ?? basePrice));
+      const minPrice = Math.min(
+        ...variantsForPrice.map((v: any) => v.price_override_cents ?? basePrice),
+      );
       if (minPrice < displayPrice) {
         displayPrice = minPrice;
       }
@@ -112,7 +117,9 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       const storeId = await resolveTenantStoreId();
 
       if (!storeId) {
-        throw new Error("Nenhuma loja foi configurada. Configure a loja no painel de administração.");
+        throw new Error(
+          "Nenhuma loja foi configurada. Configure a loja no painel de administração.",
+        );
       }
 
       const selectQuery = params.categorySlug
@@ -160,7 +167,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
 
       if (error) {
         console.error("[catalog.functions] listPublishedProducts:", error.message);
-        throw new Error("Não foi possível carregar os produtos." );
+        throw new Error("Não foi possível carregar os produtos.");
       }
 
       if (!data || data.length === 0) {
@@ -184,145 +191,145 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
       return { status: "ok", data: products };
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) {
-        return { status: "unconfigured", reason: "Nossa vitrine está passando por uma rápida atualização técnica." };
+        return {
+          status: "unconfigured",
+          reason: "Nossa vitrine está passando por uma rápida atualização técnica.",
+        };
       }
       console.error("[catalog.functions] unexpected error:", e);
-      return { status: "error", message: e instanceof Error ? e.message : "Erro inesperado ao carregar produtos." };
+      return {
+        status: "error",
+        message: e instanceof Error ? e.message : "Erro inesperado ao carregar produtos.",
+      };
     }
   });
-
 
 // ---------------------------------------------------------------------------
 // listPublishedCategories
 // ---------------------------------------------------------------------------
 
-export const listPublishedCategories = createServerFn({ method: "GET" }).handler(
-  async () => {
-    try {
-      const db = getAnonServerClient();
-      const storeId = await resolveTenantStoreId();
+export const listPublishedCategories = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getAnonServerClient();
+    const storeId = await resolveTenantStoreId();
 
-      if (!storeId) {
-        return {
-          status: "unconfigured",
-          reason: "Nenhuma loja foi configurada.",
-        };
-      }
-
-      const { data, error } = await db
-        .from("categories")
-        .select("id, slug, name, cover_url")
-        .eq("store_id", storeId)
-        .eq("status", "active")
-        .is("parent_id", null) // top-level only for nav
-        .order("sort_order", { ascending: true });
-
-      if (error) {
-        console.error("[catalog.functions] listPublishedCategories:", error.message);
-        throw new Error("Não foi possível carregar as categorias." );
-      }
-
-      if (!data || data.length === 0) {
-        return [];
-      }
-
-      const categories: CategoryDTO[] = data.map((row) => ({
-        id: row.id as string,
-        slug: row.slug as string,
-        name: row.name as string,
-        coverUrl: (row.cover_url as string | null) ?? null,
-      }));
-
-      return categories ;
-    } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) {
-        return {
-          status: "unconfigured",
-          reason: "Nossas categorias de calçados estão em manutenção temporária.",
-        };
-      }
-      throw new Error("Erro inesperado ao carregar categorias." );
+    if (!storeId) {
+      return {
+        status: "unconfigured",
+        reason: "Nenhuma loja foi configurada.",
+      };
     }
-  },
-);
+
+    const { data, error } = await db
+      .from("categories")
+      .select("id, slug, name, cover_url")
+      .eq("store_id", storeId)
+      .eq("status", "active")
+      .is("parent_id", null) // top-level only for nav
+      .order("sort_order", { ascending: true });
+
+    if (error) {
+      console.error("[catalog.functions] listPublishedCategories:", error.message);
+      throw new Error("Não foi possível carregar as categorias.");
+    }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    const categories: CategoryDTO[] = data.map((row) => ({
+      id: row.id as string,
+      slug: row.slug as string,
+      name: row.name as string,
+      coverUrl: (row.cover_url as string | null) ?? null,
+    }));
+
+    return categories;
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) {
+      return {
+        status: "unconfigured",
+        reason: "Nossas categorias de calçados estão em manutenção temporária.",
+      };
+    }
+    throw new Error("Erro inesperado ao carregar categorias.");
+  }
+});
 
 // ---------------------------------------------------------------------------
 // getStoreConfig
 // ---------------------------------------------------------------------------
 
-export const getStoreConfig = createServerFn({ method: "GET" }).handler(
-  async () => {
-    try {
-      const db = getAnonServerClient();
+export const getStoreConfig = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getAnonServerClient();
 
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
-      const storeId = await resolveTenantStoreId();
-      if (!storeId) {
-        return {
-          status: "unconfigured",
-          reason: "Nenhuma loja configurada.",
-        };
-      }
-
-      const { data, error } = await db
-        .from("stores")
-        .select("id, name, settings")
-        .eq("id", storeId)
-        .single();
-
-      if (error || !data) {
-        throw new Error("Nenhuma loja configurada. Crie a loja no painel de administração.");
-      }
-      if (!storeId) {
-        throw new Error("Nenhuma loja foi configurada. Configure a loja no painel de administração.");
-      }
-
-      // settings is a JSONB column — validated here (not trusted as-is).
-      const settings = (data.settings ?? {}) as Record<string, unknown>;
-
-      const announcements: AnnouncementDTO[] = Array.isArray(settings.announcements)
-        ? (settings.announcements as AnnouncementDTO[]).filter(
-            (a) => a && typeof a.text === "string" && a.isActive,
-          )
-        : [];
-
-      const heroBanners: HeroBannerDTO[] = Array.isArray(settings.heroBanners)
-        ? (settings.heroBanners as HeroBannerDTO[])
-        : [];
-
-      const benefits: BenefitDTO[] = Array.isArray(settings.benefits)
-        ? (settings.benefits as BenefitDTO[])
-        : [];
-
-      const config: StoreConfigDTO = {
-        storeId: data.id as string,
-        name: data.name as string,
-        logoUrl: typeof settings.logoUrl === "string" ? settings.logoUrl : null,
-        faviconUrl: typeof settings.faviconUrl === "string" ? settings.faviconUrl : null,
-        announcements,
-        heroBanners,
-        benefits,
-        contactPhone: typeof settings.contactPhone === "string" ? settings.contactPhone : null,
-        contactEmail: typeof settings.contactEmail === "string" ? settings.contactEmail : null,
-        contactAddress:
-          typeof settings.contactAddress === "string" ? settings.contactAddress : null,
-        businessHours: typeof settings.businessHours === "string" ? settings.businessHours : null,
-        instagramHandle:
-          typeof settings.instagramHandle === "string" ? settings.instagramHandle : null,
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) {
+      return {
+        status: "unconfigured",
+        reason: "Nenhuma loja configurada.",
       };
-
-      return config ;
-    } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) {
-        return {
-          status: "unconfigured",
-          reason: "As configurações e dados da loja estão sendo restabelecidos.",
-        };
-      }
-      throw new Error("Erro inesperado ao carregar configurações da loja." );
     }
-  },
-);
+
+    const { data, error } = await db
+      .from("stores")
+      .select("id, name, settings")
+      .eq("id", storeId)
+      .single();
+
+    if (error || !data) {
+      throw new Error("Nenhuma loja configurada. Crie a loja no painel de administração.");
+    }
+    if (!storeId) {
+      throw new Error("Nenhuma loja foi configurada. Configure a loja no painel de administração.");
+    }
+
+    // settings is a JSONB column — validated here (not trusted as-is).
+    const settings = (data.settings ?? {}) as Record<string, unknown>;
+
+    const announcements: AnnouncementDTO[] = Array.isArray(settings.announcements)
+      ? (settings.announcements as AnnouncementDTO[]).filter(
+          (a) => a && typeof a.text === "string" && a.isActive,
+        )
+      : [];
+
+    const heroBanners: HeroBannerDTO[] = Array.isArray(settings.heroBanners)
+      ? (settings.heroBanners as HeroBannerDTO[])
+      : [];
+
+    const benefits: BenefitDTO[] = Array.isArray(settings.benefits)
+      ? (settings.benefits as BenefitDTO[])
+      : [];
+
+    const config: StoreConfigDTO = {
+      storeId: data.id as string,
+      name: data.name as string,
+      logoUrl: typeof settings.logoUrl === "string" ? settings.logoUrl : null,
+      faviconUrl: typeof settings.faviconUrl === "string" ? settings.faviconUrl : null,
+      announcements,
+      heroBanners,
+      benefits,
+      contactPhone: typeof settings.contactPhone === "string" ? settings.contactPhone : null,
+      contactEmail: typeof settings.contactEmail === "string" ? settings.contactEmail : null,
+      contactAddress: typeof settings.contactAddress === "string" ? settings.contactAddress : null,
+      businessHours: typeof settings.businessHours === "string" ? settings.businessHours : null,
+      instagramHandle:
+        typeof settings.instagramHandle === "string" ? settings.instagramHandle : null,
+    };
+
+    return config;
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) {
+      return {
+        status: "unconfigured",
+        reason: "As configurações e dados da loja estão sendo restabelecidos.",
+      };
+    }
+    throw new Error("Erro inesperado ao carregar configurações da loja.");
+  }
+});
 export const searchProducts = createServerFn({ method: "GET" })
   .validator(z.object({ query: z.string().min(1) }))
   .handler(async ({ data: { query } }) => {
@@ -366,7 +373,7 @@ export const searchProducts = createServerFn({ method: "GET" })
 
       // If FTS returns results, use them
       if (!ftsError && ftsData && ftsData.length > 0) {
-        return ftsData.map(mapProductCardDTO) ;
+        return ftsData.map(mapProductCardDTO);
       }
 
       // Stage 2: Trigram fallback — match across title, brand, description
@@ -376,24 +383,25 @@ export const searchProducts = createServerFn({ method: "GET" })
         .select(selectFields)
         .eq("store_id", store.id)
         .eq("status", "published")
-        .or(`title.ilike.${likePattern},brand.ilike.${likePattern},description.ilike.${likePattern}`)
+        .or(
+          `title.ilike.${likePattern},brand.ilike.${likePattern},description.ilike.${likePattern}`,
+        )
         .order("published_at", { ascending: false })
         .limit(20);
 
       if (trigramError) {
-        throw new Error(trigramError.message );
+        throw new Error(trigramError.message);
       }
 
       if (!trigramData || trigramData.length === 0) {
-        return [] ;
+        return [];
       }
 
-      return trigramData.map(mapProductCardDTO) ;
+      return trigramData.map(mapProductCardDTO);
     } catch (e: any) {
-      throw new Error(e.message || "Erro desconhecido" );
+      throw new Error(e.message || "Erro desconhecido");
     }
   });
-
 
 export const getProductsByCollection = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string().min(1) }))
@@ -457,56 +465,54 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
         .in("id", productIds)
         .order("created_at", { ascending: false });
 
-      if (error) throw new Error(error.message );
+      if (error) throw new Error(error.message);
       if (!data || data.length === 0) return [];
 
       const mapped: ProductCardDTO[] = data.map(mapProductCardDTO);
 
-      return mapped ;
+      return mapped;
     } catch (e: any) {
-      throw new Error(e.message || "Erro desconhecido" );
+      throw new Error(e.message || "Erro desconhecido");
     }
   });
 
-export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
-  async () => {
-    try {
-      const db = await getAnonServerClient();
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
-      const storeId = await resolveTenantStoreId();
-      const store = { id: storeId };
-      if (!storeId) {
-        return { status: "unconfigured", reason: "Loja não encontrada." };
-      }
-
-      const { data, error } = await db
-        .from("products")
-        .select(
-          `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order), variants:product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`,
-        )
-        .eq("store_id", store.id)
-        .eq("status", "published")
-        .gt("compare_at_cents", 0)
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (error) throw new Error(error.message );
-      if (!data || data.length === 0) return [];
-
-      // Filter natively to ensure only actual discounts are returned (compare > price)
-      const discountedData = data.filter(
-        (item) => item.compareAtCents && item.compareAtCents > item.priceCents,
-      );
-      if (discountedData.length === 0) return [];
-
-      const mapped: ProductCardDTO[] = discountedData.map(mapProductCardDTO);
-
-      return mapped ;
-    } catch (e: any) {
-      throw new Error(e.message || "Erro desconhecido" );
+export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = await getAnonServerClient();
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    const store = { id: storeId };
+    if (!storeId) {
+      return { status: "unconfigured", reason: "Loja não encontrada." };
     }
-  },
-);
+
+    const { data, error } = await db
+      .from("products")
+      .select(
+        `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order), variants:product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`,
+      )
+      .eq("store_id", store.id)
+      .eq("status", "published")
+      .gt("compare_at_cents", 0)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (error) throw new Error(error.message);
+    if (!data || data.length === 0) return [];
+
+    // Filter natively to ensure only actual discounts are returned (compare > price)
+    const discountedData = data.filter(
+      (item) => item.compareAtCents && item.compareAtCents > item.priceCents,
+    );
+    if (discountedData.length === 0) return [];
+
+    const mapped: ProductCardDTO[] = discountedData.map(mapProductCardDTO);
+
+    return mapped;
+  } catch (e: any) {
+    throw new Error(e.message || "Erro desconhecido");
+  }
+});
 
 // ---------------------------------------------------------------------------
 // getProductDetail (PDP)
@@ -616,7 +622,7 @@ export const getProductDetail = createServerFn({ method: "GET" })
         };
       }
       console.error("[catalog.functions] getProductDetail:", e);
-      throw new Error("Erro inesperado ao carregar detalhes do produto." );
+      throw new Error("Erro inesperado ao carregar detalhes do produto.");
     }
   });
 
@@ -644,49 +650,49 @@ export interface PublicStoreProfileDTO {
 
 export type PublicStoreProfileResult = CatalogResult<PublicStoreProfileDTO>;
 
-export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(
-  async () => {
-    try {
-      const db = getAnonServerClient();
+export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getAnonServerClient();
 
-      const { data, error } = await db
-        .from("stores")
-        .select("id, name, slug, description, phone, email, address, city, state, settings")
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .single();
+    const { data, error } = await db
+      .from("stores")
+      .select("id, name, slug, description, phone, email, address, city, state, settings")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .single();
 
-      if (error || !data) {
-        throw new Error("Loja não encontrada.");
-      }
-
-      const settings = (data.settings ?? {}) as Record<string, any>;
-
-      const profile: PublicStoreProfileDTO = {
-        id: data.id as string,
-        name: data.name as string,
-        slug: data.slug as string,
-        description: (data.description as string | null) ?? null,
-        phone: (data.phone as string | null) ?? null,
-        email: (data.email as string | null) ?? null,
-        address: (data.address as string | null) ?? null,
-        city: (data.city as string | null) ?? null,
-        state: (data.state as string | null) ?? null,
-        logoUrl: (typeof settings.logoUrl === "string" ? settings.logoUrl : null),
-        instagramHandle: (typeof settings.instagramHandle === "string" ? settings.instagramHandle : null),
-        businessHours: (typeof settings.businessHours === "string" ? settings.businessHours : null),
-        settings,
-        pixKey: (typeof settings.pixKey === "string" ? settings.pixKey : null),
-        paymentInstructions: (typeof settings.paymentInstructions === "string" ? settings.paymentInstructions : null),
-      };
-
-      return profile ;
-    } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) {
-        throw new Error("Nossa vitrine está passando por uma rápida atualização técnica.");
-      }
-      console.error("[catalog.functions] getPublicStoreProfile:", e);
-      throw new Error("Erro inesperado ao carregar perfil da loja." );
+    if (error || !data) {
+      throw new Error("Loja não encontrada.");
     }
-  },
-);
+
+    const settings = (data.settings ?? {}) as Record<string, any>;
+
+    const profile: PublicStoreProfileDTO = {
+      id: data.id as string,
+      name: data.name as string,
+      slug: data.slug as string,
+      description: (data.description as string | null) ?? null,
+      phone: (data.phone as string | null) ?? null,
+      email: (data.email as string | null) ?? null,
+      address: (data.address as string | null) ?? null,
+      city: (data.city as string | null) ?? null,
+      state: (data.state as string | null) ?? null,
+      logoUrl: typeof settings.logoUrl === "string" ? settings.logoUrl : null,
+      instagramHandle:
+        typeof settings.instagramHandle === "string" ? settings.instagramHandle : null,
+      businessHours: typeof settings.businessHours === "string" ? settings.businessHours : null,
+      settings,
+      pixKey: typeof settings.pixKey === "string" ? settings.pixKey : null,
+      paymentInstructions:
+        typeof settings.paymentInstructions === "string" ? settings.paymentInstructions : null,
+    };
+
+    return profile;
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) {
+      throw new Error("Nossa vitrine está passando por uma rápida atualização técnica.");
+    }
+    console.error("[catalog.functions] getPublicStoreProfile:", e);
+    throw new Error("Erro inesperado ao carregar perfil da loja.");
+  }
+});

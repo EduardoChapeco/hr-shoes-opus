@@ -58,10 +58,7 @@ function DestaquesPage() {
     return (
       <div className="space-y-6">
         <PageHeader title="Destaques" description="Produtos em destaque na vitrine." />
-        <EmptyState
-          title="Sem dados"
-          description="Loja não configurada."
-        />
+        <EmptyState title="Sem dados" description="Loja não configurada." />
       </div>
     );
   }

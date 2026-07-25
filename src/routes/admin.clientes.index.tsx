@@ -57,10 +57,7 @@ import { formatMoney } from "@/lib/money";
 export const Route = createFileRoute("/admin/clientes/")({
   head: () => ({ meta: [{ title: "Clientes & Leads — Hr Shoes" }] }),
   loader: async () => {
-    const [customers, leadsRes] = await Promise.all([
-      listCustomers(),
-      listLeads(),
-    ]);
+    const [customers, leadsRes] = await Promise.all([listCustomers(), listLeads()]);
     return {
       customers,
       leads: leadsRes || [],
@@ -97,7 +94,10 @@ function CustomersPage() {
     setIsSaving(true);
     try {
       const tags = form.tagsRaw
-        ? form.tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
+        ? form.tagsRaw
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
         : [];
 
       await createCustomer({
@@ -112,7 +112,15 @@ function CustomersPage() {
 
       toast.success("Cliente cadastrado com sucesso!");
       setIsOpen(false);
-      setForm({ fullName: "", email: "", phone: "", tagsRaw: "", notes: "", taxId: "", isConsentLgpd: false });
+      setForm({
+        fullName: "",
+        email: "",
+        phone: "",
+        tagsRaw: "",
+        notes: "",
+        taxId: "",
+        isConsentLgpd: false,
+      });
       router.invalidate();
     } catch (e: any) {
       toast.error(e.message || "Erro inesperado");
@@ -121,7 +129,10 @@ function CustomersPage() {
     }
   };
 
-  const handleStatusChange = async (leadId: string, status: "new" | "contacted" | "converted" | "lost") => {
+  const handleStatusChange = async (
+    leadId: string,
+    status: "new" | "contacted" | "converted" | "lost",
+  ) => {
     try {
       await updateLeadStatus({ data: { leadId, status } });
       toast.success("Lead atualizado");
@@ -146,7 +157,7 @@ function CustomersPage() {
   const filteredCustomers = customers.filter(
     (c: any) =>
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.tags.some((t: string) => t.toLowerCase().includes(searchTerm.toLowerCase()))
+      c.tags.some((t: string) => t.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
   // Group leads for Kanban Columns
@@ -177,16 +188,21 @@ function CustomersPage() {
               Cadastrar Novo Cliente
             </DialogTitle>
             <DialogDescription>
-              Preencha os dados abaixo para adicionar um contato ao seu CRM e habilitar o histórico de compras.
+              Preencha os dados abaixo para adicionar um contato ao seu CRM e habilitar o histórico
+              de compras.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreate} className="px-6 py-4">
             <div className="grid md:grid-cols-2 gap-6">
-              
               {/* Coluna 1: Dados Pessoais e Contato */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="cli-name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nome Completo *</Label>
+                  <Label
+                    htmlFor="cli-name"
+                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    Nome Completo *
+                  </Label>
                   <Input
                     id="cli-name"
                     required
@@ -197,7 +213,12 @@ function CustomersPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cli-tax" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">CPF ou CNPJ</Label>
+                  <Label
+                    htmlFor="cli-tax"
+                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    CPF ou CNPJ
+                  </Label>
                   <div className="relative">
                     <FileText className="absolute left-3 top-3 size-4 text-muted-foreground/50" />
                     <Input
@@ -210,7 +231,12 @@ function CustomersPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cli-email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">E-mail *</Label>
+                  <Label
+                    htmlFor="cli-email"
+                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    E-mail *
+                  </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 size-4 text-muted-foreground/50" />
                     <Input
@@ -225,7 +251,12 @@ function CustomersPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="cli-phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Telefone / WhatsApp</Label>
+                  <Label
+                    htmlFor="cli-phone"
+                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    Telefone / WhatsApp
+                  </Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-3 size-4 text-muted-foreground/50" />
                     <Input
@@ -243,7 +274,12 @@ function CustomersPage() {
               {/* Coluna 2: Segmentação e Notas CRM */}
               <div className="space-y-4 md:border-l md:pl-6">
                 <div className="space-y-2">
-                  <Label htmlFor="cli-tags" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tags de Segmentação</Label>
+                  <Label
+                    htmlFor="cli-tags"
+                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                  >
+                    Tags de Segmentação
+                  </Label>
                   <Input
                     id="cli-tags"
                     value={form.tagsRaw}
@@ -267,12 +303,16 @@ function CustomersPage() {
                       <ShieldCheck className="size-3.5 text-emerald-500" /> Consentimento LGPD
                     </label>
                     <p className="text-[10px] text-muted-foreground leading-snug">
-                      O cliente autoriza expressamente a coleta e o processamento de seus dados cadastrais.
+                      O cliente autoriza expressamente a coleta e o processamento de seus dados
+                      cadastrais.
                     </p>
                   </div>
                 </div>
                 <div className="space-y-2 h-full flex flex-col">
-                  <Label htmlFor="cli-notes" className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Label
+                    htmlFor="cli-notes"
+                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"
+                  >
                     <MessageSquare className="size-3.5" /> Notas Internas do CRM
                   </Label>
                   <textarea
@@ -285,13 +325,24 @@ function CustomersPage() {
                 </div>
               </div>
             </div>
-            
+
             <DialogFooter className="pt-6 mt-4 border-t border-border/50">
-              <Button type="button" variant="ghost" onClick={() => setIsOpen(false)} className="h-10">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsOpen(false)}
+                className="h-10"
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSaving} className="h-10 min-w-32 font-bold bg-primary text-primary-foreground hover:bg-primary/90">
-                {isSaving ? "Salvando..." : (
+              <Button
+                type="submit"
+                disabled={isSaving}
+                className="h-10 min-w-32 font-bold bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                {isSaving ? (
+                  "Salvando..."
+                ) : (
                   <>
                     <CheckCircle className="size-4 mr-2" /> Cadastrar Cliente
                   </>
@@ -318,7 +369,10 @@ function CustomersPage() {
 
           {activeTab === "customers" && (
             <div className="relative flex-1 max-w-sm w-full">
-              <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden />
+              <Search
+                className="absolute left-2.5 top-2.5 size-4 text-muted-foreground"
+                aria-hidden
+              />
               <Input
                 type="search"
                 placeholder="Buscar cliente ou tag..."
@@ -336,8 +390,8 @@ function CustomersPage() {
             <EmptyState
               title="Nenhum cliente encontrado"
               description={
-                searchTerm 
-                  ? "Sua busca não retornou nenhum cliente." 
+                searchTerm
+                  ? "Sua busca não retornou nenhum cliente."
                   : "Nenhum cliente cadastrado no CRM ainda."
               }
             />
@@ -362,13 +416,18 @@ function CustomersPage() {
                           <div className="font-semibold text-foreground text-sm flex items-center gap-2">
                             {c.name}
                             {c.isConsentLgpd && (
-                              <Badge variant="outline" className="text-[9px] text-emerald-600 border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50/50 h-4 px-1">
+                              <Badge
+                                variant="outline"
+                                className="text-[9px] text-emerald-600 border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50/50 h-4 px-1"
+                              >
                                 LGPD
                               </Badge>
                             )}
                           </div>
                           {c.taxId && (
-                            <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{c.taxId}</p>
+                            <p className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                              {c.taxId}
+                            </p>
                           )}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
@@ -377,8 +436,12 @@ function CustomersPage() {
                             year: "numeric",
                           })}
                         </TableCell>
-                        <TableCell className="text-center text-sm font-semibold">{c.orderCount}</TableCell>
-                        <TableCell className="text-right text-sm font-bold text-foreground">{formatMoney(c.ltvCents)}</TableCell>
+                        <TableCell className="text-center text-sm font-semibold">
+                          {c.orderCount}
+                        </TableCell>
+                        <TableCell className="text-right text-sm font-bold text-foreground">
+                          {formatMoney(c.ltvCents)}
+                        </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {c.tags.length > 0 ? (
@@ -422,7 +485,9 @@ function CustomersPage() {
               <CardHeader className="p-3 pb-2 border-b">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-foreground">Novos Leads</span>
-                  <Badge variant="secondary" className="h-5 text-[10px]">{leadsNew.length}</Badge>
+                  <Badge variant="secondary" className="h-5 text-[10px]">
+                    {leadsNew.length}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-2 space-y-2">
@@ -447,7 +512,12 @@ function CustomersPage() {
               <CardHeader className="p-3 pb-2 border-b">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-amber-600">Em Contato</span>
-                  <Badge variant="warning" className="h-5 text-[10px] bg-amber-100 text-amber-800 border-transparent">{leadsContacted.length}</Badge>
+                  <Badge
+                    variant="warning"
+                    className="h-5 text-[10px] bg-amber-100 text-amber-800 border-transparent"
+                  >
+                    {leadsContacted.length}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-2 space-y-2">
@@ -472,7 +542,12 @@ function CustomersPage() {
               <CardHeader className="p-3 pb-2 border-b">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase text-emerald-600">Convertidos</span>
-                  <Badge variant="outline" className="h-5 text-[10px] bg-emerald-100 text-emerald-800 border-transparent">{leadsConverted.length}</Badge>
+                  <Badge
+                    variant="outline"
+                    className="h-5 text-[10px] bg-emerald-100 text-emerald-800 border-transparent"
+                  >
+                    {leadsConverted.length}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-2 space-y-2">
@@ -496,8 +571,12 @@ function CustomersPage() {
             <Card className="bg-muted/30 border border-border shadow-xs">
               <CardHeader className="p-3 pb-2 border-b">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase text-muted-foreground">Arquivados</span>
-                  <Badge variant="outline" className="h-5 text-[10px]">{leadsLost.length}</Badge>
+                  <span className="text-xs font-black uppercase text-muted-foreground">
+                    Arquivados
+                  </span>
+                  <Badge variant="outline" className="h-5 text-[10px]">
+                    {leadsLost.length}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-2 space-y-2">
@@ -545,7 +624,11 @@ function CustomersPage() {
                           <div>
                             <p>{l.full_name}</p>
                             <p className="text-[10px] text-muted-foreground font-mono">{l.email}</p>
-                            {l.phone && <p className="text-[10px] text-muted-foreground font-mono">{l.phone}</p>}
+                            {l.phone && (
+                              <p className="text-[10px] text-muted-foreground font-mono">
+                                {l.phone}
+                              </p>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className="text-xs leading-relaxed max-w-md whitespace-pre-wrap py-3 text-muted-foreground">
@@ -604,7 +687,9 @@ function LeadCard({ lead, onStatusChange, onPromote }: LeadCardProps) {
   return (
     <Card className="shadow-xs border border-border/80 bg-card hover:shadow-sm transition-all p-3 space-y-3 relative group">
       <div className="space-y-1">
-        <h4 className="text-xs font-black tracking-tight text-foreground truncate">{lead.full_name}</h4>
+        <h4 className="text-xs font-black tracking-tight text-foreground truncate">
+          {lead.full_name}
+        </h4>
         <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 truncate">
           <Mail className="size-3 text-muted-foreground/75" />
           {lead.email}
@@ -632,7 +717,12 @@ function LeadCard({ lead, onStatusChange, onPromote }: LeadCardProps) {
               size="icon"
               className="size-6 text-muted-foreground hover:text-foreground"
               onClick={() => {
-                const prevStatus = lead.status === "contacted" ? "new" : lead.status === "converted" ? "contacted" : "contacted";
+                const prevStatus =
+                  lead.status === "contacted"
+                    ? "new"
+                    : lead.status === "converted"
+                      ? "contacted"
+                      : "contacted";
                 onStatusChange(lead.id, prevStatus);
               }}
               title="Voltar Coluna"

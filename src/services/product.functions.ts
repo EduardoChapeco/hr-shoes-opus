@@ -25,9 +25,10 @@ export async function getProductBySlugHandler(slug: string) {
     const { data: product, error } = await db
       .from("products")
       .select(
-        `id, slug, title, description, brand,
+        `id, slug, title, description, brand, manufacturer, ean,
          price_cents, compare_at_cents, allows_preorder,
-         seo_title, seo_description, status,
+         seo_title, seo_description, meta_title, meta_description, short_description, status,
+         is_physical, weight_kg, width_cm, height_cm, length_cm, preparation_time_days,
          product_media(id, url, alt, media_type, sort_order, focal_point, variant_id),
          product_variants(
            id, sku, display_name, status, price_override_cents,
@@ -50,7 +51,10 @@ export async function getProductBySlugHandler(slug: string) {
       if (error?.code === "PGRST116" || !product) {
         throw new Error("Produto não encontrado");
       }
-      console.error("[product.functions] getProductBySlug:", (error as { message: string }).message);
+      console.error(
+        "[product.functions] getProductBySlug:",
+        (error as { message: string }).message,
+      );
       throw new Error("Não foi possível carregar o produto.");
     }
 
@@ -91,15 +95,11 @@ export async function getProductBySlugHandler(slug: string) {
     });
 
     // All product-level media sorted by sort_order
-    const sortedMedia: ProductMediaDTO[] = (
-      (product.product_media as RawMedia[] | null) ?? []
-    )
+    const sortedMedia: ProductMediaDTO[] = ((product.product_media as RawMedia[] | null) ?? [])
       .map(mapMedia)
       .sort((a, b) => a.sortOrder - b.sortOrder);
 
-    const variants: VariantDTO[] = (
-      (product.product_variants as RawVariant[] | null) ?? []
-    )
+    const variants: VariantDTO[] = ((product.product_variants as RawVariant[] | null) ?? [])
       .filter((v) => v.status === "active")
       .map((v) => ({
         id: v.id,
@@ -127,9 +127,7 @@ export async function getProductBySlugHandler(slug: string) {
 
     // Canonical SEO: meta_title > seo_title > title
     const canonicalSeoTitle =
-      (product.meta_title as string | null) ??
-      (product.seo_title as string | null) ??
-      null;
+      (product.meta_title as string | null) ?? (product.seo_title as string | null) ?? null;
     const canonicalSeoDescription =
       (product.meta_description as string | null) ??
       (product.seo_description as string | null) ??

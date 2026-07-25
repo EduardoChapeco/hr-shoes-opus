@@ -45,7 +45,7 @@ export const listAbandonedCarts = createServerFn({ method: "GET" }).handler(asyn
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[marketing] listAbandonedCarts error:", e);
-    throw new Error("Erro ao listar carrinhos abandonados." );
+    throw new Error("Erro ao listar carrinhos abandonados.");
   }
 });
 
@@ -72,7 +72,7 @@ export const updateAbandonedCartStatus = createServerFn({ method: "POST" })
       if (error) throw error;
       return data;
     } catch (e) {
-      throw new Error("Erro ao atualizar status." );
+      throw new Error("Erro ao atualizar status.");
     }
   });
 
@@ -95,7 +95,7 @@ export const listMatchTimeCampaigns = createServerFn({ method: "GET" }).handler(
     return data;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
-    throw new Error("Erro ao listar campanhas Match Time." );
+    throw new Error("Erro ao listar campanhas Match Time.");
   }
 });
 
@@ -139,10 +139,10 @@ export const upsertMatchTimeCampaign = createServerFn({ method: "POST" })
       }
 
       if (result.error) throw result.error;
-      return result.data ;
+      return result.data;
     } catch (e) {
       console.error("[marketing] upsertMatchTimeCampaign error:", e);
-      throw new Error("Erro ao salvar campanha." );
+      throw new Error("Erro ao salvar campanha.");
     }
   });
 
@@ -165,7 +165,7 @@ export const listSocialPosts = createServerFn({ method: "GET" }).handler(async (
     return data;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
-    throw new Error("Erro ao listar posts." );
+    throw new Error("Erro ao listar posts.");
   }
 });
 
@@ -198,6 +198,6 @@ export const createSocialPost = createServerFn({ method: "POST" })
       return data;
     } catch (e) {
       console.error("[marketing] createSocialPost error:", e);
-      throw new Error("Erro ao salvar post." );
+      throw new Error("Erro ao salvar post.");
     }
   });

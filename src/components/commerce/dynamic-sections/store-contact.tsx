@@ -78,16 +78,22 @@ export function StoreContact({ content, design_tokens, transient_data }: StoreCo
     store.latitude && store.longitude
       ? `https://www.google.com/maps?q=${store.latitude},${store.longitude}`
       : store.address
-      ? `https://www.google.com/maps/search/${encodeURIComponent(`${store.address} ${store.city ?? ""} ${store.state ?? ""}`)}`
-      : null;
+        ? `https://www.google.com/maps/search/${encodeURIComponent(`${store.address} ${store.city ?? ""} ${store.state ?? ""}`)}`
+        : null;
 
   const whatsappUrl = store.whatsapp
     ? `https://wa.me/${store.whatsapp.replace(/\D/g, "")}`
     : store.phone
-    ? `https://wa.me/${store.phone.replace(/\D/g, "")}`
-    : null;
+      ? `https://wa.me/${store.phone.replace(/\D/g, "")}`
+      : null;
 
-  const contactItems: { show: boolean; icon: React.FC<{ className?: string }>; label: string; value: string; href: string }[] = [
+  const contactItems: {
+    show: boolean;
+    icon: React.FC<{ className?: string }>;
+    label: string;
+    value: string;
+    href: string;
+  }[] = [
     {
       show: !!(showWhatsapp && (store.whatsapp || store.phone) && whatsappUrl),
       icon: MessageCircle,
@@ -114,7 +120,7 @@ export function StoreContact({ content, design_tokens, transient_data }: StoreCo
       icon: MapPin,
       label: "Endereço",
       value: [store.address, store.city, store.state].filter(Boolean).join(", "),
-      href: (showMapLink && mapsUrl) ? mapsUrl : "#",
+      href: showMapLink && mapsUrl ? mapsUrl : "#",
     },
   ].filter((item) => item.show);
 
@@ -147,14 +153,16 @@ export function StoreContact({ content, design_tokens, transient_data }: StoreCo
                     : {})}
                   className={cn(
                     "flex items-center gap-4 px-4 py-3 text-sm",
-                    isLink && "hover:bg-muted/50 transition-colors cursor-pointer"
+                    isLink && "hover:bg-muted/50 transition-colors cursor-pointer",
                   )}
                 >
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <Icon className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{item.label}</p>
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                      {item.label}
+                    </p>
                     <p className="font-medium truncate">{item.value}</p>
                   </div>
                   {isLink && (

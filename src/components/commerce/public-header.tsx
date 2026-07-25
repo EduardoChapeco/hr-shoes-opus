@@ -54,7 +54,12 @@ export function PublicHeader({
         {/* Mobile menu */}
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden shrink-0" aria-label="Abrir menu">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden shrink-0"
+              aria-label="Abrir menu"
+            >
               <Menu className="size-5" aria-hidden />
             </Button>
           </SheetTrigger>
@@ -109,7 +114,9 @@ export function PublicHeader({
           {/* Expandable Search */}
           <div
             className={`flex items-center overflow-hidden transition-all duration-300 ease-in-out ${
-              isSearchOpen ? "w-full max-w-[280px] opacity-100 mr-2" : "w-0 opacity-0 md:w-0 md:opacity-0"
+              isSearchOpen
+                ? "w-full max-w-[280px] opacity-100 mr-2"
+                : "w-0 opacity-0 md:w-0 md:opacity-0"
             }`}
           >
             <form onSubmit={handleSearchSubmit} className="relative w-full">

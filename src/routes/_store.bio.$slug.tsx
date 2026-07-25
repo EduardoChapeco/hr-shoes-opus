@@ -4,10 +4,10 @@ import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
 
 export const Route = createFileRoute("/_store/bio/$slug")({
   loader: async ({ params }) => {
-    const res = await getPublicExperienceDocumentBySlug({ 
-      data: { slug: params.slug, document_type: "biolink" } 
+    const res = await getPublicExperienceDocumentBySlug({
+      data: { slug: params.slug, document_type: "biolink" },
     });
-    
+
     if (res.status === "not_found") throw notFound();
 
     return {

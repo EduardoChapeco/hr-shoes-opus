@@ -44,11 +44,11 @@ export const listChatThreads = createServerFn({ method: "GET" }).handler(async (
       };
     });
 
-    return formattedData ;
+    return formattedData;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[chat] listChatThreads error:", e);
-    throw new Error("Erro ao listar chats." );
+    throw new Error("Erro ao listar chats.");
   }
 });
 
@@ -72,7 +72,7 @@ export const getChatMessages = createServerFn({ method: "GET" })
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[chat] getChatMessages error:", e);
-      throw new Error("Erro ao carregar mensagens." );
+      throw new Error("Erro ao carregar mensagens.");
     }
   });
 
@@ -114,7 +114,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[chat] sendChatMessage error:", e);
-      throw new Error("Erro ao enviar mensagem." );
+      throw new Error("Erro ao enviar mensagem.");
     }
   });
 
@@ -209,6 +209,6 @@ export const sendCustomerChatMessage = createServerFn({ method: "POST" })
 
       return { status: "success" as const };
     } catch (e: any) {
-      throw new Error(e.message || "Erro ao enviar mensagem." );
+      throw new Error(e.message || "Erro ao enviar mensagem.");
     }
   });

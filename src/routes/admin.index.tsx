@@ -20,7 +20,14 @@ import {
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ErrorState, EmptyState } from "@/components/state/states";
@@ -37,7 +44,10 @@ export const Route = createFileRoute("/admin/")({
 });
 
 function DashboardErrorState({ error }: { error: Error }) {
-  if (error.message.includes("SupabaseUnconfiguredError") || error.name === "SupabaseUnconfiguredError") {
+  if (
+    error.message.includes("SupabaseUnconfiguredError") ||
+    error.name === "SupabaseUnconfiguredError"
+  ) {
     return (
       <div className="space-y-6">
         <PageHeader
@@ -133,7 +143,8 @@ function DashboardPage() {
               {formatMoney(salesTodayCents)}
             </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <span className="font-medium text-foreground">{ordersTodayCount}</span> pedidos realizados hoje
+              <span className="font-medium text-foreground">{ordersTodayCount}</span> pedidos
+              realizados hoje
             </p>
           </CardContent>
         </Card>
@@ -152,7 +163,8 @@ function DashboardPage() {
               {formatMoney(salesMonthCents)}
             </div>
             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <span className="font-medium text-foreground">{ordersMonthCount}</span> pedidos no mês atual
+              <span className="font-medium text-foreground">{ordersMonthCount}</span> pedidos no mês
+              atual
             </p>
           </CardContent>
         </Card>
@@ -192,10 +204,15 @@ function DashboardPage() {
                   {formatMoney(activeCashRegister.currentBalanceCents ?? 0)}
                 </div>
                 <div className="mt-1 flex items-center gap-1.5">
-                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] py-0">
+                  <Badge
+                    variant="outline"
+                    className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] py-0"
+                  >
                     Aberto
                   </Badge>
-                  <span className="text-xs text-muted-foreground">Troco: {formatMoney(activeCashRegister.initialBalanceCents ?? 0)}</span>
+                  <span className="text-xs text-muted-foreground">
+                    Troco: {formatMoney(activeCashRegister.initialBalanceCents ?? 0)}
+                  </span>
                 </div>
               </>
             ) : (
@@ -240,7 +257,9 @@ function DashboardPage() {
                   <Circle className="size-5 text-muted-foreground shrink-0 mt-0.5" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium ${item.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                  <p
+                    className={`text-sm font-medium ${item.completed ? "line-through text-muted-foreground" : "text-foreground"}`}
+                  >
                     {item.label}
                   </p>
                   <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>
@@ -282,28 +301,40 @@ function DashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">Aguardando Pagamento</span>
+                  <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                    Aguardando Pagamento
+                  </span>
                   <Clock className="size-4 text-amber-600" />
                 </div>
-                <div className="text-2xl font-bold text-foreground">{ordersBreakdown.awaitingPayment}</div>
+                <div className="text-2xl font-bold text-foreground">
+                  {ordersBreakdown.awaitingPayment}
+                </div>
                 <p className="text-xs text-muted-foreground">Pix ou boletos pendentes</p>
               </div>
 
               <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-blue-700 dark:text-blue-400">Precisam Separar</span>
+                  <span className="text-xs font-semibold text-blue-700 dark:text-blue-400">
+                    Precisam Separar
+                  </span>
                   <Box className="size-4 text-blue-600" />
                 </div>
-                <div className="text-2xl font-bold text-foreground">{ordersBreakdown.needsSeparation}</div>
+                <div className="text-2xl font-bold text-foreground">
+                  {ordersBreakdown.needsSeparation}
+                </div>
                 <p className="text-xs text-muted-foreground">Pagos, aguardando embalagem</p>
               </div>
 
               <div className="p-4 rounded-xl border border-purple-500/20 bg-purple-500/5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-purple-700 dark:text-purple-400">Prontos / Enviados</span>
+                  <span className="text-xs font-semibold text-purple-700 dark:text-purple-400">
+                    Prontos / Enviados
+                  </span>
                   <Truck className="size-4 text-purple-600" />
                 </div>
-                <div className="text-2xl font-bold text-foreground">{ordersBreakdown.shippedOrReady}</div>
+                <div className="text-2xl font-bold text-foreground">
+                  {ordersBreakdown.shippedOrReady}
+                </div>
                 <p className="text-xs text-muted-foreground">Em transporte ou retirada</p>
               </div>
             </div>
@@ -316,7 +347,9 @@ function DashboardPage() {
                     <ShoppingCart className="size-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground font-medium">Carrinhos Abandonados (7d)</p>
+                    <p className="text-xs text-muted-foreground font-medium">
+                      Carrinhos Abandonados (7d)
+                    </p>
                     <p className="text-lg font-bold text-foreground">{abandonedCartsCount}</p>
                   </div>
                 </div>
@@ -331,7 +364,9 @@ function DashboardPage() {
                     <Users className="size-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground font-medium">Novas Clientes (30d)</p>
+                    <p className="text-xs text-muted-foreground font-medium">
+                      Novas Clientes (30d)
+                    </p>
                     <p className="text-lg font-bold text-foreground">{newCustomers30d}</p>
                   </div>
                 </div>
@@ -366,12 +401,20 @@ function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {lowStockItems.map((item: any) => (
-                  <div key={item.id} className="flex items-center justify-between p-2.5 rounded-lg border border-border/60 bg-card">
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-2.5 rounded-lg border border-border/60 bg-card"
+                  >
                     <div className="min-w-0 flex-1 pr-2">
-                      <p className="text-xs font-semibold text-foreground truncate">{item.productTitle}</p>
+                      <p className="text-xs font-semibold text-foreground truncate">
+                        {item.productTitle}
+                      </p>
                       <p className="text-[11px] text-muted-foreground">SKU: {item.sku}</p>
                     </div>
-                    <Badge variant={item.stockOnHand === 0 ? "destructive" : "outline"} className="shrink-0 text-xs font-medium">
+                    <Badge
+                      variant={item.stockOnHand === 0 ? "destructive" : "outline"}
+                      className="shrink-0 text-xs font-medium"
+                    >
                       {item.stockOnHand === 0 ? "Esgotado" : `${item.stockOnHand} un.`}
                     </Badge>
                   </div>
@@ -381,9 +424,7 @@ function DashboardPage() {
           </CardContent>
           <CardFooter className="border-t border-border pt-3">
             <Button asChild variant="outline" size="sm" className="w-full text-xs">
-              <Link to="/admin/estoque/movimentos">
-                Registrar Entrada de Estoque
-              </Link>
+              <Link to="/admin/estoque/movimentos">Registrar Entrada de Estoque</Link>
             </Button>
           </CardFooter>
         </Card>

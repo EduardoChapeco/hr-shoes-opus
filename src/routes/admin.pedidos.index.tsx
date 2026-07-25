@@ -52,7 +52,13 @@ export const Route = createFileRoute("/admin/pedidos/")({
 });
 
 function getStatusLabel(status: string) {
-  const map: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "info" | "success" | "warning" }> = {
+  const map: Record<
+    string,
+    {
+      label: string;
+      variant: "default" | "secondary" | "destructive" | "outline" | "info" | "success" | "warning";
+    }
+  > = {
     draft: { label: "Rascunho", variant: "secondary" },
     awaiting_payment: { label: "Aguardando Pagto", variant: "warning" },
     payment_processing: { label: "Processando Pagto", variant: "info" },
@@ -86,9 +92,12 @@ function AdminOrdersPage() {
         tokenStr.includes(query) || customerName.includes(query) || customerEmail.includes(query);
 
       let matchesTab = true;
-      if (statusTab === "awaiting") matchesTab = order.status === "awaiting_payment" || order.status === "payment_processing";
-      else if (statusTab === "processing") matchesTab = order.status === "processing" || order.status === "paid";
-      else if (statusTab === "shipped") matchesTab = order.status === "shipped" || order.status === "ready_for_pickup";
+      if (statusTab === "awaiting")
+        matchesTab = order.status === "awaiting_payment" || order.status === "payment_processing";
+      else if (statusTab === "processing")
+        matchesTab = order.status === "processing" || order.status === "paid";
+      else if (statusTab === "shipped")
+        matchesTab = order.status === "shipped" || order.status === "ready_for_pickup";
       else if (statusTab === "delivered") matchesTab = order.status === "delivered";
       else if (statusTab === "cancelled") matchesTab = order.status === "cancelled";
 
@@ -102,9 +111,7 @@ function AdminOrdersPage() {
     try {
       const res = await updateOrderStatus({ data: { orderId, status: newStatus } });
       if (res) {
-        setOrders((prev) =>
-          prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)),
-        );
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
         toast.success(`Status do pedido alterado com sucesso!`);
         router.invalidate();
       } else {
@@ -148,7 +155,12 @@ function AdminOrdersPage() {
 
       {/* Toolbar & Filtros de Status */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
-        <Tabs defaultValue="all" value={statusTab} onValueChange={setStatusTab} className="w-full sm:w-auto">
+        <Tabs
+          defaultValue="all"
+          value={statusTab}
+          onValueChange={setStatusTab}
+          className="w-full sm:w-auto"
+        >
           <TabsList className="grid grid-cols-6 w-full sm:w-auto h-9">
             <TabsTrigger value="all" className="text-xs">
               Todos ({orders.length})
@@ -157,7 +169,8 @@ function AdminOrdersPage() {
               Aguardando ({orders.filter((o) => o.status === "awaiting_payment").length})
             </TabsTrigger>
             <TabsTrigger value="processing" className="text-xs">
-              Separação ({orders.filter((o) => o.status === "processing" || o.status === "paid").length})
+              Separação (
+              {orders.filter((o) => o.status === "processing" || o.status === "paid").length})
             </TabsTrigger>
             <TabsTrigger value="shipped" className="text-xs">
               Enviados ({orders.filter((o) => o.status === "shipped").length})
@@ -227,7 +240,9 @@ function AdminOrdersPage() {
                           {order.customer_snapshot?.name || "Cliente Avulso"}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {order.customer_snapshot?.email || order.customer_snapshot?.phone || "Sem contato"}
+                          {order.customer_snapshot?.email ||
+                            order.customer_snapshot?.phone ||
+                            "Sem contato"}
                         </span>
                       </div>
                     </TableCell>
@@ -246,7 +261,10 @@ function AdminOrdersPage() {
                     </TableCell>
 
                     <TableCell className="text-center">
-                      <Badge variant={badgeInfo.variant} className="text-[10px] uppercase tracking-wider">
+                      <Badge
+                        variant={badgeInfo.variant}
+                        className="text-[10px] uppercase tracking-wider"
+                      >
                         {badgeInfo.label}
                       </Badge>
                     </TableCell>
@@ -259,7 +277,9 @@ function AdminOrdersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-52">
-                          <DropdownMenuLabel className="text-xs">Ações Operacionais</DropdownMenuLabel>
+                          <DropdownMenuLabel className="text-xs">
+                            Ações Operacionais
+                          </DropdownMenuLabel>
                           <DropdownMenuItem asChild>
                             <Link to={`/admin/pedidos/${order.id}` as never}>
                               <Eye className="size-3.5 mr-2" />
@@ -286,17 +306,23 @@ function AdminOrdersPage() {
                               onClick={() =>
                                 handleStatusChange(
                                   order.id,
-                                  order.shipping_method === "pickup" ? "ready_for_pickup" : "shipped",
+                                  order.shipping_method === "pickup"
+                                    ? "ready_for_pickup"
+                                    : "shipped",
                                 )
                               }
                             >
                               <Truck className="size-3.5 mr-2 text-blue-600" />
-                              {order.shipping_method === "pickup" ? "Pronto p/ Retirada" : "Marcar como Enviado"}
+                              {order.shipping_method === "pickup"
+                                ? "Pronto p/ Retirada"
+                                : "Marcar como Enviado"}
                             </DropdownMenuItem>
                           )}
 
                           {(order.status === "shipped" || order.status === "ready_for_pickup") && (
-                            <DropdownMenuItem onClick={() => handleStatusChange(order.id, "delivered")}>
+                            <DropdownMenuItem
+                              onClick={() => handleStatusChange(order.id, "delivered")}
+                            >
                               <PackageCheck className="size-3.5 mr-2 text-emerald-600" />
                               Confirmar Entrega ao Cliente
                             </DropdownMenuItem>

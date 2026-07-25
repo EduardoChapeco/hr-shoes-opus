@@ -33,14 +33,17 @@ async function getOrCreateCartId(identity: {
     query = query.eq("session_token", identity.session_token);
   }
 
-  const { data: existing } = await query.maybeSingle();
+  const { data: existing } = await query
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
   if (existing) return existing.id;
 
   // 2. Fetch the default store. In a multi-tenant setup, this would be derived from the Host or domain.
   const { resolveTenantStoreId } = await import("@/lib/tenant");
-    const storeId = await resolveTenantStoreId();
-    if (!storeId) throw new Error("Loja nÃ£o configurada");
-    const store = { id: storeId };
+  const storeId = await resolveTenantStoreId();
+  if (!storeId) throw new Error("Loja não configurada");
+  const store = { id: storeId };
   if (!store) throw new Error("Loja não encontrada na base");
 
   // 3. Create a new cart
@@ -86,7 +89,6 @@ export async function fetchCartDTO(identity: {
         product_variants (
           id,
           price_override_cents,
-          compare_at_cents,
           stock_on_hand,
           stock_reserved,
           sku,
@@ -96,6 +98,7 @@ export async function fetchCartDTO(identity: {
             title,
             slug,
             price_cents,
+            compare_at_cents,
             product_media ( url )
           )
         )
@@ -112,8 +115,14 @@ export async function fetchCartDTO(identity: {
     .limit(1)
     .maybeSingle();
 
-  if (error && error.code !== "PGRST116") {
-    console.error("Error fetching cart DTO:", error);
+  if (error) {
+    if (error.code === "PGRST116") {
+      console.warn(
+        `[CART] Multiple active carts or not found (PGRST116) for identity: ${identity.customer_id || identity.session_token}`,
+      );
+    } else {
+      console.error("[CART] Error fetching cart DTO:", error);
+    }
   }
 
   if (!cart) return null;
@@ -125,7 +134,6 @@ export async function fetchCartDTO(identity: {
     product_variants: {
       sku: string;
       price_override_cents: number | null;
-      compare_at_cents: number | null;
       stock_on_hand: number;
       stock_reserved: number;
       attributes: Record<string, string>;
@@ -134,6 +142,7 @@ export async function fetchCartDTO(identity: {
         title: string;
         slug: string;
         price_cents: number;
+        compare_at_cents: number | null;
         product_media?: { url: string }[];
       };
     };
@@ -151,7 +160,7 @@ export async function fetchCartDTO(identity: {
       const price = variant.price_override_cents ?? product.price_cents;
       const lineTotal = price * item.qty;
       totalCents += lineTotal;
-      
+
       const availableStock = (variant.stock_on_hand || 0) - (variant.stock_reserved || 0);
       const isOutOfStock = availableStock < item.qty;
 
@@ -160,7 +169,7 @@ export async function fetchCartDTO(identity: {
         variantId: item.variant_id,
         qty: item.qty,
         priceCents: price,
-        compareAtCents: variant.compare_at_cents ?? null,
+        compareAtCents: product.compare_at_cents ?? null,
         lineTotalCents: lineTotal,
         productTitle: product.title ?? "",
         variantSku: variant.sku,
@@ -182,12 +191,20 @@ export async function fetchCartDTO(identity: {
       .eq("is_active", true)
       .maybeSingle();
 
-    if (!coupon || (coupon.expires_at && new Date(coupon.expires_at) < new Date()) || (coupon.min_order_cents && totalCents < coupon.min_order_cents)) {
+    if (
+      !coupon ||
+      (coupon.expires_at && new Date(coupon.expires_at) < new Date()) ||
+      (coupon.min_order_cents && totalCents < coupon.min_order_cents)
+    ) {
       // Invalidated by qty change or expiration
       dynamicDiscountCents = 0;
       currentCouponCode = null;
       // Fire-and-forget DB update to clear the invalid coupon
-      supabase.from("carts").update({ coupon_code: null, discount_cents: 0 }).eq("id", cart.id).then();
+      supabase
+        .from("carts")
+        .update({ coupon_code: null, discount_cents: 0 })
+        .eq("id", cart.id)
+        .then();
     } else {
       if (coupon.discount_type === "percentage") {
         dynamicDiscountCents = Math.floor(totalCents * (coupon.discount_value / 100));
@@ -195,10 +212,14 @@ export async function fetchCartDTO(identity: {
         dynamicDiscountCents = Math.round(coupon.discount_value * 100);
         if (dynamicDiscountCents > totalCents) dynamicDiscountCents = totalCents;
       }
-      
+
       // If the recomputed discount differs from the DB, update DB silently
       if (dynamicDiscountCents !== cart.discount_cents) {
-         supabase.from("carts").update({ discount_cents: dynamicDiscountCents }).eq("id", cart.id).then();
+        supabase
+          .from("carts")
+          .update({ discount_cents: dynamicDiscountCents })
+          .eq("id", cart.id)
+          .then();
       }
     }
   }
@@ -262,7 +283,7 @@ export const addToCart = createServerFn({ method: "POST" })
     // Check if store exists to use for cart
     const { resolveTenantStoreId } = await import("@/lib/tenant");
     const storeId = await resolveTenantStoreId();
-    if (!storeId) throw new Error("Loja nÃ£o configurada");
+    if (!storeId) throw new Error("Loja não configurada");
     const store = { id: storeId };
     if (!store) throw new Error("Loja não configurada");
 
@@ -362,7 +383,7 @@ export const removeFromCart = createServerFn({ method: "POST" })
       .eq("id", itemId)
       .single();
 
-    if (!item) throw new Error("Item não encontrado" );
+    if (!item) throw new Error("Item não encontrado");
 
     // Soltar reserva via RPC para garantir a atomicidade do decremento de stock_reserved
     await supabase.rpc("release_stock_for_cart_item", {
@@ -471,7 +492,10 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
     if (identity.customer_id) cartQuery = cartQuery.eq("customer_id", identity.customer_id);
     else cartQuery = cartQuery.eq("session_token", identity.session_token);
 
-    const { data: cart } = await cartQuery.maybeSingle();
+    const { data: cart } = await cartQuery
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     if (!cart) throw new Error("Carrinho não encontrado");
 
     // Get current cart details to check subtotal
@@ -481,7 +505,7 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
     // Search for coupon
     const { resolveTenantStoreId } = await import("@/lib/tenant");
     const storeId = await resolveTenantStoreId();
-    if (!storeId) throw new Error("Loja nÃ£o configurada");
+    if (!storeId) throw new Error("Loja não configurada");
     const store = { id: storeId };
     if (!store) throw new Error("Loja não configurada");
 
@@ -493,20 +517,22 @@ export const applyCouponToCart = createServerFn({ method: "POST" })
       .eq("is_active", true)
       .maybeSingle();
 
-    if (!coupon) throw new Error("Cupom inválido ou expirado." );
+    if (!coupon) throw new Error("Cupom inválido ou expirado.");
 
     // Check expiration
     if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
-      throw new Error("Este cupom já expirou." );
+      throw new Error("Este cupom já expirou.");
     }
 
     // Check limits
     if (coupon.max_uses && coupon.uses_count >= coupon.max_uses) {
-      throw new Error("Este cupom atingiu o limite de usos." );
+      throw new Error("Este cupom atingiu o limite de usos.");
     }
 
     if (coupon.min_order_cents && cartDetails.subtotalCents < coupon.min_order_cents) {
-      throw new Error(`Valor mínimo para este cupom é ${(coupon.min_order_cents / 100).toFixed(2)}`);
+      throw new Error(
+        `Valor mínimo para este cupom é ${(coupon.min_order_cents / 100).toFixed(2)}`,
+      );
     }
 
     // Calculate discount
@@ -551,7 +577,10 @@ export const updateCartShipping = createServerFn({ method: "POST" })
     if (identity.customer_id) cartQuery = cartQuery.eq("customer_id", identity.customer_id);
     else cartQuery = cartQuery.eq("session_token", identity.session_token);
 
-    const { data: cart } = await cartQuery.maybeSingle();
+    const { data: cart } = await cartQuery
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     if (!cart) throw new Error("Carrinho não encontrado");
 
     await supabase
@@ -566,7 +595,7 @@ export const updateCartShipping = createServerFn({ method: "POST" })
     return { status: "success", message: "Frete atualizado com sucesso" };
   });
 
-export const updateCartContact = createServerFn({ method: 'POST' })
+export const updateCartContact = createServerFn({ method: "POST" })
   .validator(
     z.object({
       guestEmail: z.string().email().optional(),
@@ -577,40 +606,37 @@ export const updateCartContact = createServerFn({ method: 'POST' })
     try {
       const identity = await getCurrentIdentity();
       const cartId = await getOrCreateCartId(identity);
-      
+
       if (!cartId) {
-        throw new Error('Nenhum carrinho ativo encontrado');
+        throw new Error("Nenhum carrinho ativo encontrado");
       }
 
       const db = getServerClient();
       const { error } = await db
-        .from('carts')
+        .from("carts")
         .update({
           guest_email: guestEmail,
           guest_phone: guestPhone,
         })
-        .eq('id', cartId);
+        .eq("id", cartId);
 
       if (error) throw error;
       return { success: true };
     } catch (e: any) {
-      console.error('[cart] updateCartContact error:', e);
-      throw new Error('Falha ao atualizar contato do carrinho');
+      console.error("[cart] updateCartContact error:", e);
+      throw new Error("Falha ao atualizar contato do carrinho");
     }
   });
 
-export const triggerAbandonedCartsEngine = createServerFn({ method: 'POST' }).handler(
-  async () => {
-    try {
-      // Idealmente isto é restrito a service_role/admin/webhook auth
-      const db = getServerClient();
-      const { error } = await db.rpc('process_abandoned_carts');
-      if (error) throw error;
-      return { success: true };
-    } catch (e: any) {
-      console.error('[cart] triggerAbandonedCartsEngine error:', e);
-      throw new Error('Falha ao disparar motor de carrinhos abandonados');
-    }
-  },
-);
-
+export const triggerAbandonedCartsEngine = createServerFn({ method: "POST" }).handler(async () => {
+  try {
+    // Idealmente isto é restrito a service_role/admin/webhook auth
+    const db = getServerClient();
+    const { error } = await db.rpc("process_abandoned_carts");
+    if (error) throw error;
+    return { success: true };
+  } catch (e: any) {
+    console.error("[cart] triggerAbandonedCartsEngine error:", e);
+    throw new Error("Falha ao disparar motor de carrinhos abandonados");
+  }
+});

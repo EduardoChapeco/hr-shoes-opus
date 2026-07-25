@@ -114,7 +114,7 @@ describe("Admin Catalog Functions", () => {
       id: "test-user-id",
       role: "admin",
       store_id: "test-store-id",
-      organization_id: "test-org-id"
+      organization_id: "test-org-id",
     });
   });
 
@@ -191,11 +191,10 @@ describe("Admin Catalog Functions", () => {
   describe("createCategoryHandler", () => {
     it("should successfully insert a category linked to the store", async () => {
       // 1st single (category query): returns new category
-      mockSingle
-        .mockResolvedValueOnce({
-          data: { id: "cat-1", name: "Novidades", slug: "novidades" },
-          error: null,
-        });
+      mockSingle.mockResolvedValueOnce({
+        data: { id: "cat-1", name: "Novidades", slug: "novidades" },
+        error: null,
+      });
 
       const input = { name: "Novidades", slug: "novidades", status: "active" as const };
       const res = await createCategoryHandler(input);
@@ -218,8 +217,7 @@ describe("Admin Catalog Functions", () => {
 
     it("should propagate database insert error", async () => {
       // 1st single returns insert error
-      mockSingle
-        .mockResolvedValueOnce({ data: null, error: { message: "DB insert error" } });
+      mockSingle.mockResolvedValueOnce({ data: null, error: { message: "DB insert error" } });
 
       await expect(
         createCategoryHandler({ name: "Novidades", slug: "novidades", status: "active" }),
@@ -431,7 +429,7 @@ describe("Admin Catalog Functions", () => {
       expect(mockInsert).toHaveBeenCalledWith(
         expect.objectContaining({
           attributes: { Cor: "Azul" },
-        })
+        }),
       );
     });
 
@@ -448,7 +446,7 @@ describe("Admin Catalog Functions", () => {
           sku: "TENIS-99",
           status: "active",
           attributes: { Cor: "Azul" },
-        })
+        }),
       ).rejects.toThrow(/Inconsistência de matriz/);
     });
 
@@ -465,7 +463,7 @@ describe("Admin Catalog Functions", () => {
           sku: "TENIS-99",
           status: "active",
           attributes: { Cor: "Azul" },
-        })
+        }),
       ).rejects.toThrow(/Conflito de Matriz/);
     });
 
@@ -494,7 +492,7 @@ describe("Admin Catalog Functions", () => {
       expect(mockUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
           attributes: { Cor: "Azul" },
-        })
+        }),
       );
       expect(mockEq).toHaveBeenCalledWith("id", "var-99");
     });
@@ -580,11 +578,10 @@ describe("Admin Catalog Functions", () => {
 
   describe("createCollectionHandler", () => {
     it("should successfully insert collection linked to store", async () => {
-      mockSingle
-        .mockResolvedValueOnce({
-          data: { id: "col-1", name: "Verão", slug: "verao" },
-          error: null,
-        });
+      mockSingle.mockResolvedValueOnce({
+        data: { id: "col-1", name: "Verão", slug: "verao" },
+        error: null,
+      });
 
       const input = { name: "Verão", slug: "verao", status: "active" as const };
       const res = await createCollectionHandler(input);
@@ -606,8 +603,10 @@ describe("Admin Catalog Functions", () => {
     });
 
     it("should propagate database insert error", async () => {
-      mockSingle
-        .mockResolvedValueOnce({ data: null, error: { message: "DB collections insert fail" } });
+      mockSingle.mockResolvedValueOnce({
+        data: null,
+        error: { message: "DB collections insert fail" },
+      });
 
       await expect(
         createCollectionHandler({ name: "Verão", slug: "verao", status: "active" }),

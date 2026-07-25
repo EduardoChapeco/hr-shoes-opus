@@ -78,16 +78,14 @@ function ManualPaymentsPage() {
     pixSettings?.payment_instructions || "",
   );
   const [pixDiscountPercentage, setPixDiscountPercentage] = useState(
-    pixSettings?.pix_discount_percentage ?? 0
+    pixSettings?.pix_discount_percentage ?? 0,
   );
-  const [maxInstallments, setMaxInstallments] = useState(
-    pixSettings?.max_installments ?? 12
-  );
+  const [maxInstallments, setMaxInstallments] = useState(pixSettings?.max_installments ?? 12);
   const [interestFreeInstallments, setInterestFreeInstallments] = useState(
-    pixSettings?.interest_free_installments ?? 3
+    pixSettings?.interest_free_installments ?? 3,
   );
   const [installmentInterestRate, setInstallmentInterestRate] = useState(
-    pixSettings?.installment_interest_rate ?? 2.99
+    pixSettings?.installment_interest_rate ?? 2.99,
   );
   const [isSavingPix, setIsSavingPix] = useState(false);
 
@@ -267,8 +265,10 @@ function ManualPaymentsPage() {
 
           {/* CC Installments Options */}
           <div className="border-t pt-5 space-y-4">
-            <h4 className="font-semibold text-sm text-foreground">Regras de Parcelamento do Cartão</h4>
-            
+            <h4 className="font-semibold text-sm text-foreground">
+              Regras de Parcelamento do Cartão
+            </h4>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="max-installments">Parcelas Máximas</Label>

@@ -24,12 +24,19 @@ export function TrackView({ nodeId, blockType, documentId, children }: TrackView
         const [entry] = entries;
         if (entry.isIntersecting) {
           // Dispara o evento de view assim que o bloco entra 50% na tela
-          trackBuilderEvent({ data: { event_type: "view", node_id: nodeId, block_type: blockType, document_id: documentId } });
+          trackBuilderEvent({
+            data: {
+              event_type: "view",
+              node_id: nodeId,
+              block_type: blockType,
+              document_id: documentId,
+            },
+          });
           setHasTracked(true);
           observer.disconnect();
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.5 },
     );
 
     observer.observe(currentRef);
@@ -40,7 +47,12 @@ export function TrackView({ nodeId, blockType, documentId, children }: TrackView
   }, [hasTracked, nodeId, blockType, documentId]);
 
   return (
-    <div ref={ref} className="w-full h-full contents" data-node-id={nodeId} data-block-type={blockType}>
+    <div
+      ref={ref}
+      className="w-full h-full contents"
+      data-node-id={nodeId}
+      data-block-type={blockType}
+    >
       {children}
     </div>
   );
@@ -48,14 +60,14 @@ export function TrackView({ nodeId, blockType, documentId, children }: TrackView
 
 export function useBuilderClickTracking(nodeId: string, blockType: string, documentId?: string) {
   const trackClick = (metadata?: Record<string, any>) => {
-    trackBuilderEvent({ 
-      data: { 
-        event_type: "click", 
-        node_id: nodeId, 
-        block_type: blockType, 
+    trackBuilderEvent({
+      data: {
+        event_type: "click",
+        node_id: nodeId,
+        block_type: blockType,
         document_id: documentId,
-        metadata
-      } 
+        metadata,
+      },
     });
   };
 

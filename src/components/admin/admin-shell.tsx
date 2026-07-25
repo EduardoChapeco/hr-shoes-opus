@@ -38,7 +38,7 @@ import {
   Palette,
   ArrowLeftRight,
   Monitor,
-  Building
+  Building,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -93,7 +93,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Palette,
   ArrowLeftRight,
   Monitor,
-  Building
+  Building,
 };
 
 function resolveIcon(name: string): LucideIcon {
@@ -105,7 +105,10 @@ function resolveIcon(name: string): LucideIcon {
 // ---------------------------------------------------------------------------
 function getContextualAction(pathname: string) {
   // Subpages / Detail pages -> Return to parent list
-  if (pathname === "/admin/catalogo/produtos/novo" || pathname.match(/\/admin\/catalogo\/produtos\/[^/]+$/)) {
+  if (
+    pathname === "/admin/catalogo/produtos/novo" ||
+    pathname.match(/\/admin\/catalogo\/produtos\/[^/]+$/)
+  ) {
     if (pathname !== "/admin/catalogo/produtos") {
       return { label: "Voltar para Lista", path: "/admin/catalogo/produtos", icon: "ChevronLeft" };
     }
@@ -146,19 +149,50 @@ function getContextualAction(pathname: string) {
 // Active nav group resolver
 // ---------------------------------------------------------------------------
 function getActiveGroup(pathname: string): string {
-  if (pathname.startsWith("/admin/catalogo") || pathname.startsWith("/admin/estoque") || pathname.startsWith("/admin/midias")) {
+  if (
+    pathname.startsWith("/admin/catalogo") ||
+    pathname.startsWith("/admin/estoque") ||
+    pathname.startsWith("/admin/midias")
+  ) {
     return "Catálogo";
   }
-  if (pathname.startsWith("/admin/pedidos") || pathname.startsWith("/admin/fretes") || pathname.startsWith("/admin/pagamentos") || pathname.startsWith("/admin/comprovantes") || pathname.startsWith("/admin/comissoes") || pathname.startsWith("/admin/match-time")) {
+  if (
+    pathname.startsWith("/admin/pedidos") ||
+    pathname.startsWith("/admin/fretes") ||
+    pathname.startsWith("/admin/pagamentos") ||
+    pathname.startsWith("/admin/comprovantes") ||
+    pathname.startsWith("/admin/comissoes") ||
+    pathname.startsWith("/admin/match-time")
+  ) {
     return "Vendas";
   }
-  if (pathname.startsWith("/admin/clientes") || pathname.startsWith("/admin/conversas") || pathname.startsWith("/admin/suporte") || pathname.startsWith("/admin/avaliacoes")) {
+  if (
+    pathname.startsWith("/admin/clientes") ||
+    pathname.startsWith("/admin/conversas") ||
+    pathname.startsWith("/admin/suporte") ||
+    pathname.startsWith("/admin/avaliacoes")
+  ) {
     return "Relacionamento";
   }
-  if (pathname.startsWith("/admin/cms") || pathname.startsWith("/admin/builder") || pathname.startsWith("/admin/perfil-publico") || pathname.startsWith("/admin/marketing") || pathname.startsWith("/admin/stories") || pathname.startsWith("/admin/destaques") || pathname.startsWith("/admin/link-da-bio") || pathname.startsWith("/admin/criador")) {
+  if (
+    pathname.startsWith("/admin/cms") ||
+    pathname.startsWith("/admin/builder") ||
+    pathname.startsWith("/admin/perfil-publico") ||
+    pathname.startsWith("/admin/marketing") ||
+    pathname.startsWith("/admin/stories") ||
+    pathname.startsWith("/admin/destaques") ||
+    pathname.startsWith("/admin/link-da-bio") ||
+    pathname.startsWith("/admin/criador")
+  ) {
     return "Conteúdo & Vitrine";
   }
-  if (pathname.startsWith("/admin/caixa") || pathname.startsWith("/admin/equipe") || pathname.startsWith("/admin/relatorios") || pathname.startsWith("/admin/configuracoes") || pathname.startsWith("/admin/integracoes")) {
+  if (
+    pathname.startsWith("/admin/caixa") ||
+    pathname.startsWith("/admin/equipe") ||
+    pathname.startsWith("/admin/relatorios") ||
+    pathname.startsWith("/admin/configuracoes") ||
+    pathname.startsWith("/admin/integracoes")
+  ) {
     return "Operação";
   }
   return "Geral";
@@ -170,7 +204,12 @@ const MODULES = [
   { label: "Catálogo", path: "/admin/catalogo/produtos", icon: "Package", group: "Catálogo" },
   { label: "Vendas", path: "/admin/pedidos", icon: "ShoppingCart", group: "Vendas" },
   { label: "Relacionamento", path: "/admin/clientes", icon: "Users", group: "Relacionamento" },
-  { label: "Conteúdo & Vitrine", path: "/admin/perfil-publico", icon: "Store", group: "Conteúdo & Vitrine" },
+  {
+    label: "Conteúdo & Vitrine",
+    path: "/admin/perfil-publico",
+    icon: "Store",
+    group: "Conteúdo & Vitrine",
+  },
   { label: "Operação", path: "/admin/caixa", icon: "Wallet", group: "Operação" },
 ];
 
@@ -186,7 +225,7 @@ function HeaderRightIsland() {
       const now = new Date();
       setTimeStr(now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
       setDateStr(
-        now.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" })
+        now.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" }),
       );
     };
     update();
@@ -205,7 +244,12 @@ function HeaderRightIsland() {
       <span className="h-3 w-px bg-border" />
       {timeStr && <span className="font-bold">{timeStr}</span>}
       <span className="h-3 w-px bg-border" />
-      <Button variant="ghost" size="icon" className="size-6 text-muted-foreground hover:text-primary rounded-full" aria-label="Notificações">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-6 text-muted-foreground hover:text-primary rounded-full"
+        aria-label="Notificações"
+      >
         <Bell className="size-4" />
       </Button>
     </div>
@@ -215,7 +259,15 @@ function HeaderRightIsland() {
 // ---------------------------------------------------------------------------
 // AdminShell
 // ---------------------------------------------------------------------------
-export function AdminShell({ children, session, logoUrl }: { children: ReactNode; session: any; logoUrl?: string }) {
+export function AdminShell({
+  children,
+  session,
+  logoUrl,
+}: {
+  children: ReactNode;
+  session: any;
+  logoUrl?: string;
+}) {
   const [collapsed, setCollapsed] = useState(true);
   const router = useRouter();
   const pathname = router.state.location.pathname;
@@ -239,7 +291,9 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
 
   // Switch viewMode based on route
   const [viewMode, setViewMode] = useState<"modules" | "subpages">(() => {
-    return (pathname === "/admin" || pathname === "/admin/" || pathname === "/admin/onboarding") ? "modules" : "subpages";
+    return pathname === "/admin" || pathname === "/admin/" || pathname === "/admin/onboarding"
+      ? "modules"
+      : "subpages";
   });
 
   useEffect(() => {
@@ -272,7 +326,7 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
         onMouseLeave={() => setCollapsed(true)}
         className={cn(
           "fixed left-[8px] top-[8px] bottom-[8px] z-40 hidden flex-col border border-border bg-sidebar rounded-2xl shadow-md transition-all duration-300 md:flex",
-          collapsed ? "w-[68px]" : "w-64"
+          collapsed ? "w-[68px]" : "w-64",
         )}
       >
         {/* Top: Brand/Logo & Action Button */}
@@ -283,15 +337,22 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
               to={contextualAction.path}
               className={cn(
                 "flex h-11 items-center gap-3 rounded-full bg-primary text-primary-foreground hover:bg-primary/95 transition-all shadow-brand",
-                collapsed ? "w-11 justify-center" : "w-full px-4"
+                collapsed ? "w-11 justify-center" : "w-full px-4",
               )}
               title={contextualAction.label}
             >
               {ActionIcon && <ActionIcon className="size-5 shrink-0" />}
-              {!collapsed && <span className="text-xs font-bold truncate">{contextualAction.label}</span>}
+              {!collapsed && (
+                <span className="text-xs font-bold truncate">{contextualAction.label}</span>
+              )}
             </Link>
           ) : (
-            <div className={cn("flex items-center", collapsed ? "h-11 justify-center" : "h-11 w-full px-2")}>
+            <div
+              className={cn(
+                "flex items-center",
+                collapsed ? "h-11 justify-center" : "h-11 w-full px-2",
+              )}
+            >
               {collapsed ? (
                 <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 border border-primary/20">
                   <Store className="size-5 text-primary" />
@@ -322,7 +383,9 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
           {viewMode === "subpages" && activeGroupNav ? (
             <div className="space-y-4">
               {!collapsed && (
-                <p className="eyebrow px-3 pb-1 text-primary font-bold tracking-wider">{activeGroupNav.title}</p>
+                <p className="eyebrow px-3 pb-1 text-primary font-bold tracking-wider">
+                  {activeGroupNav.title}
+                </p>
               )}
               <ul className="space-y-1">
                 {activeGroupNav.items.map((item) => {
@@ -334,7 +397,7 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
                         activeOptions={{ exact: item.path === "/admin" }}
                         className={cn(
                           "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
-                          collapsed && "justify-center"
+                          collapsed && "justify-center",
                         )}
                         activeProps={{
                           className: "bg-sidebar-accent text-sidebar-foreground",
@@ -342,7 +405,9 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
                         title={collapsed ? item.label : undefined}
                       >
                         <Icon className="size-5 shrink-0" aria-hidden />
-                        {!collapsed && <span className="flex-1 truncate text-xs">{item.label}</span>}
+                        {!collapsed && (
+                          <span className="flex-1 truncate text-xs">{item.label}</span>
+                        )}
                       </Link>
                     </li>
                   );
@@ -353,7 +418,9 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
             // Top level modules view
             <div className="space-y-4">
               {!collapsed && (
-                <p className="eyebrow px-3 pb-1 text-muted-foreground font-bold tracking-wider">Módulos</p>
+                <p className="eyebrow px-3 pb-1 text-muted-foreground font-bold tracking-wider">
+                  Módulos
+                </p>
               )}
               <ul className="space-y-1">
                 {MODULES.map((mod) => {
@@ -366,7 +433,7 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
                         className={cn(
                           "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
                           isCurrent && "bg-sidebar-accent/50 text-sidebar-foreground",
-                          collapsed && "justify-center"
+                          collapsed && "justify-center",
                         )}
                         title={collapsed ? mod.label : undefined}
                         onClick={() => {
@@ -386,7 +453,12 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
 
         {/* Bottom actions: Storefront */}
         <div className="flex flex-col gap-2 border-t border-sidebar-border p-3">
-          <Button variant="ghost" size="sm" asChild className="w-full text-xs hover:bg-sidebar-accent">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="w-full text-xs hover:bg-sidebar-accent"
+          >
             <Link to="/">{collapsed ? <Store className="size-4" /> : "Ver loja pública"}</Link>
           </Button>
 
@@ -400,7 +472,10 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
               </Avatar>
               {!collapsed && (
                 <div className="flex flex-col min-w-0 text-left">
-                  <span className="font-semibold text-xs text-foreground truncate max-w-[120px]" title={session?.email}>
+                  <span
+                    className="font-semibold text-xs text-foreground truncate max-w-[120px]"
+                    title={session?.email}
+                  >
                     {session?.email || "Colaborador"}
                   </span>
                   <span className="text-[9px] text-muted-foreground capitalize">
@@ -429,7 +504,7 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
       <div
         className={cn(
           "flex min-h-screen flex-col transition-all duration-300",
-          collapsed ? "md:pl-[84px]" : "md:pl-[280px]"
+          collapsed ? "md:pl-[84px]" : "md:pl-[280px]",
         )}
       >
         {/* Topbar */}
@@ -451,7 +526,9 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
                   {viewMode === "subpages" && activeGroupNav ? (
                     <div className="space-y-4">
                       <div className="px-3 pb-2 border-b border-sidebar-border/40 flex items-center justify-between">
-                        <span className="eyebrow text-primary font-bold tracking-wider text-xs">{activeGroupNav.title}</span>
+                        <span className="eyebrow text-primary font-bold tracking-wider text-xs">
+                          {activeGroupNav.title}
+                        </span>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -486,7 +563,9 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
                     </div>
                   ) : (
                     <div>
-                      <p className="eyebrow px-3 pb-2 text-muted-foreground font-bold tracking-wider text-xs">Módulos</p>
+                      <p className="eyebrow px-3 pb-2 text-muted-foreground font-bold tracking-wider text-xs">
+                        Módulos
+                      </p>
                       <ul className="space-y-1">
                         {MODULES.map((mod) => {
                           const Icon = resolveIcon(mod.icon);
@@ -497,7 +576,7 @@ export function AdminShell({ children, session, logoUrl }: { children: ReactNode
                                 to={mod.path}
                                 className={cn(
                                   "flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
-                                  isCurrent && "bg-sidebar-accent/50 text-sidebar-foreground"
+                                  isCurrent && "bg-sidebar-accent/50 text-sidebar-foreground",
                                 )}
                                 onClick={() => {
                                   setViewMode("subpages");

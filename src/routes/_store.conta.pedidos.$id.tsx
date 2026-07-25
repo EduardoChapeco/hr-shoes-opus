@@ -36,8 +36,7 @@ export const Route = createFileRoute("/_store/conta/pedidos/$id")({
 
     return {
       order: orderRes,
-      paymentInstructions:
-        instrRes || { pix_key: null, payment_instructions: null },
+      paymentInstructions: instrRes || { pix_key: null, payment_instructions: null },
     };
   },
   component: CustomerOrderDetailPage,
@@ -356,9 +355,7 @@ function CustomerOrderDetailPage() {
             </div>
           )}
 
-          {order.status === "delivered" && (
-            <ReturnModal orderId={order.id} />
-          )}
+          {order.status === "delivered" && <ReturnModal orderId={order.id} />}
         </div>
       </div>
     </div>

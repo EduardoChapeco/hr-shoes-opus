@@ -1,5 +1,8 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { checkExperienceDocumentExists, getOrCreateHomeDocument } from "@/services/builder.functions";
+import {
+  checkExperienceDocumentExists,
+  getOrCreateHomeDocument,
+} from "@/services/builder.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LayoutTemplate, Sparkles, MonitorSmartphone, Palette, CheckCircle2 } from "lucide-react";
@@ -8,7 +11,9 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/vitrine")({
   loader: async () => {
-    const res = await checkExperienceDocumentExists({ data: { slug: "home", document_type: "storefront" } });
+    const res = await checkExperienceDocumentExists({
+      data: { slug: "home", document_type: "storefront" },
+    });
     if (res.status === "success" && res.data.exists && res.data.id) {
       throw redirect({
         to: "/admin/builder/$documentId/editor",
@@ -24,21 +29,24 @@ const TEMPLATES = [
   {
     id: "classic_commerce",
     name: "Clássico E-commerce",
-    description: "Layout tradicional com banner principal, destaques em carrossel e banners promocionais.",
+    description:
+      "Layout tradicional com banner principal, destaques em carrossel e banners promocionais.",
     icon: <LayoutTemplate className="w-10 h-10 text-blue-500 mb-4" />,
     features: ["Hero Carousel", "Carrossel de Produtos", "Banner Promocional"],
   },
   {
     id: "minimalist_fashion",
     name: "Minimalista & Moda",
-    description: "Foco no produto e imagens grandes. Ideal para coleções exclusivas e marcas boutique.",
+    description:
+      "Foco no produto e imagens grandes. Ideal para coleções exclusivas e marcas boutique.",
     icon: <Palette className="w-10 h-10 text-purple-500 mb-4" />,
     features: ["Split Banner", "Grid de Produtos", "Espaço Negativo"],
   },
   {
     id: "street_wear",
     name: "Streetwear & Dark",
-    description: "Tema escuro nativo, visual agressivo e galeria estilo instagram. Focado em lançamentos.",
+    description:
+      "Tema escuro nativo, visual agressivo e galeria estilo instagram. Focado em lançamentos.",
     icon: <Sparkles className="w-10 h-10 text-slate-800 mb-4" />,
     features: ["Dark Mode Nativo", "Galeria de Fotos", "Destaque de Lançamentos"],
   },
@@ -48,7 +56,7 @@ const TEMPLATES = [
     description: "Comece do zero absoluto e construa sua vitrine bloco por bloco.",
     icon: <MonitorSmartphone className="w-10 h-10 text-muted-foreground mb-4" />,
     features: ["Tela Limpa", "Total Liberdade"],
-  }
+  },
 ];
 
 function VitrineTemplatePicker() {
@@ -79,15 +87,15 @@ function VitrineTemplatePicker() {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Criar Vitrine Principal</h1>
         <p className="text-muted-foreground text-lg max-w-2xl">
-          Sua loja ainda não possui uma vitrine publicada. Escolha um template inicial para começar. 
+          Sua loja ainda não possui uma vitrine publicada. Escolha um template inicial para começar.
           Não se preocupe, você poderá alterar tudo no editor.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {TEMPLATES.map((tpl) => (
-          <Card 
-            key={tpl.id} 
+          <Card
+            key={tpl.id}
             className="flex flex-col relative overflow-hidden group hover:border-primary/50 transition-colors cursor-pointer"
             onClick={() => !isCreating && handleCreate(tpl.id)}
           >

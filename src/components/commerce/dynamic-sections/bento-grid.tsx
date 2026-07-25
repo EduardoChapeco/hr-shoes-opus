@@ -94,7 +94,9 @@ export function BentoGrid({ content, node_id, block_type }: BentoGridProps) {
                   {item.title && (
                     <h3 className="text-base font-black tracking-tight flex items-center gap-1.5">
                       {item.title}
-                      {item.link && <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />}
+                      {item.link && (
+                        <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+                      )}
                     </h3>
                   )}
                 </div>

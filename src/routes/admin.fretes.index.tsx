@@ -49,7 +49,7 @@ import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/fretes/")({
   head: () => ({ meta: [{ title: "Gestão de Fretes & Entregas — Hr Shoes" }] }),
-  loader: async () => await listShippingZones() || [],
+  loader: async () => (await listShippingZones()) || [],
   component: ShippingHubPage,
 });
 
@@ -82,7 +82,10 @@ function ShippingHubPage() {
     setIsSaving(true);
     try {
       const regionsArray = newZoneRegions
-        ? newZoneRegions.split(",").map((r) => r.trim()).filter(Boolean)
+        ? newZoneRegions
+            .split(",")
+            .map((r) => r.trim())
+            .filter(Boolean)
         : ["*"];
 
       const res = await upsertShippingZone({
@@ -93,7 +96,6 @@ function ShippingHubPage() {
         },
       });
 
-      
       toast.success("Zona de entrega criada com sucesso!");
       setOpenZone(false);
       setNewZoneName("");
@@ -112,7 +114,7 @@ function ShippingHubPage() {
       const res = await upsertShippingZone({
         data: { id: zone.id, name: zone.name, regions: zone.regions, is_active: active },
       });
-      
+
       toast.success(`Zona ${active ? "ativada" : "desativada"}.`);
       router.invalidate();
     } catch (e: any) {
@@ -125,7 +127,7 @@ function ShippingHubPage() {
     if (!confirm("Deseja realmente excluir esta zona de entrega e suas taxas?")) return;
     try {
       const res = await deleteShippingZone({ data: { id: zoneId } });
-      
+
       toast.success("Zona de entrega removida.");
       router.invalidate();
     } catch (e: any) {
@@ -145,7 +147,7 @@ function ShippingHubPage() {
     setIsSimulating(true);
     try {
       const res = await calculateShipping({ data: { zipcode: cleanZip } });
-      
+
       setSimResults(Array.isArray(res) ? res : []);
     } catch (e: any) {
       toast.error(e.message || "Erro ao calcular frete para o CEP.");
@@ -187,7 +189,9 @@ function ShippingHubPage() {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-2xl font-bold">{zones.length} cadastrada(s)</div>
-            <p className="text-xs text-muted-foreground mt-1">{activeZonesCount} zonas ativas operando</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {activeZonesCount} zonas ativas operando
+            </p>
           </CardContent>
         </Card>
 
@@ -213,7 +217,9 @@ function ShippingHubPage() {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-2xl font-bold">Ativo por Regra</div>
-            <p className="text-xs text-muted-foreground mt-1">Configurado por valor mínimo de pedido</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Configurado por valor mínimo de pedido
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -226,7 +232,8 @@ function ShippingHubPage() {
             Simulador Rápido de CEP & Opções de Envio
           </CardTitle>
           <CardDescription>
-            Digite um CEP de destino para simular quais regras de frete serão apresentadas ao cliente no checkout.
+            Digite um CEP de destino para simular quais regras de frete serão apresentadas ao
+            cliente no checkout.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -248,7 +255,8 @@ function ShippingHubPage() {
               </span>
               {simResults.length === 0 ? (
                 <p className="text-xs text-amber-600 bg-amber-500/10 p-2 rounded-md border border-amber-500/20">
-                  Nenhuma regra de frete atende a esta região. O cliente precisará solicitar cotação manual.
+                  Nenhuma regra de frete atende a esta região. O cliente precisará solicitar cotação
+                  manual.
                 </p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -256,9 +264,13 @@ function ShippingHubPage() {
                     <div key={idx} className="p-3 rounded-lg border bg-card text-xs space-y-1">
                       <div className="flex justify-between font-bold text-foreground">
                         <span>{rate.name}</span>
-                        <span>{rate.price_cents === 0 ? "GRÁTIS" : formatMoney(rate.price_cents)}</span>
+                        <span>
+                          {rate.price_cents === 0 ? "GRÁTIS" : formatMoney(rate.price_cents)}
+                        </span>
                       </div>
-                      <p className="text-muted-foreground">Prazo estimado: {rate.estimated_days} dia(s) útil(eis)</p>
+                      <p className="text-muted-foreground">
+                        Prazo estimado: {rate.estimated_days} dia(s) útil(eis)
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -284,7 +296,9 @@ function ShippingHubPage() {
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Criar Zona de Entrega</DialogTitle>
-                <DialogDescription>Defina um nome e prefixos de CEP para a região.</DialogDescription>
+                <DialogDescription>
+                  Defina um nome e prefixos de CEP para a região.
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreateZone} className="space-y-4 pt-2">
                 <div className="space-y-2">
@@ -331,7 +345,10 @@ function ShippingHubPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {zones.map((zone) => (
-                <div key={zone.id} className="p-4 rounded-xl border border-border bg-card space-y-3">
+                <div
+                  key={zone.id}
+                  className="p-4 rounded-xl border border-border bg-card space-y-3"
+                >
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-bold text-foreground">{zone.name}</h4>
@@ -357,16 +374,27 @@ function ShippingHubPage() {
                   </div>
 
                   <div className="pt-2 border-t space-y-1">
-                    <span className="text-xs font-semibold text-muted-foreground">Taxas Ativas:</span>
-                    {(!zone.shipping_rates || zone.shipping_rates.length === 0) ? (
-                      <p className="text-xs text-amber-600">Nenhuma taxa de envio cadastrada nesta zona.</p>
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      Taxas Ativas:
+                    </span>
+                    {!zone.shipping_rates || zone.shipping_rates.length === 0 ? (
+                      <p className="text-xs text-amber-600">
+                        Nenhuma taxa de envio cadastrada nesta zona.
+                      </p>
                     ) : (
                       <div className="space-y-1">
                         {zone.shipping_rates.map((rate: any) => (
-                          <div key={rate.id} className="flex justify-between items-center text-xs p-1.5 rounded bg-muted/40">
-                            <span className="font-medium">{rate.name} ({rate.estimated_days}d)</span>
+                          <div
+                            key={rate.id}
+                            className="flex justify-between items-center text-xs p-1.5 rounded bg-muted/40"
+                          >
+                            <span className="font-medium">
+                              {rate.name} ({rate.estimated_days}d)
+                            </span>
                             <span className="font-bold">
-                              {rate.price_cents === 0 ? "Frete Grátis" : formatMoney(rate.price_cents)}
+                              {rate.price_cents === 0
+                                ? "Frete Grátis"
+                                : formatMoney(rate.price_cents)}
                             </span>
                           </div>
                         ))}

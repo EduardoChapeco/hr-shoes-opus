@@ -38,9 +38,7 @@ export function TimelineHistory({ content, design_tokens }: TimelineHistoryProps
               </h2>
             )}
             {content?.subtitle && (
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                {content.subtitle}
-              </p>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{content.subtitle}</p>
             )}
           </div>
         )}
@@ -58,7 +56,7 @@ export function TimelineHistory({ content, design_tokens }: TimelineHistoryProps
                     key={idx}
                     className={cn(
                       "relative flex flex-col @md:flex-row items-start @md:items-center gap-8 @md:gap-16",
-                      isEven ? "@md:flex-row-reverse" : ""
+                      isEven ? "@md:flex-row-reverse" : "",
                     )}
                   >
                     {/* Nó Central */}
@@ -71,25 +69,27 @@ export function TimelineHistory({ content, design_tokens }: TimelineHistoryProps
 
                     {/* Cartão do Evento */}
                     <div className="w-full @md:w-1/2 pl-12 @md:pl-0">
-                      <div className={cn(
-                        "flex flex-col gap-3",
-                        isEven ? "@md:items-start @md:text-left" : "@md:items-end @md:text-right"
-                      )}>
+                      <div
+                        className={cn(
+                          "flex flex-col gap-3",
+                          isEven ? "@md:items-start @md:text-left" : "@md:items-end @md:text-right",
+                        )}
+                      >
                         <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
                           <Calendar className="mr-1.5 h-3.5 w-3.5" />
                           {event.year}
                         </span>
-                        
+
                         <h3 className="text-2xl font-bold">{event.title}</h3>
-                        <p className="text-muted-foreground leading-relaxed">
-                          {event.description}
-                        </p>
+                        <p className="text-muted-foreground leading-relaxed">{event.description}</p>
 
                         {event.image_url && (
-                          <div className={cn(
-                            "mt-4 w-full max-w-sm rounded-xl overflow-hidden border shadow-sm",
-                            isEven ? "@md:mr-auto" : "@md:ml-auto"
-                          )}>
+                          <div
+                            className={cn(
+                              "mt-4 w-full max-w-sm rounded-xl overflow-hidden border shadow-sm",
+                              isEven ? "@md:mr-auto" : "@md:ml-auto",
+                            )}
+                          >
                             <img
                               src={event.image_url}
                               alt={event.title}
@@ -103,12 +103,12 @@ export function TimelineHistory({ content, design_tokens }: TimelineHistoryProps
                 );
               })}
             </div>
-            
+
             {/* Bandeira Final */}
             <div className="relative mt-12 @md:mt-24 flex justify-start @md:justify-center">
-               <div className="w-12 h-12 rounded-full bg-muted border-2 border-border z-10 flex items-center justify-center text-muted-foreground ml-2 @md:ml-0">
-                 <Flag className="h-5 w-5" />
-               </div>
+              <div className="w-12 h-12 rounded-full bg-muted border-2 border-border z-10 flex items-center justify-center text-muted-foreground ml-2 @md:ml-0">
+                <Flag className="h-5 w-5" />
+              </div>
             </div>
           </div>
         ) : (

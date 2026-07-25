@@ -31,7 +31,7 @@ export function formatDateTime(iso: string | Date): string {
 
 export function getOpenStatus(
   extendedHours: any[] | null | undefined,
-  holidayExceptions?: any[] | null | undefined
+  holidayExceptions?: any[] | null | undefined,
 ) {
   try {
     if (!extendedHours || extendedHours.length === 0) {

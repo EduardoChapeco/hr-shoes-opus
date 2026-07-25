@@ -142,8 +142,7 @@ function AdminStockPage() {
     }
 
     // Determine final signed qty for RPC (negative for damage/output)
-    const finalQty =
-      movementType === "damage" ? -Math.abs(parsedQty) : parsedQty;
+    const finalQty = movementType === "damage" ? -Math.abs(parsedQty) : parsedQty;
 
     setIsUpdating(true);
     try {
@@ -272,19 +271,26 @@ function AdminStockPage() {
 
       {/* Toolbar & Filtros por Status */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
-        <Tabs defaultValue="all" value={statusTab} onValueChange={setStatusTab} className="w-full sm:w-auto">
+        <Tabs
+          defaultValue="all"
+          value={statusTab}
+          onValueChange={setStatusTab}
+          className="w-full sm:w-auto"
+        >
           <TabsList className="grid grid-cols-4 w-full sm:w-auto h-9">
             <TabsTrigger value="all" className="text-xs">
               Todos ({stock.length})
             </TabsTrigger>
             <TabsTrigger value="available" className="text-xs">
-              Regular ({stock.filter((v) => (v.stock_on_hand ?? 0) - (v.stock_reserved ?? 0) > 5).length})
+              Regular (
+              {stock.filter((v) => (v.stock_on_hand ?? 0) - (v.stock_reserved ?? 0) > 5).length})
             </TabsTrigger>
             <TabsTrigger value="critical" className="text-xs">
               Crítico ({metrics.criticalCount})
             </TabsTrigger>
             <TabsTrigger value="out_of_stock" className="text-xs">
-              Esgotado ({stock.filter((v) => (v.stock_on_hand ?? 0) - (v.stock_reserved ?? 0) <= 0).length})
+              Esgotado (
+              {stock.filter((v) => (v.stock_on_hand ?? 0) - (v.stock_reserved ?? 0) <= 0).length})
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -348,13 +354,14 @@ function AdminStockPage() {
 
                     <TableCell className="text-right text-muted-foreground">{reserved}</TableCell>
 
-                    <TableCell className="text-right font-bold text-sm">
-                      {available}
-                    </TableCell>
+                    <TableCell className="text-right font-bold text-sm">{available}</TableCell>
 
                     <TableCell className="text-center">
                       {available <= 0 ? (
-                        <Badge variant="destructive" className="text-[10px] uppercase tracking-wider">
+                        <Badge
+                          variant="destructive"
+                          className="text-[10px] uppercase tracking-wider"
+                        >
                           Esgotado
                         </Badge>
                       ) : available <= 5 ? (
@@ -406,7 +413,10 @@ function AdminStockPage() {
       )}
 
       {/* Modal / Dialog de Movimentação por Linha */}
-      <Dialog open={Boolean(selectedVariant)} onOpenChange={(open) => !open && setSelectedVariant(null)}>
+      <Dialog
+        open={Boolean(selectedVariant)}
+        onOpenChange={(open) => !open && setSelectedVariant(null)}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Movimentação de Estoque</DialogTitle>
@@ -419,10 +429,7 @@ function AdminStockPage() {
           <form onSubmit={handleExecuteMovement} className="space-y-4 pt-2">
             <div className="space-y-2">
               <Label>Tipo de Movimentação</Label>
-              <Select
-                value={movementType}
-                onValueChange={(val: any) => setMovementType(val)}
-              >
+              <Select value={movementType} onValueChange={(val: any) => setMovementType(val)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

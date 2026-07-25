@@ -26,7 +26,11 @@ interface StoreProfileHeroProps {
   };
 }
 
-export function StoreProfileHero({ content, design_tokens, transient_data }: StoreProfileHeroProps) {
+export function StoreProfileHero({
+  content,
+  design_tokens,
+  transient_data,
+}: StoreProfileHeroProps) {
   const store = transient_data?.store_hero;
   const layout = content?.layout ?? "centered";
   const showLogo = content?.show_logo !== false;
@@ -73,15 +77,12 @@ export function StoreProfileHero({ content, design_tokens, transient_data }: Sto
           showCover ? "-mt-12 relative z-10" : "pt-10",
           layout === "centered" && "flex flex-col items-center text-center",
           layout === "left" && "flex flex-col items-start",
-          layout === "instagram" && "flex flex-col items-center text-center"
+          layout === "instagram" && "flex flex-col items-center text-center",
         )}
       >
         {showLogo && (
           <div
-            className={cn(
-              "mb-4",
-              layout === "centered" || layout === "instagram" ? "mx-auto" : ""
-            )}
+            className={cn("mb-4", layout === "centered" || layout === "instagram" ? "mx-auto" : "")}
           >
             {store.logo_url ? (
               <img
@@ -99,9 +100,7 @@ export function StoreProfileHero({ content, design_tokens, transient_data }: Sto
 
         <div>
           <h1 className="text-2xl font-bold leading-tight">{store.name}</h1>
-          {store.slug && (
-            <p className="text-sm text-muted-foreground mt-0.5">@{store.slug}</p>
-          )}
+          {store.slug && <p className="text-sm text-muted-foreground mt-0.5">@{store.slug}</p>}
           {showDescription && store.description && (
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground max-w-sm">
               {store.description}

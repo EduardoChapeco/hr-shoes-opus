@@ -1,20 +1,20 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { 
-  User, 
-  ChevronLeft, 
-  Save, 
-  MapPin, 
-  Trash2, 
-  Plus, 
-  Check, 
-  ShieldCheck, 
-  FileText, 
-  Mail, 
+import {
+  User,
+  ChevronLeft,
+  Save,
+  MapPin,
+  Trash2,
+  Plus,
+  Check,
+  ShieldCheck,
+  FileText,
+  Mail,
   Phone,
   Settings,
   Sparkles,
   Search,
-  AlertTriangle
+  AlertTriangle,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,13 +31,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -47,11 +47,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { 
-  getCustomer360, 
+import {
+  getCustomer360,
   updateCustomerCrm,
   upsertCustomerAddress,
-  deleteCustomerAddress
+  deleteCustomerAddress,
 } from "@/services/crm.functions";
 import { formatMoney } from "@/lib/money";
 
@@ -181,7 +181,14 @@ function CustomerDetailPage() {
 
   const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addressForm.zipcode || !addressForm.street || !addressForm.number || !addressForm.neighborhood || !addressForm.city || !addressForm.state) {
+    if (
+      !addressForm.zipcode ||
+      !addressForm.street ||
+      !addressForm.number ||
+      !addressForm.neighborhood ||
+      !addressForm.city ||
+      !addressForm.state
+    ) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
     }
@@ -251,13 +258,18 @@ function CustomerDetailPage() {
             <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
               {data.profile.name}
               {data.profile.isConsentLgpd && (
-                <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50/50 h-5 px-1.5">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] text-emerald-600 border-emerald-600 bg-emerald-50/50 hover:bg-emerald-50/50 h-5 px-1.5"
+                >
                   LGPD Consentido
                 </Badge>
               )}
             </h1>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><FileText className="size-3.5" /> {data.profile.taxId || "CPF/CNPJ não informado"}</span>
+              <span className="flex items-center gap-1">
+                <FileText className="size-3.5" /> {data.profile.taxId || "CPF/CNPJ não informado"}
+              </span>
               <span>•</span>
               <span>Cadastro em {new Date(data.profile.joinedAt).toLocaleDateString("pt-BR")}</span>
             </div>
@@ -267,9 +279,15 @@ function CustomerDetailPage() {
 
       <Tabs defaultValue="crm" className="w-full">
         <TabsList className="grid grid-cols-3 max-w-md mb-6 h-9">
-          <TabsTrigger value="crm" className="text-xs">Ficha CRM</TabsTrigger>
-          <TabsTrigger value="enderecos" className="text-xs">Endereços ({data.addresses.length})</TabsTrigger>
-          <TabsTrigger value="pedidos" className="text-xs">Pedidos ({data.orders.length})</TabsTrigger>
+          <TabsTrigger value="crm" className="text-xs">
+            Ficha CRM
+          </TabsTrigger>
+          <TabsTrigger value="enderecos" className="text-xs">
+            Endereços ({data.addresses.length})
+          </TabsTrigger>
+          <TabsTrigger value="pedidos" className="text-xs">
+            Pedidos ({data.orders.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="crm" className="space-y-4">
@@ -281,9 +299,15 @@ function CustomerDetailPage() {
                   name="tags"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tags (separadas por vírgula)</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Tags (separadas por vírgula)
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="vip, atacado, revenda..." {...field} className="h-10 bg-background" />
+                        <Input
+                          placeholder="vip, atacado, revenda..."
+                          {...field}
+                          className="h-10 bg-background"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -295,7 +319,9 @@ function CustomerDetailPage() {
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Anotações Internas do CRM</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Anotações Internas do CRM
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Preferências de marcas, cores, tamanho do calçado, histórico de conversas..."
@@ -321,17 +347,28 @@ function CustomerDetailPage() {
         <TabsContent value="enderecos" className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Endereços Cadastrados</h3>
-              <p className="text-xs text-muted-foreground">Gerencie múltiplos endereços de envio do cliente.</p>
+              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">
+                Endereços Cadastrados
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Gerencie múltiplos endereços de envio do cliente.
+              </p>
             </div>
-            <Button onClick={handleOpenNewAddress} size="sm" className="font-bold flex items-center gap-1 text-xs">
+            <Button
+              onClick={handleOpenNewAddress}
+              size="sm"
+              className="font-bold flex items-center gap-1 text-xs"
+            >
               <Plus className="size-4" /> Novo Endereço
             </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {data.addresses.map((addr: any) => (
-              <Card key={addr.id} className={`relative overflow-hidden border shadow-xs ${addr.is_default ? "border-primary bg-primary/5" : "bg-card border-border"}`}>
+              <Card
+                key={addr.id}
+                className={`relative overflow-hidden border shadow-xs ${addr.is_default ? "border-primary bg-primary/5" : "bg-card border-border"}`}
+              >
                 {addr.is_default && (
                   <div className="absolute top-2 right-2 flex items-center gap-1 text-xs text-primary font-bold">
                     <Check className="size-3.5" /> Padrão
@@ -355,7 +392,7 @@ function CustomerDetailPage() {
                   <p className="text-muted-foreground">
                     {addr.neighborhood} — {addr.city}/{addr.state}
                   </p>
-                  
+
                   <div className="flex items-center justify-between border-t pt-3">
                     <div className="flex gap-2">
                       <Button
@@ -389,8 +426,8 @@ function CustomerDetailPage() {
                             const res = await upsertCustomerAddress({
                               data: {
                                 ...addr,
-                                is_default: true
-                              }
+                                is_default: true,
+                              },
                             });
                             if (res) {
                               toast.success("Endereço padrão atualizado!");
@@ -427,21 +464,28 @@ function CustomerDetailPage() {
             ) : (
               <div className="divide-y divide-border">
                 {data.orders.map((o: any) => (
-                  <div key={o.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+                  <div
+                    key={o.id}
+                    className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
+                  >
                     <div>
-                      <div className="font-semibold text-foreground text-sm">Pedido #{o.public_token}</div>
+                      <div className="font-semibold text-foreground text-sm">
+                        Pedido #{o.public_token}
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         {new Date(o.created_at).toLocaleDateString("pt-BR", {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
                           hour: "2-digit",
-                          minute: "2-digit"
+                          minute: "2-digit",
                         })}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-foreground text-sm">{formatMoney(o.total_cents)}</div>
+                      <div className="font-bold text-foreground text-sm">
+                        {formatMoney(o.total_cents)}
+                      </div>
                       <Badge variant="secondary" className="mt-1 text-[9px] h-5">
                         {o.status}
                       </Badge>
@@ -557,7 +601,9 @@ function CustomerDetailPage() {
                     maxLength={2}
                     placeholder="SP"
                     value={addressForm.state}
-                    onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value.toUpperCase() })}
+                    onChange={(e) =>
+                      setAddressForm({ ...addressForm, state: e.target.value.toUpperCase() })
+                    }
                   />
                 </div>
               </div>
@@ -567,9 +613,14 @@ function CustomerDetailPage() {
               <Checkbox
                 id="addr-default"
                 checked={addressForm.is_default}
-                onCheckedChange={(checked) => setAddressForm({ ...addressForm, is_default: !!checked })}
+                onCheckedChange={(checked) =>
+                  setAddressForm({ ...addressForm, is_default: !!checked })
+                }
               />
-              <Label htmlFor="addr-default" className="text-xs text-muted-foreground cursor-pointer">
+              <Label
+                htmlFor="addr-default"
+                className="text-xs text-muted-foreground cursor-pointer"
+              >
                 Definir como endereço padrão de envio.
               </Label>
             </div>

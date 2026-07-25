@@ -87,7 +87,12 @@ describe("Dashboard Services", () => {
       { id: "v-1", sku: "SAP-38", stock_on_hand: 2, products: { title: "Sapato Fem" } },
     ];
 
-    const mockStore = { name: "Hr Shoes Central", phone: "4999999999", address: "Rua Central", pix_key: "chave-pix" };
+    const mockStore = {
+      name: "Hr Shoes Central",
+      phone: "4999999999",
+      address: "Rua Central",
+      pix_key: "chave-pix",
+    };
 
     mockFrom.mockImplementation((table: string) => {
       if (table === "orders") {
@@ -126,10 +131,18 @@ describe("Dashboard Services", () => {
         };
       }
       if (table === "cash_register_entries") {
-        return { select: () => ({ eq: () => Promise.resolve({ data: [{ amount_cents: 5000 }], error: null }) }) };
+        return {
+          select: () => ({
+            eq: () => Promise.resolve({ data: [{ amount_cents: 5000 }], error: null }),
+          }),
+        };
       }
       if (table === "stores") {
-        return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: mockStore, error: null }) }) }) };
+        return {
+          select: () => ({
+            eq: () => ({ single: () => Promise.resolve({ data: mockStore, error: null }) }),
+          }),
+        };
       }
       if (table === "products") {
         return { select: () => Promise.resolve({ count: 10, error: null }) };

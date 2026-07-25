@@ -44,11 +44,14 @@ function IntegrationsPage() {
   const [googleMerchant, setGoogleMerchant] = useState(getIntegration("google_merchant_center"));
   const [isSaving, setIsSaving] = useState(false);
   const storeId = integrations.length > 0 ? integrations[0].store_id : "";
-  const feedUrl = storeId 
-    ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/feed/xml?store=${storeId}` 
+  const feedUrl = storeId
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/feed/xml?store=${storeId}`
     : "Loja não identificada. Salve uma configuração primeiro.";
 
-  const handleSave = async (provider: "meta_pixel" | "google_analytics" | "melhor_envio" | "google_merchant_center", state: any) => {
+  const handleSave = async (
+    provider: "meta_pixel" | "google_analytics" | "melhor_envio" | "google_merchant_center",
+    state: any,
+  ) => {
     setIsSaving(true);
     try {
       await upsertIntegration({
@@ -175,7 +178,9 @@ function IntegrationsPage() {
               <Settings2 className="h-5 w-5" />
               Logística (Melhor Envio)
             </CardTitle>
-            <CardDescription>Conecte sua conta para cálculo automático de frete e emissão de etiquetas.</CardDescription>
+            <CardDescription>
+              Conecte sua conta para cálculo automático de frete e emissão de etiquetas.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
@@ -207,7 +212,10 @@ function IntegrationsPage() {
                 onChange={(e) =>
                   setMelhorEnvio({
                     ...melhorEnvio,
-                    credentials: { ...melhorEnvio.credentials, postal_code: e.target.value.replace(/\D/g, "") },
+                    credentials: {
+                      ...melhorEnvio.credentials,
+                      postal_code: e.target.value.replace(/\D/g, ""),
+                    },
                   })
                 }
               />
@@ -226,10 +234,7 @@ function IntegrationsPage() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button
-              disabled={isSaving}
-              onClick={() => handleSave("melhor_envio", melhorEnvio)}
-            >
+            <Button disabled={isSaving} onClick={() => handleSave("melhor_envio", melhorEnvio)}>
               <Save className="mr-2 h-4 w-4" /> Salvar Configuração
             </Button>
           </CardFooter>
@@ -242,7 +247,9 @@ function IntegrationsPage() {
               <Settings2 className="h-5 w-5" />
               Google Merchant Center
             </CardTitle>
-            <CardDescription>Sincronize seu catálogo de produtos no Google Shopping.</CardDescription>
+            <CardDescription>
+              Sincronize seu catálogo de produtos no Google Shopping.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
@@ -268,11 +275,7 @@ function IntegrationsPage() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Feed XML URL (Catálogo)</label>
               <div className="flex gap-2">
-                <Input
-                  readOnly
-                  value={feedUrl}
-                  className="bg-muted text-muted-foreground"
-                />
+                <Input readOnly value={feedUrl} className="bg-muted text-muted-foreground" />
                 <Button
                   type="button"
                   variant="outline"
@@ -289,7 +292,8 @@ function IntegrationsPage() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Copie este link e adicione como fonte de dados (Feed) no Google Merchant Center ou Meta Commerce Manager.
+                Copie este link e adicione como fonte de dados (Feed) no Google Merchant Center ou
+                Meta Commerce Manager.
               </p>
             </div>
           </CardContent>

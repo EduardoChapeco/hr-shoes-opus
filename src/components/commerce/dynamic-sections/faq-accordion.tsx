@@ -1,5 +1,10 @@
 import * as React from "react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 
 interface FAQAccordionProps {
@@ -18,13 +23,13 @@ interface FAQAccordionProps {
 
 export function FaqAccordion({ content, design_tokens }: FAQAccordionProps) {
   const faqs = content?.faqs || [];
-  
+
   return (
-    <div 
+    <div
       className={cn("w-full py-8", design_tokens?.className)}
       style={{
         backgroundColor: design_tokens?.backgroundColor,
-        color: design_tokens?.textColor
+        color: design_tokens?.textColor,
       }}
     >
       <div className="mx-auto max-w-3xl px-4 @md:px-6">
@@ -33,12 +38,10 @@ export function FaqAccordion({ content, design_tokens }: FAQAccordionProps) {
             {content?.title && (
               <h2 className="text-3xl font-bold tracking-tight mb-2">{content.title}</h2>
             )}
-            {content?.description && (
-              <p className="text-muted-foreground">{content.description}</p>
-            )}
+            {content?.description && <p className="text-muted-foreground">{content.description}</p>}
           </div>
         )}
-        
+
         {faqs.length > 0 ? (
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, idx) => (

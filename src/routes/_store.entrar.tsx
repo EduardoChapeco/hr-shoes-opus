@@ -70,7 +70,9 @@ function LoginPage() {
     };
     tick();
     countdownRef.current = setInterval(tick, 1000);
-    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
   }, [rateLimitedUntil]);
 
   const form = useForm<LoginForm>({
@@ -90,7 +92,6 @@ function LoginPage() {
         setRateLimitedUntil(until);
         return;
       }
-
 
       toast.success("Login efetuado com sucesso!");
       // CRITICAL: We must invalidate the router to clear any cached unauthenticated data
@@ -172,10 +173,14 @@ function LoginPage() {
                 <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
                   <ShieldAlert className="size-4 shrink-0 text-destructive mt-0.5" aria-hidden />
                   <div>
-                    <p className="text-sm font-medium text-destructive">Conta temporariamente bloqueada</p>
+                    <p className="text-sm font-medium text-destructive">
+                      Conta temporariamente bloqueada
+                    </p>
                     <p className="text-xs text-destructive/80 mt-0.5 flex items-center gap-1">
                       <Clock className="size-3" aria-hidden />
-                      Tente novamente em {Math.floor(countdown / 60) > 0 ? `${Math.floor(countdown / 60)}m ` : ""}{countdown % 60}s
+                      Tente novamente em{" "}
+                      {Math.floor(countdown / 60) > 0 ? `${Math.floor(countdown / 60)}m ` : ""}
+                      {countdown % 60}s
                     </p>
                   </div>
                 </div>
@@ -190,8 +195,8 @@ function LoginPage() {
                 {form.formState.isSubmitting
                   ? "Entrando..."
                   : rateLimitedUntil && countdown > 0
-                  ? `Bloqueado (${countdown}s)`
-                  : "Entrar"}
+                    ? `Bloqueado (${countdown}s)`
+                    : "Entrar"}
               </Button>
             </form>
           </Form>

@@ -3,9 +3,7 @@ import { PlugZap } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/state/states";
-import {
-  getStoreConfig,
-} from "@/services/catalog.functions";
+import { getStoreConfig } from "@/services/catalog.functions";
 import type { StoreConfigDTO } from "@/types/catalog";
 import { getPublicExperienceDocumentBySlug } from "@/services/builder.functions";
 import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
@@ -37,8 +35,6 @@ export const Route = createFileRoute("/_store/")({
   component: Home,
 });
 
-
-
 function UnconfiguredStorefront() {
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-20 text-center md:px-6">
@@ -62,16 +58,22 @@ function UnconfiguredStorefront() {
 function Home() {
   const { storeConfig, experienceRes } = Route.useLoaderData();
 
-  if ("status" in storeConfig && storeConfig.status === "unconfigured") return <UnconfiguredStorefront />;
-
+  if ("status" in storeConfig && storeConfig.status === "unconfigured")
+    return <UnconfiguredStorefront />;
 
   // Fallback se não houver experience document "home" publicado
-  if (experienceRes.status !== "ok" || !experienceRes.data.tree || experienceRes.data.tree.length === 0) {
+  if (
+    experienceRes.status !== "ok" ||
+    !experienceRes.data.tree ||
+    experienceRes.data.tree.length === 0
+  ) {
     return (
       <div className="flex flex-col min-h-screen">
         <div className="mx-auto max-w-xl text-center py-20 flex-1">
           <h2 className="text-xl font-bold">Nenhum layout publicado</h2>
-          <p className="text-muted-foreground mt-2">Acesse o Builder no Admin para construir e publicar a página inicial.</p>
+          <p className="text-muted-foreground mt-2">
+            Acesse o Builder no Admin para construir e publicar a página inicial.
+          </p>
           <Button className="mt-6" asChild>
             <Link to="/admin/vitrine">Acessar Vitrine</Link>
           </Button>

@@ -15,7 +15,7 @@ export const trackBuilderEvent = createServerFn({ method: "POST" })
       node_id: z.string(),
       block_type: z.string(),
       metadata: z.record(z.any()).optional(),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
@@ -59,44 +59,51 @@ interface AnalyticsEvent {
   created_at: string;
 }
 
-export const getBuilderAnalyticsSummary = createServerFn({ method: "GET" })
-  .handler(async () => {
-    try {
-      const db = getServerClient();
-      
-      // We will perform basic aggregations since we can't easily write complex 
-      // materialized views in the rapid dev phase without manual raw SQL querying.
-      
-      const { data: events, error } = await db
-        .from("builder_analytics_events")
-        .select("event_type, node_id, block_type, created_at")
-        .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()); // Last 30 days
+export const getBuilderAnalyticsSummary = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
 
-      if (error) throw error;
-      if (!events) return { status: "ok" as const, data: { totalViews: 0, totalClicks: 0, blockStats: [] } };
+    // We will perform basic aggregations since we can't easily write complex
+    // materialized views in the rapid dev phase without manual raw SQL querying.
 
-      const typedEvents = events as unknown as AnalyticsEvent[];
+    const { data: events, error } = await db
+      .from("builder_analytics_events")
+      .select("event_type, node_id, block_type, created_at")
+      .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()); // Last 30 days
 
-      const totalViews = typedEvents.filter((e: AnalyticsEvent) => e.event_type === "view").length;
-      const totalClicks = typedEvents.filter((e: AnalyticsEvent) => e.event_type === "click").length;
+    if (error) throw error;
+    if (!events)
+      return { status: "ok" as const, data: { totalViews: 0, totalClicks: 0, blockStats: [] } };
 
-      // Group by Block Type
-      const blockAggregations: Record<string, { views: number; clicks: number }> = {};
-      typedEvents.forEach((e: AnalyticsEvent) => {
-        if (!blockAggregations[e.block_type]) {
-          blockAggregations[e.block_type] = { views: 0, clicks: 0 };
-        }
-        if (e.event_type === "view") blockAggregations[e.block_type].views++;
-        if (e.event_type === "click") blockAggregations[e.block_type].clicks++;
-      });
+    const typedEvents = events as unknown as AnalyticsEvent[];
 
-      const blockStats = Object.entries(blockAggregations).map(([block_type, stats]) => {
+    const totalViews = typedEvents.filter((e: AnalyticsEvent) => e.event_type === "view").length;
+    const totalClicks = typedEvents.filter((e: AnalyticsEvent) => e.event_type === "click").length;
+
+    // Group by Block Type
+    const blockAggregations: Record<string, { views: number; clicks: number }> = {};
+    typedEvents.forEach((e: AnalyticsEvent) => {
+      if (!blockAggregations[e.block_type]) {
+        blockAggregations[e.block_type] = { views: 0, clicks: 0 };
+      }
+      if (e.event_type === "view") blockAggregations[e.block_type].views++;
+      if (e.event_type === "click") blockAggregations[e.block_type].clicks++;
+    });
+
+    const blockStats = Object.entries(blockAggregations)
+      .map(([block_type, stats]) => {
         const ctr = stats.views > 0 ? (stats.clicks / stats.views) * 100 : 0;
-        return { block_type, views: stats.views, clicks: stats.clicks, ctr: Number(ctr.toFixed(2)) };
-      }).sort((a, b) => b.views - a.views);
+        return {
+          block_type,
+          views: stats.views,
+          clicks: stats.clicks,
+          ctr: Number(ctr.toFixed(2)),
+        };
+      })
+      .sort((a, b) => b.views - a.views);
 
-      return { status: "ok" as const, data: { totalViews, totalClicks, blockStats } };
-    } catch (e: unknown) {
-      throw new Error("Erro ao carregar sumário analítico." );
-    }
-  });
+    return { status: "ok" as const, data: { totalViews, totalClicks, blockStats } };
+  } catch (e: unknown) {
+    throw new Error("Erro ao carregar sumário analítico.");
+  }
+});

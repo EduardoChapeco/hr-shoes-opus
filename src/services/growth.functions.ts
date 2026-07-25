@@ -45,7 +45,7 @@ export const listCoupons = createServerFn({ method: "GET" }).handler(async () =>
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[growth] listCoupons error:", e);
-    throw new Error("Erro ao listar cupons." );
+    throw new Error("Erro ao listar cupons.");
   }
 });
 
@@ -86,12 +86,11 @@ export const upsertCoupon = createServerFn({ method: "POST" })
       }
 
       if (result.error) throw result.error;
-      return result.data ;
+      return result.data;
     } catch (e: any) {
       console.error("[growth] upsertCoupon error:", e);
-      if (e.code === "23505")
-        throw new Error("Código de cupom já existe." );
-      throw new Error("Erro ao salvar cupom." );
+      if (e.code === "23505") throw new Error("Código de cupom já existe.");
+      throw new Error("Erro ao salvar cupom.");
     }
   });
 
@@ -112,7 +111,7 @@ export const deleteCoupon = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[growth] deleteCoupon error:", e);
-      throw new Error("Erro ao excluir cupom." );
+      throw new Error("Erro ao excluir cupom.");
     }
   });
 
@@ -135,14 +134,21 @@ export const listIntegrations = createServerFn({ method: "GET" }).handler(async 
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[growth] listIntegrations error:", e);
-    throw new Error("Erro ao listar integrações." );
+    throw new Error("Erro ao listar integrações.");
   }
 });
 
 export const upsertIntegration = createServerFn({ method: "POST" })
   .validator(
     z.object({
-      provider: z.enum(["meta_pixel", "google_analytics", "melhor_envio", "nuvemshop", "webhook", "google_merchant_center"]),
+      provider: z.enum([
+        "meta_pixel",
+        "google_analytics",
+        "melhor_envio",
+        "nuvemshop",
+        "webhook",
+        "google_merchant_center",
+      ]),
       credentials: z.record(z.any()),
       is_active: z.boolean(),
     }),
@@ -174,6 +180,6 @@ export const upsertIntegration = createServerFn({ method: "POST" })
       return data;
     } catch (e: any) {
       console.error("[growth] upsertIntegration error:", e);
-      throw new Error(e.message || "Erro ao salvar integração." );
+      throw new Error(e.message || "Erro ao salvar integração.");
     }
   });

@@ -1,6 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, MousePointerClick, Percent, BarChart3, ArrowLeft, Activity } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { Button } from "@/components/ui/button";
@@ -91,9 +100,7 @@ function BuilderAnalyticsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tracking-tight text-foreground">
-              {averageCtr}%
-            </div>
+            <div className="text-2xl font-bold tracking-tight text-foreground">{averageCtr}%</div>
             <p className="text-xs text-muted-foreground mt-1">
               Taxa de cliques em relação às visualizações
             </p>
@@ -132,8 +139,18 @@ function BuilderAnalyticsPage() {
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="views" name="Visualizações" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="clicks" name="Cliques" fill="hsl(var(--chart-2, 210 100% 50%))" radius={[4, 4, 0, 0]} />
+                  <Bar
+                    dataKey="views"
+                    name="Visualizações"
+                    fill="hsl(var(--primary))"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="clicks"
+                    name="Cliques"
+                    fill="hsl(var(--chart-2, 210 100% 50%))"
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -147,9 +164,7 @@ function BuilderAnalyticsPage() {
               <Activity className="size-5 text-primary" />
               Ranking de CTR
             </CardTitle>
-            <CardDescription>
-              Ordenado pelos tipos de blocos com mais exibições.
-            </CardDescription>
+            <CardDescription>Ordenado pelos tipos de blocos com mais exibições.</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -162,29 +177,34 @@ function BuilderAnalyticsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {blockStats.map((stat: { block_type: string; views: number; clicks: number; ctr: number }, idx: number) => (
-                    <tr key={idx} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3.5 font-mono text-xs font-semibold text-foreground">
-                        {stat.block_type}
-                      </td>
-                      <td className="px-4 py-3.5 text-right font-medium text-muted-foreground">
-                        {stat.views.toLocaleString("pt-BR")}
-                      </td>
-                      <td className="px-4 py-3.5 text-right">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            stat.ctr > 5
-                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                              : stat.ctr > 2
-                                ? "bg-blue-500/10 text-blue-600"
-                                : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {stat.ctr}%
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {blockStats.map(
+                    (
+                      stat: { block_type: string; views: number; clicks: number; ctr: number },
+                      idx: number,
+                    ) => (
+                      <tr key={idx} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-4 py-3.5 font-mono text-xs font-semibold text-foreground">
+                          {stat.block_type}
+                        </td>
+                        <td className="px-4 py-3.5 text-right font-medium text-muted-foreground">
+                          {stat.views.toLocaleString("pt-BR")}
+                        </td>
+                        <td className="px-4 py-3.5 text-right">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                              stat.ctr > 5
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                : stat.ctr > 2
+                                  ? "bg-blue-500/10 text-blue-600"
+                                  : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            {stat.ctr}%
+                          </span>
+                        </td>
+                      </tr>
+                    ),
+                  )}
                   {blockStats.length === 0 && (
                     <tr>
                       <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">

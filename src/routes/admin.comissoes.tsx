@@ -17,16 +17,18 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { listCommissions, payCommission, listSellers, updateSellerCommissionRate } from "@/services/commission.functions";
+import {
+  listCommissions,
+  payCommission,
+  listSellers,
+  updateSellerCommissionRate,
+} from "@/services/commission.functions";
 import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/comissoes")({
   head: () => ({ meta: [{ title: "Comissões — Hr Shoes" }] }),
   loader: async () => {
-    const [commissions, sellers] = await Promise.all([
-      listCommissions(),
-      listSellers(),
-    ]);
+    const [commissions, sellers] = await Promise.all([listCommissions(), listSellers()]);
     return { commissions, sellers };
   },
   component: CommissionsPage,
@@ -86,7 +88,10 @@ function CommissionsPage() {
 
         <TabsContent value="extrato" className="mt-0">
           {commissions.length === 0 ? (
-            <EmptyState title="Sem comissões" description="Nenhuma comissão registrada nesta loja." />
+            <EmptyState
+              title="Sem comissões"
+              description="Nenhuma comissão registrada nesta loja."
+            />
           ) : (
             <div className="rounded-md border bg-card">
               <Table>
@@ -106,9 +111,15 @@ function CommissionsPage() {
                       <TableCell className="font-medium">{c.sellerName}</TableCell>
                       <TableCell>#{c.orderToken}</TableCell>
                       <TableCell>{formatMoney(c.orderTotal)}</TableCell>
-                      <TableCell className={`font-bold ${c.amountCents < 0 ? 'text-destructive' : 'text-primary'}`}>
+                      <TableCell
+                        className={`font-bold ${c.amountCents < 0 ? "text-destructive" : "text-primary"}`}
+                      >
                         {formatMoney(c.amountCents)}
-                        {c.amountCents < 0 && <span className="ml-2 text-xs font-normal text-muted-foreground">(Estorno)</span>}
+                        {c.amountCents < 0 && (
+                          <span className="ml-2 text-xs font-normal text-muted-foreground">
+                            (Estorno)
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {c.status === "paid" ? (
@@ -116,7 +127,9 @@ function CommissionsPage() {
                         ) : c.status === "cancelled" ? (
                           <Badge variant="destructive">Cancelada (Pedido estornado)</Badge>
                         ) : c.amountCents < 0 ? (
-                          <Badge variant="outline" className="text-destructive border-destructive">Estorno Pendente</Badge>
+                          <Badge variant="outline" className="text-destructive border-destructive">
+                            Estorno Pendente
+                          </Badge>
                         ) : (
                           <Badge variant="secondary">Pendente</Badge>
                         )}
@@ -183,14 +196,19 @@ function CommissionsPage() {
                           </div>
                         ) : (
                           <div className="font-semibold text-lg flex items-center gap-1">
-                            {seller.commission_rate ?? 5} <Percent className="h-4 w-4 text-muted-foreground" />
+                            {seller.commission_rate ?? 5}{" "}
+                            <Percent className="h-4 w-4 text-muted-foreground" />
                           </div>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
                         {editingSellerId === seller.id ? (
                           <div className="flex items-center justify-end gap-2">
-                            <Button variant="ghost" size="sm" onClick={() => setEditingSellerId(null)}>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingSellerId(null)}
+                            >
                               Cancelar
                             </Button>
                             <Button size="sm" onClick={() => handleSaveRate(seller.id)}>

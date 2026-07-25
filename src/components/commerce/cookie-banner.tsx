@@ -7,7 +7,9 @@ export function CookieBanner() {
 
   useEffect(() => {
     // Look for hr_shoes_cookie_consent in actual browser cookies
-    const hasConsent = document.cookie.split('; ').find(row => row.startsWith('hr_shoes_cookie_consent='));
+    const hasConsent = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("hr_shoes_cookie_consent="));
     if (!hasConsent) {
       setShow(true);
     }
@@ -26,11 +28,12 @@ export function CookieBanner() {
       <div className="mx-auto max-w-4xl bg-background border shadow-xl rounded-xl p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pointer-events-auto">
         <div className="text-sm text-muted-foreground flex-1">
           <p className="font-medium text-foreground mb-1">Valorizamos sua privacidade</p>
-          Utilizamos cookies essenciais para o funcionamento do site e para melhorar sua experiência. 
-          Ao continuar navegando, você concorda com a nossa{" "}
+          Utilizamos cookies essenciais para o funcionamento do site e para melhorar sua
+          experiência. Ao continuar navegando, você concorda com a nossa{" "}
           <Link to="/privacidade" className="underline hover:text-foreground">
             Política de Privacidade
-          </Link>.
+          </Link>
+          .
         </div>
         <div className="flex shrink-0 gap-3 w-full sm:w-auto">
           <Button onClick={handleAccept} className="w-full sm:w-auto">

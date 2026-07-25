@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, Package, ArrowRight, Copy, Info } from "lucide-react";
+import { CheckCircle2, Package, ArrowRight, Copy, Info, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/commerce/page-header";
 import { ErrorState } from "@/components/state/states";
@@ -33,7 +33,8 @@ function ConfirmationPage() {
     quantity: item.qty || item.quantity || 1,
   }));
   const subtotal =
-    order.subtotal_cents || items.reduce((acc: number, item: any) => acc + item.priceCents * item.quantity, 0);
+    order.subtotal_cents ||
+    items.reduce((acc: number, item: any) => acc + item.priceCents * item.quantity, 0);
   const shipping = order.shipping_cents || 0;
   const discount = order.discount_cents || 0;
   const total = order.total_cents || Math.max(0, subtotal + shipping - discount);
@@ -87,6 +88,24 @@ function ConfirmationPage() {
                   </Button>
                 </div>
               </div>
+            ) : order.payment_method === "manual" ? (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Sua reserva foi registrada! Para confirmar seu pedido e combinar o pagamento e entrega, fale com a nossa equipe no WhatsApp:
+                </p>
+                
+                <Button 
+                  size="lg" 
+                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white gap-2"
+                  onClick={() => {
+                    const phone = "5511999999999"; // TODO: Substituir pelo WhatsApp da loja
+                    const message = encodeURIComponent(`Olá! Acabei de realizar o pedido #${order.public_token} no site no valor de ${formatMoney(total)}. Gostaria de combinar o pagamento e a entrega/retirada!`);
+                    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+                  }}
+                >
+                  <MessageCircle className="h-5 w-5" /> Falar com Vendedora no WhatsApp
+                </Button>
+              </div>
             ) : (
               <div className="space-y-3 text-sm">
                 <p className="text-muted-foreground">
@@ -131,7 +150,7 @@ function ConfirmationPage() {
           </div>
           <div className="px-6 py-4">
             <ul className="divide-y divide-border">
-              {items.map((item, idx) => (
+              {items.map((item: any, idx: number) => (
                 <li key={idx} className="flex justify-between py-3 text-sm">
                   <div className="flex items-center">
                     <span className="font-medium text-foreground">{item.quantity}x</span>

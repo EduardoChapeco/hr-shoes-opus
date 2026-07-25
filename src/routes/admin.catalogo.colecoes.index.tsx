@@ -1,5 +1,14 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { Plus, MoreHorizontal, Edit, Archive, RotateCcw, EyeOff, Check, Search } from "lucide-react";
+import {
+  Plus,
+  MoreHorizontal,
+  Edit,
+  Archive,
+  RotateCcw,
+  EyeOff,
+  Check,
+  Search,
+} from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 
@@ -63,7 +72,7 @@ function AdminCollectionsPage() {
         toast.success(
           newStatus === "archived"
             ? "Coleção arquivada com sucesso!"
-            : "Coleção reativada/atualizada!"
+            : "Coleção reativada/atualizada!",
         );
         router.invalidate();
       } else {
@@ -197,12 +206,16 @@ function AdminCollectionsPage() {
                                 </Link>
                               </DropdownMenuItem>
                               {col.status === "active" ? (
-                                <DropdownMenuItem onClick={() => handleUpdateStatus(col.id, "inactive")}>
+                                <DropdownMenuItem
+                                  onClick={() => handleUpdateStatus(col.id, "inactive")}
+                                >
                                   <EyeOff className="mr-2 size-3.5" />
                                   Desativar
                                 </DropdownMenuItem>
                               ) : (
-                                <DropdownMenuItem onClick={() => handleUpdateStatus(col.id, "active")}>
+                                <DropdownMenuItem
+                                  onClick={() => handleUpdateStatus(col.id, "active")}
+                                >
                                   <Check className="mr-2 size-3.5 text-emerald-600" />
                                   Ativar
                                 </DropdownMenuItem>
@@ -234,4 +247,3 @@ function AdminCollectionsPage() {
     </div>
   );
 }
-

@@ -52,8 +52,6 @@ export function ContactForm({ storeId, content }: ContactFormProps) {
         },
       });
 
-
-
       setIsSuccess(true);
       toast.success("Mensagem enviada com sucesso!");
       setName("");
@@ -74,9 +72,7 @@ export function ContactForm({ storeId, content }: ContactFormProps) {
           <h2 className="text-xl @sm:text-2xl font-black text-foreground tracking-tight">
             {title}
           </h2>
-          <p className="text-xs @sm:text-sm text-muted-foreground leading-relaxed">
-            {subtitle}
-          </p>
+          <p className="text-xs @sm:text-sm text-muted-foreground leading-relaxed">{subtitle}</p>
         </div>
 
         {isSuccess ? (
@@ -86,7 +82,8 @@ export function ContactForm({ storeId, content }: ContactFormProps) {
             </span>
             <h3 className="text-sm font-bold text-foreground">Sua mensagem foi enviada!</h3>
             <p className="text-xs text-muted-foreground px-4">
-              Agradecemos o contato. Retornaremos em breve no e-mail: <strong className="text-foreground">{content.email_recipient}</strong>
+              Agradecemos o contato. Retornaremos em breve no e-mail:{" "}
+              <strong className="text-foreground">{content.email_recipient}</strong>
             </p>
             <Button
               variant="outline"
@@ -129,7 +126,9 @@ export function ContactForm({ storeId, content }: ContactFormProps) {
 
             {showPhone && (
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground">Telefone / WhatsApp</label>
+                <label className="text-xs font-bold text-muted-foreground">
+                  Telefone / WhatsApp
+                </label>
                 <div className="relative">
                   <Input
                     type="tel"

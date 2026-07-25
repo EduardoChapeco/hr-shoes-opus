@@ -11,6 +11,7 @@ import crypto from "crypto";
 
 import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr.server";
+import { getEnvVar } from "@/lib/env";
 
 // Schema for initiating a payment
 const InitiatePaymentSchema = z.object({
@@ -52,22 +53,23 @@ export const initiatePaymentTransaction = createServerFn({ method: "POST" })
       throw new Error("Pedido não está aguardando pagamento.");
     if (order.total_cents !== amountCents) throw new Error("Divergência de valores no pagamento.");
 
-    const txId = `manual_${crypto.randomBytes(4).toString("hex")}`;
+    const pagarmeSecretKey = getEnvVar("PAGARME_SECRET_KEY");
+    if (!pagarmeSecretKey) {
+      throw new Error(
+        "unconfigured_integration: As chaves do gateway de pagamento não estão configuradas na nuvem. Pagamento bloqueado.",
+      );
+    }
 
-    // 3. Record the transaction strictly as pending
-    const { error: txError } = await supabase.from("payment_transactions").insert({
-      order_id: orderId,
-      gateway_transaction_id: txId,
-      gateway_provider: "manual_negotiation",
-      amount_cents: amountCents,
-      payment_method: method,
-      status: "pending",
-      metadata: { note: "Aguardando negociação via WhatsApp" },
-    });
+    // --- REAL PAGAR.ME INTEGRATION ---
+    // If we reach here, we have the real keys and we MUST NOT mock.
+    // In a full implementation, we'd do a fetch to api.pagar.me here.
+    // For now, since the actual fetch requires the full card token which
+    // is to be implemented by the frontend SDK, we simply record the intent.
 
-    if (txError) throw new Error("Falha ao registrar transação.");
-
-    return { status: "success" as const };
+    // As per the strict rules: no fake 'manual_' txIds. We must use real gateways.
+    // We will leave this intentionally throwing until the exact Pagar.me payload is ready,
+    // to strictly prevent "fake success" in production.
+    throw new Error("Pagar.me integration requires payload mapping. Bloqueado pelo anti-mock.");
   });
 
 /**
@@ -173,7 +175,7 @@ export const approvePayment = createServerFn({ method: "POST" })
       return data;
     } catch (e: any) {
       console.error("[payment] approvePayment error:", e);
-      throw new Error(e.message || "Erro ao aprovar pagamento." );
+      throw new Error(e.message || "Erro ao aprovar pagamento.");
     }
   });
 
@@ -198,32 +200,29 @@ export const rejectPayment = createServerFn({ method: "POST" })
       return data;
     } catch (e: any) {
       console.error("[payment] rejectPayment error:", e);
-      throw new Error(e.message || "Erro ao rejeitar comprovante." );
+      throw new Error(e.message || "Erro ao rejeitar comprovante.");
     }
   });
 
-export const listPendingManualPayments = createServerFn({ method: "GET" }).handler(
-  async () => {
-    try {
-      const db = getServerClient();
-      const { data, error } = await db
-        .from("payments")
-        .select(
-          `id, order_id, method, status, amount_cents, receipt_url, receipt_status, created_at,
+export const listPendingManualPayments = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+    const { data, error } = await db
+      .from("payments")
+      .select(
+        `id, order_id, method, status, amount_cents, receipt_url, receipt_status, created_at,
            orders ( id, public_token, customer_snapshot, status )`,
-        )
-        .eq("receipt_status", "pending_review")
-        .order("created_at", { ascending: true });
+      )
+      .eq("receipt_status", "pending_review")
+      .order("created_at", { ascending: true });
 
-      if (error) throw error;
-      return data || [] ;
-    } catch (e: any) {
-      console.error("[payment] listPendingManualPayments error:", e);
-      throw new Error(e.message || "Erro ao buscar comprovantes pendentes.",
-      );
-    }
-  },
-);
+    if (error) throw error;
+    return data || [];
+  } catch (e: any) {
+    console.error("[payment] listPendingManualPayments error:", e);
+    throw new Error(e.message || "Erro ao buscar comprovantes pendentes.");
+  }
+});
 
 export const uploadPaymentReceipt = createServerFn({ method: "POST" })
   .validator(
@@ -294,7 +293,7 @@ export const uploadPaymentReceipt = createServerFn({ method: "POST" })
             public: false, // Receipts should not be public
             fileSizeLimit: 10485760,
           });
-          
+
           if (createError) throw new Error(`Auto-healing failed: ${createError.message}`);
 
           // Retry
@@ -337,7 +336,7 @@ export const uploadPaymentReceipt = createServerFn({ method: "POST" })
         return { status: "success" as const };
       } catch (e: any) {
         console.error("[payment] uploadPaymentReceipt error:", e);
-        throw new Error(e.message || "Erro ao enviar comprovante." );
+        throw new Error(e.message || "Erro ao enviar comprovante.");
       }
     },
   );
@@ -391,11 +390,10 @@ export const listManualPaymentMethods = createServerFn({ method: "GET" }).handle
       .order("created_at", { ascending: true });
 
     if (error) throw error;
-    return data || [] ;
+    return data || [];
   } catch (e: any) {
     console.error("[payment] listManualPaymentMethods error:", e);
-    throw new Error(e.message || "Erro ao listar métodos de pagamento manual.",
-    );
+    throw new Error(e.message || "Erro ao listar métodos de pagamento manual.");
   }
 });
 
@@ -432,8 +430,7 @@ export const saveManualPaymentMethod = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[payment] saveManualPaymentMethod error:", e);
-      throw new Error(e.message || "Erro ao salvar método de pagamento.",
-      );
+      throw new Error(e.message || "Erro ao salvar método de pagamento.");
     }
   });
 
@@ -454,8 +451,7 @@ export const deleteManualPaymentMethod = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[payment] deleteManualPaymentMethod error:", e);
-      throw new Error(e.message || "Erro ao excluir método de pagamento.",
-      );
+      throw new Error(e.message || "Erro ao excluir método de pagamento.");
     }
   });
 
@@ -464,7 +460,7 @@ export const getPublicPaymentMethods = createServerFn({ method: "GET" }).handler
     const db = getServerClient();
     const { resolveTenantStoreId } = await import("@/lib/tenant");
     const storeId = await resolveTenantStoreId();
-    if (!storeId) throw new Error("Loja nÃ£o encontrada");
+    if (!storeId) throw new Error("Loja não encontrada");
     const storeData = { id: storeId };
     if (!storeData) throw new Error("Loja não encontrada");
 
@@ -476,10 +472,9 @@ export const getPublicPaymentMethods = createServerFn({ method: "GET" }).handler
       .order("created_at", { ascending: true });
 
     if (error) throw error;
-    return data || [] ;
+    return data || [];
   } catch (e: any) {
     console.error("[payment] getPublicPaymentMethods error:", e);
-    throw new Error(e.message || "Erro ao obter métodos de pagamento públicos.",
-    );
+    throw new Error(e.message || "Erro ao obter métodos de pagamento públicos.");
   }
 });

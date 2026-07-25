@@ -68,8 +68,6 @@ function ResetPasswordPage() {
     try {
       const result = await updatePassword({ data: { password: data.password } });
 
-
-
       toast.success("Senha atualizada com sucesso!");
       navigate({ to: "/conta" });
     } catch (e: any) {

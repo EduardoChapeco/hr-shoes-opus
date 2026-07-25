@@ -38,7 +38,7 @@ export function VariantOptionsBuilder({ product, onClose }: VariantOptionsBuilde
             if (val) inferredOptions[key].add(String(val));
           });
         });
-        
+
         const newOptions = Object.entries(inferredOptions).map(([name, valuesSet]) => ({
           name,
           values: Array.from(valuesSet),
@@ -81,9 +81,9 @@ export function VariantOptionsBuilder({ product, onClose }: VariantOptionsBuilde
 
   const generateCombinations = () => {
     if (options.length === 0) return [];
-    
+
     // Filter out empty options
-    const validOptions = options.filter(o => o.name.trim() && o.values.length > 0);
+    const validOptions = options.filter((o) => o.name.trim() && o.values.length > 0);
     if (validOptions.length === 0) return [];
 
     let combinations: Record<string, string>[] = [{}];
@@ -104,14 +104,14 @@ export function VariantOptionsBuilder({ product, onClose }: VariantOptionsBuilde
   const handleSaveOptions = async () => {
     setIsSubmitting(true);
     try {
-      const validOptions = options.filter(o => o.name.trim() && o.values.length > 0);
-      
+      const validOptions = options.filter((o) => o.name.trim() && o.values.length > 0);
+
       // Update the product with the new options
       await updateProduct({
         data: {
           id: product.id,
           options: validOptions,
-        }
+        },
       });
 
       // Se há opções, podemos sugerir gerar as combinações, mas a geração
@@ -124,14 +124,17 @@ export function VariantOptionsBuilder({ product, onClose }: VariantOptionsBuilde
         const flatMatrix = combinations.map((attrs) => {
           // Check if this combination already exists
           const existingVariant = product.product_variants?.find((v: any) => {
-             const vAttrs = v.attributes || {};
-             const keys = Object.keys(attrs);
-             return keys.every(k => vAttrs[k] === attrs[k]) && Object.keys(vAttrs).length === keys.length;
+            const vAttrs = v.attributes || {};
+            const keys = Object.keys(attrs);
+            return (
+              keys.every((k) => vAttrs[k] === attrs[k]) &&
+              Object.keys(vAttrs).length === keys.length
+            );
           });
 
           return {
             attributes: attrs,
-            stock: existingVariant ? (existingVariant.stock_on_hand || 0) : 0,
+            stock: existingVariant ? existingVariant.stock_on_hand || 0 : 0,
             price_override_cents: existingVariant?.price_override_cents || null,
           };
         });
@@ -141,7 +144,7 @@ export function VariantOptionsBuilder({ product, onClose }: VariantOptionsBuilde
           data: {
             product_id: product.id,
             matrix: flatMatrix,
-          }
+          },
         });
       }
 
@@ -170,16 +173,16 @@ export function VariantOptionsBuilder({ product, onClose }: VariantOptionsBuilde
               <div className="flex items-center gap-4">
                 <div className="flex-1">
                   <Label className="text-xs text-muted-foreground mb-1 block">Nome da Opção</Label>
-                  <Input 
-                    placeholder="Ex: Cor, Tamanho..." 
-                    value={option.name} 
-                    onChange={(e) => handleOptionNameChange(oIdx, e.target.value)} 
+                  <Input
+                    placeholder="Ex: Cor, Tamanho..."
+                    value={option.name}
+                    onChange={(e) => handleOptionNameChange(oIdx, e.target.value)}
                     className="max-w-[250px]"
                   />
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => handleRemoveOption(oIdx)}
                   className="text-muted-foreground hover:text-destructive"
                 >
@@ -191,16 +194,20 @@ export function VariantOptionsBuilder({ product, onClose }: VariantOptionsBuilde
                 <Label className="text-xs text-muted-foreground mb-1 block">Valores da Opção</Label>
                 <div className="flex flex-wrap gap-2 items-center border rounded-md p-2 bg-background min-h-[44px]">
                   {option.values.map((val, vIdx) => (
-                    <Badge key={vIdx} variant="secondary" className="px-2 py-1 flex items-center gap-1">
+                    <Badge
+                      key={vIdx}
+                      variant="secondary"
+                      className="px-2 py-1 flex items-center gap-1"
+                    >
                       {val}
-                      <X 
-                        className="size-3 cursor-pointer hover:text-destructive" 
-                        onClick={() => handleRemoveValue(oIdx, vIdx)} 
+                      <X
+                        className="size-3 cursor-pointer hover:text-destructive"
+                        onClick={() => handleRemoveValue(oIdx, vIdx)}
                       />
                     </Badge>
                   ))}
-                  <Input 
-                    placeholder="Digite um valor e aperte Enter..." 
+                  <Input
+                    placeholder="Digite um valor e aperte Enter..."
                     className="border-0 shadow-none focus-visible:ring-0 px-1 min-w-[150px] flex-1 h-7 text-sm"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -216,14 +223,20 @@ export function VariantOptionsBuilder({ product, onClose }: VariantOptionsBuilde
           </Card>
         ))}
 
-        <Button variant="outline" onClick={handleAddOption} className="w-full border-dashed" size="sm">
+        <Button
+          variant="outline"
+          onClick={handleAddOption}
+          className="w-full border-dashed"
+          size="sm"
+        >
           <Plus className="mr-2 size-4" /> Adicionar outra opção
         </Button>
       </div>
 
       <div className="flex items-center justify-between pt-4 border-t">
         <div className="text-sm">
-          Serão geradas <strong>{previewCombinationsCount}</strong> variantes baseadas nestas opções.
+          Serão geradas <strong>{previewCombinationsCount}</strong> variantes baseadas nestas
+          opções.
         </div>
         <Button onClick={handleSaveOptions} disabled={isSubmitting} size="lg" className="font-bold">
           {isSubmitting ? "Salvando..." : "Salvar Opções e Gerar Variantes"}

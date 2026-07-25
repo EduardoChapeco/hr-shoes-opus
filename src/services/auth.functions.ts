@@ -17,7 +17,12 @@ import { Provider } from "@supabase/supabase-js";
 import { getEnvVar } from "@/lib/env";
 import { readCookieFromRequest } from "@/lib/http-cookies";
 import { normalizeInternalReturnPath } from "@/lib/return-path";
-import { checkRateLimit, recordFailedAttempt, resetAttempts, formatRetryAfter } from "@/lib/rate-limiter";
+import {
+  checkRateLimit,
+  recordFailedAttempt,
+  resetAttempts,
+  formatRetryAfter,
+} from "@/lib/rate-limiter";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -127,14 +132,12 @@ export const signInWithPassword = createServerFn({ method: "POST" })
         recordFailedAttempt(ip);
 
         if (error.status === 429) {
-          throw new Error("Muitas tentativas de login. Aguarde alguns minutos.",
-          );
+          throw new Error("Muitas tentativas de login. Aguarde alguns minutos.");
         }
         if (error.message.includes("Email not confirmed")) {
-          throw new Error("E-mail não confirmado. Verifique sua caixa de entrada.",
-          );
+          throw new Error("E-mail não confirmado. Verifique sua caixa de entrada.");
         }
-        throw new Error("E-mail ou senha incorretos." );
+        throw new Error("E-mail ou senha incorretos.");
       }
 
       // Successful login: clear the failed attempts counter
@@ -180,7 +183,7 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
       });
 
       if (error) {
-        throw new Error(error.message );
+        throw new Error(error.message);
       }
 
       return { status: "success" as const, url: data.url };
@@ -217,15 +220,15 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
       if (error) {
         console.error("[auth] signUp API error:", error);
         if (error.status === 429) {
-          throw new Error("Limite de tentativas atingido (Supabase Free Tier). Aguarde 60 min ou desative 'Confirm email' no seu painel do Supabase em Authentication -> Providers -> Email.",
+          throw new Error(
+            "Limite de tentativas atingido (Supabase Free Tier). Aguarde 60 min ou desative 'Confirm email' no seu painel do Supabase em Authentication -> Providers -> Email.",
           );
         }
         if (
           error.message?.toLowerCase().includes("already registered") ||
           error.message?.toLowerCase().includes("user already")
         ) {
-          throw new Error("Este e-mail já possui uma conta. Faça login ou recupere sua senha.",
-          );
+          throw new Error("Este e-mail já possui uma conta. Faça login ou recupere sua senha.");
         }
         throw new Error(`Erro ao realizar cadastro: ${error.message}`);
       }
@@ -268,7 +271,7 @@ export const signOut = createServerFn({ method: "POST" }).handler(async () => {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-      throw new Error(error.message );
+      throw new Error(error.message);
     }
 
     // Clear guest session manually using H3-compatible util
@@ -296,7 +299,7 @@ export const updatePassword = createServerFn({ method: "POST" })
       });
 
       if (error) {
-        throw new Error(error.message );
+        throw new Error(error.message);
       }
 
       return { status: "success" as const };
@@ -317,14 +320,15 @@ export const resetPasswordForEmail = createServerFn({ method: "POST" })
 
       if (error) {
         if (error.status === 429) {
-          throw new Error("Limite de envio de e-mails atingido. Aguarde 60 minutos antes de solicitar novamente.",
+          throw new Error(
+            "Limite de envio de e-mails atingido. Aguarde 60 minutos antes de solicitar novamente.",
           );
         }
-        throw new Error(error.message );
+        throw new Error(error.message);
       }
       return { status: "success" as const };
     } catch (e) {
-      throw new Error("Erro ao solicitar redefinição." );
+      throw new Error("Erro ao solicitar redefinição.");
     }
   });
 

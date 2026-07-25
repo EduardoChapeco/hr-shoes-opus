@@ -59,8 +59,8 @@ export function StoreHours({ content, design_tokens, transient_data }: StoreHour
     "Quarta-feira": "Qua",
     "Quinta-feira": "Qui",
     "Sexta-feira": "Sex",
-    "Sábado": "Sáb",
-    "Domingo": "Dom",
+    Sábado: "Sáb",
+    Domingo: "Dom",
   };
 
   return (
@@ -83,13 +83,13 @@ export function StoreHours({ content, design_tokens, transient_data }: StoreHour
                 "shrink-0 flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
                 storeHours.is_open
                   ? "bg-emerald-500/15 text-emerald-700"
-                  : "bg-destructive/15 text-destructive"
+                  : "bg-destructive/15 text-destructive",
               )}
             >
               <span
                 className={cn(
                   "size-2 rounded-full",
-                  storeHours.is_open ? "bg-emerald-500" : "bg-destructive"
+                  storeHours.is_open ? "bg-emerald-500" : "bg-destructive",
                 )}
               />
               {storeHours.status_text}
@@ -103,14 +103,16 @@ export function StoreHours({ content, design_tokens, transient_data }: StoreHour
               key={day.day}
               className={cn(
                 "flex items-center justify-between px-4 py-3 text-sm",
-                !day.open && "opacity-50"
+                !day.open && "opacity-50",
               )}
             >
               <span className="font-medium w-10 shrink-0 text-muted-foreground">
                 {dayMap[day.day] ?? day.day.slice(0, 3)}
               </span>
               <span className="flex-1 font-medium">{day.day}</span>
-              <span className={cn("font-mono", day.open ? "text-foreground" : "text-muted-foreground")}>
+              <span
+                className={cn("font-mono", day.open ? "text-foreground" : "text-muted-foreground")}
+              >
                 {day.open ? `${day.openTime} – ${day.closeTime}` : "Fechado"}
               </span>
             </div>

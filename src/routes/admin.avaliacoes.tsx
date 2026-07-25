@@ -17,22 +17,31 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/state/states";
 import { listReviews, updateReviewStatus, createManualReview } from "@/services/cms.functions";
 import { listAdminProducts } from "@/services/admin-catalog.functions";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/admin/avaliacoes")({
   head: () => ({ meta: [{ title: "Avaliações — Hr Shoes" }] }),
   loader: async () => {
-    const [reviewsRes, productsRes] = await Promise.all([
-      listReviews(),
-      listAdminProducts()
-    ]);
+    const [reviewsRes, productsRes] = await Promise.all([listReviews(), listAdminProducts()]);
     return {
       reviews: reviewsRes || [],
-      products: productsRes || []
+      products: productsRes || [],
     };
   },
   component: ReviewsPage,
@@ -48,7 +57,7 @@ function ReviewsPage() {
     productId: "",
     reviewerName: "",
     rating: "5",
-    comment: ""
+    comment: "",
   });
 
   const handleUpdateStatus = async (id: string, status: "approved" | "rejected") => {
@@ -75,8 +84,8 @@ function ReviewsPage() {
           productId: newReview.productId,
           reviewerName: newReview.reviewerName,
           rating: parseInt(newReview.rating, 10),
-          comment: newReview.comment || undefined
-        }
+          comment: newReview.comment || undefined,
+        },
       });
       toast.success("Avaliação adicionada com sucesso!");
       setIsModalOpen(false);
@@ -109,23 +118,28 @@ function ReviewsPage() {
               <form onSubmit={handleCreateReview} className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <Label>Produto *</Label>
-                  <Select value={newReview.productId} onValueChange={(v) => setNewReview({...newReview, productId: v})}>
+                  <Select
+                    value={newReview.productId}
+                    onValueChange={(v) => setNewReview({ ...newReview, productId: v })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o produto..." />
                     </SelectTrigger>
                     <SelectContent>
                       {products.map((p: any) => (
-                        <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.title}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label>Nome do Cliente *</Label>
-                  <Input 
+                  <Input
                     value={newReview.reviewerName}
-                    onChange={(e) => setNewReview({...newReview, reviewerName: e.target.value})}
+                    onChange={(e) => setNewReview({ ...newReview, reviewerName: e.target.value })}
                     placeholder="Ex: João da Silva"
                     required
                   />
@@ -133,7 +147,10 @@ function ReviewsPage() {
 
                 <div className="space-y-2">
                   <Label>Nota (Estrelas)</Label>
-                  <Select value={newReview.rating} onValueChange={(v) => setNewReview({...newReview, rating: v})}>
+                  <Select
+                    value={newReview.rating}
+                    onValueChange={(v) => setNewReview({ ...newReview, rating: v })}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -149,16 +166,18 @@ function ReviewsPage() {
 
                 <div className="space-y-2">
                   <Label>Comentário</Label>
-                  <Textarea 
+                  <Textarea
                     value={newReview.comment}
-                    onChange={(e) => setNewReview({...newReview, comment: e.target.value})}
+                    onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
                     placeholder="Opcional. Ex: Gostei muito do produto!"
                     rows={3}
                   />
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+                  <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+                    Cancelar
+                  </Button>
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? "Adicionando..." : "Salvar Avaliação"}
                   </Button>
@@ -195,7 +214,9 @@ function ReviewsPage() {
                     {review.products?.title || "Desconhecido"}
                   </TableCell>
                   <TableCell>
-                    {review.reviewer_name || review.users?.raw_user_meta_data?.full_name || "Cliente Anonimo"}
+                    {review.reviewer_name ||
+                      review.users?.raw_user_meta_data?.full_name ||
+                      "Cliente Anonimo"}
                   </TableCell>
                   <TableCell>
                     {Array.from({ length: 5 }).map((_, i) => (

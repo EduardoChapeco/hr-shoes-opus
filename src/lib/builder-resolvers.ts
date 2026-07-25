@@ -5,7 +5,6 @@ import { listPublishedProducts } from "@/services/catalog.functions";
  * Maps a binding source (e.g. 'latest_products') to an asynchronous fetcher function.
  */
 export const builderResolvers: Record<string, (args?: any) => Promise<any>> = {
-  
   // Resolve os produtos mais recentes da loja
   latest_products: async (args: { limit?: number } = {}) => {
     try {
@@ -21,8 +20,8 @@ export const builderResolvers: Record<string, (args?: any) => Promise<any>> = {
   category_products: async (args: { categorySlug: string; limit?: number }) => {
     try {
       if (!args.categorySlug) return [];
-      const res = await listPublishedProducts({ 
-        data: { categorySlug: args.categorySlug, limit: args.limit || 8 } 
+      const res = await listPublishedProducts({
+        data: { categorySlug: args.categorySlug, limit: args.limit || 8 },
       });
       return res?.status === "ok" ? res.data : [];
     } catch (e) {
@@ -47,10 +46,10 @@ export async function resolveNodeBindings(nodes: any[]): Promise<Record<string, 
       if (node.data_bindings && node.data_bindings.source) {
         const source = node.data_bindings.source as string;
         const args = node.data_bindings.args || {};
-        
+
         // Evita resolver o mesmo nó/fonte múltiplas vezes (simplificação)
         const bindingKey = `${node.id}_${source}`;
-        
+
         if (builderResolvers[source]) {
           resolvedData[bindingKey] = await builderResolvers[source](args);
         } else {

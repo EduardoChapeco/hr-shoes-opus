@@ -16,7 +16,7 @@ import { getSSRClient } from "@/lib/supabase-ssr.server";
 
 export async function listAdminPagesHandler() {
   const db = getSSRClient();
-      const { data, error } = await db
+  const { data, error } = await db
     .from("pages")
     .select("id, title, slug, status, created_at, updated_at")
     .order("created_at", { ascending: false });
@@ -32,7 +32,7 @@ export const listAdminPages = createServerFn({ method: "GET" }).handler(async ()
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] listAdminPages error:", e);
-    throw new Error("Erro ao listar páginas." );
+    throw new Error("Erro ao listar páginas.");
   }
 });
 
@@ -62,7 +62,7 @@ export const getAdminPageDetails = createServerFn({ method: "GET" })
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[cms.functions] getAdminPageDetails error:", e);
-      throw new Error("Erro ao carregar detalhes da página." );
+      throw new Error("Erro ao carregar detalhes da página.");
     }
   });
 
@@ -103,7 +103,7 @@ export const createPage = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[cms.functions] createPage error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro." );
+      throw new Error(e instanceof Error ? e.message : "Erro.");
     }
   });
 
@@ -123,7 +123,7 @@ export const deletePage = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[cms.functions] deletePage error:", e);
-      throw new Error("Erro ao excluir página." );
+      throw new Error("Erro ao excluir página.");
     }
   });
 
@@ -172,7 +172,7 @@ export const savePageSections = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[cms.functions] savePageSections error:", e);
-      throw new Error("Erro ao salvar seções." );
+      throw new Error("Erro ao salvar seções.");
     }
   });
 
@@ -217,7 +217,7 @@ export const getPublicPageBySlug = createServerFn({ method: "GET" })
           reason: "Este conteúdo institucional está sendo atualizado.",
         };
       console.error("[cms.functions] getPublicPageBySlug error:", e);
-      throw new Error("Erro inesperado ao carregar página." );
+      throw new Error("Erro inesperado ao carregar página.");
     }
   });
 
@@ -236,14 +236,14 @@ export const getPublicStoreSettings = createServerFn({ method: "GET" }).handler(
       .eq("id", storeId)
       .single();
     if (error || !store) return { status: "not_found" as const };
-    
+
     // Map settings to root level for convenience
     const logoUrl = store.settings?.logoUrl;
     const faviconUrl = store.settings?.faviconUrl;
-    
+
     return { status: "ok" as const, data: { ...store, logoUrl, faviconUrl } };
   } catch {
-    throw new Error("Erro ao carregar dados da loja." );
+    throw new Error("Erro ao carregar dados da loja.");
   }
 });
 
@@ -255,9 +255,9 @@ export const getThemeSettings = createServerFn({ method: "GET" }).handler(async 
   try {
     const db = getServerClient();
 
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
-      const storeId = await resolveTenantStoreId();
-      const storeData = storeId ? { id: storeId } : null;
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    const storeData = storeId ? { id: storeId } : null;
     if (!storeData) throw new Error("No store found");
 
     const { data, error } = await db
@@ -277,14 +277,14 @@ export const getThemeSettings = createServerFn({ method: "GET" }).handler(async 
         .single();
 
       if (insertError) throw insertError;
-      return newData ;
+      return newData;
     }
 
     return data;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] getThemeSettings error:", e);
-    throw new Error("Erro ao buscar tema." );
+    throw new Error("Erro ao buscar tema.");
   }
 });
 
@@ -322,7 +322,7 @@ export const updateThemeSettings = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[cms.functions] updateThemeSettings error:", e);
-      throw new Error("Erro ao atualizar tema." );
+      throw new Error("Erro ao atualizar tema.");
     }
   });
 
@@ -334,9 +334,9 @@ export const getNavigationMenus = createServerFn({ method: "GET" }).handler(asyn
   try {
     const db = getServerClient();
 
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
-      const storeId = await resolveTenantStoreId();
-      const storeData = storeId ? { id: storeId } : null;
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    const storeData = storeId ? { id: storeId } : null;
     if (!storeData) throw new Error("No store found");
 
     const { data, error } = await db
@@ -350,7 +350,7 @@ export const getNavigationMenus = createServerFn({ method: "GET" }).handler(asyn
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] getNavigationMenus error:", e);
-    throw new Error("Erro ao buscar menus de navegação." );
+    throw new Error("Erro ao buscar menus de navegação.");
   }
 });
 
@@ -390,10 +390,10 @@ export const upsertNavigationMenu = createServerFn({ method: "POST" })
       }
 
       if (result.error) throw result.error;
-      return result.data ;
+      return result.data;
     } catch (e: unknown) {
       console.error("[cms.functions] upsertNavigationMenu error:", e);
-      throw new Error("Erro ao salvar menu de navegação." );
+      throw new Error("Erro ao salvar menu de navegação.");
     }
   });
 
@@ -422,7 +422,7 @@ export const listReviews = createServerFn({ method: "GET" }).handler(async () =>
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] listReviews error:", e);
-    throw new Error("Erro ao listar avaliações." );
+    throw new Error("Erro ao listar avaliações.");
   }
 });
 
@@ -448,7 +448,7 @@ export const updateReviewStatus = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[cms.functions] updateReviewStatus error:", e);
-      throw new Error("Erro ao atualizar avaliação." );
+      throw new Error("Erro ao atualizar avaliação.");
     }
   });
 
@@ -463,7 +463,10 @@ export const createProductReview = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const db = getServerClient();
-      const { data: { user }, error: authError } = await db.auth.getUser();
+      const {
+        data: { user },
+        error: authError,
+      } = await db.auth.getUser();
       if (authError || !user) {
         throw new Error("Você precisa estar logado para fazer uma avaliação.");
       }
@@ -492,7 +495,7 @@ export const createProductReview = createServerFn({ method: "POST" })
       return data;
     } catch (e: any) {
       console.error("[cms.functions] createProductReview error:", e.message || e);
-      throw new Error(e.message || "Erro ao enviar avaliação." );
+      throw new Error(e.message || "Erro ao enviar avaliação.");
     }
   });
 
@@ -504,9 +507,9 @@ export const getLinkInBio = createServerFn({ method: "GET" }).handler(async () =
   try {
     const db = getServerClient();
 
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
-      const storeId = await resolveTenantStoreId();
-      const storeData = storeId ? { id: storeId } : null;
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    const storeData = storeId ? { id: storeId } : null;
     if (!storeData) throw new Error("No store found");
 
     const { data, error } = await db
@@ -526,14 +529,14 @@ export const getLinkInBio = createServerFn({ method: "GET" }).handler(async () =
         .single();
 
       if (insertError) throw insertError;
-      return newData ;
+      return newData;
     }
 
     return data;
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] getLinkInBio error:", e);
-    throw new Error("Erro ao buscar Link da Bio." );
+    throw new Error("Erro ao buscar Link da Bio.");
   }
 });
 
@@ -567,7 +570,7 @@ export const upsertLinkInBio = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[cms.functions] upsertLinkInBio error:", e);
-      throw new Error("Erro ao atualizar Link da Bio." );
+      throw new Error("Erro ao atualizar Link da Bio.");
     }
   });
 
@@ -579,10 +582,10 @@ export const listAdminStories = createServerFn({ method: "GET" }).handler(async 
   try {
     const db = getServerClient();
 
-      const { getServerIdentity } = await import("@/lib/identity");
-      const { store_id } = await getServerIdentity();
-      if (!store_id) throw new Error("No store found");
-      const storeData = { id: store_id };
+    const { getServerIdentity } = await import("@/lib/identity");
+    const { store_id } = await getServerIdentity();
+    if (!store_id) throw new Error("No store found");
+    const storeData = { id: store_id };
     if (!storeData) throw new Error("No store found");
 
     const { data, error } = await db
@@ -596,7 +599,7 @@ export const listAdminStories = createServerFn({ method: "GET" }).handler(async 
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] listAdminStories error:", e);
-    throw new Error("Erro ao listar stories." );
+    throw new Error("Erro ao listar stories.");
   }
 });
 
@@ -638,10 +641,10 @@ export const upsertStory = createServerFn({ method: "POST" })
       }
 
       if (result.error) throw result.error;
-      return result.data ;
+      return result.data;
     } catch (e: unknown) {
       console.error("[cms.functions] upsertStory error:", e);
-      throw new Error("Erro ao salvar story." );
+      throw new Error("Erro ao salvar story.");
     }
   });
 
@@ -657,7 +660,7 @@ export const deleteStory = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[cms.functions] deleteStory error:", e);
-      throw new Error("Erro ao excluir story." );
+      throw new Error("Erro ao excluir story.");
     }
   });
 
@@ -665,9 +668,9 @@ export const listPublicStories = createServerFn({ method: "GET" }).handler(async
   try {
     const db = getServerClient();
 
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
-      const storeId = await resolveTenantStoreId();
-      const storeData = storeId ? { id: storeId } : null;
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    const storeData = storeId ? { id: storeId } : null;
     if (!storeData) throw new Error("No store found");
 
     const { data, error } = await db
@@ -682,7 +685,7 @@ export const listPublicStories = createServerFn({ method: "GET" }).handler(async
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[cms.functions] listPublicStories error:", e);
-    throw new Error("Erro ao listar stories." );
+    throw new Error("Erro ao listar stories.");
   }
 });
 
@@ -696,7 +699,7 @@ export const getPageBySlug = createServerFn({ method: "GET" })
       const { resolveTenantStoreId } = await import("@/lib/tenant");
       const storeId = await resolveTenantStoreId();
       const store = storeId ? { id: storeId } : null;
-      if (!store) throw new Error("Loja não encontrada." );
+      if (!store) throw new Error("Loja não encontrada.");
 
       const { data: page, error } = await db
         .from("pages")
@@ -718,21 +721,33 @@ export const getPageBySlug = createServerFn({ method: "GET" })
         throw error;
       }
 
-      return page ;
+      return page;
     } catch (e: unknown) {
       console.error("[cms.functions] getPageBySlug error:", e);
-      throw new Error("Erro ao carregar página." );
+      throw new Error("Erro ao carregar página.");
     }
   });
 export const createReview = createServerFn({ method: "POST" })
-  .validator(z.object({ productId: z.string().uuid(), rating: z.number().min(1).max(5), comment: z.string().optional() }))
+  .validator(
+    z.object({
+      productId: z.string().uuid(),
+      rating: z.number().min(1).max(5),
+      comment: z.string().optional(),
+    }),
+  )
   .handler(async ({ data: { productId, rating, comment } }) => {
     try {
       const ssrClient = getSSRClient();
-        const { data: { user } } = await ssrClient.auth.getUser();
+      const {
+        data: { user },
+      } = await ssrClient.auth.getUser();
       if (!user) throw new Error("Não autenticado");
 
-      const { data: product } = await ssrClient.from("products").select("store_id").eq("id", productId).single();
+      const { data: product } = await ssrClient
+        .from("products")
+        .select("store_id")
+        .eq("id", productId)
+        .single();
       if (!product) throw new Error("Produto não encontrado.");
 
       const { error } = await ssrClient.from("reviews").insert({
@@ -741,17 +756,16 @@ export const createReview = createServerFn({ method: "POST" })
         user_id: user.id,
         rating,
         comment: comment || null,
-        status: "pending"
+        status: "pending",
       });
 
       if (error) throw error;
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[cms.functions] createReview:", e);
-      throw new Error(e.message || "Erro ao enviar avaliação." );
+      throw new Error(e.message || "Erro ao enviar avaliação.");
     }
   });
-
 
 export const createManualReview = createServerFn({ method: "POST" })
   .validator(
@@ -760,12 +774,14 @@ export const createManualReview = createServerFn({ method: "POST" })
       rating: z.number().min(1).max(5),
       comment: z.string().max(1000).optional(),
       reviewerName: z.string().min(2),
-    })
+    }),
   )
   .handler(async ({ data: { productId, rating, comment, reviewerName } }) => {
     try {
       const ssrClient = getSSRClient();
-        const { data: { user } } = await ssrClient.auth.getUser();
+      const {
+        data: { user },
+      } = await ssrClient.auth.getUser();
       if (!user) throw new Error("Não autenticado");
 
       // Verify user is store admin/owner
@@ -786,13 +802,13 @@ export const createManualReview = createServerFn({ method: "POST" })
         rating,
         comment: comment || null,
         status: "approved", // manual reviews are pre-approved
-        reviewer_name: reviewerName
+        reviewer_name: reviewerName,
       });
 
       if (error) throw error;
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[cms.functions] createManualReview:", e);
-      throw new Error(e.message || "Erro ao inserir avaliação manual." );
+      throw new Error(e.message || "Erro ao inserir avaliação manual.");
     }
   });

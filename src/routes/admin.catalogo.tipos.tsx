@@ -83,9 +83,10 @@ function ProductTypesPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredTypes = useMemo(() => {
-    return types.filter((t: any) =>
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.slug.toLowerCase().includes(searchQuery.toLowerCase())
+    return types.filter(
+      (t: any) =>
+        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.slug.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [types, searchQuery]);
 
@@ -166,7 +167,11 @@ function ProductTypesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este tipo de produto? Isso pode quebrar a associação de produtos que usam este tipo.")) {
+    if (
+      !confirm(
+        "Tem certeza que deseja excluir este tipo de produto? Isso pode quebrar a associação de produtos que usam este tipo.",
+      )
+    ) {
       return;
     }
     try {
@@ -185,14 +190,22 @@ function ProductTypesPage() {
         title="Tipos de produto"
         description="Defina os esquemas de atributos dinâmicos para diferentes categorias de produtos."
         actions={
-          <Dialog open={open} onOpenChange={(val) => { setOpen(val); if (!val) setEditingType(null); }}>
+          <Dialog
+            open={open}
+            onOpenChange={(val) => {
+              setOpen(val);
+              if (!val) setEditingType(null);
+            }}
+          >
             <Button onClick={handleOpenNew} size="sm">
               <Plus className="mr-1.5 size-4" aria-hidden />
               Novo Tipo
             </Button>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{editingType ? "Editar tipo de produto" : "Criar tipo de produto"}</DialogTitle>
+                <DialogTitle>
+                  {editingType ? "Editar tipo de produto" : "Criar tipo de produto"}
+                </DialogTitle>
                 <DialogDescription>
                   Um tipo de produto define quais atributos um produto deve ter (ex: Tamanho, Cor,
                   Material).
@@ -282,7 +295,12 @@ function ProductTypesPage() {
                                 onValueChange={(val) =>
                                   form.setValue(
                                     `fields.${index}.kind`,
-                                    val as "text" | "number" | "boolean" | "select_single" | "option_group",
+                                    val as
+                                      | "text"
+                                      | "number"
+                                      | "boolean"
+                                      | "select_single"
+                                      | "option_group",
                                   )
                                 }
                                 defaultValue={field.kind}
@@ -295,7 +313,9 @@ function ProductTypesPage() {
                                   <SelectItem value="number">Número</SelectItem>
                                   <SelectItem value="boolean">Verdadeiro/Falso</SelectItem>
                                   <SelectItem value="select_single">Seleção única</SelectItem>
-                                  <SelectItem value="option_group">Matriz de Variações (Grade)</SelectItem>
+                                  <SelectItem value="option_group">
+                                    Matriz de Variações (Grade)
+                                  </SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
@@ -320,7 +340,10 @@ function ProductTypesPage() {
                                 <Input
                                   placeholder="Ex: 34, 35, 36, Preto, Branco"
                                   onChange={(e) => {
-                                    const opts = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+                                    const opts = e.target.value
+                                      .split(",")
+                                      .map((s) => s.trim())
+                                      .filter(Boolean);
                                     form.setValue(`fields.${index}.options`, opts);
                                   }}
                                 />
@@ -392,8 +415,12 @@ function ProductTypesPage() {
                     created_at: string;
                   }) => (
                     <TableRow key={type.id} className="hover:bg-muted/30 transition-colors">
-                      <TableCell className="font-semibold text-sm text-foreground">{type.name}</TableCell>
-                      <TableCell className="text-muted-foreground font-mono text-xs">{type.slug}</TableCell>
+                      <TableCell className="font-semibold text-sm text-foreground">
+                        {type.name}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-xs">
+                        {type.slug}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className="text-xs">
                           {Array.isArray(type.field_schema) ? type.field_schema.length : 0} campos
@@ -435,4 +462,3 @@ function ProductTypesPage() {
     </div>
   );
 }
-

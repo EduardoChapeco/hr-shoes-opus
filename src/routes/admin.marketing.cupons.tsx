@@ -41,7 +41,7 @@ import { EmptyState } from "@/components/state/states";
 export const Route = createFileRoute("/admin/marketing/cupons")({
   head: () => ({ meta: [{ title: "Cupons de Desconto — Hr Shoes" }] }),
   loader: async () => {
-    return await listCoupons() || [];
+    return (await listCoupons()) || [];
   },
   component: CouponsPage,
 });
@@ -144,7 +144,9 @@ function CouponsPage() {
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Novo Cupom de Desconto</DialogTitle>
-                <DialogDescription>Cadastre o código e as regras de aplicação do cupom.</DialogDescription>
+                <DialogDescription>
+                  Cadastre o código e as regras de aplicação do cupom.
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSave} className="space-y-4 pt-2">
                 <div className="space-y-2">

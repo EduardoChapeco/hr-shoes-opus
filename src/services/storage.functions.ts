@@ -31,11 +31,11 @@ export const getSignedUploadUrl = createServerFn({ method: "POST" })
           public: bucket !== "payment-proofs",
           fileSizeLimit: 10485760, // 10MB
         });
-        
+
         if (createError) {
           throw new Error(`Auto-healing failed: ${createError.message}`);
         }
-        
+
         result = await supabase.storage.from(bucket).createSignedUploadUrl(uniqueName);
       }
 
@@ -54,7 +54,7 @@ export const getSignedUploadUrl = createServerFn({ method: "POST" })
       };
     } catch (e: any) {
       console.error("[storage.functions] getSignedUploadUrl error:", e);
-      throw new Error(e.message || "Erro ao gerar URL" );
+      throw new Error(e.message || "Erro ao gerar URL");
     }
   });
 
@@ -96,6 +96,6 @@ export const uploadMedia = createServerFn({ method: "POST" })
       const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(uniqueName);
       return { status: "success" as const, url: urlData.publicUrl };
     } catch (e: any) {
-      throw new Error(e.message || "Erro no upload" );
+      throw new Error(e.message || "Erro no upload");
     }
   });

@@ -25,8 +25,14 @@ export function RoutineSteps({
     <section className="w-full py-12 px-4 md:px-8 max-w-7xl mx-auto">
       {(title || subtitle) && (
         <div className="text-center mb-10">
-          {title && <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-3">{title}</h2>}
-          {subtitle && <p className="text-muted-foreground text-base max-w-2xl mx-auto">{subtitle}</p>}
+          {title && (
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-3">
+              {title}
+            </h2>
+          )}
+          {subtitle && (
+            <p className="text-muted-foreground text-base max-w-2xl mx-auto">{subtitle}</p>
+          )}
         </div>
       )}
 
@@ -55,7 +61,9 @@ export function RoutineSteps({
             )}
 
             <h3 className="text-lg font-semibold text-foreground mb-2">{step.title}</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed flex-grow mb-4">{step.description}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed flex-grow mb-4">
+              {step.description}
+            </p>
 
             {step.product_slug && (
               <Link

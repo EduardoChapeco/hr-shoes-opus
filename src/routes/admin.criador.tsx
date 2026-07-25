@@ -157,7 +157,11 @@ function CreatorPage() {
                   <CardContent className="space-y-4">
                     {post.image_url && (
                       <div className="w-full aspect-video rounded-md overflow-hidden bg-muted border relative">
-                        <img src={post.image_url} alt="Post" className="w-full h-full object-cover" />
+                        <img
+                          src={post.image_url}
+                          alt="Post"
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     )}
                     <p className="text-sm whitespace-pre-wrap">{post.content_text}</p>

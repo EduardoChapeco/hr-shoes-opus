@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -33,7 +40,10 @@ export function ReturnModal({ orderId }: { orderId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full mt-4 text-destructive border-destructive hover:bg-destructive/10">
+        <Button
+          variant="outline"
+          className="w-full mt-4 text-destructive border-destructive hover:bg-destructive/10"
+        >
           Solicitar Devolução / Troca
         </Button>
       </DialogTrigger>
@@ -45,8 +55,8 @@ export function ReturnModal({ orderId }: { orderId: string }) {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <Textarea 
-            placeholder="Ex: O tamanho ficou pequeno, gostaria de trocar por um maior." 
+          <Textarea
+            placeholder="Ex: O tamanho ficou pequeno, gostaria de trocar por um maior."
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />

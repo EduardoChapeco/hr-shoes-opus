@@ -19,7 +19,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { EmptyState } from "@/components/state/states";
 import {
   Dialog,
@@ -30,7 +37,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { listProductTypes, createProductType, updateProductType } from "@/services/admin-catalog.functions";
+import {
+  listProductTypes,
+  createProductType,
+  updateProductType,
+} from "@/services/admin-catalog.functions";
 
 export const Route = createFileRoute("/admin/catalogo/atributos")({
   head: () => ({ meta: [{ title: "Grupos de Opções & Atributos — Hr Shoes" }] }),
@@ -111,7 +122,7 @@ function AtributosPage() {
     setOptionsList(optionsList.filter((o) => o !== opt));
   };
 
-  const handleImportPreset = async (preset: typeof PRESET_OPTION_GROUPS[0]) => {
+  const handleImportPreset = async (preset: (typeof PRESET_OPTION_GROUPS)[0]) => {
     setIsSaving(true);
     try {
       const slug = preset.title
@@ -266,7 +277,11 @@ function AtributosPage() {
                       </span>
                     ) : (
                       optionsList.map((opt) => (
-                        <Badge key={opt} variant="secondary" className="text-xs flex items-center gap-1">
+                        <Badge
+                          key={opt}
+                          variant="secondary"
+                          className="text-xs flex items-center gap-1"
+                        >
                           {opt}
                           <button
                             type="button"
@@ -373,23 +388,32 @@ function AtributosPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {types.map((type: any) => {
                 const schema = Array.isArray(type.field_schema) ? type.field_schema : [];
-                const optionFields = schema.filter((f: any) => f.options && Array.isArray(f.options));
+                const optionFields = schema.filter(
+                  (f: any) => f.options && Array.isArray(f.options),
+                );
 
                 return (
-                  <div key={type.id} className="p-4 rounded-xl border border-border bg-card space-y-3">
+                  <div
+                    key={type.id}
+                    className="p-4 rounded-xl border border-border bg-card space-y-3"
+                  >
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="text-sm font-bold text-foreground">{type.name}</h4>
                         <p className="text-xs text-muted-foreground font-mono">/{type.slug}</p>
                       </div>
                       <Badge variant="secondary" className="text-xs">
-                        {optionFields.length > 0 ? `${optionFields.length} grupo(s)` : "Campos livres"}
+                        {optionFields.length > 0
+                          ? `${optionFields.length} grupo(s)`
+                          : "Campos livres"}
                       </Badge>
                     </div>
 
                     {optionFields.map((f: any, idx: number) => (
                       <div key={idx} className="space-y-1 pt-1">
-                        <span className="text-xs font-semibold text-muted-foreground">{f.name}:</span>
+                        <span className="text-xs font-semibold text-muted-foreground">
+                          {f.name}:
+                        </span>
                         <div className="flex flex-wrap gap-1">
                           {f.options.map((opt: string) => (
                             <Badge key={opt} variant="outline" className="text-xs bg-muted/40">

@@ -29,15 +29,29 @@ interface ProductGridProps {
 import { listPublishedProducts, getProductsByCollection } from "@/services/catalog.functions";
 import { Loader2 } from "lucide-react";
 
-export function ProductGrid({ content, design_tokens, data_bindings, transientData, resolvedData, isEditing }: ProductGridProps) {
+export function ProductGrid({
+  content,
+  design_tokens,
+  data_bindings,
+  transientData,
+  resolvedData,
+  isEditing,
+}: ProductGridProps) {
   // Support both object wrapped products and direct products array
-  const products: any[] = resolvedData?.products || (Array.isArray(resolvedData) ? resolvedData : null) || transientData?.products || [];
-  
+  const products: any[] =
+    resolvedData?.products ||
+    (Array.isArray(resolvedData) ? resolvedData : null) ||
+    transientData?.products ||
+    [];
+
   const bindingType = data_bindings?.type || data_bindings?.source;
   const collectionSlug = data_bindings?.collection_slug || content?.collection_slug;
 
   const isCollection = bindingType === "product_collection" && collectionSlug;
-  const isLatest = bindingType === "latest_products" || bindingType === "dynamic_products" || (!bindingType && products.length === 0);
+  const isLatest =
+    bindingType === "latest_products" ||
+    bindingType === "dynamic_products" ||
+    (!bindingType && products.length === 0);
 
   const shouldFetchClient = !!isEditing && products.length === 0;
 
@@ -47,7 +61,7 @@ export function ProductGrid({ content, design_tokens, data_bindings, transientDa
       const res = await getProductsByCollection({ data: { slug: collectionSlug! } });
       return Array.isArray(res) ? res : [];
     },
-    enabled: !!(shouldFetchClient && isCollection)
+    enabled: !!(shouldFetchClient && isCollection),
   });
 
   const { data: clientLatestProducts, isLoading: isLatestLoading } = useQuery({
@@ -56,17 +70,25 @@ export function ProductGrid({ content, design_tokens, data_bindings, transientDa
       const res = await listPublishedProducts({ data: { limit: 8 } });
       return res?.status === "ok" ? res.data : [];
     },
-    enabled: !!(shouldFetchClient && isLatest)
+    enabled: !!(shouldFetchClient && isLatest),
   });
 
   const isLoading = shouldFetchClient && (isCollectionLoading || isLatestLoading);
 
-  const activeProducts = products.length > 0
-    ? products
-    : (isCollection ? (clientCollectionProducts || []) : (clientLatestProducts || []));
+  const activeProducts =
+    products.length > 0
+      ? products
+      : isCollection
+        ? clientCollectionProducts || []
+        : clientLatestProducts || [];
 
   const cols = content?.columns ?? 4;
-  const colClass = { 2: "grid-cols-2", 3: "grid-cols-2 @md:grid-cols-3", 4: "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4" }[cols] ?? "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4";
+  const colClass =
+    {
+      2: "grid-cols-2",
+      3: "grid-cols-2 @md:grid-cols-3",
+      4: "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4",
+    }[cols] ?? "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4";
 
   return (
     <div
@@ -85,9 +107,7 @@ export function ProductGrid({ content, design_tokens, data_bindings, transientDa
               </h2>
             )}
             {content?.subtitle && (
-              <p className="text-muted-foreground text-sm @md:text-lg">
-                {content.subtitle}
-              </p>
+              <p className="text-muted-foreground text-sm @md:text-lg">{content.subtitle}</p>
             )}
           </div>
           <Button variant="ghost" className="hidden @md:flex gap-2 group" asChild>
@@ -110,7 +130,9 @@ export function ProductGrid({ content, design_tokens, data_bindings, transientDa
             <ShoppingBag className="h-10 w-10 opacity-30" />
             <div>
               <p className="font-medium">Nenhum produto disponível</p>
-              <p className="text-sm mt-1">Cadastre produtos ativos no painel para que apareçam aqui.</p>
+              <p className="text-sm mt-1">
+                Cadastre produtos ativos no painel para que apareçam aqui.
+              </p>
             </div>
           </div>
         ) : (

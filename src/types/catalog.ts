@@ -138,13 +138,15 @@ export interface ProductDetailDTO {
   isPhysical?: boolean;
   /** Days required to prepare the order before dispatch. */
   preparationTimeDays?: number;
-  reviews?: {
-    id: string;
-    rating: number;
-    comment: string | null;
-    created_at: string;
-    reviewer_name?: string | null;
-  }[] | null;
+  reviews?:
+    | {
+        id: string;
+        rating: number;
+        comment: string | null;
+        created_at: string;
+        reviewer_name?: string | null;
+      }[]
+    | null;
   categories?: { id: string; name: string; slug: string }[];
   /** Flexible product options configuration for dynamic variant generation */
   options?: { name: string; values: string[] }[];

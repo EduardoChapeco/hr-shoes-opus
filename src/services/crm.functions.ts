@@ -81,6 +81,7 @@ export const getCustomer360 = createServerFn({ method: "GET" })
       .from("customers_crm")
       .select("notes, tags")
       .eq("id", customerId)
+      .limit(1)
       .maybeSingle();
 
     const { data: orders } = await supabase
@@ -158,6 +159,7 @@ export const createCustomer = createServerFn({ method: "POST" })
           .from("profiles")
           .select("id")
           .eq("tax_id", input.taxId)
+          .limit(1)
           .maybeSingle();
 
         if (existingTax) {
@@ -176,7 +178,10 @@ export const createCustomer = createServerFn({ method: "POST" })
       });
 
       if (authError) {
-        if (authError.message.includes("already registered") || authError.message.includes("exists")) {
+        if (
+          authError.message.includes("already registered") ||
+          authError.message.includes("exists")
+        ) {
           throw new Error("Este endereço de e-mail já está em uso por outro cliente.");
         }
         throw new Error(authError.message);
@@ -217,7 +222,7 @@ export const createCustomer = createServerFn({ method: "POST" })
       return { status: "success" as const, customerId: userId };
     } catch (e: any) {
       console.error("[crm] createCustomer error:", e);
-      throw new Error(e.message || "Erro ao cadastrar cliente." );
+      throw new Error(e.message || "Erro ao cadastrar cliente.");
     }
   });
 
@@ -250,7 +255,7 @@ export const submitContactForm = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[crm] submitContactForm error:", e);
-      throw new Error(e.message || "Erro ao enviar mensagem" );
+      throw new Error(e.message || "Erro ao enviar mensagem");
     }
   });
 
@@ -292,7 +297,7 @@ export const updateLeadStatus = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[crm] updateLeadStatus error:", e);
-      throw new Error(e.message );
+      throw new Error(e.message);
     }
   });
 
@@ -334,7 +339,7 @@ export const promoteLeadToCustomer = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[crm] promoteLeadToCustomer error:", e);
-      throw new Error(e.message || "Erro ao converter lead." );
+      throw new Error(e.message || "Erro ao converter lead.");
     }
   });
 
@@ -386,18 +391,14 @@ export const upsertCustomerAddress = createServerFn({ method: "POST" })
           .select()
           .single();
       } else {
-        result = await supabase
-          .from("customer_addresses")
-          .insert(payload)
-          .select()
-          .single();
+        result = await supabase.from("customer_addresses").insert(payload).select().single();
       }
 
       if (result.error) throw result.error;
-      return result.data ;
+      return result.data;
     } catch (e: any) {
       console.error("[crm] upsertCustomerAddress error:", e);
-      throw new Error(e.message || "Erro ao salvar endereço." );
+      throw new Error(e.message || "Erro ao salvar endereço.");
     }
   });
 
@@ -425,7 +426,6 @@ export const deleteCustomerAddress = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[crm] deleteCustomerAddress error:", e);
-      throw new Error(e.message || "Erro ao deletar endereço." );
+      throw new Error(e.message || "Erro ao deletar endereço.");
     }
   });
-

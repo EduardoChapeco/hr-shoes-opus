@@ -49,7 +49,8 @@ export const Route = createFileRoute("/_store/catalogo")({
       },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>): CatalogSearch => SearchSchema.parse(search), loaderDeps: ({ search }) => search,
+  validateSearch: (search: Record<string, unknown>): CatalogSearch => SearchSchema.parse(search),
+  loaderDeps: ({ search }) => search,
   loader: async ({ location }) => {
     const search = location.search as CatalogSearch;
     const [productsRes, categoriesRes] = await Promise.all([
@@ -73,13 +74,7 @@ export const Route = createFileRoute("/_store/catalogo")({
 });
 
 // ─── Active filter chips ──────────────────────────────────────────────────────
-function FilterChips({
-  search,
-  categories,
-}: {
-  search: CatalogSearch;
-  categories: CategoryDTO[];
-}) {
+function FilterChips({ search, categories }: { search: CatalogSearch; categories: CategoryDTO[] }) {
   const navigate = useNavigate();
   const chips: { label: string; onRemove: () => void }[] = [];
 
@@ -87,23 +82,32 @@ function FilterChips({
     const cat = categories.find((c) => c.slug === search.categoria);
     chips.push({
       label: cat?.name ?? search.categoria,
-      onRemove: () => navigate({ to: Route.fullPath, search: (s: Record<string, any>) => ({ ...s, categoria: undefined }) }),
+      onRemove: () =>
+        navigate({
+          to: Route.fullPath,
+          search: (s: Record<string, any>) => ({ ...s, categoria: undefined }),
+        }),
     });
   }
   if (search.sort && search.sort !== "newest") {
     chips.push({
       label: SORT_LABELS[search.sort],
-      onRemove: () => navigate({ to: Route.fullPath, search: (s: Record<string, any>) => ({ ...s, sort: undefined }) }),
+      onRemove: () =>
+        navigate({
+          to: Route.fullPath,
+          search: (s: Record<string, any>) => ({ ...s, sort: undefined }),
+        }),
     });
   }
   if (search.minCents != null || search.maxCents != null) {
-    const range = PRICE_RANGES.find(
-      (r) => r.min === search.minCents && r.max === search.maxCents,
-    );
+    const range = PRICE_RANGES.find((r) => r.min === search.minCents && r.max === search.maxCents);
     chips.push({
       label: range?.label ?? `Faixa de preço`,
       onRemove: () =>
-        navigate({ to: Route.fullPath, search: (s: Record<string, any>) => ({ ...s, minCents: undefined, maxCents: undefined }) }),
+        navigate({
+          to: Route.fullPath,
+          search: (s: Record<string, any>) => ({ ...s, minCents: undefined, maxCents: undefined }),
+        }),
     });
   }
 
@@ -124,10 +128,7 @@ function FilterChips({
         </Badge>
       ))}
       <button
-        onClick={() =>
-          navigate({ to: Route.fullPath, search: {},
-          })
-        }
+        onClick={() => navigate({ to: Route.fullPath, search: {} })}
         className="text-xs text-muted-foreground underline hover:text-foreground"
       >
         Limpar todos
@@ -270,17 +271,24 @@ function CatalogPage() {
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       {/* Breadcrumb */}
-      <nav aria-label="Navegação estrutural" className="mb-6 flex items-center gap-2 text-xs text-muted-foreground">
-        <Link to="/" className="hover:text-foreground">Início</Link>
+      <nav
+        aria-label="Navegação estrutural"
+        className="mb-6 flex items-center gap-2 text-xs text-muted-foreground"
+      >
+        <Link to="/" className="hover:text-foreground">
+          Início
+        </Link>
         <ChevronRight className="size-3" aria-hidden />
         <span className="text-foreground">Catálogo</span>
       </nav>
 
       <PageHeader
         eyebrow="Vitrine"
-        title={search.categoria
-          ? (categories.find((c) => c.slug === search.categoria)?.name ?? "Catálogo")
-          : "Catálogo"}
+        title={
+          search.categoria
+            ? (categories.find((c) => c.slug === search.categoria)?.name ?? "Catálogo")
+            : "Catálogo"
+        }
         description="Todos os produtos da Hr Shoes."
       />
 
@@ -301,7 +309,13 @@ function CatalogPage() {
                 key={value}
                 id={`sort-${value}`}
                 onClick={() =>
-                  navigate({ to: Route.fullPath, search: (s: Record<string, any>) => ({ ...s, sort: value as CatalogSearch["sort"] }) })
+                  navigate({
+                    to: Route.fullPath,
+                    search: (s: Record<string, any>) => ({
+                      ...s,
+                      sort: value as CatalogSearch["sort"],
+                    }),
+                  })
                 }
                 className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${
                   (search.sort ?? "newest") === value

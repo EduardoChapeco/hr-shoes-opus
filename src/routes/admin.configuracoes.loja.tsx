@@ -71,7 +71,9 @@ function StoreSettings() {
       <form onSubmit={handleSave} className="space-y-6 max-w-2xl">
         <Card className="rounded-xl border border-border bg-card shadow-xs">
           <CardHeader className="pb-3 border-b border-border">
-            <CardTitle className="text-sm font-semibold text-foreground">Informações Gerais</CardTitle>
+            <CardTitle className="text-sm font-semibold text-foreground">
+              Informações Gerais
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -102,7 +104,9 @@ function StoreSettings() {
 
         <Card className="rounded-xl border border-border bg-card shadow-xs">
           <CardHeader className="pb-3 border-b border-border">
-            <CardTitle className="text-sm font-semibold text-foreground">Identidade Visual</CardTitle>
+            <CardTitle className="text-sm font-semibold text-foreground">
+              Identidade Visual
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="grid gap-6 md:grid-cols-2">
@@ -113,7 +117,9 @@ function StoreSettings() {
                   onChange={(url) => setForm((f) => ({ ...f, logoUrl: url }))}
                   bucket="cms-media"
                 />
-                <p className="text-xs text-muted-foreground mt-1">Imagem retangular, preferencialmente transparente (PNG/SVG).</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Imagem retangular, preferencialmente transparente (PNG/SVG).
+                </p>
               </div>
               <div className="space-y-2">
                 <Label>Ícone da Aba (Favicon)</Label>
@@ -122,7 +128,9 @@ function StoreSettings() {
                   onChange={(url) => setForm((f) => ({ ...f, faviconUrl: url }))}
                   bucket="cms-media"
                 />
-                <p className="text-xs text-muted-foreground mt-1">Imagem quadrada, ex: 64x64 (PNG/SVG).</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Imagem quadrada, ex: 64x64 (PNG/SVG).
+                </p>
               </div>
             </div>
           </CardContent>
@@ -130,7 +138,9 @@ function StoreSettings() {
 
         <Card className="rounded-xl border border-border bg-card shadow-xs">
           <CardHeader className="pb-3 border-b border-border">
-            <CardTitle className="text-sm font-semibold text-foreground">Contato Comercial</CardTitle>
+            <CardTitle className="text-sm font-semibold text-foreground">
+              Contato Comercial
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="space-y-2">
@@ -148,7 +158,9 @@ function StoreSettings() {
 
         <Card className="rounded-xl border border-border bg-card shadow-xs">
           <CardHeader className="pb-3 border-b border-border">
-            <CardTitle className="text-sm font-semibold text-foreground">Origem Logística (Faturamento)</CardTitle>
+            <CardTitle className="text-sm font-semibold text-foreground">
+              Origem Logística (Faturamento)
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="grid gap-4 md:grid-cols-3">
@@ -192,4 +204,3 @@ function StoreSettings() {
     </div>
   );
 }
-

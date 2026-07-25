@@ -374,10 +374,7 @@ export async function processPOSSaleHandler(input: {
   });
 
   // 3. Compute totals server-side
-  const subtotalCents = canonicalItems.reduce(
-    (acc, item) => acc + item.priceCents * item.qty,
-    0,
-  );
+  const subtotalCents = canonicalItems.reduce((acc, item) => acc + item.priceCents * item.qty, 0);
   const discountCents = Math.max(0, input.discountCents || 0);
   const totalCents = Math.max(0, subtotalCents - discountCents);
 
@@ -393,14 +390,14 @@ export async function processPOSSaleHandler(input: {
     p_customer_id: input.customerId || null,
     p_payment_method: input.paymentMethod,
     p_discount_cents: discountCents,
-    p_items: canonicalItems.map(item => ({
+    p_items: canonicalItems.map((item) => ({
       variantId: item.variantId,
       qty: item.qty,
       priceCents: item.priceCents,
       title: item.title,
-      sku: item.sku
+      sku: item.sku,
     })),
-    p_idempotency_key: `pos-${identity.store_id}-${Date.now()}` // Ideally passed from client, but fallback here
+    p_idempotency_key: `pos-${identity.store_id}-${Date.now()}`, // Ideally passed from client, but fallback here
   });
 
   if (rpcError) {
@@ -445,7 +442,6 @@ export const processPOSSale = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     return await processPOSSaleHandler(data);
   });
-
 
 export const listRegisterHistory = createServerFn({ method: "GET" }).handler(async () => {
   return await listRegisterHistoryHandler();

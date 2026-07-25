@@ -40,15 +40,24 @@ export function ImageHotspots({
     <div className="w-full py-12 px-4 md:px-8 max-w-7xl mx-auto">
       {(title || subtitle) && (
         <div className="text-center mb-8">
-          {title && <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-2">{title}</h2>}
-          {subtitle && <p className="text-muted-foreground text-base max-w-2xl mx-auto">{subtitle}</p>}
+          {title && (
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-2">
+              {title}
+            </h2>
+          )}
+          {subtitle && (
+            <p className="text-muted-foreground text-base max-w-2xl mx-auto">{subtitle}</p>
+          )}
         </div>
       )}
 
       <div className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-border bg-muted">
         {/* Main Image */}
         <img
-          src={displayImage || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1600"}
+          src={
+            displayImage ||
+            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1600"
+          }
           alt={title || "Shop the Look"}
           className="w-full h-auto object-cover max-h-[700px]"
         />
@@ -87,7 +96,9 @@ export function ImageHotspots({
         {activeHotspot && !onHotspotClickInEditor && (
           <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:bottom-4 md:w-80 bg-background/95 backdrop-blur-md p-4 rounded-xl shadow-2xl border border-border z-30 transition-all animate-in fade-in slide-in-from-bottom-4">
             <div className="flex items-center justify-between mb-3 pb-2 border-b border-border">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Produto em Destaque</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Produto em Destaque
+              </span>
               <button
                 type="button"
                 onClick={() => setActiveHotspot(null)}
@@ -98,7 +109,9 @@ export function ImageHotspots({
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-semibold text-foreground text-sm line-clamp-2">{activeHotspot.title || "Produto Selecionado"}</h4>
+              <h4 className="font-semibold text-foreground text-sm line-clamp-2">
+                {activeHotspot.title || "Produto Selecionado"}
+              </h4>
               {activeHotspot.product_slug ? (
                 <Link
                   to="/produto/$slug"

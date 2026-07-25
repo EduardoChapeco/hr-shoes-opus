@@ -102,7 +102,7 @@ export const listOrders = createServerFn({ method: "GET" }).handler(async () => 
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[order.functions] listOrders:", e.message);
-    throw new Error("Erro ao buscar pedidos." );
+    throw new Error("Erro ao buscar pedidos.");
   }
 });
 
@@ -115,7 +115,7 @@ export const getOrderById = createServerFn({ method: "GET" })
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[order.functions] getOrderById:", e.message);
-      throw new Error(e.message || "Pedido não encontrado." );
+      throw new Error(e.message || "Pedido não encontrado.");
     }
   });
 
@@ -132,7 +132,7 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[order.functions] updateOrderStatus:", e.message);
-      throw new Error("Erro ao atualizar pedido." );
+      throw new Error("Erro ao atualizar pedido.");
     }
   });
 
@@ -152,11 +152,11 @@ export const listPayments = createServerFn({ method: "GET" }).handler(async () =
 
     if (error) throw error;
 
-    return data || [] ;
+    return data || [];
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[order.functions] listPayments:", e.message);
-    throw new Error("Erro ao buscar pagamentos." );
+    throw new Error("Erro ao buscar pagamentos.");
   }
 });
 
@@ -186,10 +186,10 @@ export const listCustomerOrders = createServerFn({ method: "GET" }).handler(asyn
 
     if (error) throw error;
 
-    return data || [] ;
+    return data || [];
   } catch (e: any) {
     console.error("[order.functions] listCustomerOrders:", e.message);
-    throw new Error("Erro ao buscar seus pedidos." );
+    throw new Error("Erro ao buscar seus pedidos.");
   }
 });
 
@@ -220,11 +220,10 @@ export const getCustomerOrder = createServerFn({ method: "GET" })
 
       if (error) throw error;
 
-      return order ;
+      return order;
     } catch (e: any) {
       console.error("[order.functions] getCustomerOrder:", e.message);
-      throw new Error(e.message || "Erro ao buscar detalhes do pedido.",
-      );
+      throw new Error(e.message || "Erro ao buscar detalhes do pedido.");
     }
   });
 
@@ -244,11 +243,10 @@ export const listOrdersAwaitingShippingQuote = createServerFn({ method: "GET" })
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      return data || [] ;
+      return data || [];
     } catch (e: any) {
       console.error("[order.functions] listOrdersAwaitingShippingQuote error:", e);
-      throw new Error(e.message || "Erro ao buscar solicitações de frete.",
-      );
+      throw new Error(e.message || "Erro ao buscar solicitações de frete.");
     }
   },
 );
@@ -301,8 +299,7 @@ export const updateOrderShippingQuote = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[order.functions] updateOrderShippingQuote error:", e);
-      throw new Error(e.message || "Erro ao atualizar frete do pedido.",
-      );
+      throw new Error(e.message || "Erro ao atualizar frete do pedido.");
     }
   });
 
@@ -350,16 +347,19 @@ export const getOrderPaymentInstructions = createServerFn({ method: "GET" })
       };
     } catch (e: any) {
       console.error("[order.functions] getOrderPaymentInstructions:", e);
-      throw new Error(e.message || "Erro ao buscar instruções de pagamento.",
-      );
+      throw new Error(e.message || "Erro ao buscar instruções de pagamento.");
     }
   });
 export const requestOrderReturn = createServerFn({ method: "POST" })
-  .validator(z.object({ orderId: z.string().uuid(), reason: z.string().min(5, "Motivo muito curto") }))
+  .validator(
+    z.object({ orderId: z.string().uuid(), reason: z.string().min(5, "Motivo muito curto") }),
+  )
   .handler(async ({ data: { orderId, reason } }) => {
     try {
       const ssrClient = getSSRClient();
-      const { data: { user } } = await ssrClient.auth.getUser();
+      const {
+        data: { user },
+      } = await ssrClient.auth.getUser();
       if (!user) throw new Error("Não autenticado");
 
       // Verify ownership and status
@@ -369,41 +369,41 @@ export const requestOrderReturn = createServerFn({ method: "POST" })
         .eq("id", orderId)
         .eq("customer_id", user.id)
         .single();
-        
+
       if (orderError || !order) throw new Error("Pedido não encontrado");
-      if (order.status !== "delivered") throw new Error("Apenas pedidos entregues podem ser devolvidos/trocados.");
+      if (order.status !== "delivered")
+        throw new Error("Apenas pedidos entregues podem ser devolvidos/trocados.");
 
       const db = getServerClient();
       const { error: updateError } = await db
         .from("orders")
         .update({ status: "return_requested" })
         .eq("id", orderId);
-        
+
       if (updateError) throw updateError;
-      
+
       // Optionally create a note for the admin
       await db.from("customer_notes").insert({
         store_id: order.store_id,
         customer_id: user.id,
-        content: "Solicitação de Devolução/Troca (Pedido: " + orderId + ") - Motivo: " + reason
+        content: "Solicitação de Devolução/Troca (Pedido: " + orderId + ") - Motivo: " + reason,
       });
 
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[order.functions] requestOrderReturn:", e);
-      throw new Error(e.message || "Erro ao solicitar devolução." );
+      throw new Error(e.message || "Erro ao solicitar devolução.");
     }
   });
 
-
-export const updateOrderShipment = createServerFn({ method: 'POST' })
+export const updateOrderShipment = createServerFn({ method: "POST" })
   .validator(
     z.object({
       orderId: z.string().uuid(),
-      trackingCode: z.string().min(1, 'Código de rastreamento é obrigatório'),
+      trackingCode: z.string().min(1, "Código de rastreamento é obrigatório"),
       carrierName: z.string().optional(),
       trackingUrl: z.string().optional(),
-      newStatus: z.enum(['shipped', 'delivered']).optional(),
+      newStatus: z.enum(["shipped", "delivered"]).optional(),
     }),
   )
   .handler(async ({ data: { orderId, trackingCode, carrierName, trackingUrl, newStatus } }) => {
@@ -412,17 +412,20 @@ export const updateOrderShipment = createServerFn({ method: 'POST' })
       const {
         data: { user },
       } = await ssrClient.auth.getUser();
-      if (!user) throw new Error('Não autorizado');
+      if (!user) throw new Error("Não autorizado");
 
       const db = getServerClient();
       const { data: profile } = await db
-        .from('profiles')
-        .select('role, store_id')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("role, store_id")
+        .eq("id", user.id)
         .single();
 
-      if (!profile?.store_id || !['owner', 'admin', 'manager', 'logistics'].includes(profile.role)) {
-        throw new Error('Acesso negado');
+      if (
+        !profile?.store_id ||
+        !["owner", "admin", "manager", "logistics"].includes(profile.role)
+      ) {
+        throw new Error("Acesso negado");
       }
 
       const generatedUrl =
@@ -431,31 +434,30 @@ export const updateOrderShipment = createServerFn({ method: 'POST' })
           ? `https://rastreamento.correios.com.br/app/index.php?codigo=${trackingCode}`
           : `https://melhorrastreio.com.br/rastreio/${trackingCode}`);
 
-      const statusToApply = newStatus || 'shipped';
+      const statusToApply = newStatus || "shipped";
       const updateData: Record<string, any> = {
         tracking_code: trackingCode,
-        carrier_name: carrierName || 'Correios',
+        carrier_name: carrierName || "Correios",
         tracking_url: generatedUrl,
         status: statusToApply,
         updated_at: new Date().toISOString(),
       };
 
-      if (statusToApply === 'shipped') updateData.shipped_at = new Date().toISOString();
-      if (statusToApply === 'delivered') updateData.delivered_at = new Date().toISOString();
+      if (statusToApply === "shipped") updateData.shipped_at = new Date().toISOString();
+      if (statusToApply === "delivered") updateData.delivered_at = new Date().toISOString();
 
       const { data, error } = await db
-        .from('orders')
+        .from("orders")
         .update(updateData)
-        .eq('id', orderId)
-        .eq('store_id', profile.store_id)
+        .eq("id", orderId)
+        .eq("store_id", profile.store_id)
         .select()
         .single();
 
       if (error) throw error;
       return data;
     } catch (e: any) {
-      console.error('[order.functions] updateOrderShipment error:', e);
-      throw new Error(e.message || 'Erro ao atualizar rastreamento do pedido.');
+      console.error("[order.functions] updateOrderShipment error:", e);
+      throw new Error(e.message || "Erro ao atualizar rastreamento do pedido.");
     }
   });
-

@@ -1,10 +1,7 @@
 import * as React from "react";
 import { useState } from "react";
 import { Play } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface Story {
   id: string;
@@ -33,7 +30,9 @@ export function StoriesRing({ content }: StoriesRingProps) {
       <div className="w-full flex overflow-x-auto gap-4 py-4 px-4 scrollbar-hide snap-x">
         {stories.map((story) => {
           const thumbImg = story.thumb || story.thumbnail_url || "";
-          const isVideo = story.media_url?.split('?')[0].match(/\.(mp4|webm|mov|ogg)$/i) || story.type === "video";
+          const isVideo =
+            story.media_url?.split("?")[0].match(/\.(mp4|webm|mov|ogg)$/i) ||
+            story.type === "video";
 
           return (
             <button
@@ -45,7 +44,11 @@ export function StoriesRing({ content }: StoriesRingProps) {
                 <div className="w-20 h-20 bg-background rounded-full p-[2px]">
                   <div className="w-full h-full rounded-full overflow-hidden relative bg-muted">
                     {thumbImg ? (
-                      <img src={thumbImg} alt={story.title} className="w-full h-full object-cover" />
+                      <img
+                        src={thumbImg}
+                        alt={story.title}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <div className="w-full h-full bg-muted" />
                     )}
@@ -57,7 +60,9 @@ export function StoriesRing({ content }: StoriesRingProps) {
                   </div>
                 </div>
               </div>
-              <span className="text-xs font-medium max-w-[80px] truncate text-center">{story.title}</span>
+              <span className="text-xs font-medium max-w-[80px] truncate text-center">
+                {story.title}
+              </span>
             </button>
           );
         })}
@@ -66,28 +71,31 @@ export function StoriesRing({ content }: StoriesRingProps) {
       {/* Fullscreen Story Viewer */}
       <Dialog open={!!activeStory} onOpenChange={(open) => !open && setActiveStory(null)}>
         <DialogContent className="max-w-md w-full h-[80vh] @md:h-[90vh] p-0 overflow-hidden bg-black border-none rounded-2xl flex flex-col items-center justify-center">
-          {activeStory && (() => {
-            const isVideo = activeStory.media_url?.split('?')[0].match(/\.(mp4|webm|mov|ogg)$/i) || activeStory.type === "video";
-            return (
-              <div className="w-full h-full relative">
-                {isVideo ? (
-                  <video 
-                    src={activeStory.media_url} 
-                    autoPlay 
-                    loop 
-                    playsInline
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <img 
-                    src={activeStory.media_url} 
-                    alt={activeStory.title} 
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
-            );
-          })()}
+          {activeStory &&
+            (() => {
+              const isVideo =
+                activeStory.media_url?.split("?")[0].match(/\.(mp4|webm|mov|ogg)$/i) ||
+                activeStory.type === "video";
+              return (
+                <div className="w-full h-full relative">
+                  {isVideo ? (
+                    <video
+                      src={activeStory.media_url}
+                      autoPlay
+                      loop
+                      playsInline
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={activeStory.media_url}
+                      alt={activeStory.title}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+              );
+            })()}
         </DialogContent>
       </Dialog>
     </>

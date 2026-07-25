@@ -18,10 +18,14 @@ export const Route = createFileRoute("/_store/categoria/$slug")({
   },
   head: ({ loaderData }) => {
     const data = loaderData as any;
-    const categoryName = data?.categoriesResult?.find((c: CategoryDTO) => c.slug === data?.slug)?.name ?? data?.slug ?? "Categoria";
+    const categoryName =
+      data?.categoriesResult?.find((c: CategoryDTO) => c.slug === data?.slug)?.name ??
+      data?.slug ??
+      "Categoria";
     const title = `${categoryName} — Hr Shoes`;
     const description = `Confira os produtos da categoria ${categoryName} na Hr Shoes. Qualidade, estilo e conforto para o seu dia a dia.`;
-    const canonical = typeof window !== "undefined" ? `${window.location.origin}/categoria/${data?.slug}` : "";
+    const canonical =
+      typeof window !== "undefined" ? `${window.location.origin}/categoria/${data?.slug}` : "";
 
     return {
       meta: [
@@ -41,25 +45,25 @@ export const Route = createFileRoute("/_store/categoria/$slug")({
           children: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
-            "itemListElement": [
+            itemListElement: [
               {
                 "@type": "ListItem",
-                "position": 1,
-                "name": "Início",
-                "item": typeof window !== "undefined" ? window.location.origin : ""
+                position: 1,
+                name: "Início",
+                item: typeof window !== "undefined" ? window.location.origin : "",
               },
               {
                 "@type": "ListItem",
-                "position": 2,
-                "name": "Catálogo",
-                "item": typeof window !== "undefined" ? `${window.location.origin}/catalogo` : ""
+                position: 2,
+                name: "Catálogo",
+                item: typeof window !== "undefined" ? `${window.location.origin}/catalogo` : "",
               },
               {
                 "@type": "ListItem",
-                "position": 3,
-                "name": categoryName
-              }
-            ]
+                position: 3,
+                name: categoryName,
+              },
+            ],
           }),
         },
       ],

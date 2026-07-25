@@ -4,12 +4,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/money";
-import { getCart, updateCartShipping, applyCouponToCart, updateCartContact } from "@/services/cart.functions";
+import {
+  getCart,
+  updateCartShipping,
+  applyCouponToCart,
+  updateCartContact,
+} from "@/services/cart.functions";
 import { checkGiftCardBalance } from "@/services/giftcard.functions";
 import { processCheckout } from "@/services/checkout.functions";
 import { initiatePaymentTransaction, getPublicPaymentMethods } from "@/services/payment.functions";
 import { calculateShipping } from "@/services/shipping.functions";
 import { getPublicStoreProfile } from "@/services/catalog.functions";
+import { getProfile } from "@/services/auth.functions";
+import { getCustomerAddresses } from "@/services/customer.functions";
 import {
   CheckCircle2,
   Ticket,
@@ -36,10 +43,12 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Hr Shoes" }] }),
   loader: async () => {
-    const [cart, profileRes, paymentMethodsRes] = await Promise.all([
+    const [cart, profileRes, paymentMethodsRes, userProfile, userAddresses] = await Promise.all([
       getCart(),
       getPublicStoreProfile(),
       getPublicPaymentMethods(),
+      getProfile().catch(() => null),
+      getCustomerAddresses().catch(() => []),
     ]);
     const storeProfile = profileRes;
 
@@ -57,6 +66,8 @@ export const Route = createFileRoute("/_store/checkout")({
       },
       paymentMethods: paymentMethodsRes || [],
       storeProfile: storeProfile || null,
+      userProfile: userProfile || null,
+      userAddresses: userAddresses || [],
     };
   },
   component: CheckoutPage,
@@ -71,7 +82,7 @@ interface ManualPaymentOption {
 }
 
 function CheckoutPage() {
-  const { cart: initialCart, paymentMethods, storeProfile } = Route.useLoaderData();
+  const { cart: initialCart, paymentMethods, storeProfile, userProfile, userAddresses } = Route.useLoaderData();
   const navigate = useNavigate();
   const router = useRouter();
 
@@ -135,6 +146,47 @@ function CheckoutPage() {
     setCart(initialCart);
   }, [initialCart]);
 
+  // Pre-fill user profile info if logged in
+  useEffect(() => {
+    if (userProfile) {
+      setFormData((prev) => ({
+        ...prev,
+        customerName: prev.customerName || userProfile.fullName || "",
+        customerEmail: prev.customerEmail || userProfile.email || "",
+        customerPhone: prev.customerPhone || userProfile.phone || "",
+        customerDocument: prev.customerDocument || userProfile.cpf || "",
+      }));
+    }
+  }, [userProfile]);
+
+  // Pre-fill default saved address if available
+  useEffect(() => {
+    if (userAddresses && userAddresses.length > 0) {
+      const defaultAddr = userAddresses.find((a: any) => a.is_default) || userAddresses[0];
+      if (defaultAddr && defaultAddr.zipcode) {
+        const cleanZip = defaultAddr.zipcode.replace(/\D/g, "");
+        setFormData((prev) => {
+          if (prev.shippingAddress.zipcode) return prev;
+          return {
+            ...prev,
+            shippingAddress: {
+              zipcode: cleanZip,
+              street: defaultAddr.street || "",
+              number: defaultAddr.number || "",
+              complement: defaultAddr.complement || "",
+              neighborhood: defaultAddr.neighborhood || "",
+              city: defaultAddr.city || "",
+              state: defaultAddr.state || "",
+            },
+          };
+        });
+        if (cleanZip.length === 8) {
+          handleCepChange(cleanZip);
+        }
+      }
+    }
+  }, [userAddresses]);
+
   // Cep autofill & dynamic shipping cost calculation
   const handleAdvanceToDelivery = async () => {
     try {
@@ -143,7 +195,7 @@ function CheckoutPage() {
           data: {
             guestEmail: formData.customerEmail || undefined,
             guestPhone: formData.customerPhone || undefined,
-          }
+          },
         });
       }
     } catch (e) {
@@ -288,9 +340,7 @@ function CheckoutPage() {
       );
     }
   } else if (formData.paymentMethod === "pix" && pixDiscountPercent > 0) {
-    paymentDiscountCents = Math.floor(
-      cart.subtotalCents * (pixDiscountPercent / 100)
-    );
+    paymentDiscountCents = Math.floor(cart.subtotalCents * (pixDiscountPercent / 100));
   }
 
   // Calculate installment options helper
@@ -319,7 +369,7 @@ function CheckoutPage() {
           installmentValue = Math.round(p / n);
         } else {
           const factor = Math.pow(1 + r, n);
-          installmentValue = Math.round(p * (r * factor) / (factor - 1));
+          installmentValue = Math.round((p * (r * factor)) / (factor - 1));
         }
         options.push({
           number: i,
@@ -410,7 +460,15 @@ function CheckoutPage() {
     // Validate credit card inputs
     if (formData.paymentMethod === "credit_card") {
       const { number, holderName, expiryDate, cvv } = creditCardData;
-      if (!number || number.length < 15 || !holderName || !expiryDate || expiryDate.length < 5 || !cvv || cvv.length < 3) {
+      if (
+        !number ||
+        number.length < 15 ||
+        !holderName ||
+        !expiryDate ||
+        expiryDate.length < 5 ||
+        !cvv ||
+        cvv.length < 3
+      ) {
         toast.error("Por favor, preencha todos os campos obrigatórios do Cartão de Crédito.");
         return;
       }
@@ -435,7 +493,11 @@ function CheckoutPage() {
         },
       });
 
-      if (formData.shippingMethod !== "manual_quote" && checkoutTotalCents > 0) {
+      if (
+        formData.shippingMethod !== "manual_quote" &&
+        formData.paymentMethod !== "manual" &&
+        checkoutTotalCents > 0
+      ) {
         try {
           await initiatePaymentTransaction({
             data: {
@@ -446,9 +508,12 @@ function CheckoutPage() {
           });
         } catch (payErr: any) {
           console.error("Erro de transação:", payErr);
+          throw new Error(
+            "Erro na iniciação do pagamento: " + (payErr.message || "Falha na transação"),
+          );
         }
       }
-      setSuccessToken(res.orderToken);
+
       toast.success("Pedido realizado com sucesso!");
 
       // Phase 5 Analytics: Trigger Purchase Event
@@ -473,61 +538,21 @@ function CheckoutPage() {
           console.error("Erro ao registrar conversão no analytics", e);
         }
       }
+
+      // Redirecionamento canônico ao invés de view local
+      navigate({ to: "/pedido/$publicToken/confirmacao", params: { publicToken: res.orderToken } });
     } catch (err: any) {
-      toast.error(err.message || "Erro inesperado.");
+      if (err.message && err.message.includes("unconfigured_integration")) {
+        toast.error(
+          "Integração de pagamento não configurada. A compra não pode ser concluída no momento.",
+        );
+      } else {
+        toast.error(err.message || "Erro inesperado ao finalizar compra.");
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  if (successToken) {
-    return (
-      <div className="container max-w-2xl py-24 mx-auto px-4 text-center">
-        <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-6" />
-        <h1 className="text-3xl font-serif font-bold mb-4">Pedido Realizado!</h1>
-        <p className="text-muted-foreground mb-8">
-          Seu pedido <strong>#{successToken.split("-")[0]}</strong> foi criado com sucesso.
-          {formData.shippingMethod === "manual_quote"
-            ? " Ele está aguardando cotação de frete personalizada pela loja."
-            : " Ele está aguardando o pagamento."}
-        </p>
-
-        <div className="bg-muted/30 p-6 rounded-xl border border-border inline-block mb-8 max-w-md text-left">
-          <MessageCircle className="w-8 h-8 text-primary mx-auto mb-4" />
-          <h3 className="font-semibold text-lg mb-2 text-center">Próximos Passos</h3>
-
-          {formData.shippingMethod === "manual_quote" ? (
-            <p className="text-sm text-muted-foreground mb-4 font-normal">
-              Nossa equipe calculará a taxa de frete para o seu bairro e atualizará seu pedido. Você
-              receberá o link atualizado pelo WhatsApp para realizar o pagamento.
-            </p>
-          ) : (
-            <p className="text-sm text-muted-foreground mb-4 font-normal">
-              Sua vendedora entrará em contato pelo WhatsApp com o link ou chave de pagamento para
-              finalizar sua compra.
-            </p>
-          )}
-
-          {paymentInfo?.instructions && (
-            <div className="border-t pt-4 mt-2">
-              <span className="text-xs font-semibold text-foreground uppercase tracking-wider block mb-1">
-                Instruções do Pagamento
-              </span>
-              <p className="text-sm text-muted-foreground whitespace-pre-line">
-                {paymentInfo.instructions}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div>
-          <Button onClick={() => navigate({ to: "/conta/pedidos" })}>
-            Acompanhar Meus Pedidos
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container max-w-5xl py-12 mx-auto px-4">
@@ -557,6 +582,12 @@ function CheckoutPage() {
 
             {activeStep === 1 && (
               <div className="p-6 space-y-4">
+                {userProfile && (
+                  <div className="flex items-center gap-2 p-3 bg-primary/5 text-primary rounded-lg text-xs font-medium border border-primary/10">
+                    <User className="size-4 shrink-0" />
+                    <span>Conectado como <strong>{userProfile.email}</strong>. Seus dados foram preenchidos automaticamente.</span>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2 md:col-span-2">
                     <Label>Nome Completo *</Label>
@@ -663,6 +694,57 @@ function CheckoutPage() {
 
                 {formData.shippingMethod !== "pickup" ? (
                   <div className="space-y-4">
+                    {userAddresses && userAddresses.length > 0 && (
+                      <div className="space-y-3 bg-muted/20 p-4 rounded-xl border mb-4">
+                        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                          <MapPin className="size-3.5 text-primary" /> Meus Endereços Cadastrados
+                        </Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {userAddresses.map((addr: any) => {
+                            const cleanZip = (addr.zipcode || "").replace(/\D/g, "");
+                            const isSelected =
+                              formData.shippingAddress.zipcode === cleanZip &&
+                              formData.shippingAddress.street === addr.street &&
+                              formData.shippingAddress.number === addr.number;
+                            return (
+                              <button
+                                key={addr.id}
+                                type="button"
+                                onClick={() => {
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    shippingAddress: {
+                                      zipcode: cleanZip,
+                                      street: addr.street || "",
+                                      number: addr.number || "",
+                                      complement: addr.complement || "",
+                                      neighborhood: addr.neighborhood || "",
+                                      city: addr.city || "",
+                                      state: addr.state || "",
+                                    },
+                                  }));
+                                  handleCepChange(cleanZip);
+                                }}
+                                className={`p-3 border rounded-xl text-left text-xs space-y-1 transition-all ${
+                                  isSelected
+                                    ? "border-primary bg-primary/5 ring-1 ring-primary font-medium"
+                                    : "hover:bg-card bg-background"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between font-semibold">
+                                  <span className="truncate">{addr.street}, {addr.number}</span>
+                                  {addr.is_default && (
+                                    <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-mono">Padrão</span>
+                                  )}
+                                </div>
+                                <p className="text-muted-foreground truncate">{addr.neighborhood} - {addr.city}/{addr.state}</p>
+                                <p className="font-mono text-muted-foreground">{addr.zipcode}</p>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                     <div className="grid grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label>CEP *</Label>
@@ -939,7 +1021,9 @@ function CheckoutPage() {
                     <div className="bg-primary/5 border border-primary/20 p-5 rounded-xl space-y-3 mb-6">
                       <div className="flex items-center gap-2">
                         <QrCode className="size-5 text-primary animate-pulse" />
-                        <span className="font-bold text-sm text-foreground">Pagamento Instantâneo via PIX</span>
+                        <span className="font-bold text-sm text-foreground">
+                          Pagamento Instantâneo via PIX
+                        </span>
                       </div>
                       {pixDiscountPercent > 0 && (
                         <p className="text-xs text-green-600 font-semibold bg-green-50 px-2.5 py-1 rounded border border-green-200 w-fit">
@@ -948,8 +1032,12 @@ function CheckoutPage() {
                       )}
                       {storeProfile?.pixKey && (
                         <div className="space-y-1 bg-background p-3 rounded-lg border border-border mt-2">
-                          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Chave PIX da Loja</span>
-                          <p className="text-sm font-mono font-bold select-all text-foreground break-all">{storeProfile.pixKey}</p>
+                          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                            Chave PIX da Loja
+                          </span>
+                          <p className="text-sm font-mono font-bold select-all text-foreground break-all">
+                            {storeProfile.pixKey}
+                          </p>
                         </div>
                       )}
                       {storeProfile?.paymentInstructions && (
@@ -974,8 +1062,14 @@ function CheckoutPage() {
                             placeholder="0000 0000 0000 0000"
                             value={creditCardData.number}
                             onChange={(e) => {
-                              const val = e.target.value.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim();
-                              setCreditCardData({ ...creditCardData, number: val.substring(0, 19) });
+                              const val = e.target.value
+                                .replace(/\D/g, "")
+                                .replace(/(.{4})/g, "$1 ")
+                                .trim();
+                              setCreditCardData({
+                                ...creditCardData,
+                                number: val.substring(0, 19),
+                              });
                             }}
                           />
                         </div>
@@ -984,7 +1078,9 @@ function CheckoutPage() {
                           <Input
                             placeholder="Nome impresso no cartão"
                             value={creditCardData.holderName}
-                            onChange={(e) => setCreditCardData({ ...creditCardData, holderName: e.target.value })}
+                            onChange={(e) =>
+                              setCreditCardData({ ...creditCardData, holderName: e.target.value })
+                            }
                           />
                         </div>
                         <div className="space-y-1.5">
@@ -1008,7 +1104,12 @@ function CheckoutPage() {
                             placeholder="123"
                             maxLength={4}
                             value={creditCardData.cvv}
-                            onChange={(e) => setCreditCardData({ ...creditCardData, cvv: e.target.value.replace(/\D/g, "") })}
+                            onChange={(e) =>
+                              setCreditCardData({
+                                ...creditCardData,
+                                cvv: e.target.value.replace(/\D/g, ""),
+                              })
+                            }
                           />
                         </div>
                       </div>

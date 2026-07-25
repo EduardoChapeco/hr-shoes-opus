@@ -80,7 +80,7 @@ export const updateSellerCommissionRate = createServerFn({ method: "POST" })
     z.object({
       sellerId: z.string().uuid(),
       rate: z.number().min(0).max(100),
-    })
+    }),
   )
   .handler(async ({ data: { sellerId, rate } }) => {
     const supabase = getServerClient();

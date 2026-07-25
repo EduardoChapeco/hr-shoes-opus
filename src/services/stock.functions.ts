@@ -44,7 +44,7 @@ export const getStockLevels = createServerFn({ method: "GET" })
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[stock.functions] getStockLevels:", e.message);
-      throw new Error("Erro ao buscar estoque." );
+      throw new Error("Erro ao buscar estoque.");
     }
   });
 
@@ -84,7 +84,7 @@ export const adjustStock = createServerFn({ method: "POST" })
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[stock.functions] adjustStock:", e.message);
-      throw new Error(e.message || "Erro ao ajustar estoque." );
+      throw new Error(e.message || "Erro ao ajustar estoque.");
     }
   });
 
@@ -132,7 +132,7 @@ export const getStockMovements = createServerFn({ method: "GET" })
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[stock.functions] getStockMovements:", e.message);
-      throw new Error("Erro ao buscar ledger de estoque." );
+      throw new Error("Erro ao buscar ledger de estoque.");
     }
   });
 
@@ -163,6 +163,6 @@ export const performStockAudit = createServerFn({ method: "POST" })
       return data;
     } catch (e: any) {
       console.error("[stock.functions] performStockAudit:", e.message);
-      throw new Error(e.message || "Erro ao realizar auditoria." );
+      throw new Error(e.message || "Erro ao realizar auditoria.");
     }
   });

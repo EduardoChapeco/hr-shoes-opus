@@ -21,8 +21,7 @@ export const Route = createFileRoute("/admin/configuracoes/seo")({
 function SeoPage() {
   const res = Route.useLoaderData();
   const router = useRouter();
-  const initial =
-    res || { seo_title: "", seo_description: "", seo_keywords: "" };
+  const initial = res || { seo_title: "", seo_description: "", seo_keywords: "" };
   const [form, setForm] = useState({
     seo_title: (initial as any).seo_title || "",
     seo_description: (initial as any).seo_description || "",

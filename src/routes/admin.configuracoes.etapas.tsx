@@ -52,19 +52,28 @@ function getStatusBadge(status: OnboardingStepStatus) {
   switch (status) {
     case "completed":
       return (
-        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs gap-1">
+        <Badge
+          variant="outline"
+          className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs gap-1"
+        >
           <CheckCircle2 className="size-3.5" /> Completo
         </Badge>
       );
     case "partially_configured":
       return (
-        <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs gap-1">
+        <Badge
+          variant="outline"
+          className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs gap-1"
+        >
           <Clock className="size-3.5" /> Parcial
         </Badge>
       );
     case "locked":
       return (
-        <Badge variant="outline" className="bg-muted text-muted-foreground border-border text-xs gap-1">
+        <Badge
+          variant="outline"
+          className="bg-muted text-muted-foreground border-border text-xs gap-1"
+        >
           <Lock className="size-3.5" /> Bloqueado
         </Badge>
       );
@@ -77,7 +86,10 @@ function getStatusBadge(status: OnboardingStepStatus) {
     case "unconfigured":
     default:
       return (
-        <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-xs gap-1">
+        <Badge
+          variant="outline"
+          className="bg-destructive/10 text-destructive border-destructive/20 text-xs gap-1"
+        >
           <Circle className="size-3.5" /> Não Configurado
         </Badge>
       );
@@ -128,15 +140,18 @@ function EtapasPage() {
                 {progressPercentage === 100
                   ? "Sua loja está 100% pronta!"
                   : isStoreReadyToSell
-                  ? "Pronta para Vender! (Configurações adicionais pendentes)"
-                  : "Configuração em Progresso"}
+                    ? "Pronta para Vender! (Configurações adicionais pendentes)"
+                    : "Configuração em Progresso"}
               </CardTitle>
               <CardDescription>
                 {completedSteps} de {totalSteps} etapas concluídas com sucesso no banco de dados.
               </CardDescription>
             </div>
             <div className="flex items-center gap-3">
-              <Badge variant={progressPercentage === 100 ? "default" : "secondary"} className="text-sm px-3 py-1 font-bold">
+              <Badge
+                variant={progressPercentage === 100 ? "default" : "secondary"}
+                className="text-sm px-3 py-1 font-bold"
+              >
                 {progressPercentage}% Completo
               </Badge>
             </div>
@@ -166,7 +181,10 @@ function EtapasPage() {
             </CardHeader>
             <CardContent className="divide-y divide-border/50 p-0">
               {groupedSteps[groupKey].map((step: any) => (
-                <div key={step.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+                <div
+                  key={step.id}
+                  className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors"
+                >
                   <div className="space-y-1 min-w-0 flex-1">
                     <div className="flex items-center gap-2.5 flex-wrap">
                       <h4 className="text-sm font-semibold text-foreground">{step.label}</h4>
@@ -180,17 +198,26 @@ function EtapasPage() {
 
                   <div className="shrink-0">
                     {step.status !== "completed" ? (
-                      <Button asChild variant={step.status === "locked" ? "outline" : "default"} size="sm" disabled={step.status === "locked"} className="text-xs">
+                      <Button
+                        asChild
+                        variant={step.status === "locked" ? "outline" : "default"}
+                        size="sm"
+                        disabled={step.status === "locked"}
+                        className="text-xs"
+                      >
                         <Link to={step.targetRoute as never}>
                           Configurar
                           <ArrowRight className="size-3.5 ml-1.5" />
                         </Link>
                       </Button>
                     ) : (
-                      <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground">
-                        <Link to={step.targetRoute as never}>
-                          Revisar →
-                        </Link>
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs text-muted-foreground"
+                      >
+                        <Link to={step.targetRoute as never}>Revisar →</Link>
                       </Button>
                     )}
                   </div>

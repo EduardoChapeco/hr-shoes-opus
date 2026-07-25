@@ -192,6 +192,6 @@ export const listCustomerExchanges = createServerFn({ method: "GET" }).handler(a
       orderTotal: ex.orders?.total_cents as number | null,
     }));
   } catch (e: any) {
-    throw new Error(e.message || "Erro ao buscar trocas." );
+    throw new Error(e.message || "Erro ao buscar trocas.");
   }
 });

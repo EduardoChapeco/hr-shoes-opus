@@ -26,7 +26,7 @@ import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/marketing/notificacoes")({
   head: () => ({ meta: [{ title: "Notificações — Hr Shoes" }] }),
-  loader: async () => await listAbandonedCarts() || [],
+  loader: async () => (await listAbandonedCarts()) || [],
   component: NotificacoesPage,
 });
 
@@ -39,7 +39,7 @@ function NotificacoesPage() {
     setProcessingId(id);
     try {
       const res = await updateAbandonedCartStatus({ data: { id, status } });
-      
+
       toast.success("Status atualizado!");
       router.invalidate();
     } catch (e: any) {

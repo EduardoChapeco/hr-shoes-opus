@@ -18,19 +18,19 @@ export function ProductEditorLayout({ sections, children, preview }: ProductEdit
 
   useEffect(() => {
     const observers = new Map<string, IntersectionObserver>();
-    
+
     const callback = (entries: IntersectionObserverEntry[]) => {
       // Find the most visible intersecting entry
       let maxRatio = 0;
       let visibleId = "";
-      
+
       entries.forEach((entry) => {
         if (entry.isIntersecting && entry.intersectionRatio > maxRatio) {
           maxRatio = entry.intersectionRatio;
           visibleId = entry.target.id;
         }
       });
-      
+
       if (visibleId) {
         setActiveSection(visibleId);
       }
@@ -76,14 +76,16 @@ export function ProductEditorLayout({ sections, children, preview }: ProductEdit
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors text-left",
                 activeSection === section.id
                   ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
               {section.icon && (
-                <span className={cn(
-                  "size-4",
-                  activeSection === section.id ? "text-primary" : "text-muted-foreground"
-                )}>
+                <span
+                  className={cn(
+                    "size-4",
+                    activeSection === section.id ? "text-primary" : "text-muted-foreground",
+                  )}
+                >
                   {section.icon}
                 </span>
               )}
@@ -92,11 +94,7 @@ export function ProductEditorLayout({ sections, children, preview }: ProductEdit
           ))}
         </nav>
 
-        {preview && (
-          <div className="pt-4 border-t border-border">
-            {preview}
-          </div>
-        )}
+        {preview && <div className="pt-4 border-t border-border">{preview}</div>}
       </div>
 
       {/* Main Content Areas */}
@@ -112,7 +110,7 @@ export function ProductEditorLayout({ sections, children, preview }: ProductEdit
                 "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full whitespace-nowrap border transition-colors",
                 activeSection === section.id
                   ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card border-border text-muted-foreground"
+                  : "bg-card border-border text-muted-foreground",
               )}
             >
               {section.icon && <span className="size-4">{section.icon}</span>}

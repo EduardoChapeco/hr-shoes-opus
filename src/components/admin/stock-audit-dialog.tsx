@@ -30,7 +30,7 @@ export function StockAuditDialog({ variant }: { variant: any }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [countedQty, setCountedQty] = useState(variant.stock_on_hand.toString());
   const [reason, setReason] = useState<"recount" | "loss" | "damage" | "return_defect">("recount");
   const [notes, setNotes] = useState("");
@@ -82,7 +82,8 @@ export function StockAuditDialog({ variant }: { variant: any }) {
         <DialogHeader>
           <DialogTitle>Auditoria de Balanço (SKU: {variant.sku})</DialogTitle>
           <DialogDescription>
-            Corrija o estoque físico. A diferença será registrada de forma imutável no log de auditoria.
+            Corrija o estoque físico. A diferença será registrada de forma imutável no log de
+            auditoria.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -93,16 +94,16 @@ export function StockAuditDialog({ variant }: { variant: any }) {
             </div>
             <div className="flex-1 space-y-1">
               <Label>Contado na Prateleira</Label>
-              <Input 
-                type="number" 
-                min="0" 
-                value={countedQty} 
-                onChange={(e) => setCountedQty(e.target.value)} 
+              <Input
+                type="number"
+                min="0"
+                value={countedQty}
+                onChange={(e) => setCountedQty(e.target.value)}
                 className="font-semibold text-blue-600"
               />
             </div>
           </div>
-          
+
           <div className="space-y-1">
             <Label>Motivo do Ajuste</Label>
             <Select value={reason} onValueChange={(val: any) => setReason(val)}>
@@ -120,7 +121,7 @@ export function StockAuditDialog({ variant }: { variant: any }) {
 
           <div className="space-y-1">
             <Label>Observações (Opcional)</Label>
-            <Textarea 
+            <Textarea
               placeholder="Ex: Tênis esquerdo sumiu, ajustado no inventário..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -128,8 +129,13 @@ export function StockAuditDialog({ variant }: { variant: any }) {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={handleAudit} disabled={isSubmitting || parseInt(countedQty, 10) === variant.stock_on_hand}>
+          <Button variant="ghost" onClick={() => setOpen(false)}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleAudit}
+            disabled={isSubmitting || parseInt(countedQty, 10) === variant.stock_on_hand}
+          >
             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Registrar Balanço
           </Button>

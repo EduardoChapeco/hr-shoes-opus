@@ -23,7 +23,7 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  
+
   // Crop state
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [currentImageFile, setCurrentImageFile] = useState<File | null>(null);
@@ -41,7 +41,7 @@ export function ImageUpload({
       setCropModalOpen(true);
     };
     reader.onerror = () => toast.error("Erro ao processar arquivo local");
-    
+
     // Reset input
     if (inputRef.current) inputRef.current.value = "";
   };
@@ -52,10 +52,10 @@ export function ImageUpload({
     try {
       const { getSignedUploadUrl } = await import("@/services/storage.functions");
       const res = await getSignedUploadUrl({
-        data: { 
-          fileName: currentImageFile.name, 
-          bucket, 
-          contentType: currentImageFile.type 
+        data: {
+          fileName: currentImageFile.name,
+          bucket,
+          contentType: currentImageFile.type,
         },
       });
 
@@ -82,7 +82,7 @@ export function ImageUpload({
       const uploadRes = await fetch(res.signedUrl, {
         method: "PUT",
         headers: {
-          "Authorization": `Bearer ${res.token}`,
+          Authorization: `Bearer ${res.token}`,
           "Content-Type": "image/webp",
         },
         body: blob,

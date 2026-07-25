@@ -152,7 +152,12 @@ function StoreCartPage() {
                 <div className="flex flex-1 flex-col justify-between">
                   <div className="flex justify-between">
                     <div>
-                      <h3 className={cn("font-semibold text-base", item.isOutOfStock && "text-destructive line-through")}>
+                      <h3
+                        className={cn(
+                          "font-semibold text-base",
+                          item.isOutOfStock && "text-destructive line-through",
+                        )}
+                      >
                         {item.productTitle}
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">
@@ -168,7 +173,12 @@ function StoreCartPage() {
                         </p>
                       )}
                     </div>
-                    <p className={cn("font-medium text-base", item.isOutOfStock && "opacity-50 line-through")}>
+                    <p
+                      className={cn(
+                        "font-medium text-base",
+                        item.isOutOfStock && "opacity-50 line-through",
+                      )}
+                    >
                       {formatMoney(item.priceCents)}
                     </p>
                   </div>

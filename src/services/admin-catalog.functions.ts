@@ -35,7 +35,7 @@ export const listProductTypes = createServerFn({ method: "GET" }).handler(async 
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[admin-catalog] listProductTypes error:", e);
-    throw new Error("Erro ao listar tipos de produto." );
+    throw new Error("Erro ao listar tipos de produto.");
   }
 });
 
@@ -84,8 +84,7 @@ export const createProductType = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createProductType error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro ao criar tipo de produto.",
-      );
+      throw new Error(e instanceof Error ? e.message : "Erro ao criar tipo de produto.");
     }
   });
 
@@ -127,8 +126,7 @@ export const updateProductType = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateProductType error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro ao atualizar tipo de produto.",
-      );
+      throw new Error(e instanceof Error ? e.message : "Erro ao atualizar tipo de produto.");
     }
   });
 
@@ -147,7 +145,8 @@ export const deleteProductType = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[admin-catalog] deleteProductType error:", e);
-      throw new Error("Não foi possível excluir o tipo. Verifique se existem produtos cadastrados usando este tipo.",
+      throw new Error(
+        "Não foi possível excluir o tipo. Verifique se existem produtos cadastrados usando este tipo.",
       );
     }
   });
@@ -181,7 +180,7 @@ export const listAdminProducts = createServerFn({ method: "GET" }).handler(async
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[admin-catalog] listAdminProducts error:", e);
-    throw new Error("Erro ao listar produtos." );
+    throw new Error("Erro ao listar produtos.");
   }
 });
 
@@ -230,7 +229,10 @@ export async function createProductHandler(input: {
 
   // -- CONTRACT SHIELD START --
   if (variants && variants.length > 0) {
-    const baseKeys = Object.keys(variants[0].attributes || {}).map(k => k.trim()).sort().join("|");
+    const baseKeys = Object.keys(variants[0].attributes || {})
+      .map((k) => k.trim())
+      .sort()
+      .join("|");
     const seenCombos = new Set<string>();
 
     for (const v of variants) {
@@ -242,12 +244,19 @@ export async function createProductHandler(input: {
 
       const incomingKeys = Object.keys(cleanAttrs).sort().join("|");
       if (incomingKeys !== baseKeys) {
-        throw new Error("Inconsistência de matriz: Todas as variantes do produto devem possuir exatamente o mesmo conjunto de atributos.");
+        throw new Error(
+          "Inconsistência de matriz: Todas as variantes do produto devem possuir exatamente o mesmo conjunto de atributos.",
+        );
       }
 
-      const comboStr = Object.keys(cleanAttrs).sort().map(k => `${k}=${cleanAttrs[k]}`).join("|");
+      const comboStr = Object.keys(cleanAttrs)
+        .sort()
+        .map((k) => `${k}=${cleanAttrs[k]}`)
+        .join("|");
       if (seenCombos.has(comboStr)) {
-        throw new Error("Conflito de matriz: O produto contém variantes com a mesma combinação exata de atributos na requisição.");
+        throw new Error(
+          "Conflito de matriz: O produto contém variantes com a mesma combinação exata de atributos na requisição.",
+        );
       }
       seenCombos.add(comboStr);
     }
@@ -259,8 +268,7 @@ export async function createProductHandler(input: {
     .insert({
       store_id: storeData.id,
       ...productInput,
-    options,
-
+      options,
     })
     .select()
     .single();
@@ -386,8 +394,7 @@ export const createProduct = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createProduct error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro ao criar produto.",
-      );
+      throw new Error(e instanceof Error ? e.message : "Erro ao criar produto.");
     }
   });
 
@@ -414,7 +421,7 @@ export const listCategories = createServerFn({ method: "GET" }).handler(async ()
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[admin-catalog] listCategories error:", e);
-    throw new Error("Erro ao listar categorias." );
+    throw new Error("Erro ao listar categorias.");
   }
 });
 
@@ -460,8 +467,7 @@ export const createCategory = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createCategory error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro ao criar categoria.",
-      );
+      throw new Error(e instanceof Error ? e.message : "Erro ao criar categoria.");
     }
   });
 
@@ -481,7 +487,7 @@ export const getCategoryById = createServerFn({ method: "GET" })
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[admin-catalog] getCategoryById error:", e);
-      throw new Error("Erro ao buscar categoria." );
+      throw new Error("Erro ao buscar categoria.");
     }
   });
 
@@ -494,7 +500,12 @@ export async function updateCategoryHandler(input: {
 }) {
   const db = getServerClient();
   const { id, ...updates } = input;
-  const { data, error } = await db.from("categories").update(updates).eq("id", id).select().single();
+  const { data, error } = await db
+    .from("categories")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
   if (error) throw error;
   return data;
 }
@@ -504,7 +515,10 @@ export const updateCategory = createServerFn({ method: "POST" })
     z.object({
       id: z.string().uuid(),
       name: z.string().min(1).max(100).optional(),
-      slug: z.string().regex(/^[a-z0-9-]+$/).optional(),
+      slug: z
+        .string()
+        .regex(/^[a-z0-9-]+$/)
+        .optional(),
       parent_id: z.string().uuid().optional().nullable(),
       status: z.enum(["active", "inactive", "archived"]).optional(),
     }),
@@ -515,8 +529,7 @@ export const updateCategory = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateCategory error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro ao atualizar categoria.",
-      );
+      throw new Error(e instanceof Error ? e.message : "Erro ao atualizar categoria.");
     }
   });
 
@@ -543,7 +556,7 @@ export const listCollections = createServerFn({ method: "GET" }).handler(async (
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[admin-catalog] listCollections error:", e);
-    throw new Error("Erro ao listar coleções." );
+    throw new Error("Erro ao listar coleções.");
   }
 });
 
@@ -587,8 +600,7 @@ export const createCollection = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] createCollection error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro ao criar coleção.",
-      );
+      throw new Error(e instanceof Error ? e.message : "Erro ao criar coleção.");
     }
   });
 
@@ -608,7 +620,7 @@ export const getCollectionById = createServerFn({ method: "GET" })
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[admin-catalog] getCollectionById error:", e);
-      throw new Error("Erro ao buscar coleção." );
+      throw new Error("Erro ao buscar coleção.");
     }
   });
 
@@ -620,7 +632,12 @@ export async function updateCollectionHandler(input: {
 }) {
   const db = getServerClient();
   const { id, ...updates } = input;
-  const { data, error } = await db.from("collections").update(updates).eq("id", id).select().single();
+  const { data, error } = await db
+    .from("collections")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
   if (error) throw error;
   return data;
 }
@@ -630,7 +647,10 @@ export const updateCollection = createServerFn({ method: "POST" })
     z.object({
       id: z.string().uuid(),
       name: z.string().min(1).max(100).optional(),
-      slug: z.string().regex(/^[a-z0-9-]+$/).optional(),
+      slug: z
+        .string()
+        .regex(/^[a-z0-9-]+$/)
+        .optional(),
       status: z.enum(["active", "inactive", "archived"]).optional(),
     }),
   )
@@ -640,8 +660,7 @@ export const updateCollection = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateCollection error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro ao atualizar coleção.",
-      );
+      throw new Error(e instanceof Error ? e.message : "Erro ao atualizar coleção.");
     }
   });
 
@@ -679,7 +698,7 @@ export const getProductById = createServerFn({ method: "GET" })
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[admin-catalog] getProductById error:", e);
-      throw new Error("Erro ao buscar produto." );
+      throw new Error("Erro ao buscar produto.");
     }
   });
 
@@ -707,7 +726,6 @@ export async function updateProductHandler(input: {
   type_id?: string | null;
   category_ids?: string[];
   options?: any;
-
 }) {
   const db = getServerClient();
   const { id, category_ids, ...updates } = input;
@@ -756,7 +774,6 @@ export const updateProduct = createServerFn({ method: "POST" })
       type_id: z.string().uuid().optional().nullable(),
       category_ids: z.array(z.string().uuid()).optional(),
       options: z.any().optional(),
-
     }),
   )
   .handler(async ({ data: input }) => {
@@ -765,8 +782,7 @@ export const updateProduct = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] updateProduct error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro ao atualizar produto.",
-      );
+      throw new Error(e instanceof Error ? e.message : "Erro ao atualizar produto.");
     }
   });
 
@@ -784,8 +800,8 @@ export async function upsertProductVariantHandler(input: {
   width_cm?: number | null;
   height_cm?: number | null;
   length_cm?: number | null;
-    display_name?: string | null;
-    attributes: Record<string, any>;
+  display_name?: string | null;
+  attributes: Record<string, any>;
 }) {
   const db = getServerClient();
   const { id, product_id, ...payload } = input;
@@ -805,25 +821,37 @@ export async function upsertProductVariantHandler(input: {
     .from("product_variants")
     .select("id, attributes")
     .eq("product_id", product_id);
-    
+
   if (fetchError) throw fetchError;
 
   const otherVariants = existingVariants.filter((v: any) => v.id !== id);
 
   if (otherVariants.length > 0) {
-    const requiredKeys = Object.keys(otherVariants[0].attributes || {}).sort().join("|");
+    const requiredKeys = Object.keys(otherVariants[0].attributes || {})
+      .sort()
+      .join("|");
     const incomingKeys = Object.keys(cleanAttrs).sort().join("|");
 
     if (requiredKeys !== incomingKeys) {
-      throw new Error(`Inconsistência de matriz: Esta variante requer os atributos [${Object.keys(otherVariants[0].attributes || {}).join(", ")}], mas recebeu [${Object.keys(cleanAttrs).join(", ")}].`);
+      throw new Error(
+        `Inconsistência de matriz: Esta variante requer os atributos [${Object.keys(otherVariants[0].attributes || {}).join(", ")}], mas recebeu [${Object.keys(cleanAttrs).join(", ")}].`,
+      );
     }
 
-    const incomingComboStr = Object.keys(cleanAttrs).sort().map(k => `${k}=${cleanAttrs[k]}`).join("|");
+    const incomingComboStr = Object.keys(cleanAttrs)
+      .sort()
+      .map((k) => `${k}=${cleanAttrs[k]}`)
+      .join("|");
 
     for (const ov of otherVariants) {
-      const ovComboStr = Object.keys(ov.attributes || {}).sort().map(k => `${k}=${ov.attributes[k]}`).join("|");
+      const ovComboStr = Object.keys(ov.attributes || {})
+        .sort()
+        .map((k) => `${k}=${ov.attributes[k]}`)
+        .join("|");
       if (ovComboStr === incomingComboStr) {
-        throw new Error("Conflito de Matriz: Já existe outra variante neste produto com esta mesma combinação exata de atributos.");
+        throw new Error(
+          "Conflito de Matriz: Já existe outra variante neste produto com esta mesma combinação exata de atributos.",
+        );
       }
     }
   }
@@ -834,7 +862,10 @@ export async function upsertProductVariantHandler(input: {
   if (id) {
     result = await query.update(payload).eq("id", id).select().single();
   } else {
-    result = await query.insert({ product_id, ...payload }).select().single();
+    result = await query
+      .insert({ product_id, ...payload })
+      .select()
+      .single();
   }
 
   if (result.error) throw result.error;
@@ -857,8 +888,8 @@ export const upsertProductVariant = createServerFn({ method: "POST" })
       width_cm: z.number().min(0).optional().nullable(),
       height_cm: z.number().min(0).optional().nullable(),
       length_cm: z.number().min(0).optional().nullable(),
-        display_name: z.string().optional().nullable(),
-        attributes: z.record(z.any()).default({}),
+      display_name: z.string().optional().nullable(),
+      attributes: z.record(z.any()).default({}),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -902,8 +933,8 @@ export async function batchUpsertVariantMatrixHandler(input: {
     const skuSuffix = Object.values(item.attributes)
       .map((val) => String(val).substring(0, 3).toUpperCase())
       .join("-");
-    const generatedSku = item.sku || `SKU-${input.product_id.split("-")[0].toUpperCase()}-${skuSuffix}`;
-
+    const generatedSku =
+      item.sku || `SKU-${input.product_id.split("-")[0].toUpperCase()}-${skuSuffix}`;
 
     const upsertRes = await upsertProductVariantHandler({
       id: match?.id,
@@ -915,7 +946,7 @@ export async function batchUpsertVariantMatrixHandler(input: {
     });
 
     if (upsertRes && upsertRes.id) {
-      const currentStock = match ? (match.stock_on_hand || 0) : 0;
+      const currentStock = match ? match.stock_on_hand || 0 : 0;
       const diff = item.stock - currentStock;
       if (diff !== 0) {
         await adjustStockHandler({
@@ -935,7 +966,10 @@ export async function batchUpsertVariantMatrixHandler(input: {
           .maybeSingle();
 
         if (existingMedia) {
-          await db.from("product_media").update({ variant_id: upsertRes.id }).eq("id", existingMedia.id);
+          await db
+            .from("product_media")
+            .update({ variant_id: upsertRes.id })
+            .eq("id", existingMedia.id);
         } else {
           await db.from("product_media").insert({
             product_id: input.product_id,
@@ -965,9 +999,9 @@ export const batchUpsertVariantMatrix = createServerFn({ method: "POST" })
           price_override_cents: z.number().int().min(0).optional().nullable(),
           stock: z.number().int().min(0).default(0),
           image_url: z.string().optional().nullable(),
-        })
+        }),
       ),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
@@ -977,7 +1011,6 @@ export const batchUpsertVariantMatrix = createServerFn({ method: "POST" })
       throw new Error(e instanceof Error ? e.message : "Erro ao salvar matriz de variações.");
     }
   });
-
 
 export const updateProductMediaMetadata = createServerFn({ method: "POST" })
   .validator(
@@ -998,7 +1031,7 @@ export const updateProductMediaMetadata = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[admin-catalog] updateProductMediaMetadata error:", e.message);
-      throw new Error(e.message || "Erro ao atualizar metadados da mídia." );
+      throw new Error(e.message || "Erro ao atualizar metadados da mídia.");
     }
   });
 
@@ -1009,14 +1042,14 @@ export const reorderProductMedia = createServerFn({ method: "POST" })
         z.object({
           id: z.string().uuid(),
           sort_order: z.number().int(),
-        })
+        }),
       ),
     }),
   )
   .handler(async ({ data: { mediaOrders } }) => {
     try {
       const db = getServerClient();
-      
+
       for (const item of mediaOrders) {
         const { error } = await db
           .from("product_media")
@@ -1024,11 +1057,11 @@ export const reorderProductMedia = createServerFn({ method: "POST" })
           .eq("id", item.id);
         if (error) throw error;
       }
-      
+
       return { status: "success" as const };
     } catch (e: any) {
       console.error("[admin-catalog] reorderProductMedia error:", e.message);
-      throw new Error(e.message || "Erro ao reordenar mídias." );
+      throw new Error(e.message || "Erro ao reordenar mídias.");
     }
   });
 
@@ -1096,8 +1129,7 @@ export const getOnboardingProgress = createServerFn({ method: "GET" }).handler(a
       return { status: "unconfigured" as const };
     }
     console.error("[admin-catalog] getOnboardingProgress error:", e);
-    throw new Error(e.message || "Erro ao carregar progresso de onboarding.",
-    );
+    throw new Error(e.message || "Erro ao carregar progresso de onboarding.");
   }
 });
 
@@ -1123,11 +1155,15 @@ export const deleteProductMedia = createServerFn({ method: "POST" })
     try {
       return await deleteProductMediaHandler(input);
     } catch (e: any) {
-      throw new Error(e.message || "Erro ao deletar mídia." );
+      throw new Error(e.message || "Erro ao deletar mídia.");
     }
   });
 
-export async function addProductMediaLinkHandler(input: { product_id: string; url: string; variant_id?: string | null }) {
+export async function addProductMediaLinkHandler(input: {
+  product_id: string;
+  url: string;
+  variant_id?: string | null;
+}) {
   const db = getServerClient();
   const { product_id, url, variant_id } = input;
 
@@ -1135,9 +1171,9 @@ export async function addProductMediaLinkHandler(input: { product_id: string; ur
     .from("product_media")
     .insert({
       product_id,
-        url,
-        variant_id: variant_id || null,
-        sort_order: 99,
+      url,
+      variant_id: variant_id || null,
+      sort_order: 99,
     })
     .select()
     .single();
@@ -1147,13 +1183,19 @@ export async function addProductMediaLinkHandler(input: { product_id: string; ur
 }
 
 export const addProductMediaLink = createServerFn({ method: "POST" })
-  .validator(z.object({ product_id: z.string().uuid(), url: z.string().url(), variant_id: z.string().uuid().optional().nullable() }))
+  .validator(
+    z.object({
+      product_id: z.string().uuid(),
+      url: z.string().url(),
+      variant_id: z.string().uuid().optional().nullable(),
+    }),
+  )
   .handler(async ({ data: input }) => {
     try {
       const data = await addProductMediaLinkHandler(input);
       return data;
     } catch (e: any) {
-      throw new Error(e.message || "Erro ao vincular mídia" );
+      throw new Error(e.message || "Erro ao vincular mídia");
     }
   });
 
@@ -1196,7 +1238,15 @@ export async function duplicateProductHandler(productId: string) {
   const newTitle = `${original.title} (Cópia)`;
   const newSlug = `${original.slug}-copia-${timestamp}`;
 
-  const { id: _, created_at: __, updated_at: ___, product_variants, product_media, product_categories, ...restProduct } = original;
+  const {
+    id: _,
+    created_at: __,
+    updated_at: ___,
+    product_variants,
+    product_media,
+    product_categories,
+    ...restProduct
+  } = original;
 
   const { data: duplicate, error: dupError } = await db
     .from("products")
@@ -1252,8 +1302,7 @@ export const duplicateProduct = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] duplicateProduct error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro ao duplicar produto.",
-      );
+      throw new Error(e instanceof Error ? e.message : "Erro ao duplicar produto.");
     }
   });
 
@@ -1286,8 +1335,7 @@ export const toggleProductStatus = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-catalog] toggleProductStatus error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro ao alterar status.",
-      );
+      throw new Error(e instanceof Error ? e.message : "Erro ao alterar status.");
     }
   });
 
@@ -1325,11 +1373,10 @@ export const bulkUpdateProductStatus = createServerFn({ method: "POST" })
   .handler(async ({ data: input }) => {
     try {
       const res = await bulkUpdateProductStatusHandler(input);
-      return res ;
+      return res;
     } catch (e: unknown) {
       console.error("[admin-catalog] bulkUpdateProductStatus error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro ao executar ação em lote.",
-      );
+      throw new Error(e instanceof Error ? e.message : "Erro ao executar ação em lote.");
     }
   });
 
@@ -1341,46 +1388,49 @@ export const generateVariantGrid = createServerFn({ method: "POST" })
   .validator(
     z.object({
       productId: z.string().uuid(),
-      options: z.array(z.object({
-        name: z.string(),
-        values: z.array(z.string())
-      }))
-    })
+      options: z.array(
+        z.object({
+          name: z.string(),
+          values: z.array(z.string()),
+        }),
+      ),
+    }),
   )
   .handler(async ({ data: { productId, options } }) => {
     try {
       const db = getServerClient();
-      
-      const { data: product } = await db.from("products").select("slug, store_id").eq("id", productId).single();
+
+      const { data: product } = await db
+        .from("products")
+        .select("slug, store_id")
+        .eq("id", productId)
+        .single();
       if (!product) throw new Error("Produto não encontrado");
 
       // Generate cartesian product of options
       const cartesian = (arrays: any[][]): any[][] => {
-        return arrays.reduce((a, b) =>
-          a.flatMap(d => b.map(e => [d, e].flat()))
-        );
+        return arrays.reduce((a, b) => a.flatMap((d) => b.map((e) => [d, e].flat())));
       };
 
-      const optionArrays = options.map(o => o.values.map(v => ({ [o.name]: v })));
-      const combinations = optionArrays.length > 1 
-        ? cartesian(optionArrays)
-        : (optionArrays[0] || []).map(o => [o]);
+      const optionArrays = options.map((o) => o.values.map((v) => ({ [o.name]: v })));
+      const combinations =
+        optionArrays.length > 1 ? cartesian(optionArrays) : (optionArrays[0] || []).map((o) => [o]);
 
       // Flatten array of objects into single objects
       const variants = combinations.map((combo: any, i: number) => {
-        const attributes = Array.isArray(combo) 
+        const attributes = Array.isArray(combo)
           ? combo.reduce((acc, curr) => ({ ...acc, ...curr }), {})
           : combo;
-          
+
         return {
           product_id: productId,
-          sku: `${product.slug}-${Date.now().toString().slice(-6)}-${i+1}`,
+          sku: `${product.slug}-${Date.now().toString().slice(-6)}-${i + 1}`,
           attributes,
-          status: 'active'
+          status: "active",
         };
       });
 
-      if (variants.length === 0) return [] ;
+      if (variants.length === 0) return [];
 
       const { data, error } = await db.from("product_variants").insert(variants).select();
       if (error) throw error;
@@ -1388,6 +1438,6 @@ export const generateVariantGrid = createServerFn({ method: "POST" })
       return data;
     } catch (e: any) {
       console.error("[generateVariantGrid]", e);
-      throw new Error(e.message || "Erro ao gerar grades" );
+      throw new Error(e.message || "Erro ao gerar grades");
     }
   });

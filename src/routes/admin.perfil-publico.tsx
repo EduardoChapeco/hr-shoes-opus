@@ -1,15 +1,28 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Store, Instagram, Map, MessageCircle, LayoutTemplate, BookOpen, CheckCircle2 } from "lucide-react";
-import { checkExperienceDocumentExists, getOrCreateInstitutionalDocument } from "@/services/builder.functions";
+import {
+  Store,
+  Instagram,
+  Map,
+  MessageCircle,
+  LayoutTemplate,
+  BookOpen,
+  CheckCircle2,
+} from "lucide-react";
+import {
+  checkExperienceDocumentExists,
+  getOrCreateInstitutionalDocument,
+} from "@/services/builder.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Route = createFileRoute("/admin/perfil-publico")({
   head: () => ({ meta: [{ title: "Perfil Público — Hr Shoes" }] }),
   loader: async () => {
-    const res = await checkExperienceDocumentExists({ data: { slug: "institucional", document_type: "storefront" } });
+    const res = await checkExperienceDocumentExists({
+      data: { slug: "institucional", document_type: "storefront" },
+    });
     if (res.status === "success" && res.data.exists && res.data.id) {
       throw redirect({
         to: "/admin/builder/$documentId/editor",
@@ -32,14 +45,16 @@ const TEMPLATES = [
   {
     id: "social_link_tree",
     name: "Estilo Instagram",
-    description: "Layout vertical ideal para colocar no link da bio. Foco em botões e links rápidos.",
+    description:
+      "Layout vertical ideal para colocar no link da bio. Foco em botões e links rápidos.",
     icon: <Instagram className="w-10 h-10 text-pink-500 mb-4" />,
     features: ["Avatar Redondo", "Lista de Links", "Destaque Social"],
   },
   {
     id: "local_business",
     name: "Negócio Local",
-    description: "Foco absoluto em atrair o cliente para a loja física. Mapa e horários em evidência.",
+    description:
+      "Foco absoluto em atrair o cliente para a loja física. Mapa e horários em evidência.",
     icon: <Map className="w-10 h-10 text-orange-500 mb-4" />,
     features: ["Mapa Destacado", "Botão Rota", "Informações Visíveis"],
   },
@@ -63,7 +78,7 @@ const TEMPLATES = [
     description: "Comece do zero e construa seu perfil bloco por bloco.",
     icon: <LayoutTemplate className="w-10 h-10 text-muted-foreground mb-4" />,
     features: ["Total Liberdade", "Canvas Limpo"],
-  }
+  },
 ];
 
 function InstitutionalTemplatePicker() {
@@ -90,15 +105,15 @@ function InstitutionalTemplatePicker() {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Criar Perfil Institucional</h1>
         <p className="text-muted-foreground text-lg max-w-2xl">
-          Sua loja ainda não possui um perfil institucional publicado. Escolha um template inicial para começar. 
-          Você poderá alterar tudo no editor.
+          Sua loja ainda não possui um perfil institucional publicado. Escolha um template inicial
+          para começar. Você poderá alterar tudo no editor.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {TEMPLATES.map((tpl) => (
-          <Card 
-            key={tpl.id} 
+          <Card
+            key={tpl.id}
             className="flex flex-col relative overflow-hidden group hover:border-primary/50 transition-colors cursor-pointer"
             onClick={() => !isCreating && handleCreate(tpl.id)}
           >

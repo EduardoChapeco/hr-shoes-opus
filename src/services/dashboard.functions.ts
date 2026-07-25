@@ -42,7 +42,16 @@ export interface DashboardMetrics {
 
 export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
   const identity = await getServerIdentity();
-  assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance", "stock", "content", "support"]);
+  assertStoreAccess(identity, [
+    "owner",
+    "admin",
+    "manager",
+    "seller",
+    "finance",
+    "stock",
+    "content",
+    "support",
+  ]);
 
   const db = getServerClient();
   const storeId = identity.store_id;
@@ -74,7 +83,14 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
     cancelled: 0,
   };
 
-  const PAID_STATUSES = new Set(["paid", "processing", "ready_for_pickup", "shipped", "delivered", "completed"]);
+  const PAID_STATUSES = new Set([
+    "paid",
+    "processing",
+    "ready_for_pickup",
+    "shipped",
+    "delivered",
+    "completed",
+  ]);
 
   for (const order of validOrders) {
     const isToday = order.created_at >= startOfToday;
@@ -124,7 +140,9 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
   const lowStockItems = ((variantRows ?? []) as any[]).map((v) => ({
     id: v.id,
     sku: v.sku ?? "Sem SKU",
-    productTitle: Array.isArray(v.products) ? v.products[0]?.title ?? "Produto" : v.products?.title ?? "Produto",
+    productTitle: Array.isArray(v.products)
+      ? (v.products[0]?.title ?? "Produto")
+      : (v.products?.title ?? "Produto"),
     stockOnHand: v.stock_on_hand ?? 0,
   }));
 
@@ -146,6 +164,8 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
     .select("id, opened_at, initial_balance_cents, opened_by")
     .eq("store_id", storeId)
     .eq("status", "open")
+    .order("opened_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   let activeCashRegister: DashboardMetrics["activeCashRegister"] = null;
@@ -248,6 +268,6 @@ export const getDashboardData = createServerFn({ method: "GET" }).handler(async 
   } catch (e: any) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[dashboard.functions] getDashboardData error:", e?.message || e);
-    throw new Error(e?.message || "Erro ao carregar dados do painel." );
+    throw new Error(e?.message || "Erro ao carregar dados do painel.");
   }
 });

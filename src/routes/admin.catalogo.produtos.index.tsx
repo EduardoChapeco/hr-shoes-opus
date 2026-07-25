@@ -84,8 +84,7 @@ function AdminProductsPage() {
 
   // Handle Select All
   const isAllSelected =
-    filteredProducts.length > 0 &&
-    filteredProducts.every((p) => selectedIds.includes(p.id));
+    filteredProducts.length > 0 && filteredProducts.every((p) => selectedIds.includes(p.id));
 
   const toggleSelectAll = () => {
     if (isAllSelected) {
@@ -126,7 +125,9 @@ function AdminProductsPage() {
     setIsProcessing(false);
 
     if (res) {
-      toast.success(`Status alterado para ${newStatus === "published" ? "Publicado" : newStatus === "archived" ? "Arquivado" : "Rascunho"}.`);
+      toast.success(
+        `Status alterado para ${newStatus === "published" ? "Publicado" : newStatus === "archived" ? "Arquivado" : "Rascunho"}.`,
+      );
       setProducts((prev) =>
         prev.map((p) => (p.id === productId ? { ...p, status: newStatus } : p)),
       );
@@ -139,7 +140,10 @@ function AdminProductsPage() {
   const handleBulkAction = async (action: "published" | "draft" | "archived" | "delete") => {
     if (selectedIds.length === 0) return;
 
-    if (action === "delete" && !confirm(`Deseja realmente excluir ${selectedIds.length} produto(s)? Esta ação é permanente.`)) {
+    if (
+      action === "delete" &&
+      !confirm(`Deseja realmente excluir ${selectedIds.length} produto(s)? Esta ação é permanente.`)
+    ) {
       return;
     }
 
@@ -195,10 +199,15 @@ function AdminProductsPage() {
 
       {/* Toolbar & Filtros */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-        <Tabs defaultValue="active" value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto overflow-hidden">
+        <Tabs
+          defaultValue="active"
+          value={statusFilter}
+          onValueChange={setStatusFilter}
+          className="w-full sm:w-auto overflow-hidden"
+        >
           <TabsList className="flex w-full overflow-x-auto no-scrollbar sm:w-auto h-auto py-1">
             <TabsTrigger value="active" className="text-xs shrink-0">
-              Ativos ({products.filter(p => p.status !== "archived").length})
+              Ativos ({products.filter((p) => p.status !== "archived").length})
             </TabsTrigger>
             <TabsTrigger value="published" className="text-xs shrink-0">
               Publicados ({products.filter((p) => p.status === "published").length})
@@ -299,163 +308,171 @@ function AdminProductsPage() {
       ) : (
         <div className="rounded-xl border border-border bg-card shadow-xs">
           <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/40">
-                <TableHead className="w-12 text-center">
-                  <Checkbox
-                    checked={isAllSelected}
-                    onCheckedChange={toggleSelectAll}
-                    aria-label="Selecionar todos os produtos"
-                  />
-                </TableHead>
-                <TableHead>Produto</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tipo / Marca</TableHead>
-                <TableHead>Preço de Venda</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product) => {
-                const cover = product.product_media?.[0]?.url;
-                const isSelected = selectedIds.includes(product.id);
-                const typeName =
-                  product.product_types && product.product_types.length > 0
-                    ? product.product_types[0].name
-                    : "Padrão";
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40">
+                  <TableHead className="w-12 text-center">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Selecionar todos os produtos"
+                    />
+                  </TableHead>
+                  <TableHead>Produto</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Tipo / Marca</TableHead>
+                  <TableHead>Preço de Venda</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.map((product) => {
+                  const cover = product.product_media?.[0]?.url;
+                  const isSelected = selectedIds.includes(product.id);
+                  const typeName =
+                    product.product_types && product.product_types.length > 0
+                      ? product.product_types[0].name
+                      : "Padrão";
 
-                return (
-                  <TableRow
-                    key={product.id}
-                    className={`transition-colors ${isSelected ? "bg-primary/5" : "hover:bg-muted/30"}`}
-                  >
-                    <TableCell className="text-center">
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => toggleSelectRow(product.id)}
-                        aria-label={`Selecionar ${product.title}`}
-                      />
-                    </TableCell>
+                  return (
+                    <TableRow
+                      key={product.id}
+                      className={`transition-colors ${isSelected ? "bg-primary/5" : "hover:bg-muted/30"}`}
+                    >
+                      <TableCell className="text-center">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleSelectRow(product.id)}
+                          aria-label={`Selecionar ${product.title}`}
+                        />
+                      </TableCell>
 
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        {cover ? (
-                          <img
-                            src={cover}
-                            alt=""
-                            className="size-11 rounded-lg object-cover border border-border shrink-0"
-                          />
-                        ) : (
-                          <div className="size-11 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0">
-                            <Package className="size-5 text-muted-foreground" aria-hidden />
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          {cover ? (
+                            <img
+                              src={cover}
+                              alt=""
+                              className="size-11 rounded-lg object-cover border border-border shrink-0"
+                            />
+                          ) : (
+                            <div className="size-11 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0">
+                              <Package className="size-5 text-muted-foreground" aria-hidden />
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <Link
+                              to={`/admin/catalogo/produtos/${product.id}` as never}
+                              className="font-semibold text-sm text-foreground hover:underline truncate block"
+                            >
+                              {product.title}
+                            </Link>
+                            <span className="text-xs text-muted-foreground font-mono">
+                              /{product.slug}
+                            </span>
                           </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <Link
-                            to={`/admin/catalogo/produtos/${product.id}` as never}
-                            className="font-semibold text-sm text-foreground hover:underline truncate block"
-                          >
-                            {product.title}
-                          </Link>
-                          <span className="text-xs text-muted-foreground font-mono">
-                            /{product.slug}
-                          </span>
                         </div>
-                      </div>
-                    </TableCell>
+                      </TableCell>
 
-                    <TableCell>
-                      <Badge
-                        variant={
-                          product.status === "published"
-                            ? "default"
+                      <TableCell>
+                        <Badge
+                          variant={
+                            product.status === "published"
+                              ? "default"
+                              : product.status === "archived"
+                                ? "outline"
+                                : "secondary"
+                          }
+                          className="text-xs"
+                        >
+                          {product.status === "published"
+                            ? "Publicado"
                             : product.status === "archived"
-                              ? "outline"
-                              : "secondary"
-                        }
-                        className="text-xs"
-                      >
-                        {product.status === "published"
-                          ? "Publicado"
-                          : product.status === "archived"
-                            ? "Arquivado"
-                            : "Rascunho"}
-                      </Badge>
-                    </TableCell>
+                              ? "Arquivado"
+                              : "Rascunho"}
+                        </Badge>
+                      </TableCell>
 
-                    <TableCell className="text-xs text-muted-foreground">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-foreground">{typeName}</span>
-                        {product.brand && <span className="text-[11px]">{product.brand}</span>}
-                      </div>
-                    </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-foreground">{typeName}</span>
+                          {product.brand && <span className="text-[11px]">{product.brand}</span>}
+                        </div>
+                      </TableCell>
 
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-sm text-foreground">
-                          {formatMoney(product.price_cents)}
-                        </span>
-                        {product.compare_at_cents ? (
-                          <span className="text-xs text-muted-foreground line-through">
-                            {formatMoney(product.compare_at_cents)}
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm text-foreground">
+                            {formatMoney(product.price_cents)}
                           </span>
-                        ) : null}
-                      </div>
-                    </TableCell>
+                          {product.compare_at_cents ? (
+                            <span className="text-xs text-muted-foreground line-through">
+                              {formatMoney(product.compare_at_cents)}
+                            </span>
+                          ) : null}
+                        </div>
+                      </TableCell>
 
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" aria-label="Ações do produto">
-                            <MoreVertical className="size-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuLabel className="text-xs">Ações Comerciais</DropdownMenuLabel>
-                          <DropdownMenuItem asChild>
-                            <Link to={`/admin/catalogo/produtos/${product.id}` as never}>
-                              <Edit3 className="size-3.5 mr-2" />
-                              Editar Produto
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link to={`/produto/${product.slug}` as never} target="_blank">
-                              <Eye className="size-3.5 mr-2" />
-                              Ver na Loja
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDuplicate(product.id)}>
-                            <Copy className="size-3.5 mr-2" />
-                            Duplicar Produto
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          {product.status !== "published" && (
-                            <DropdownMenuItem onClick={() => handleToggleStatus(product.id, "published")}>
-                              <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" />
-                              Publicar na Vitrine
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" aria-label="Ações do produto">
+                              <MoreVertical className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuLabel className="text-xs">
+                              Ações Comerciais
+                            </DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                              <Link to={`/admin/catalogo/produtos/${product.id}` as never}>
+                                <Edit3 className="size-3.5 mr-2" />
+                                Editar Produto
+                              </Link>
                             </DropdownMenuItem>
-                          )}
-                          {product.status !== "draft" && (
-                            <DropdownMenuItem onClick={() => handleToggleStatus(product.id, "draft")}>
-                              <FileText className="size-3.5 mr-2 text-amber-600" />
-                              Tornar Rascunho
+                            <DropdownMenuItem asChild>
+                              <Link to={`/produto/${product.slug}` as never} target="_blank">
+                                <Eye className="size-3.5 mr-2" />
+                                Ver na Loja
+                              </Link>
                             </DropdownMenuItem>
-                          )}
-                          {product.status !== "archived" && (
-                            <DropdownMenuItem onClick={() => handleToggleStatus(product.id, "archived")}>
-                              <Archive className="size-3.5 mr-2" />
-                              Arquivar Produto
+                            <DropdownMenuItem onClick={() => handleDuplicate(product.id)}>
+                              <Copy className="size-3.5 mr-2" />
+                              Duplicar Produto
                             </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                            <DropdownMenuSeparator />
+                            {product.status !== "published" && (
+                              <DropdownMenuItem
+                                onClick={() => handleToggleStatus(product.id, "published")}
+                              >
+                                <CheckCircle2 className="size-3.5 mr-2 text-emerald-600" />
+                                Publicar na Vitrine
+                              </DropdownMenuItem>
+                            )}
+                            {product.status !== "draft" && (
+                              <DropdownMenuItem
+                                onClick={() => handleToggleStatus(product.id, "draft")}
+                              >
+                                <FileText className="size-3.5 mr-2 text-amber-600" />
+                                Tornar Rascunho
+                              </DropdownMenuItem>
+                            )}
+                            {product.status !== "archived" && (
+                              <DropdownMenuItem
+                                onClick={() => handleToggleStatus(product.id, "archived")}
+                              >
+                                <Archive className="size-3.5 mr-2" />
+                                Arquivar Produto
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
         </div>
       )}

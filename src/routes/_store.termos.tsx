@@ -7,9 +7,10 @@ export const Route = createFileRoute("/_store/termos")({
   head: ({ loaderData }) => ({
     meta: [
       {
-        title: loaderData && !("status" in loaderData) && loaderData.title
-          ? `${loaderData.title} — Hr Shoes`
-          : "Termos de serviço — Hr Shoes",
+        title:
+          loaderData && !("status" in loaderData) && loaderData.title
+            ? `${loaderData.title} — Hr Shoes`
+            : "Termos de serviço — Hr Shoes",
       },
     ],
   }),

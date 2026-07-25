@@ -27,16 +27,29 @@ export function IngredientSpotlight({
             <Sparkles className="w-3.5 h-3.5" />
             Qualidade Garantida
           </div>
-          {title && <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-3">{title}</h2>}
-          {subtitle && <p className="text-muted-foreground text-base max-w-2xl mx-auto">{subtitle}</p>}
+          {title && (
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-3">
+              {title}
+            </h2>
+          )}
+          {subtitle && (
+            <p className="text-muted-foreground text-base max-w-2xl mx-auto">{subtitle}</p>
+          )}
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {items.map((item, idx) => (
-          <div key={idx} className="flex gap-4 p-6 bg-card rounded-2xl border border-border/80 shadow-sm items-start">
+          <div
+            key={idx}
+            className="flex gap-4 p-6 bg-card rounded-2xl border border-border/80 shadow-sm items-start"
+          >
             {item.image_url ? (
-              <img src={item.image_url} alt={item.title} className="w-16 h-16 rounded-xl object-cover flex-shrink-0 bg-muted" />
+              <img
+                src={item.image_url}
+                alt={item.title}
+                className="w-16 h-16 rounded-xl object-cover flex-shrink-0 bg-muted"
+              />
             ) : (
               <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                 <ShieldCheck className="w-6 h-6" />

@@ -12,29 +12,29 @@ export const builderRegistry: Record<string, BlockManifest> = {
     allowedBuilderProfiles: "all",
     allowedParentTypes: "none", // Sections must be root nodes
     allowedChildTypes: ["container"],
-    
+
     contentSchema: z.object({}),
     styleSchema: z.object({
       backgroundColor: z.string().optional(),
       backgroundImage: z.string().url().optional(),
     }),
-    
+
     inspector: {
       design: [
         { name: "backgroundColor", label: "Cor de Fundo", type: "color" },
-        { name: "backgroundImage", label: "Imagem de Fundo", type: "image" }
-      ]
+        { name: "backgroundImage", label: "Imagem de Fundo", type: "image" },
+      ],
     },
-    
+
     defaultProps: {
       node_type: "section",
       block_type: "section",
       content: {},
       design_tokens: {},
       layout_rules: {},
-    }
+    },
   },
-  
+
   container: {
     type: "container",
     version: "1.0.0",
@@ -45,7 +45,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
     allowedBuilderProfiles: "all",
     allowedParentTypes: ["section"],
     allowedChildTypes: ["composition", "element"],
-    
+
     contentSchema: z.object({}),
     layoutSchema: z.object({
       maxWidth: z.enum(["sm", "md", "lg", "xl", "2xl", "full"]).default("xl"),
@@ -55,28 +55,43 @@ export const builderRegistry: Record<string, BlockManifest> = {
       flexDirection: z.enum(["row", "col"]).default("col"),
       gap: z.enum(["none", "sm", "md", "lg", "xl"]).default("md"),
     }),
-    
+
     inspector: {
       layout: [
-        { name: "maxWidth", label: "Largura Máxima", type: "select", options: [
-          { label: "Pequeno", value: "sm" },
-          { label: "Normal", value: "lg" },
-          { label: "Largo", value: "xl" },
-          { label: "Largura Total", value: "full" },
-        ]},
-        { name: "flexDirection", label: "Direção", type: "select", options: [
-          { label: "Vertical", value: "col" },
-          { label: "Horizontal", value: "row" },
-        ]},
-        { name: "gap", label: "Espaçamento Interno", type: "select", options: [
-          { label: "Sem Espaçamento", value: "none" },
-          { label: "Pequeno", value: "sm" },
-          { label: "Médio", value: "md" },
-          { label: "Grande", value: "lg" },
-        ]}
-      ]
+        {
+          name: "maxWidth",
+          label: "Largura Máxima",
+          type: "select",
+          options: [
+            { label: "Pequeno", value: "sm" },
+            { label: "Normal", value: "lg" },
+            { label: "Largo", value: "xl" },
+            { label: "Largura Total", value: "full" },
+          ],
+        },
+        {
+          name: "flexDirection",
+          label: "Direção",
+          type: "select",
+          options: [
+            { label: "Vertical", value: "col" },
+            { label: "Horizontal", value: "row" },
+          ],
+        },
+        {
+          name: "gap",
+          label: "Espaçamento Interno",
+          type: "select",
+          options: [
+            { label: "Sem Espaçamento", value: "none" },
+            { label: "Pequeno", value: "sm" },
+            { label: "Médio", value: "md" },
+            { label: "Grande", value: "lg" },
+          ],
+        },
+      ],
     },
-    
+
     defaultProps: {
       node_type: "container",
       block_type: "container",
@@ -86,9 +101,9 @@ export const builderRegistry: Record<string, BlockManifest> = {
         flexDirection: "col",
         gap: "md",
         paddingX: "md",
-        paddingY: "xl"
+        paddingY: "xl",
       },
-    }
+    },
   },
 
   rich_text: {
@@ -101,24 +116,22 @@ export const builderRegistry: Record<string, BlockManifest> = {
     allowedBuilderProfiles: "all",
     allowedParentTypes: ["container", "composition"],
     allowedChildTypes: "none",
-    
+
     contentSchema: z.object({
-      html: z.string()
+      html: z.string(),
     }),
-    
+
     inspector: {
-      content: [
-        { name: "html", label: "Conteúdo", type: "textarea" }
-      ]
+      content: [{ name: "html", label: "Conteúdo", type: "textarea" }],
     },
-    
+
     defaultProps: {
       node_type: "element",
       block_type: "rich_text",
-      content: { html: "<p>Digite seu texto aqui...</p>" }
-    }
+      content: { html: "<p>Digite seu texto aqui...</p>" },
+    },
   },
-  
+
   hero_carousel: {
     type: "hero_carousel",
     version: "2.0.0",
@@ -129,53 +142,81 @@ export const builderRegistry: Record<string, BlockManifest> = {
     allowedBuilderProfiles: ["storefront", "campaign"],
     allowedParentTypes: ["container"],
     allowedChildTypes: "none",
-    
+
     contentSchema: z.object({
       autoPlay: z.boolean().default(true),
       interval: z.number().default(5),
-      banners: z.array(z.object({
-        title: z.string().optional(),
-        image_url: z.string().url(),
-        mobile_image_url: z.string().optional(),
-        link: z.string().optional(),
-        button_text: z.string().optional()
-      })),
+      banners: z.array(
+        z.object({
+          title: z.string().optional(),
+          image_url: z.string().url(),
+          mobile_image_url: z.string().optional(),
+          link: z.string().optional(),
+          button_text: z.string().optional(),
+        }),
+      ),
       showOverlay: z.boolean().default(true),
       overlayOpacity: z.enum(["light", "medium", "dark"]).default("medium"),
-      desktopHeight: z.enum(["full", "proportional", "square"]).default("proportional")
+      desktopHeight: z.enum(["full", "proportional", "square"]).default("proportional"),
     }),
-    
+
     inspector: {
       content: [
         { name: "autoPlay", label: "Autoplay", type: "boolean" },
         { name: "interval", label: "Intervalo (segundos)", type: "number" },
-        { name: "banners", label: "Banners (Array)", type: "array", arrayFields: [
-          { name: "image_url", label: "Imagem Desktop (Recomendado 1920x800)", type: "image" },
-          { name: "mobile_image_url", label: "Imagem Mobile (Recomendado 1080x1350)", type: "image" },
-          { name: "link", label: "Link do Banner", type: "text" },
-          { name: "alt_text", label: "Texto Alt", type: "text" }
-        ] }
+        {
+          name: "banners",
+          label: "Banners (Array)",
+          type: "array",
+          arrayFields: [
+            { name: "image_url", label: "Imagem Desktop (Recomendado 1920x800)", type: "image" },
+            {
+              name: "mobile_image_url",
+              label: "Imagem Mobile (Recomendado 1080x1350)",
+              type: "image",
+            },
+            { name: "link", label: "Link do Banner", type: "text" },
+            { name: "alt_text", label: "Texto Alt", type: "text" },
+          ],
+        },
       ],
       design: [
         { name: "showOverlay", label: "Mostrar Sombra Frontal (Overlay)", type: "boolean" },
-        { name: "overlayOpacity", label: "Intensidade da Sombra", type: "select", options: [
-          { label: "Leve", value: "light" },
-          { label: "Média", value: "medium" },
-          { label: "Escura", value: "dark" }
-        ]},
-        { name: "desktopHeight", label: "Altura (Desktop)", type: "select", options: [
-          { label: "Proporcional (Original)", value: "proportional" },
-          { label: "Tela Cheia (Fullscreen)", value: "full" },
-          { label: "Quadrado (1:1)", value: "square" }
-        ]}
-      ]
+        {
+          name: "overlayOpacity",
+          label: "Intensidade da Sombra",
+          type: "select",
+          options: [
+            { label: "Leve", value: "light" },
+            { label: "Média", value: "medium" },
+            { label: "Escura", value: "dark" },
+          ],
+        },
+        {
+          name: "desktopHeight",
+          label: "Altura (Desktop)",
+          type: "select",
+          options: [
+            { label: "Proporcional (Original)", value: "proportional" },
+            { label: "Tela Cheia (Fullscreen)", value: "full" },
+            { label: "Quadrado (1:1)", value: "square" },
+          ],
+        },
+      ],
     },
-    
+
     defaultProps: {
       node_type: "composition",
       block_type: "hero_carousel",
-      content: { autoPlay: true, interval: 5, banners: [], showOverlay: true, overlayOpacity: "medium", desktopHeight: "proportional" }
-    }
+      content: {
+        autoPlay: true,
+        interval: 5,
+        banners: [],
+        showOverlay: true,
+        overlayOpacity: "medium",
+        desktopHeight: "proportional",
+      },
+    },
   },
 
   bento_grid: {
@@ -190,30 +231,40 @@ export const builderRegistry: Record<string, BlockManifest> = {
     allowedChildTypes: "none",
     contentSchema: z.object({
       title: z.string().optional(),
-      items: z.array(z.any())
+      items: z.array(z.any()),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título do Bento Grid", type: "text" },
-        { name: "items", label: "Itens do Grid", type: "array", arrayFields: [
-          { name: "title", label: "Título do Item", type: "text" },
-          { name: "subtitle", label: "Subtítulo (Destaque)", type: "text" },
-          { name: "image", label: "Imagem (Upload)", type: "image" },
-          { name: "link", label: "Link de Destino", type: "text" },
-          { name: "size", label: "Tamanho do Card", type: "select", options: [
-            { label: "Pequeno (1x1)", value: "small" },
-            { label: "Largo (2x1)", value: "wide" },
-            { label: "Alto (1x2)", value: "tall" },
-            { label: "Grande (2x2)", value: "large" }
-          ]}
-        ] }
-      ]
+        {
+          name: "items",
+          label: "Itens do Grid",
+          type: "array",
+          arrayFields: [
+            { name: "title", label: "Título do Item", type: "text" },
+            { name: "subtitle", label: "Subtítulo (Destaque)", type: "text" },
+            { name: "image", label: "Imagem (Upload)", type: "image" },
+            { name: "link", label: "Link de Destino", type: "text" },
+            {
+              name: "size",
+              label: "Tamanho do Card",
+              type: "select",
+              options: [
+                { label: "Pequeno (1x1)", value: "small" },
+                { label: "Largo (2x1)", value: "wide" },
+                { label: "Alto (1x2)", value: "tall" },
+                { label: "Grande (2x2)", value: "large" },
+              ],
+            },
+          ],
+        },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "bento_grid",
-      content: { items: [] }
-    }
+      content: { items: [] },
+    },
   },
 
   countdown_timer: {
@@ -229,20 +280,23 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       title: z.string().optional(),
       target_date: z.string(),
-      expired_message: z.string().optional()
+      expired_message: z.string().optional(),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título", type: "text" },
         { name: "target_date", label: "Data Alvo (ISO)", type: "text" },
-        { name: "expired_message", label: "Mensagem Expirado", type: "text" }
-      ]
+        { name: "expired_message", label: "Mensagem Expirado", type: "text" },
+      ],
     },
     defaultProps: {
       node_type: "element",
       block_type: "countdown_timer",
-      content: { target_date: new Date(Date.now() + 86400000).toISOString(), title: "Oferta Encerra em" }
-    }
+      content: {
+        target_date: new Date(Date.now() + 86400000).toISOString(),
+        title: "Oferta Encerra em",
+      },
+    },
   },
 
   stories_ring: {
@@ -256,27 +310,37 @@ export const builderRegistry: Record<string, BlockManifest> = {
     allowedParentTypes: ["container"],
     allowedChildTypes: "none",
     contentSchema: z.object({
-      stories: z.array(z.any())
+      stories: z.array(z.any()),
     }),
-    inspector: { 
+    inspector: {
       content: [
-        { name: "stories", label: "Histórias", type: "array", arrayFields: [
-          { name: "title", label: "Título da Bolha", type: "text" },
-          { name: "thumb", label: "Thumbnail", type: "image" },
-          { name: "media_url", label: "Mídia Completa (Vídeo/Img)", type: "image" },
-          { name: "link", label: "Link Produto", type: "text" },
-          { name: "type", label: "Tipo de Mídia", type: "select", options: [
-            { label: "Imagem", value: "image" },
-            { label: "Vídeo", value: "video" }
-          ]}
-        ] }
-      ]
+        {
+          name: "stories",
+          label: "Histórias",
+          type: "array",
+          arrayFields: [
+            { name: "title", label: "Título da Bolha", type: "text" },
+            { name: "thumb", label: "Thumbnail", type: "image" },
+            { name: "media_url", label: "Mídia Completa (Vídeo/Img)", type: "image" },
+            { name: "link", label: "Link Produto", type: "text" },
+            {
+              name: "type",
+              label: "Tipo de Mídia",
+              type: "select",
+              options: [
+                { label: "Imagem", value: "image" },
+                { label: "Vídeo", value: "video" },
+              ],
+            },
+          ],
+        },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "stories_ring",
-      content: { stories: [] }
-    }
+      content: { stories: [] },
+    },
   },
 
   trust_badges: {
@@ -290,22 +354,27 @@ export const builderRegistry: Record<string, BlockManifest> = {
     allowedParentTypes: ["container"],
     allowedChildTypes: "none",
     contentSchema: z.object({
-      badges: z.array(z.any())
+      badges: z.array(z.any()),
     }),
-    inspector: { 
+    inspector: {
       content: [
-        { name: "badges", label: "Emblemas", type: "array", arrayFields: [
-          { name: "icon", label: "Ícone SVG ou Imagem", type: "image" },
-          { name: "title", label: "Título do Emblema", type: "text" },
-          { name: "subtitle", label: "Subtítulo (Opcional)", type: "text" }
-        ] }
-      ]
+        {
+          name: "badges",
+          label: "Emblemas",
+          type: "array",
+          arrayFields: [
+            { name: "icon", label: "Ícone SVG ou Imagem", type: "image" },
+            { name: "title", label: "Título do Emblema", type: "text" },
+            { name: "subtitle", label: "Subtítulo (Opcional)", type: "text" },
+          ],
+        },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "trust_badges",
-      content: { badges: [] }
-    }
+      content: { badges: [] },
+    },
   },
 
   product_rail: {
@@ -324,36 +393,57 @@ export const builderRegistry: Record<string, BlockManifest> = {
       collection_slug: z.string().optional(),
       itemsPerRowDesktop: z.enum(["3", "4", "5"]).default("4"),
       itemsPerRowMobile: z.enum(["1", "2"]).default("2"),
-      freeScroll: z.boolean().default(true)
+      freeScroll: z.boolean().default(true),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título da Vitrine", type: "text" },
         { name: "collection_slug", label: "Coleção (opcional)", type: "collection_select" },
       ],
       layout: [
-        { name: "layout", label: "Layout de Exibição", type: "select", options: [
-          { label: "Carrossel", value: "carousel" },
-          { label: "Grid", value: "grid" }
-        ]},
-        { name: "itemsPerRowDesktop", label: "Produtos por linha (Desktop)", type: "select", options: [
-          { label: "3", value: "3" },
-          { label: "4", value: "4" },
-          { label: "5", value: "5" }
-        ]},
-        { name: "itemsPerRowMobile", label: "Produtos por linha (Mobile)", type: "select", options: [
-          { label: "1", value: "1" },
-          { label: "2", value: "2" }
-        ]},
-        { name: "freeScroll", label: "Rolagem Livre (Mobile Slider)", type: "boolean" }
-      ]
+        {
+          name: "layout",
+          label: "Layout de Exibição",
+          type: "select",
+          options: [
+            { label: "Carrossel", value: "carousel" },
+            { label: "Grid", value: "grid" },
+          ],
+        },
+        {
+          name: "itemsPerRowDesktop",
+          label: "Produtos por linha (Desktop)",
+          type: "select",
+          options: [
+            { label: "3", value: "3" },
+            { label: "4", value: "4" },
+            { label: "5", value: "5" },
+          ],
+        },
+        {
+          name: "itemsPerRowMobile",
+          label: "Produtos por linha (Mobile)",
+          type: "select",
+          options: [
+            { label: "1", value: "1" },
+            { label: "2", value: "2" },
+          ],
+        },
+        { name: "freeScroll", label: "Rolagem Livre (Mobile Slider)", type: "boolean" },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "product_rail",
-      content: { title: "Destaques", layout: "carousel", itemsPerRowDesktop: "4", itemsPerRowMobile: "2", freeScroll: true },
-      data_bindings: { type: "latest_products" }
-    }
+      content: {
+        title: "Destaques",
+        layout: "carousel",
+        itemsPerRowDesktop: "4",
+        itemsPerRowMobile: "2",
+        freeScroll: true,
+      },
+      data_bindings: { type: "latest_products" },
+    },
   },
 
   announcement_bar: {
@@ -372,21 +462,25 @@ export const builderRegistry: Record<string, BlockManifest> = {
       bg_color: z.string().optional(),
       text_color: z.string().optional(),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "text", label: "Texto do Anúncio", type: "text" },
-        { name: "link", label: "Link (Opcional)", type: "text" }
+        { name: "link", label: "Link (Opcional)", type: "text" },
       ],
       design: [
         { name: "bg_color", label: "Cor de Fundo", type: "color" },
-        { name: "text_color", label: "Cor do Texto", type: "color" }
-      ]
+        { name: "text_color", label: "Cor do Texto", type: "color" },
+      ],
     },
     defaultProps: {
       node_type: "element",
       block_type: "announcement_bar",
-      content: { text: "Frete grátis para todo o Brasil acima de R$ 299", bg_color: "#000000", text_color: "#ffffff" }
-    }
+      content: {
+        text: "Frete grátis para todo o Brasil acima de R$ 299",
+        bg_color: "#000000",
+        text_color: "#ffffff",
+      },
+    },
   },
 
   video_section: {
@@ -403,21 +497,21 @@ export const builderRegistry: Record<string, BlockManifest> = {
       title: z.string().optional(),
       video_url: z.string().url(),
       auto_play: z.boolean().default(false),
-      loop: z.boolean().default(true)
+      loop: z.boolean().default(true),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título do Vídeo", type: "text" },
         { name: "video_url", label: "URL do Vídeo (YouTube/Vimeo/MP4)", type: "text" },
         { name: "auto_play", label: "Reprodução Automática", type: "boolean" },
-        { name: "loop", label: "Repetir Vídeo", type: "boolean" }
-      ]
+        { name: "loop", label: "Repetir Vídeo", type: "boolean" },
+      ],
     },
     defaultProps: {
       node_type: "element",
       block_type: "video_section",
-      content: { video_url: "", auto_play: false, loop: true }
-    }
+      content: { video_url: "", auto_play: false, loop: true },
+    },
   },
 
   contact_form: {
@@ -433,20 +527,20 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       title: z.string().optional(),
       subtitle: z.string().optional(),
-      email_to: z.string().email()
+      email_to: z.string().email(),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título", type: "text" },
         { name: "subtitle", label: "Subtítulo", type: "textarea" },
-        { name: "email_to", label: "E-mail de Destino", type: "text" }
-      ]
+        { name: "email_to", label: "E-mail de Destino", type: "text" },
+      ],
     },
     defaultProps: {
       node_type: "element",
       block_type: "contact_form",
-      content: { title: "Fale Conosco", email_to: "contato@loja.com.br" }
-    }
+      content: { title: "Fale Conosco", email_to: "contato@loja.com.br" },
+    },
   },
 
   gallery_grid: {
@@ -461,22 +555,27 @@ export const builderRegistry: Record<string, BlockManifest> = {
     allowedChildTypes: "none",
     contentSchema: z.object({
       title: z.string().optional(),
-      images: z.array(z.any())
+      images: z.array(z.any()),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título da Galeria", type: "text" },
-        { name: "images", label: "Imagens", type: "array", arrayFields: [
-          { name: "url", label: "Upload da Imagem", type: "image" },
-          { name: "alt", label: "Texto Alternativo", type: "text" }
-        ] }
-      ]
+        {
+          name: "images",
+          label: "Imagens",
+          type: "array",
+          arrayFields: [
+            { name: "url", label: "Upload da Imagem", type: "image" },
+            { name: "alt", label: "Texto Alternativo", type: "text" },
+          ],
+        },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "gallery_grid",
-      content: { title: "Nossa Galeria", images: [] }
-    }
+      content: { title: "Nossa Galeria", images: [] },
+    },
   },
 
   info_cards: {
@@ -490,29 +589,39 @@ export const builderRegistry: Record<string, BlockManifest> = {
     allowedParentTypes: ["container"],
     allowedChildTypes: "none",
     contentSchema: z.object({
-      cards: z.array(z.any())
+      cards: z.array(z.any()),
     }),
-    inspector: { 
+    inspector: {
       content: [
-        { name: "cards", label: "Cartões", type: "array", arrayFields: [
-          { name: "title", label: "Título do Cartão", type: "text" },
-          { name: "description", label: "Texto", type: "textarea" },
-          { name: "icon", label: "Ícone (Lucide)", type: "select", options: [
-            { label: "Caminhão (Frete)", value: "truck" },
-            { label: "Troca/Retorno", value: "rotate-ccw" },
-            { label: "Escudo (Segurança)", value: "shield" },
-            { label: "Cartão (Pagamento)", value: "credit-card" },
-            { label: "Tag (Oferta)", value: "tag" },
-            { label: "Estrela (Qualidade)", value: "star" }
-          ]}
-        ] }
-      ]
+        {
+          name: "cards",
+          label: "Cartões",
+          type: "array",
+          arrayFields: [
+            { name: "title", label: "Título do Cartão", type: "text" },
+            { name: "description", label: "Texto", type: "textarea" },
+            {
+              name: "icon",
+              label: "Ícone (Lucide)",
+              type: "select",
+              options: [
+                { label: "Caminhão (Frete)", value: "truck" },
+                { label: "Troca/Retorno", value: "rotate-ccw" },
+                { label: "Escudo (Segurança)", value: "shield" },
+                { label: "Cartão (Pagamento)", value: "credit-card" },
+                { label: "Tag (Oferta)", value: "tag" },
+                { label: "Estrela (Qualidade)", value: "star" },
+              ],
+            },
+          ],
+        },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "info_cards",
-      content: { cards: [] }
-    }
+      content: { cards: [] },
+    },
   },
 
   mosaic_banners: {
@@ -526,22 +635,27 @@ export const builderRegistry: Record<string, BlockManifest> = {
     allowedParentTypes: ["container", "section"],
     allowedChildTypes: "none",
     contentSchema: z.object({
-      banners: z.array(z.any())
+      banners: z.array(z.any()),
     }),
-    inspector: { 
+    inspector: {
       content: [
-        { name: "banners", label: "Banners (Mosaico)", type: "array", arrayFields: [
-          { name: "image_url", label: "Upload da Imagem", type: "image" },
-          { name: "link", label: "Link de Ação", type: "text" },
-          { name: "title", label: "Texto de Overlay", type: "text" }
-        ] }
-      ]
+        {
+          name: "banners",
+          label: "Banners (Mosaico)",
+          type: "array",
+          arrayFields: [
+            { name: "image_url", label: "Upload da Imagem", type: "image" },
+            { name: "link", label: "Link de Ação", type: "text" },
+            { name: "title", label: "Texto de Overlay", type: "text" },
+          ],
+        },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "mosaic_banners",
-      content: { banners: [] }
-    }
+      content: { banners: [] },
+    },
   },
 
   social_grid: {
@@ -557,25 +671,30 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       title: z.string().optional(),
       handle: z.string().optional(),
-      images: z.array(z.any())
+      images: z.array(z.any()),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título do Feed", type: "text" },
         { name: "username", label: "Usuário (@)", type: "text" },
-        { name: "posts", label: "Posts do Feed", type: "array", arrayFields: [
-          { name: "image_url", label: "Imagem do Post", type: "image" },
-          { name: "link", label: "Link para o Instagram", type: "text" },
-          { name: "likes", label: "Curtidas", type: "text" },
-          { name: "comments", label: "Comentários", type: "text" }
-        ] }
-      ]
+        {
+          name: "posts",
+          label: "Posts do Feed",
+          type: "array",
+          arrayFields: [
+            { name: "image_url", label: "Imagem do Post", type: "image" },
+            { name: "link", label: "Link para o Instagram", type: "text" },
+            { name: "likes", label: "Curtidas", type: "text" },
+            { name: "comments", label: "Comentários", type: "text" },
+          ],
+        },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "social_grid",
-      content: { title: "Siga-nos", handle: "@lojahrshoes", images: [] }
-    }
+      content: { title: "Siga-nos", handle: "@lojahrshoes", images: [] },
+    },
   },
 
   faq_accordion: {
@@ -591,23 +710,28 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       title: z.string().optional(),
       description: z.string().optional(),
-      faqs: z.array(z.any())
+      faqs: z.array(z.any()),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título do FAQ", type: "text" },
         { name: "description", label: "Descrição Curta", type: "textarea" },
-        { name: "faqs", label: "Perguntas", type: "array", arrayFields: [
-          { name: "question", label: "Pergunta", type: "text" },
-          { name: "answer", label: "Resposta", type: "textarea" }
-        ] }
-      ]
+        {
+          name: "faqs",
+          label: "Perguntas",
+          type: "array",
+          arrayFields: [
+            { name: "question", label: "Pergunta", type: "text" },
+            { name: "answer", label: "Resposta", type: "textarea" },
+          ],
+        },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "faq_accordion",
-      content: { title: "Dúvidas Comuns", faqs: [] }
-    }
+      content: { title: "Dúvidas Comuns", faqs: [] },
+    },
   },
 
   testimonial_carousel: {
@@ -623,25 +747,30 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       title: z.string().optional(),
       subtitle: z.string().optional(),
-      testimonials: z.array(z.any())
+      testimonials: z.array(z.any()),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título", type: "text" },
         { name: "subtitle", label: "Subtítulo", type: "textarea" },
-        { name: "testimonials", label: "Depoimentos", type: "array", arrayFields: [
-          { name: "author", label: "Nome do Cliente", type: "text" },
-          { name: "content", label: "O que disse?", type: "textarea" },
-          { name: "rating", label: "Nota (1-5)", type: "number" },
-          { name: "avatar_url", label: "Foto do Cliente (Opcional)", type: "image" }
-        ] }
-      ]
+        {
+          name: "testimonials",
+          label: "Depoimentos",
+          type: "array",
+          arrayFields: [
+            { name: "author", label: "Nome do Cliente", type: "text" },
+            { name: "content", label: "O que disse?", type: "textarea" },
+            { name: "rating", label: "Nota (1-5)", type: "number" },
+            { name: "avatar_url", label: "Foto do Cliente (Opcional)", type: "image" },
+          ],
+        },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "testimonial_carousel",
-      content: { title: "O que dizem nossos clientes", testimonials: [] }
-    }
+      content: { title: "O que dizem nossos clientes", testimonials: [] },
+    },
   },
 
   timeline_history: {
@@ -657,25 +786,30 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       title: z.string().optional(),
       subtitle: z.string().optional(),
-      events: z.array(z.any())
+      events: z.array(z.any()),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título", type: "text" },
         { name: "subtitle", label: "Subtítulo", type: "textarea" },
-        { name: "events", label: "Marcos Históricos", type: "array", arrayFields: [
-          { name: "year", label: "Ano ou Data", type: "text" },
-          { name: "title", label: "Título do Marco", type: "text" },
-          { name: "description", label: "Descrição Histórica", type: "textarea" },
-          { name: "image_url", label: "Foto Histórica (Upload)", type: "image" }
-        ] }
-      ]
+        {
+          name: "events",
+          label: "Marcos Históricos",
+          type: "array",
+          arrayFields: [
+            { name: "year", label: "Ano ou Data", type: "text" },
+            { name: "title", label: "Título do Marco", type: "text" },
+            { name: "description", label: "Descrição Histórica", type: "textarea" },
+            { name: "image_url", label: "Foto Histórica (Upload)", type: "image" },
+          ],
+        },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "timeline_history",
-      content: { title: "Nossa História", events: [] }
-    }
+      content: { title: "Nossa História", events: [] },
+    },
   },
 
   product_carousel: {
@@ -691,21 +825,21 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       title: z.string().optional(),
       subtitle: z.string().optional(),
-      collection_slug: z.string().optional()
+      collection_slug: z.string().optional(),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título", type: "text" },
         { name: "subtitle", label: "Subtítulo", type: "textarea" },
-        { name: "collection_slug", label: "Coleção (opcional)", type: "collection_select" }
-      ]
+        { name: "collection_slug", label: "Coleção (opcional)", type: "collection_select" },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "product_carousel",
       content: { title: "Lançamentos", subtitle: "Conheça as novidades" },
-      data_bindings: { source: "dynamic_products" }
-    }
+      data_bindings: { source: "dynamic_products" },
+    },
   },
 
   product_grid: {
@@ -721,21 +855,21 @@ export const builderRegistry: Record<string, BlockManifest> = {
     contentSchema: z.object({
       title: z.string().optional(),
       subtitle: z.string().optional(),
-      collection_slug: z.string().optional()
+      collection_slug: z.string().optional(),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título", type: "text" },
         { name: "subtitle", label: "Subtítulo", type: "textarea" },
-        { name: "collection_slug", label: "Coleção (opcional)", type: "collection_select" }
-      ]
+        { name: "collection_slug", label: "Coleção (opcional)", type: "collection_select" },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "product_grid",
       content: { title: "Mais Vendidos", subtitle: "Os favoritos dos clientes" },
-      data_bindings: { source: "dynamic_products" }
-    }
+      data_bindings: { source: "dynamic_products" },
+    },
   },
 
   split_banner: {
@@ -754,23 +888,36 @@ export const builderRegistry: Record<string, BlockManifest> = {
       button_text: z.string().optional(),
       button_link: z.string().optional(),
       image_url: z.string().url().optional(),
-      image_position: z.enum(["left", "right"]).default("left")
+      image_position: z.enum(["left", "right"]).default("left"),
     }),
-    inspector: { 
+    inspector: {
       content: [
         { name: "title", label: "Título", type: "text" },
         { name: "description", label: "Descrição", type: "textarea" },
         { name: "button_text", label: "Texto do Botão", type: "text" },
         { name: "button_link", label: "Link do Botão", type: "text" },
         { name: "image_url", label: "Imagem (Upload)", type: "image" },
-        { name: "image_position", label: "Posição da Imagem", type: "select", options: [{label: "Esquerda", value: "left"}, {label: "Direita", value: "right"}] }
-      ]
+        {
+          name: "image_position",
+          label: "Posição da Imagem",
+          type: "select",
+          options: [
+            { label: "Esquerda", value: "left" },
+            { label: "Direita", value: "right" },
+          ],
+        },
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "split_banner",
-      content: { title: "Nova Coleção", description: "Descubra os novos modelos.", button_text: "Comprar Agora", image_position: "left" }
-    }
+      content: {
+        title: "Nova Coleção",
+        description: "Descubra os novos modelos.",
+        button_text: "Comprar Agora",
+        image_position: "left",
+      },
+    },
   },
 
   // ─── Perfil Institucional — Blocos Canônicos ─────────────────────────────
@@ -793,22 +940,27 @@ export const builderRegistry: Record<string, BlockManifest> = {
     }),
     inspector: {
       content: [
-        { name: "layout", label: "Layout", type: "select", options: [
-          { label: "Centralizado", value: "centered" },
-          { label: "Esquerda", value: "left" },
-          { label: "Instagram", value: "instagram" },
-        ]},
+        {
+          name: "layout",
+          label: "Layout",
+          type: "select",
+          options: [
+            { label: "Centralizado", value: "centered" },
+            { label: "Esquerda", value: "left" },
+            { label: "Instagram", value: "instagram" },
+          ],
+        },
         { name: "show_cover", label: "Exibir Capa", type: "boolean" },
         { name: "show_logo", label: "Exibir Logo", type: "boolean" },
         { name: "show_description", label: "Exibir Descrição", type: "boolean" },
-      ]
+      ],
     },
     defaultProps: {
       node_type: "composition",
       block_type: "store_profile_hero",
       content: { show_description: true, show_logo: true, show_cover: true, layout: "centered" },
       data_bindings: { source: "store_profile" },
-    }
+    },
   },
 
   store_hours: {
@@ -829,14 +981,14 @@ export const builderRegistry: Record<string, BlockManifest> = {
       content: [
         { name: "title", label: "Título da Seção", type: "text" },
         { name: "show_status_badge", label: "Exibir status Aberto/Fechado", type: "boolean" },
-      ]
+      ],
     },
     defaultProps: {
       node_type: "element",
       block_type: "store_hours",
       content: { title: "Horários de Funcionamento", show_status_badge: true },
       data_bindings: { source: "store_profile" },
-    }
+    },
   },
 
   store_contact: {
@@ -867,19 +1019,22 @@ export const builderRegistry: Record<string, BlockManifest> = {
         { name: "show_address", label: "Exibir Endereço", type: "boolean" },
         { name: "show_map_link", label: "Link para o Mapa", type: "boolean" },
         { name: "show_action_buttons", label: "Exibir Botões de Ação", type: "boolean" },
-      ]
+      ],
     },
     defaultProps: {
       node_type: "element",
       block_type: "store_contact",
       content: {
         title: "Fale Conosco",
-        show_map_link: true, show_address: true,
-        show_phone: true, show_whatsapp: true,
-        show_email: true, show_action_buttons: true,
+        show_map_link: true,
+        show_address: true,
+        show_phone: true,
+        show_whatsapp: true,
+        show_email: true,
+        show_action_buttons: true,
       },
       data_bindings: { source: "store_profile" },
-    }
+    },
   },
 
   image_hotspots: {
@@ -906,7 +1061,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
           product_id: z.string().optional(),
           title: z.string().optional(),
           price_cents: z.number().optional(),
-        })
+        }),
       ),
     }),
     inspector: {
@@ -934,10 +1089,23 @@ export const builderRegistry: Record<string, BlockManifest> = {
       content: {
         title: "Shop the Look",
         subtitle: "Clique nos marcadores para ver os produtos",
-        image_url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1600",
+        image_url:
+          "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1600",
         hotspots: [
-          { id: "h1", xPercent: 35, yPercent: 40, title: "Jaqueta Leather Premium", product_slug: "jaqueta-leather" },
-          { id: "h2", xPercent: 65, yPercent: 75, title: "Tênis Urban Comfort", product_slug: "tenis-urban" },
+          {
+            id: "h1",
+            xPercent: 35,
+            yPercent: 40,
+            title: "Jaqueta Leather Premium",
+            product_slug: "jaqueta-leather",
+          },
+          {
+            id: "h2",
+            xPercent: 65,
+            yPercent: 75,
+            title: "Tênis Urban Comfort",
+            product_slug: "tenis-urban",
+          },
         ],
       },
     },
@@ -963,7 +1131,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
           description: z.string(),
           image_url: z.string().optional(),
           product_slug: z.string().optional(),
-        })
+        }),
       ),
     }),
     inspector: {
@@ -991,9 +1159,24 @@ export const builderRegistry: Record<string, BlockManifest> = {
         title: "Sua Rotina Diária",
         subtitle: "Siga este passo a passo para melhores resultados",
         steps: [
-          { step_number: 1, title: "Limpeza Profunda", description: "Remova as impurezas com nosso limpador suave.", product_slug: "" },
-          { step_number: 2, title: "Hidratação Intensa", description: "Aplique o sérum restaurador para nutrição duradoura.", product_slug: "" },
-          { step_number: 3, title: "Proteção Final", description: "Proteja contra agressões diárias com a camada selante.", product_slug: "" },
+          {
+            step_number: 1,
+            title: "Limpeza Profunda",
+            description: "Remova as impurezas com nosso limpador suave.",
+            product_slug: "",
+          },
+          {
+            step_number: 2,
+            title: "Hidratação Intensa",
+            description: "Aplique o sérum restaurador para nutrição duradoura.",
+            product_slug: "",
+          },
+          {
+            step_number: 3,
+            title: "Proteção Final",
+            description: "Proteja contra agressões diárias com a camada selante.",
+            product_slug: "",
+          },
         ],
       },
     },
@@ -1018,7 +1201,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
           benefit: z.string(),
           description: z.string(),
           image_url: z.string().optional(),
-        })
+        }),
       ),
     }),
     inspector: {
@@ -1045,8 +1228,16 @@ export const builderRegistry: Record<string, BlockManifest> = {
         title: "Tecnologia & Ingredientes",
         subtitle: "Fórmulas puras e matérias-primas selecionadas",
         items: [
-          { title: "Ácido Hialurônico Vegano", benefit: "Hidratação Multicamadas", description: "Atrai e retém água nas camadas mais profundas." },
-          { title: "Couro Legítimo Solado Flex", benefit: "Durabilidade & Leveza", description: "Desenvolvido com couro nobre de acabamento natural." },
+          {
+            title: "Ácido Hialurônico Vegano",
+            benefit: "Hidratação Multicamadas",
+            description: "Atrai e retém água nas camadas mais profundas.",
+          },
+          {
+            title: "Couro Legítimo Solado Flex",
+            benefit: "Durabilidade & Leveza",
+            description: "Desenvolvido com couro nobre de acabamento natural.",
+          },
         ],
       },
     },
@@ -1086,13 +1277,13 @@ export const builderRegistry: Record<string, BlockManifest> = {
       content: {
         title: "Resultados Reais",
         subtitle: "Arraste a barra central para comparar a transformação",
-        before_image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
-        after_image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=80&w=800",
+        before_image:
+          "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
+        after_image:
+          "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=80&w=800",
         before_label: "Antes",
         after_label: "Depois de 14 Dias",
       },
     },
   },
 };
-
-

@@ -80,9 +80,19 @@ describe("Onboarding Services", () => {
 
     mockFrom.mockImplementation((table: string) => {
       if (table === "stores") {
-        return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: mockStore, error: null }) }) }) };
+        return {
+          select: () => ({
+            eq: () => ({ single: () => Promise.resolve({ data: mockStore, error: null }) }),
+          }),
+        };
       }
-      if (table === "shipping_rates" || table === "categories" || table === "products" || table === "orders" || table === "coupons") {
+      if (
+        table === "shipping_rates" ||
+        table === "categories" ||
+        table === "products" ||
+        table === "orders" ||
+        table === "coupons"
+      ) {
         return { select: () => Promise.resolve({ count: 2, error: null }) };
       }
       if (table === "product_variants") {
@@ -101,9 +111,19 @@ describe("Onboarding Services", () => {
   it("should classify technical_error for a table failure without zeroing other steps", async () => {
     mockFrom.mockImplementation((table: string) => {
       if (table === "stores") {
-        return { select: () => ({ eq: () => ({ single: () => Promise.reject(new Error("Database connection timeout")) }) }) };
+        return {
+          select: () => ({
+            eq: () => ({ single: () => Promise.reject(new Error("Database connection timeout")) }),
+          }),
+        };
       }
-      if (table === "shipping_rates" || table === "categories" || table === "products" || table === "orders" || table === "coupons") {
+      if (
+        table === "shipping_rates" ||
+        table === "categories" ||
+        table === "products" ||
+        table === "orders" ||
+        table === "coupons"
+      ) {
         return { select: () => Promise.resolve({ count: 1, error: null }) };
       }
       if (table === "product_variants") {
@@ -125,7 +145,13 @@ describe("Onboarding Services", () => {
   it("should classify locked step when prerequisites are missing", async () => {
     mockFrom.mockImplementation((table: string) => {
       if (table === "stores") {
-        return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: { name: "Hr Shoes" }, error: null }) }) }) };
+        return {
+          select: () => ({
+            eq: () => ({
+              single: () => Promise.resolve({ data: { name: "Hr Shoes" }, error: null }),
+            }),
+          }),
+        };
       }
       if (table === "product_variants") {
         return { select: () => ({ gt: () => Promise.resolve({ count: 0, error: null }) }) };

@@ -41,7 +41,7 @@ export function ProductCard({
               decoding="async"
               className={cn(
                 "absolute inset-0 size-full object-cover transition-opacity duration-500",
-                product.hoverUrl ? "group-hover:opacity-0" : "group-hover:scale-[1.03]"
+                product.hoverUrl ? "group-hover:opacity-0" : "group-hover:scale-[1.03]",
               )}
             />
             {product.hoverUrl && (

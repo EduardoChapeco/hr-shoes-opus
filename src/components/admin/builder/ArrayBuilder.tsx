@@ -1,5 +1,10 @@
 import * as React from "react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2, GripVertical } from "lucide-react";
@@ -27,7 +32,7 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
 
   const handleAddItem = () => {
     const newItem: any = {};
-    arrayFields.forEach(f => {
+    arrayFields.forEach((f) => {
       newItem[f.name] = f.type === "boolean" ? false : "";
     });
     // Add unique internal ID for React keys so rearranging works smoothly
@@ -61,10 +66,12 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
 
   return (
     <div className="flex flex-col gap-2">
-      {label && <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold uppercase text-muted-foreground">{label}</label>
-        <span className="text-xs text-muted-foreground">{items.length} itens</span>
-      </div>}
+      {label && (
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-semibold uppercase text-muted-foreground">{label}</label>
+          <span className="text-xs text-muted-foreground">{items.length} itens</span>
+        </div>
+      )}
 
       {items.length === 0 ? (
         <div className="text-xs text-center py-4 bg-muted/50 rounded-md text-muted-foreground border border-dashed">
@@ -75,12 +82,12 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
           {items.map((item, index) => {
             const isDragged = draggedIndex === index;
             const isDragOver = dragOverIndex === index;
-            
+
             return (
-              <AccordionItem 
-                key={item._id || index} 
-                value={`item-${index}`} 
-                className={`border rounded-md overflow-hidden transition-all ${isDragged ? 'opacity-50' : 'bg-card'} ${isDragOver ? 'border-primary border-t-2' : ''}`}
+              <AccordionItem
+                key={item._id || index}
+                value={`item-${index}`}
+                className={`border rounded-md overflow-hidden transition-all ${isDragged ? "opacity-50" : "bg-card"} ${isDragOver ? "border-primary border-t-2" : ""}`}
                 draggable
                 onDragStart={(e) => {
                   setDraggedIndex(index);
@@ -101,16 +108,16 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
               >
                 <div className="flex items-center bg-muted/30 pr-2">
                   <div className="flex flex-col items-center justify-center border-r px-2 py-2 opacity-50 hover:opacity-100 cursor-grab active:cursor-grabbing text-muted-foreground">
-                     <GripVertical className="h-4 w-4" />
+                    <GripVertical className="h-4 w-4" />
                   </div>
                   <AccordionTrigger className="hover:no-underline py-2 px-3 flex-1 text-xs justify-start gap-2">
                     <span className="font-medium truncate flex-1 text-left">
                       Item {index + 1} {item.title || item.name || ""}
                     </span>
                   </AccordionTrigger>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="h-6 w-6 text-destructive hover:bg-destructive/10 shrink-0"
                     onClick={(e) => {
                       e.preventDefault();
@@ -121,7 +128,7 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
                   </Button>
                 </div>
                 <AccordionContent className="p-3 border-t bg-card space-y-3">
-                  {arrayFields.map(field => (
+                  {arrayFields.map((field) => (
                     <div key={field.name} className="flex flex-col gap-1.5">
                       {field.type === "image" ? (
                         <MediaUploader
@@ -129,64 +136,70 @@ export function ArrayBuilder({ value = [], onChange, label, arrayFields = [] }: 
                           value={item[field.name] || ""}
                           onChange={(val) => handleUpdateItem(index, field.name, val)}
                         />
-                    ) : field.type === "color" ? (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold uppercase text-muted-foreground">{field.label}</label>
-                        <ColorPicker
-                          value={item[field.name] || ""}
-                          onChange={(val) => handleUpdateItem(index, field.name, val)}
-                        />
-                      </div>
-                    ) : field.type === "boolean" ? (
-                      <label className="flex items-center gap-2 text-xs">
-                        <input
-                          type="checkbox"
-                          checked={item[field.name] || false}
-                          onChange={(e) => handleUpdateItem(index, field.name, e.target.checked)}
-                          className="w-4 h-4"
-                        />
-                        {field.label}
-                      </label>
-                    ) : field.type === "select" && field.options ? (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold uppercase text-muted-foreground">{field.label}</label>
-                        <select
-                          className="w-full text-sm p-2 rounded-lg border bg-background"
-                          value={item[field.name] || ""}
-                          onChange={(e) => handleUpdateItem(index, field.name, e.target.value)}
-                        >
-                          <option value="">Selecione...</option>
-                          {field.options.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                    ) : field.type === "textarea" ? (
-                      <textarea
-                        className="w-full text-sm p-2 border rounded-md bg-background min-h-[80px]"
-                        placeholder={field.label}
-                        value={item[field.name] || ""}
-                        onChange={(e) => handleUpdateItem(index, field.name, e.target.value)}
-                      />
-                    ) : (
-                      <>
-                        <label className="text-xs font-medium">{field.label}</label>
-                        <Input
-                          className="h-8 text-sm bg-background"
+                      ) : field.type === "color" ? (
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold uppercase text-muted-foreground">
+                            {field.label}
+                          </label>
+                          <ColorPicker
+                            value={item[field.name] || ""}
+                            onChange={(val) => handleUpdateItem(index, field.name, val)}
+                          />
+                        </div>
+                      ) : field.type === "boolean" ? (
+                        <label className="flex items-center gap-2 text-xs">
+                          <input
+                            type="checkbox"
+                            checked={item[field.name] || false}
+                            onChange={(e) => handleUpdateItem(index, field.name, e.target.checked)}
+                            className="w-4 h-4"
+                          />
+                          {field.label}
+                        </label>
+                      ) : field.type === "select" && field.options ? (
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold uppercase text-muted-foreground">
+                            {field.label}
+                          </label>
+                          <select
+                            className="w-full text-sm p-2 rounded-lg border bg-background"
+                            value={item[field.name] || ""}
+                            onChange={(e) => handleUpdateItem(index, field.name, e.target.value)}
+                          >
+                            <option value="">Selecione...</option>
+                            {field.options.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ) : field.type === "textarea" ? (
+                        <textarea
+                          className="w-full text-sm p-2 border rounded-md bg-background min-h-[80px]"
+                          placeholder={field.label}
                           value={item[field.name] || ""}
                           onChange={(e) => handleUpdateItem(index, field.name, e.target.value)}
                         />
-                      </>
-                    )}
-                  </div>
-                ))}
-              </AccordionContent>
-            </AccordionItem>
+                      ) : (
+                        <>
+                          <label className="text-xs font-medium">{field.label}</label>
+                          <Input
+                            className="h-8 text-sm bg-background"
+                            value={item[field.name] || ""}
+                            onChange={(e) => handleUpdateItem(index, field.name, e.target.value)}
+                          />
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </AccordionContent>
+              </AccordionItem>
             );
           })}
         </Accordion>
       )}
-      
+
       <Button variant="outline" size="sm" className="w-full mt-2" onClick={handleAddItem}>
         <Plus className="h-4 w-4 mr-2" />
         Adicionar Item

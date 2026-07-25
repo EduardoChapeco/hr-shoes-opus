@@ -13,7 +13,8 @@ export const Route = createFileRoute("/_store/perfil-da-loja")({
       { title: "Perfil da Loja — Hr Shoes" },
       {
         name: "description",
-        content: "Conheça a Hr Shoes: nossa história, endereço, horários de funcionamento e canais de contato.",
+        content:
+          "Conheça a Hr Shoes: nossa história, endereço, horários de funcionamento e canais de contato.",
       },
     ],
   }),
@@ -69,20 +70,18 @@ function StorePerfil() {
   const extendedHours = settings.business_hours_extended || [];
   const holidayExceptions = settings.holiday_exceptions || [];
   const actionButtons: any[] = settings.action_buttons || [];
-  const openStatus = extendedHours.length > 0 ? getOpenStatus(extendedHours, holidayExceptions) : null;
+  const openStatus =
+    extendedHours.length > 0 ? getOpenStatus(extendedHours, holidayExceptions) : null;
 
   return (
     <main className="min-h-screen bg-background">
       {/* Admin banner — directs admin to create the Builder page */}
       <div className="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs text-center py-2 px-4">
         Exibindo perfil canônico da loja.{" "}
-        <Link
-          to="/admin/perfil-publico"
-          className="underline font-semibold"
-        >
+        <Link to="/admin/perfil-publico" className="underline font-semibold">
           Personalize este perfil no Editor Visual
-        </Link>
-        {" "}para uma página com design completo.
+        </Link>{" "}
+        para uma página com design completo.
       </div>
 
       {/* Cover */}
@@ -122,7 +121,9 @@ function StorePerfil() {
                   : "bg-destructive/15 text-destructive"
               }`}
             >
-              <span className={`size-2 rounded-full ${openStatus.status === "open" ? "bg-emerald-500" : "bg-destructive"}`} />
+              <span
+                className={`size-2 rounded-full ${openStatus.status === "open" ? "bg-emerald-500" : "bg-destructive"}`}
+              />
               {openStatus.text}
             </span>
           )}
@@ -185,7 +186,9 @@ function StorePerfil() {
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Endereço</p>
                 <p className="text-sm font-medium">
-                  {store.address}{store.city ? `, ${store.city}` : ""}{store.state ? `/${store.state}` : ""}
+                  {store.address}
+                  {store.city ? `, ${store.city}` : ""}
+                  {store.state ? `/${store.state}` : ""}
                 </p>
               </div>
             </div>
@@ -202,7 +205,9 @@ function StorePerfil() {
                     <span className={`${!day.open ? "text-muted-foreground" : "font-medium"}`}>
                       {day.day}
                     </span>
-                    <span className={`font-mono text-xs ${!day.open ? "text-muted-foreground" : ""}`}>
+                    <span
+                      className={`font-mono text-xs ${!day.open ? "text-muted-foreground" : ""}`}
+                    >
                       {day.open ? `${day.openTime} – ${day.closeTime}` : "Fechado"}
                     </span>
                   </div>

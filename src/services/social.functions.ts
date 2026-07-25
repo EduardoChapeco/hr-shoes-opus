@@ -3,69 +3,68 @@ import { z } from "zod";
 import { getServerClient } from "@/lib/supabase";
 import { getCurrentIdentity } from "@/services/cart-helpers";
 
-export const toggleStoreFollow = createServerFn({ method: "POST" })
-  .handler(async () => {
-    const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
-    const storeId = await resolveTenantStoreId();
-    if (!storeId) throw new Error("Loja não encontrada.");
+export const toggleStoreFollow = createServerFn({ method: "POST" }).handler(async () => {
+  const supabase = getServerClient();
+  const identity = await getCurrentIdentity();
+  const { resolveTenantStoreId } = await import("@/lib/tenant");
+  const storeId = await resolveTenantStoreId();
+  if (!storeId) throw new Error("Loja não encontrada.");
 
-    if (!identity.customer_id) {
-      throw new Error("Você precisa estar logado para seguir uma loja.");
-    }
+  if (!identity.customer_id) {
+    throw new Error("Você precisa estar logado para seguir uma loja.");
+  }
 
-    // Check if already following
-    const { data: existing } = await supabase
+  // Check if already following
+  const { data: existing } = await supabase
+    .from("store_followers")
+    .select("store_id")
+    .eq("store_id", storeId)
+    .eq("customer_id", identity.customer_id)
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase
       .from("store_followers")
-      .select("store_id")
+      .delete()
       .eq("store_id", storeId)
-      .eq("customer_id", identity.customer_id)
-      .maybeSingle();
-
-    if (existing) {
-      await supabase
-        .from("store_followers")
-        .delete()
-        .eq("store_id", storeId)
-        .eq("customer_id", identity.customer_id);
-      return { following: false };
-    } else {
-      await supabase
-        .from("store_followers")
-        .insert({ store_id: storeId, customer_id: identity.customer_id });
-      return { following: true };
-    }
-  });
-
-export const getStoreFollowStatus = createServerFn({ method: "GET" })
-  .handler(async () => {
-    const supabase = getServerClient();
-    const identity = await getCurrentIdentity();
-    const { resolveTenantStoreId } = await import("@/lib/tenant");
-    const storeId = await resolveTenantStoreId();
-    if (!storeId) return { following: false };
-
-    if (!identity.customer_id) return { following: false };
-
-    const { data: existing } = await supabase
+      .eq("customer_id", identity.customer_id);
+    return { following: false };
+  } else {
+    await supabase
       .from("store_followers")
-      .select("store_id")
-      .eq("store_id", storeId)
-      .eq("customer_id", identity.customer_id)
-      .maybeSingle();
+      .insert({ store_id: storeId, customer_id: identity.customer_id });
+    return { following: true };
+  }
+});
 
-    return { following: !!existing };
-  });
+export const getStoreFollowStatus = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getServerClient();
+  const identity = await getCurrentIdentity();
+  const { resolveTenantStoreId } = await import("@/lib/tenant");
+  const storeId = await resolveTenantStoreId();
+  if (!storeId) return { following: false };
+
+  if (!identity.customer_id) return { following: false };
+
+  const { data: existing } = await supabase
+    .from("store_followers")
+    .select("store_id")
+    .eq("store_id", storeId)
+    .eq("customer_id", identity.customer_id)
+    .limit(1)
+    .maybeSingle();
+
+  return { following: !!existing };
+});
 
 export const submitProductReview = createServerFn({ method: "POST" })
   .validator(
     z.object({
-
       productId: z.string().uuid(),
       rating: z.number().min(1).max(5),
       comment: z.string().max(1000).optional(),
-    })
+    }),
   )
   .handler(async ({ data: { productId, rating, comment } }) => {
     const supabase = getServerClient();
@@ -98,12 +97,14 @@ export const getProductReviewStats = createServerFn({ method: "GET" })
   .validator(z.object({ productId: z.string().uuid() }))
   .handler(async ({ data: { productId } }) => {
     const supabase = getServerClient();
-    const { data, error } = await supabase.rpc("get_product_review_stats", { p_product_id: productId });
-    
+    const { data, error } = await supabase.rpc("get_product_review_stats", {
+      p_product_id: productId,
+    });
+
     if (error || !data) {
       return { average_rating: 0, total_reviews: 0 };
     }
-    return data as { average_rating: number, total_reviews: number };
+    return data as { average_rating: number; total_reviews: number };
   });
 
 export const getProductReviewsList = createServerFn({ method: "GET" })
@@ -112,49 +113,52 @@ export const getProductReviewsList = createServerFn({ method: "GET" })
     const supabase = getServerClient();
     const { data, error } = await supabase
       .from("reviews")
-      .select("id, rating, comment, created_at, reviewer_name, user:auth.users(id, raw_user_meta_data)")
+      .select(
+        "id, rating, comment, created_at, reviewer_name, user:auth.users(id, raw_user_meta_data)",
+      )
       .eq("product_id", productId)
       .eq("status", "approved")
       .order("created_at", { ascending: false })
       .limit(20);
 
     if (error) return [];
-    
+
     return data.map((d: any) => ({
       id: d.id,
       rating: d.rating,
       comment: d.comment,
       createdAt: d.created_at,
-      userName: d.reviewer_name || d.user?.raw_user_meta_data?.full_name || "Cliente Anonimo"
+      userName: d.reviewer_name || d.user?.raw_user_meta_data?.full_name || "Cliente Anonimo",
     }));
   });
 
-export const listStoreFollowers = createServerFn({ method: "GET" })
-  .handler(async () => {
-    try {
-      const ssrClient = getServerClient();
-      const { data: { user } } = await ssrClient.auth.getUser();
-      if (!user) throw new Error("Não autenticado");
+export const listStoreFollowers = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const ssrClient = getServerClient();
+    const {
+      data: { user },
+    } = await ssrClient.auth.getUser();
+    if (!user) throw new Error("Não autenticado");
 
-      const { data: profile } = await ssrClient
-        .from("profiles")
-        .select("store_id")
-        .eq("id", user.id)
-        .single();
+    const { data: profile } = await ssrClient
+      .from("profiles")
+      .select("store_id")
+      .eq("id", user.id)
+      .single();
 
-      if (!profile?.store_id) return [] ;
+    if (!profile?.store_id) return [];
 
-      const { data, error } = await ssrClient
-        .from("store_followers")
-        .select("created_at, customer:auth.users(id, raw_user_meta_data)")
-        .eq("store_id", profile.store_id)
-        .order("created_at", { ascending: false });
+    const { data, error } = await ssrClient
+      .from("store_followers")
+      .select("created_at, customer:auth.users(id, raw_user_meta_data)")
+      .eq("store_id", profile.store_id)
+      .order("created_at", { ascending: false });
 
-      if (error) throw error;
+    if (error) throw error;
 
-      return data;
-    } catch (e: any) {
-      console.error("[social.functions] listStoreFollowers:", e);
-      throw new Error(e.message || "Erro ao listar seguidores" );
-    }
-  });
+    return data;
+  } catch (e: any) {
+    console.error("[social.functions] listStoreFollowers:", e);
+    throw new Error(e.message || "Erro ao listar seguidores");
+  }
+});

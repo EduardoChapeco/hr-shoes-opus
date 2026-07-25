@@ -30,20 +30,20 @@ export interface ExperienceNode {
   id: string;
   version_id: string;
   parent_id?: string | null;
-  
+
   node_type: NodeType;
   block_type: string;
-  
+
   content: Record<string, any>;
   design_tokens: Record<string, any>;
   layout_rules: Record<string, any>;
   responsive_overrides: Record<string, ResponsiveValue<any>>;
   data_bindings: Record<string, any>;
   action_bindings: Record<string, any>;
-  
+
   sort_order: number;
   is_hidden: boolean;
-  
+
   // Children (hydrated in the tree representation, not persisted in flat rows)
   children?: ExperienceNode[];
 }
@@ -52,10 +52,25 @@ export interface ExperienceNode {
 // Block Registry Definitions
 // ---------------------------------------------------------------------------
 
-export type InspectorFieldType = 
-  | "text" | "textarea" | "number" | "boolean" | "color" | "collection_select" | "category_select" 
-  | "image" | "video" | "select" | "radio" | "slider"
-  | "data_binding" | "action_selector" | "collection" | "product" | "json" | "array";
+export type InspectorFieldType =
+  | "text"
+  | "textarea"
+  | "number"
+  | "boolean"
+  | "color"
+  | "collection_select"
+  | "category_select"
+  | "image"
+  | "video"
+  | "select"
+  | "radio"
+  | "slider"
+  | "data_binding"
+  | "action_selector"
+  | "collection"
+  | "product"
+  | "json"
+  | "array";
 
 export interface InspectorField {
   name: string;
@@ -68,8 +83,8 @@ export interface InspectorField {
   arrayFields?: InspectorField[];
 }
 
-export type BlockCategory = 
-  | "layout" | "content" | "media" | "commerce" | "social" | "forms" | "marketing";
+export type BlockCategory =
+  "layout" | "content" | "media" | "commerce" | "social" | "forms" | "marketing";
 
 export interface BlockManifest {
   type: string;
@@ -78,22 +93,22 @@ export interface BlockManifest {
   description: string;
   category: BlockCategory;
   icon: string;
-  
+
   allowedBuilderProfiles: ExperienceType[] | "all";
   allowedParentTypes: NodeType[] | "none" | "all";
   allowedChildTypes: NodeType[] | "none" | "all";
-  
+
   // Schemas for server-side validation
   contentSchema: z.ZodTypeAny;
   styleSchema?: z.ZodTypeAny;
   layoutSchema?: z.ZodTypeAny;
-  
+
   // Inspector definition (UI for the editor)
   inspector: {
     content?: InspectorField[];
     design?: InspectorField[];
     layout?: InspectorField[];
   };
-  
+
   defaultProps: Partial<ExperienceNode>;
 }

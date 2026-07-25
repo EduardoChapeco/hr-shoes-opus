@@ -111,7 +111,10 @@ describe("Store Settings Server Functions", () => {
       const result = await saveStoreSettingsHandler(updateData);
 
       expect(supabaseMock.from).toHaveBeenCalledWith("stores");
-      expect(supabaseMock.from().update).toHaveBeenCalledWith({ ...updateData, settings: { faviconUrl: undefined, logoUrl: undefined } });
+      expect(supabaseMock.from().update).toHaveBeenCalledWith({
+        ...updateData,
+        settings: { faviconUrl: undefined, logoUrl: undefined },
+      });
       expect(supabaseMock.from().eq).toHaveBeenCalledWith("id", "store-456");
       expect(result).toEqual({ status: "success" });
     });

@@ -3,12 +3,12 @@ import { getAnonServerClient } from "@/lib/supabase";
 
 /**
  * Resolve the current store_id based on the HTTP Host header.
- * For now, if the host is missing or it doesn`t match any slug, 
+ * For now, if the host is missing or it doesn`t match any slug,
  * it gracefully falls back to the first available store (preserving compatibility during migration).
  */
 export async function resolveTenantStoreId(): Promise<string | null> {
   const host = getRequestHeader("host");
-  
+
   // Extract subdomain or matching slug from host if possible
   // E.g., se host for "loja1.localhost:3000", extraimos "loja1"
   let slugToMatch = null;

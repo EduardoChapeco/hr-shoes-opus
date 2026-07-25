@@ -45,6 +45,6 @@ export const getSellerShowcase = createServerFn({ method: "GET" })
       };
     } catch (e: unknown) {
       console.error(e);
-      throw new Error("Erro ao buscar vitrine da vendedora" );
+      throw new Error("Erro ao buscar vitrine da vendedora");
     }
   });

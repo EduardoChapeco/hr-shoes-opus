@@ -34,8 +34,7 @@ export function SocialGrid({ content }: SocialGridProps) {
             rel="noopener noreferrer"
             className="text-xs font-semibold text-primary hover:underline flex items-center gap-1.5 mt-1"
           >
-            <Instagram className="size-4" />
-            @{username}
+            <Instagram className="size-4" />@{username}
           </a>
         </div>
       </div>
@@ -65,7 +64,7 @@ export function SocialGrid({ content }: SocialGridProps) {
                   className="size-full object-cover transition-transform duration-500 group-hover:scale-110"
                   loading="lazy"
                 />
-                
+
                 {/* Overlay Hover para Engajamento */}
                 {(metrics.likes || metrics.comments) && (
                   <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex items-center justify-center gap-4 text-white">

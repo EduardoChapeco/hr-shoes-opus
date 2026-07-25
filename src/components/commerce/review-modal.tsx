@@ -1,12 +1,24 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Star } from "lucide-react";
 import { toast } from "sonner";
 import { createReview } from "@/services/cms.functions";
 
-export function ReviewModal({ productId, productName }: { productId: string, productName: string }) {
+export function ReviewModal({
+  productId,
+  productName,
+}: {
+  productId: string;
+  productName: string;
+}) {
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -32,7 +44,9 @@ export function ReviewModal({ productId, productName }: { productId: string, pro
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="mt-2 text-xs h-7">Avaliar Produto</Button>
+        <Button variant="outline" size="sm" className="mt-2 text-xs h-7">
+          Avaliar Produto
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -40,7 +54,7 @@ export function ReviewModal({ productId, productName }: { productId: string, pro
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="flex gap-2 justify-center">
-            {[1,2,3,4,5].map(star => (
+            {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
                 className={`w-8 h-8 cursor-pointer ${star <= rating ? "fill-yellow-500 text-yellow-500" : "text-gray-300"}`}
@@ -48,8 +62,8 @@ export function ReviewModal({ productId, productName }: { productId: string, pro
               />
             ))}
           </div>
-          <Textarea 
-            placeholder="O que você achou do produto? (Opcional)" 
+          <Textarea
+            placeholder="O que você achou do produto? (Opcional)"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
           />

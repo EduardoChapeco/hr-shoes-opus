@@ -3,11 +3,7 @@ import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
 
 export type OnboardingStepStatus =
-  | "unconfigured"
-  | "partially_configured"
-  | "completed"
-  | "locked"
-  | "technical_error";
+  "unconfigured" | "partially_configured" | "completed" | "locked" | "technical_error";
 
 export interface OnboardingStep {
   id: string;
@@ -28,11 +24,18 @@ export interface OnboardingOverview {
   isStoreReadyToSell: boolean;
 }
 
-
-
 export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> {
   const identity = await getServerIdentity();
-  assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance", "stock", "content", "support"]);
+  assertStoreAccess(identity, [
+    "owner",
+    "admin",
+    "manager",
+    "seller",
+    "finance",
+    "stock",
+    "content",
+    "support",
+  ]);
 
   const db = getServerClient();
   const storeId = identity.store_id;
@@ -42,7 +45,9 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
     try {
       const { data, error } = await db
         .from("stores")
-        .select("id, name, email, phone, cnpj, address, city, state, zip_code, logo_url, policies, seo_title, seo_description, pix_key")
+        .select(
+          "id, name, email, phone, cnpj, address, city, state, zip_code, logo_url, policies, seo_title, seo_description, pix_key",
+        )
         .eq("id", storeId)
         .single();
       if (error) return { status: "error" as const, error: error.message };
@@ -79,23 +84,16 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
     }
   };
 
-  const [
-    storeRes,
-    shippingRes,
-    categoriesRes,
-    productsRes,
-    stockRes,
-    ordersRes,
-    couponsRes,
-  ] = await Promise.all([
-    fetchStore(),
-    fetchCount("shipping_rates"),
-    fetchCount("categories"),
-    fetchCount("products"),
-    fetchStockVariants(),
-    fetchCount("orders"),
-    fetchCount("coupons"),
-  ]);
+  const [storeRes, shippingRes, categoriesRes, productsRes, stockRes, ordersRes, couponsRes] =
+    await Promise.all([
+      fetchStore(),
+      fetchCount("shipping_rates"),
+      fetchCount("categories"),
+      fetchCount("products"),
+      fetchStockVariants(),
+      fetchCount("orders"),
+      fetchCount("coupons"),
+    ]);
 
   const steps: OnboardingStep[] = [];
 
@@ -299,7 +297,12 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
       description: "Disponibilização de saldo para venda por tamanho/cor.",
       status,
       targetRoute: "/admin/estoque",
-      details: status === "locked" ? "Cadastre um produto antes" : status === "completed" ? `${count} variação(ões) com saldo` : "Adicione estoque",
+      details:
+        status === "locked"
+          ? "Cadastre um produto antes"
+          : status === "completed"
+            ? `${count} variação(ões) com saldo`
+            : "Adicione estoque",
     });
   }
 
@@ -387,7 +390,12 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
       description: "Primeira venda efetuada no e-commerce ou no PDV.",
       status,
       targetRoute: "/admin/pedidos",
-      details: status === "locked" ? "Configure produto e pagamento antes" : status === "completed" ? `${count} pedido(s) recebido(s)` : "Aguardando primeira venda",
+      details:
+        status === "locked"
+          ? "Configure produto e pagamento antes"
+          : status === "completed"
+            ? `${count} pedido(s) recebido(s)`
+            : "Aguardando primeira venda",
     });
   }
 
@@ -417,7 +425,9 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
   const totalSteps = steps.length;
   const completedSteps = steps.filter((s) => s.status === "completed").length;
   const partiallyConfiguredSteps = steps.filter((s) => s.status === "partially_configured").length;
-  const progressPercentage = Math.round(((completedSteps + partiallyConfiguredSteps * 0.5) / totalSteps) * 100);
+  const progressPercentage = Math.round(
+    ((completedSteps + partiallyConfiguredSteps * 0.5) / totalSteps) * 100,
+  );
 
   const hasProduct = steps.find((s) => s.id === "first_product")?.status === "completed";
   const hasPayment = steps.find((s) => s.id === "payment")?.status === "completed";

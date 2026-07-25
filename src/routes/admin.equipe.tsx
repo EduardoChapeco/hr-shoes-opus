@@ -1,7 +1,16 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
-import { UserCog, Plus, Search, ShieldCheck, Users, Briefcase, UserPlus, Trash2 } from "lucide-react";
+import {
+  UserCog,
+  Plus,
+  Search,
+  ShieldCheck,
+  Users,
+  Briefcase,
+  UserPlus,
+  Trash2,
+} from "lucide-react";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import {
@@ -45,7 +54,7 @@ import { formatDateTime } from "@/lib/datetime";
 export const Route = createFileRoute("/admin/equipe")({
   head: () => ({ meta: [{ title: "Gestão de Equipe — Hr Shoes" }] }),
   loader: async () => {
-    return await listTeamMembers() || [];
+    return (await listTeamMembers()) || [];
   },
   component: TeamPage,
 });
@@ -79,7 +88,8 @@ function TeamPage() {
   // Computed metrics
   const sellersCount = useMemo(() => team.filter((m) => m.role === "seller").length, [team]);
   const managersCount = useMemo(
-    () => team.filter((m) => m.role === "manager" || m.role === "admin" || m.role === "owner").length,
+    () =>
+      team.filter((m) => m.role === "manager" || m.role === "admin" || m.role === "owner").length,
     [team],
   );
 
@@ -142,7 +152,8 @@ function TeamPage() {
               <DialogHeader>
                 <DialogTitle>Cadastrar Novo Colaborador</DialogTitle>
                 <DialogDescription>
-                  Crie uma conta de acesso para um membro da equipe com função e permissões específicas.
+                  Crie uma conta de acesso para um membro da equipe com função e permissões
+                  específicas.
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleInvite} className="space-y-4 pt-2">
@@ -223,7 +234,9 @@ function TeamPage() {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="text-2xl font-bold">{sellersCount} vendedora(s)</div>
-            <p className="text-xs text-muted-foreground mt-1">Perfil operacional com acesso ao PDV</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Perfil operacional com acesso ao PDV
+            </p>
           </CardContent>
         </Card>
 

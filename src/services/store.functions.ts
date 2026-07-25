@@ -12,7 +12,9 @@ export async function getStoreSettingsHandler() {
   const db = getServerClient();
   const { data: store, error } = await db
     .from("stores")
-    .select("id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, settings")
+    .select(
+      "id, name, slug, email, phone, cnpj, address, city, state, zip_code, description, settings",
+    )
     .eq("id", identity.store_id)
     .single();
 
@@ -20,7 +22,7 @@ export async function getStoreSettingsHandler() {
     throw new Error("Loja não encontrada ou erro ao carregar configurações");
   }
 
-  return store ;
+  return store;
 }
 
 export const getStoreSettings = createServerFn({ method: "GET" }).handler(getStoreSettingsHandler);
@@ -45,12 +47,19 @@ export async function saveStoreSettingsHandler(data: z.infer<typeof saveStoreSet
 
   const { logoUrl, faviconUrl, ...columns } = data;
   const db = getServerClient();
-  
+
   // Get current settings to merge
-  const { data: currentStore } = await db.from("stores").select("settings").eq("id", identity.store_id).single();
+  const { data: currentStore } = await db
+    .from("stores")
+    .select("settings")
+    .eq("id", identity.store_id)
+    .single();
   const settings = { ...(currentStore?.settings || {}), logoUrl, faviconUrl };
 
-  const { error } = await db.from("stores").update({ ...columns, settings }).eq("id", identity.store_id);
+  const { error } = await db
+    .from("stores")
+    .update({ ...columns, settings })
+    .eq("id", identity.store_id);
 
   if (error) {
     throw new Error("Erro ao salvar dados da loja: " + error.message);
@@ -80,7 +89,7 @@ export async function getPoliciesHandler() {
     throw new Error("Loja não encontrada ou erro ao carregar políticas");
   }
 
-  return store ;
+  return store;
 }
 
 export const getPolicies = createServerFn({ method: "GET" }).handler(getPoliciesHandler);
@@ -126,7 +135,7 @@ export async function getStoreSeoHandler() {
     throw new Error("Loja não encontrada ou erro ao carregar SEO");
   }
 
-  return store ;
+  return store;
 }
 
 export const getStoreSeo = createServerFn({ method: "GET" }).handler(getStoreSeoHandler);
@@ -164,7 +173,9 @@ export async function getPublicProfileHandler() {
   const db = getServerClient();
   const { data: store, error } = await db
     .from("stores")
-    .select("id, name, description, logo_url, address, phone, business_hours, social_links, settings")
+    .select(
+      "id, name, description, logo_url, address, phone, business_hours, social_links, settings",
+    )
     .eq("id", identity.store_id)
     .single();
 
@@ -172,7 +183,7 @@ export async function getPublicProfileHandler() {
     throw new Error("Loja não encontrada ou erro ao carregar perfil público");
   }
 
-  return store ;
+  return store;
 }
 
 export const getPublicProfile = createServerFn({ method: "GET" }).handler(getPublicProfileHandler);
@@ -233,7 +244,7 @@ export async function getPaymentSettingsHandler() {
       max_installments: Number(paySettings.max_installments ?? 12),
       interest_free_installments: Number(paySettings.interest_free_installments ?? 3),
       installment_interest_rate: Number(paySettings.installment_interest_rate ?? 2.99),
-    }
+    },
   };
 }
 
@@ -257,7 +268,7 @@ export const savePaymentSettings = createServerFn({ method: "POST" })
     assertStoreAccess(identity, ["owner", "admin"]);
 
     const db = getServerClient();
-    
+
     // Fetch existing settings
     const { data: store } = await db
       .from("stores")
@@ -273,7 +284,7 @@ export const savePaymentSettings = createServerFn({ method: "POST" })
       payment_settings: {
         ...(currentSettings.payment_settings || {}),
         ...extra,
-      }
+      },
     };
 
     const { error } = await db
@@ -281,7 +292,7 @@ export const savePaymentSettings = createServerFn({ method: "POST" })
       .update({
         pix_key,
         payment_instructions,
-        settings: updatedSettings
+        settings: updatedSettings,
       })
       .eq("id", identity.store_id);
 

@@ -86,6 +86,7 @@ export const checkGiftCardBalance = createServerFn({ method: "POST" })
       .from("gift_cards")
       .select("id, current_balance_cents, status, expires_at")
       .eq("code", code)
+      .limit(1)
       .maybeSingle();
 
     if (error || !card) throw new Error("Cartão não encontrado");
@@ -142,6 +143,7 @@ export const claimGiftCard = createServerFn({ method: "POST" })
       .from("gift_cards")
       .select("id, purchaser_id, status, current_balance_cents")
       .eq("code", code)
+      .limit(1)
       .maybeSingle();
 
     if (findError || !card) throw new Error("Vale-presente inválido ou não encontrado.");
@@ -180,5 +182,5 @@ export const listCustomerGiftCards = createServerFn({ method: "GET" }).handler(a
     throw new Error("Erro ao listar cartões presente.");
   }
 
-  return cards || [] ;
+  return cards || [];
 });

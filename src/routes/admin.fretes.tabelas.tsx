@@ -36,7 +36,7 @@ import { formatMoney } from "@/lib/money";
 
 export const Route = createFileRoute("/admin/fretes/tabelas")({
   head: () => ({ meta: [{ title: "Tabelas de Frete — Hr Shoes" }] }),
-  loader: async () => await listShippingZones() || [],
+  loader: async () => (await listShippingZones()) || [],
   component: FretesTabelasPage,
 });
 
@@ -71,7 +71,7 @@ function FretesTabelasPage() {
           is_active: true,
         },
       });
-      
+
       toast.success("Zona adicionada!");
       setAddZoneOpen(false);
       setZoneForm({ name: "", regions: "" });
@@ -115,7 +115,7 @@ function FretesTabelasPage() {
           is_active: true,
         },
       });
-      
+
       toast.success("Zona atualizada!");
       setEditZoneOpen(false);
       router.invalidate();
@@ -137,7 +137,7 @@ function FretesTabelasPage() {
     if (!confirm("Tem certeza que deseja excluir esta zona e todas as suas taxas?")) return;
     try {
       const res = await deleteShippingZone({ data: { id } });
-      
+
       toast.success("Zona excluída!");
       router.invalidate();
     } catch (e: any) {
@@ -161,7 +161,7 @@ function FretesTabelasPage() {
           is_active: true,
         },
       });
-      
+
       toast.success("Taxa adicionada!");
       setAddRateOpen(null);
       setRateForm({ name: "", price: "", minOrderCents: "", estimatedDays: "" });
@@ -183,7 +183,7 @@ function FretesTabelasPage() {
   const handleDeleteRate = async (id: string) => {
     try {
       const res = await deleteShippingRate({ data: { id } });
-      
+
       toast.success("Taxa removida.");
       router.invalidate();
     } catch (e: any) {

@@ -24,18 +24,22 @@ export function GridBuilderDialog({ product }: { product: any }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [options, setOptions] = useState<{ name: string; values: string }[]>([
     { name: "Tamanho", values: "" },
-    { name: "Cor", values: "" }
+    { name: "Cor", values: "" },
   ]);
 
   // Preenche opções baseadas no tipo do produto quando o modal abre
   useEffect(() => {
     if (open && product?.product_types?.field_schema) {
-      const variantGroups = product.product_types.field_schema.filter((f: any) => f.kind === "option_group");
+      const variantGroups = product.product_types.field_schema.filter(
+        (f: any) => f.kind === "option_group",
+      );
       if (variantGroups.length > 0) {
-        setOptions(variantGroups.map((g: any) => ({
-          name: g.name,
-          values: (g.options || []).join(", ")
-        })));
+        setOptions(
+          variantGroups.map((g: any) => ({
+            name: g.name,
+            values: (g.options || []).join(", "),
+          })),
+        );
       }
     }
   }, [open, product]);
@@ -83,7 +87,8 @@ export function GridBuilderDialog({ product }: { product: any }) {
         <DialogHeader>
           <DialogTitle>Gerador Automático de Grades</DialogTitle>
           <DialogDescription>
-            Crie opções (como Tamanho e Cor) e geraremos todas as combinações de variantes automaticamente, prontas para venda.
+            Crie opções (como Tamanho e Cor) e geraremos todas as combinações de variantes
+            automaticamente, prontas para venda.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -104,7 +109,9 @@ export function GridBuilderDialog({ product }: { product: any }) {
                 placeholder="Nome da opção"
                 value={opt.name}
                 onChange={(e) =>
-                  setOptions((opts) => opts.map((o, idx) => (idx === i ? { ...o, name: e.target.value } : o)))
+                  setOptions((opts) =>
+                    opts.map((o, idx) => (idx === i ? { ...o, name: e.target.value } : o)),
+                  )
                 }
               />
               <Label className="text-xs text-muted-foreground mt-2">
@@ -115,7 +122,7 @@ export function GridBuilderDialog({ product }: { product: any }) {
                 value={opt.values}
                 onChange={(e) =>
                   setOptions((opts) =>
-                    opts.map((o, idx) => (idx === i ? { ...o, values: e.target.value } : o))
+                    opts.map((o, idx) => (idx === i ? { ...o, values: e.target.value } : o)),
                   )
                 }
               />

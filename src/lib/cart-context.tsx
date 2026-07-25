@@ -26,7 +26,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Used by the root layout to seed the initial cart state
   const initCart = (initialCart: CartDTO | null) => {
-    // Apenas sobrecreve se for o carregamento inicial (cart null) 
+    // Apenas sobrecreve se for o carregamento inicial (cart null)
     // ou se o carrinho do layout possuir atualizações mais recentes de SSR
     if (!cart || (initialCart && initialCart.id === cart.id)) {
       setCart(initialCart);
@@ -36,12 +36,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const refreshCart = async () => {
     // Previne concorrência visual mas permite refresh contínuo em background
     if (isCartUpdating) return;
-    
+
     setIsCartUpdating(true);
     try {
       const updatedCart = await getCart();
-      setCart(updatedCart);
-      router.invalidate(); // also invalidate to sync TanStack Router loaders
+      setCart(updatedCart || null); // Tratamento explícito de null
+      await router.invalidate(); // also invalidate to sync TanStack Router loaders
     } catch (e) {
       console.error("Failed to refresh cart", e);
       // Não exibe erro na UI pois pode ser apenas um sync falho em background
@@ -58,7 +58,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         refreshCart();
       }
     };
-    
+
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
   }, [isCartUpdating]);
@@ -70,6 +70,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } catch (e: any) {
       toast.error(e.message || "Erro inesperado ao atualizar carrinho");
     } finally {
+      setIsCartUpdating(false);
       await refreshCart();
     }
   };
@@ -81,6 +82,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } catch (e: any) {
       toast.error(e.message || "Erro inesperado ao remover item");
     } finally {
+      setIsCartUpdating(false);
       await refreshCart();
     }
   };

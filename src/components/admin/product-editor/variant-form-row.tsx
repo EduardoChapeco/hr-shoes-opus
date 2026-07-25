@@ -4,20 +4,26 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { upsertProductVariant } from "@/services/admin-catalog.functions";
 import { adjustStock } from "@/services/stock.functions";
 import { useRouter } from "@tanstack/react-router";
 import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
 
-export function VariantFormRow({ 
-  variant, 
-  productId, 
-  onClose 
-}: { 
-  variant?: any; 
-  productId: string; 
-  onClose: () => void 
+export function VariantFormRow({
+  variant,
+  productId,
+  onClose,
+}: {
+  variant?: any;
+  productId: string;
+  onClose: () => void;
 }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +37,9 @@ export function VariantFormRow({
   } = useForm({
     defaultValues: {
       sku: variant?.sku || "",
-      price_override_cents: variant?.price_override_cents ? (variant.price_override_cents / 100).toFixed(2) : "",
+      price_override_cents: variant?.price_override_cents
+        ? (variant.price_override_cents / 100).toFixed(2)
+        : "",
       cost_cents: variant?.cost_cents ? (variant.cost_cents / 100).toFixed(2) : "",
       stock: variant?.stock_on_hand?.toString() || "",
       stock_alert_qty: variant?.stock_alert_qty?.toString() || "",
@@ -58,12 +66,15 @@ export function VariantFormRow({
   const onSubmitVariant = async (values: any) => {
     setIsSubmitting(true);
     try {
-      const attributes = attrFields.reduce((acc, curr) => {
-        const key = curr.k.trim();
-        const val = curr.v.trim();
-        if (key && val) acc[key] = val;
-        return acc;
-      }, {} as Record<string, string>);
+      const attributes = attrFields.reduce(
+        (acc, curr) => {
+          const key = curr.k.trim();
+          const val = curr.v.trim();
+          if (key && val) acc[key] = val;
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
 
       const price_override_cents = values.price_override_cents
         ? Math.round(parseFloat(values.price_override_cents.replace(",", ".")) * 100)
@@ -73,9 +84,7 @@ export function VariantFormRow({
         ? Math.round(parseFloat(values.cost_cents.replace(",", ".")) * 100)
         : null;
 
-      const stock_alert_qty = values.stock_alert_qty
-        ? parseInt(values.stock_alert_qty, 10)
-        : null;
+      const stock_alert_qty = values.stock_alert_qty ? parseInt(values.stock_alert_qty, 10) : null;
 
       const weight_kg = values.weight_kg ? parseFloat(values.weight_kg) : null;
       const width_cm = values.width_cm ? parseFloat(values.width_cm) : null;
@@ -104,7 +113,7 @@ export function VariantFormRow({
 
       if (res) {
         const targetStock = parseInt(values.stock || "0", 10);
-        const currentStock = variant ? (variant.stock_on_hand || 0) : 0;
+        const currentStock = variant ? variant.stock_on_hand || 0 : 0;
         const diff = targetStock - currentStock;
 
         try {
@@ -148,8 +157,13 @@ export function VariantFormRow({
         </div>
         <div className="space-y-2">
           <Label>Status da Variante</Label>
-          <Select defaultValue={variant?.status || "active"} onValueChange={(val) => setValue("status", val)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+          <Select
+            defaultValue={variant?.status || "active"}
+            onValueChange={(val) => setValue("status", val)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="active">Ativo</SelectItem>
               <SelectItem value="inactive">Inativo</SelectItem>
@@ -166,11 +180,21 @@ export function VariantFormRow({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Sobretaxa Preço (R$)</Label>
-          <Input step="0.01" type="number" placeholder="Preço base se vazio" {...register("price_override_cents")} />
+          <Input
+            step="0.01"
+            type="number"
+            placeholder="Preço base se vazio"
+            {...register("price_override_cents")}
+          />
         </div>
         <div className="space-y-2">
           <Label>Custo da Variante (R$)</Label>
-          <Input step="0.01" type="number" placeholder="Custo base se vazio" {...register("cost_cents")} />
+          <Input
+            step="0.01"
+            type="number"
+            placeholder="Custo base se vazio"
+            {...register("cost_cents")}
+          />
         </div>
       </div>
 
@@ -180,7 +204,9 @@ export function VariantFormRow({
             <Label>Estoque Total</Label>
             {variant && (
               <div className="text-[10px] mt-1 flex gap-2 font-medium text-muted-foreground">
-                <span className="text-primary font-bold">Disponível: {(variant.stock_on_hand || 0) - (variant.stock_reserved || 0)}</span>
+                <span className="text-primary font-bold">
+                  Disponível: {(variant.stock_on_hand || 0) - (variant.stock_reserved || 0)}
+                </span>
                 <span>|</span>
                 <span>Reservado: {variant.stock_reserved || 0}</span>
                 <span>|</span>
@@ -189,7 +215,9 @@ export function VariantFormRow({
             )}
           </div>
           <Input type="number" min="0" placeholder="Ajustar total" {...register("stock")} />
-          <p className="text-[10px] text-muted-foreground mt-1">Este valor altera o estoque total real. O disponível será recalculado.</p>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            Este valor altera o estoque total real. O disponível será recalculado.
+          </p>
         </div>
         <div className="space-y-2">
           <Label>Estoque Mínimo (Alerta)</Label>
@@ -198,7 +226,9 @@ export function VariantFormRow({
       </div>
 
       <div className="border-t pt-4">
-        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dimensões da Variante (Caso divirja do Produto)</Label>
+        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          Dimensões da Variante (Caso divirja do Produto)
+        </Label>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
           <div className="space-y-1">
             <Label className="text-[10px]">Peso (kg)</Label>
@@ -277,7 +307,9 @@ export function VariantFormRow({
         <div className="space-y-1">
           <p className="text-xs font-medium">Fotos para esta Variação</p>
           <p className="text-[11px] text-muted-foreground leading-snug">
-            Para adicionar fotos exclusivas desta variação, salve-a primeiro. Depois, role até a seção <span className="font-semibold">Galeria de Fotos do Produto</span> abaixo, faça o upload da imagem e clique no botão de engrenagem para "Vincular à Variante".
+            Para adicionar fotos exclusivas desta variação, salve-a primeiro. Depois, role até a
+            seção <span className="font-semibold">Galeria de Fotos do Produto</span> abaixo, faça o
+            upload da imagem e clique no botão de engrenagem para "Vincular à Variante".
           </p>
         </div>
       </div>

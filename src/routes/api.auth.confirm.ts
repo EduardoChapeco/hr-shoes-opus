@@ -16,7 +16,6 @@ import { normalizeInternalReturnPath } from "@/lib/return-path";
 import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { mergeGuestCartLogic } from "@/services/cart-helpers";
 
-
 export const Route = createFileRoute("/api/auth/confirm")({
   server: {
     handlers: {

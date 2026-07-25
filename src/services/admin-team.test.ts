@@ -122,7 +122,9 @@ describe("Admin Team Functions", () => {
       });
 
       const mockData = [{ id: "user-123", full_name: "Owner", role: "owner" }];
-      const expectedData = [{ id: "user-123", full_name: "Owner", role: "owner", email: "owner@example.com" }];
+      const expectedData = [
+        { id: "user-123", full_name: "Owner", role: "owner", email: "owner@example.com" },
+      ];
       mockOrder.mockResolvedValueOnce({ data: mockData, error: null });
 
       // Mock mockIn conditionally based on field to resolve both profiles query and auth query
@@ -190,7 +192,7 @@ describe("Admin Team Functions", () => {
       mockSingle.mockResolvedValueOnce({ data: null, error: { message: "Not found" } });
 
       await expect(
-        updateTeamMemberRoleHandler({ id: "user-456", role: "manager" })
+        updateTeamMemberRoleHandler({ id: "user-456", role: "manager" }),
       ).rejects.toThrow("Membro da equipe não encontrado ou pertence a outra loja.");
     });
 
@@ -206,7 +208,7 @@ describe("Admin Team Functions", () => {
       mockSingle.mockResolvedValueOnce({ data: { role: "owner" }, error: null });
 
       await expect(
-        updateTeamMemberRoleHandler({ id: "user-owner-id", role: "seller" })
+        updateTeamMemberRoleHandler({ id: "user-owner-id", role: "seller" }),
       ).rejects.toThrow("Apenas o proprietário pode alterar suas próprias permissões.");
     });
 
@@ -222,7 +224,7 @@ describe("Admin Team Functions", () => {
       mockSingle.mockResolvedValueOnce({ data: { role: "seller" }, error: null });
 
       await expect(
-        updateTeamMemberRoleHandler({ id: "user-seller-id", role: "owner" })
+        updateTeamMemberRoleHandler({ id: "user-seller-id", role: "owner" }),
       ).rejects.toThrow("Apenas o proprietário pode transferir a propriedade da loja.");
     });
 
@@ -278,7 +280,7 @@ describe("Admin Team Functions", () => {
           email: "test@loja.com",
           fullName: "Test Admin",
           role: "admin",
-        })
+        }),
       ).rejects.toThrow("Gerentes não podem convidar membros com cargo de Administrador.");
     });
 

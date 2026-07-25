@@ -26,9 +26,18 @@ interface TestimonialCarouselProps {
   resolvedData?: any;
 }
 
-export function TestimonialCarousel({ content, design_tokens, data_bindings, transientData, resolvedData }: TestimonialCarouselProps) {
+export function TestimonialCarousel({
+  content,
+  design_tokens,
+  data_bindings,
+  transientData,
+  resolvedData,
+}: TestimonialCarouselProps) {
   const bindingType = data_bindings?.type || data_bindings?.source;
-  const isDynamic = bindingType === "dynamic_reviews" || !content?.testimonials || content.testimonials.length === 0;
+  const isDynamic =
+    bindingType === "dynamic_reviews" ||
+    !content?.testimonials ||
+    content.testimonials.length === 0;
 
   // Use server-side hydrated data if present
   const serverReviews = resolvedData?.reviews || resolvedData || transientData?.reviews || null;
@@ -36,12 +45,12 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
   const { data: result, isLoading } = useQuery({
     queryKey: ["builderReviews"],
     queryFn: () => getBuilderReviews(),
-    enabled: isDynamic && !serverReviews
+    enabled: isDynamic && !serverReviews,
   });
 
-  const testimonials = isDynamic 
-    ? (serverReviews || (Array.isArray(result) ? result : []))
-    : (content?.testimonials || []);
+  const testimonials = isDynamic
+    ? serverReviews || (Array.isArray(result) ? result : [])
+    : content?.testimonials || [];
 
   return (
     <div
@@ -60,16 +69,19 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
               </h2>
             )}
             {content?.subtitle && (
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                {content.subtitle}
-              </p>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{content.subtitle}</p>
             )}
           </div>
         )}
 
         {isLoading ? (
           <div className="flex gap-4 overflow-hidden">
-             {[1,2,3].map(i => <div key={i} className="w-[300px] @md:w-[350px] h-[200px] bg-muted animate-pulse rounded-lg flex-shrink-0" />)}
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="w-[300px] @md:w-[350px] h-[200px] bg-muted animate-pulse rounded-lg flex-shrink-0"
+              />
+            ))}
           </div>
         ) : testimonials.length > 0 ? (
           <Carousel
@@ -92,7 +104,9 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
                                 key={i}
                                 className={cn(
                                   "h-4 w-4",
-                                  i < item.rating! ? "fill-current" : "text-muted opacity-30 fill-transparent"
+                                  i < item.rating!
+                                    ? "fill-current"
+                                    : "text-muted opacity-30 fill-transparent",
                                 )}
                               />
                             ))}
@@ -115,7 +129,9 @@ export function TestimonialCarousel({ content, design_tokens, data_bindings, tra
                           )}
                           <div>
                             <p className="font-semibold text-sm">{item.author}</p>
-                            {item.role && <p className="text-xs text-muted-foreground">{item.role}</p>}
+                            {item.role && (
+                              <p className="text-xs text-muted-foreground">{item.role}</p>
+                            )}
                           </div>
                         </div>
                       </CardContent>

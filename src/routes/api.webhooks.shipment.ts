@@ -7,7 +7,14 @@ export const Route = createFileRoute("/api/webhooks/shipment")({
       POST: async ({ request }) => {
         try {
           const body = await request.json().catch(() => ({}));
-          const { order_id, tracking_code, carrier_name, status, tracking_url, provider = "webhook" } = body;
+          const {
+            order_id,
+            tracking_code,
+            carrier_name,
+            status,
+            tracking_url,
+            provider = "webhook",
+          } = body;
 
           if (!order_id && !tracking_code) {
             return new Response(JSON.stringify({ error: "Missing order_id or tracking_code" }), {
@@ -78,10 +85,13 @@ export const Route = createFileRoute("/api/webhooks/shipment")({
             payload: body,
           });
 
-          return new Response(JSON.stringify({ success: true, order_id: order.id, new_status: newOrderStatus }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          });
+          return new Response(
+            JSON.stringify({ success: true, order_id: order.id, new_status: newOrderStatus }),
+            {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
         } catch (e: any) {
           console.error("[shipment-webhook] Exception:", e);
           return new Response(JSON.stringify({ error: "Internal Server Error" }), {

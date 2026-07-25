@@ -53,7 +53,7 @@ export const listTeamMembers = createServerFn({ method: "GET" }).handler(async (
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[admin-team] listTeamMembers error:", e);
-    throw new Error("Erro ao listar equipe." );
+    throw new Error("Erro ao listar equipe.");
   }
 });
 
@@ -117,7 +117,7 @@ export const updateTeamMemberRole = createServerFn({ method: "POST" })
       return data;
     } catch (e: unknown) {
       console.error("[admin-team] updateTeamMemberRole error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro." );
+      throw new Error(e instanceof Error ? e.message : "Erro.");
     }
   });
 
@@ -148,14 +148,12 @@ export async function inviteTeamMemberHandler(input: {
   if (authError) throw new Error(`Erro ao criar conta Auth: ${authError.message}`);
 
   // 2. Upsert the profile to mitigate latency and ensure store mapping is linked correctly
-  const { error: profileError } = await db
-    .from("profiles")
-    .upsert({
-      id: authData.user.id,
-      role: input.role,
-      store_id: identity.store_id,
-      full_name: input.fullName,
-    });
+  const { error: profileError } = await db.from("profiles").upsert({
+    id: authData.user.id,
+    role: input.role,
+    store_id: identity.store_id,
+    full_name: input.fullName,
+  });
 
   if (profileError) throw new Error("Erro ao promover usuário a membro da equipe.");
 
@@ -175,6 +173,6 @@ export const inviteTeamMember = createServerFn({ method: "POST" })
       return await inviteTeamMemberHandler(input);
     } catch (e: unknown) {
       console.error("[admin-team] inviteTeamMember error:", e);
-      throw new Error(e instanceof Error ? e.message : "Erro." );
+      throw new Error(e instanceof Error ? e.message : "Erro.");
     }
   });

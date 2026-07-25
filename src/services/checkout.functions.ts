@@ -47,7 +47,7 @@ export const getOrderByToken = createServerFn({ method: "GET" })
     const { data } = await db
       .from("orders")
       .select(
-        "id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents, customer_snapshot, shipping_method, shipping_address, created_at, order_items(id, product_title, variant_sku, qty, unit_price_cents, total_cents)",
+        "id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents, customer_snapshot, payment_method, shipping_method, shipping_address, created_at, order_items(id, product_title, variant_sku, qty, unit_price_cents, total_cents)",
       )
       .eq("public_token", token)
       .single();
@@ -65,7 +65,7 @@ export const processCheckout = createServerFn({ method: "POST" })
 
       // Ensure anti-hijacking by extracting the actual current identity
       const identity = await getCurrentIdentity();
-      
+
       const req = getRequest();
       const affiliateId = req ? readCookieFromRequest(req, "hrshoes_affiliate_id") : null;
 
@@ -96,6 +96,6 @@ export const processCheckout = createServerFn({ method: "POST" })
       return { status: "success" as const, orderToken: result.orderToken };
     } catch (e: any) {
       console.error("[checkout.functions] processCheckout:", e.message);
-      throw new Error(e.message || "Erro no checkout" );
+      throw new Error(e.message || "Erro no checkout");
     }
   });

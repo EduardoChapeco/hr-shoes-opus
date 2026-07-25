@@ -13,7 +13,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Printer, Banknote, Landmark, AlertTriangle, Truck, ExternalLink, Package } from "lucide-react";
+import {
+  Printer,
+  Banknote,
+  Landmark,
+  AlertTriangle,
+  Truck,
+  ExternalLink,
+  Package,
+} from "lucide-react";
 import { getOrderById, updateOrderStatus, updateOrderShipment } from "@/services/order.functions";
 import { approvePayment, rejectPayment } from "@/services/payment.functions";
 
@@ -26,7 +34,13 @@ export const Route = createFileRoute("/admin/pedidos/$id")({
 });
 
 function getStatusLabel(status: string) {
-  const map: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "info" | "success" | "warning" }> = {
+  const map: Record<
+    string,
+    {
+      label: string;
+      variant: "default" | "secondary" | "destructive" | "outline" | "info" | "success" | "warning";
+    }
+  > = {
     draft: { label: "Rascunho", variant: "secondary" },
     awaiting_payment: { label: "Aguardando Pagamento", variant: "warning" },
     payment_processing: { label: "Pagamento em Processamento", variant: "info" },
@@ -162,7 +176,9 @@ function AdminOrderDetailPage() {
                 >
                   <div>
                     <p className="font-medium text-foreground">{item.product_title}</p>
-                    <p className="text-sm text-muted-foreground font-mono">SKU: {item.variant_sku}</p>
+                    <p className="text-sm text-muted-foreground font-mono">
+                      SKU: {item.variant_sku}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-foreground">{formatMoney(item.total_cents)}</p>
@@ -200,7 +216,10 @@ function AdminOrderDetailPage() {
           {/* Status & Actions */}
           <div className="rounded-xl border border-border p-6 bg-card text-card-foreground shadow-xs">
             <h3 className="font-semibold text-lg mb-4 text-foreground">Status</h3>
-            <Badge variant={getStatusLabel(order.status).variant} className="text-[11px] uppercase tracking-wider py-1 mb-4 flex justify-center">
+            <Badge
+              variant={getStatusLabel(order.status).variant}
+              className="text-[11px] uppercase tracking-wider py-1 mb-4 flex justify-center"
+            >
               {getStatusLabel(order.status).label}
             </Badge>
 
@@ -209,10 +228,7 @@ function AdminOrderDetailPage() {
                 {/* Approve payment — choose method */}
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button
-                      className="w-full font-bold"
-                      disabled={isConfirming || isRejecting}
-                    >
+                    <Button className="w-full font-bold" disabled={isConfirming || isRejecting}>
                       {isConfirming ? "Confirmando..." : "Marcar como Pago"}
                     </Button>
                   </DialogTrigger>
@@ -350,7 +366,9 @@ function AdminOrderDetailPage() {
                           className="w-full rounded-md border px-3 py-2 text-sm"
                           placeholder="Ex: Correios, Jadlog, Loggi"
                           value={trackingForm.carrierName}
-                          onChange={(e) => setTrackingForm({ ...trackingForm, carrierName: e.target.value })}
+                          onChange={(e) =>
+                            setTrackingForm({ ...trackingForm, carrierName: e.target.value })
+                          }
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -361,7 +379,9 @@ function AdminOrderDetailPage() {
                           className="w-full rounded-md border px-3 py-2 text-sm"
                           placeholder="Ex: AA123456789BR"
                           value={trackingForm.trackingCode}
-                          onChange={(e) => setTrackingForm({ ...trackingForm, trackingCode: e.target.value })}
+                          onChange={(e) =>
+                            setTrackingForm({ ...trackingForm, trackingCode: e.target.value })
+                          }
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -371,11 +391,17 @@ function AdminOrderDetailPage() {
                           className="w-full rounded-md border px-3 py-2 text-sm"
                           placeholder="Deixe em branco para gerar link automático"
                           value={trackingForm.trackingUrl}
-                          onChange={(e) => setTrackingForm({ ...trackingForm, trackingUrl: e.target.value })}
+                          onChange={(e) =>
+                            setTrackingForm({ ...trackingForm, trackingUrl: e.target.value })
+                          }
                         />
                       </div>
                       <div className="flex justify-end gap-2 pt-2">
-                        <Button type="button" variant="outline" onClick={() => setTrackingModalOpen(false)}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setTrackingModalOpen(false)}
+                        >
                           Cancelar
                         </Button>
                         <Button type="submit" disabled={isSavingTracking}>

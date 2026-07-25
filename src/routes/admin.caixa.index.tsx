@@ -125,7 +125,9 @@ function CashRegisterError({ error }: { error: Error }) {
       />
       <ErrorState
         title="Falha ao carregar caixa"
-        description={error.message || "Verifique se sua conta de usuário está vinculada a uma loja ativa."}
+        description={
+          error.message || "Verifique se sua conta de usuário está vinculada a uma loja ativa."
+        }
       />
     </div>
   );
@@ -151,7 +153,9 @@ function CashRegisterPage() {
     }>
   >([]);
   const [discountCentsInput, setDiscountCentsInput] = useState("0");
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "pix" | "credit" | "debit" | "other">("cash");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "pix" | "credit" | "debit" | "other">(
+    "cash",
+  );
   const [customerNameInput, setCustomerNameInput] = useState("Cliente Avulso Balcão");
   const [amountPaidInput, setAmountPaidInput] = useState("");
   const [lastReceipt, setLastReceipt] = useState<any | null>(null);
@@ -201,7 +205,7 @@ function CashRegisterPage() {
       toast.success("Cliente cadastrado!");
       setIsNewCustomerOpen(false);
       setNewCustomerForm({ fullName: "", email: "", phone: "" });
-      
+
       await fetchCustomers();
       setSelectedCustomerId(res.customerId);
       setCustomerNameInput(newCustomerForm.fullName);
@@ -255,13 +259,11 @@ function CashRegisterPage() {
   }, [availableVariants, searchQuery]);
 
   // Cart helper functions
-  const handleAddToCart = (variant: typeof availableVariants[0]) => {
+  const handleAddToCart = (variant: (typeof availableVariants)[0]) => {
     setCartItems((prev) => {
       const existing = prev.find((i) => i.variantId === variant.variantId);
       if (existing) {
-        return prev.map((i) =>
-          i.variantId === variant.variantId ? { ...i, qty: i.qty + 1 } : i,
-        );
+        return prev.map((i) => (i.variantId === variant.variantId ? { ...i, qty: i.qty + 1 } : i));
       }
       return [
         ...prev,
@@ -323,7 +325,10 @@ function CashRegisterPage() {
 
       if (res) {
         if (res.hasNegativeStock) {
-          toast.warning("Venda concluída, mas o estoque ficou negativo em alguns produtos. Recomendamos auditoria/recontagem de estoque.", { duration: 8000 });
+          toast.warning(
+            "Venda concluída, mas o estoque ficou negativo em alguns produtos. Recomendamos auditoria/recontagem de estoque.",
+            { duration: 8000 },
+          );
         } else {
           toast.success("Venda de balcão concluída!");
         }
@@ -463,7 +468,10 @@ function CashRegisterPage() {
         description={`Operador: ${register.opened_by_profile?.full_name || "Staff"} • Aberto às ${formatDateTime(register.opened_at)}`}
         actions={
           <div className="flex items-center gap-2">
-            <Badge variant="success" className="text-xs px-3 py-1 font-bold uppercase tracking-wider">
+            <Badge
+              variant="success"
+              className="text-xs px-3 py-1 font-bold uppercase tracking-wider"
+            >
               Gaveta: {formatMoney(register.currentBalanceCents)}
             </Badge>
             <Button variant="outline" asChild size="sm">
@@ -512,7 +520,11 @@ function CashRegisterPage() {
                     className="p-3 rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-xs transition-all cursor-pointer flex items-center gap-3 group"
                   >
                     {variant.coverUrl ? (
-                      <img src={variant.coverUrl} alt="" className="size-12 rounded-lg object-cover border shrink-0" />
+                      <img
+                        src={variant.coverUrl}
+                        alt=""
+                        className="size-12 rounded-lg object-cover border shrink-0"
+                      />
                     ) : (
                       <div className="size-12 rounded-lg bg-muted border flex items-center justify-center shrink-0">
                         <Package className="size-6 text-muted-foreground" />
@@ -527,7 +539,11 @@ function CashRegisterPage() {
                         {formatMoney(variant.priceCents)}
                       </span>
                     </div>
-                    <Button variant="ghost" size="icon" className="shrink-0 group-hover:bg-primary group-hover:text-primary-foreground">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0 group-hover:bg-primary group-hover:text-primary-foreground"
+                    >
                       <Plus className="size-4" />
                     </Button>
                   </div>
@@ -556,7 +572,10 @@ function CashRegisterPage() {
                   ) : (
                     <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                       {cartItems.map((item) => (
-                        <div key={item.variantId} className="flex items-center justify-between p-2 rounded-lg border bg-muted/20">
+                        <div
+                          key={item.variantId}
+                          className="flex items-center justify-between p-2 rounded-lg border bg-muted/20"
+                        >
                           <div className="min-w-0 flex-1 pr-2">
                             <p className="font-bold text-xs truncate">{item.title}</p>
                             <span className="text-[11px] text-muted-foreground font-mono">
@@ -599,8 +618,7 @@ function CashRegisterPage() {
                           className="h-5 text-[10px] px-1 text-primary gap-1 hover:bg-primary/5"
                           onClick={() => setIsNewCustomerOpen(true)}
                         >
-                          <UserPlus className="size-3" />
-                          + Novo Cliente
+                          <UserPlus className="size-3" />+ Novo Cliente
                         </Button>
                       </div>
                       <div className="flex gap-2">
@@ -683,7 +701,7 @@ function CashRegisterPage() {
                             type="number"
                             step="0.01"
                             className="text-xs h-8 font-bold"
-                            placeholder={ (cartTotalCents / 100).toFixed(2) }
+                            placeholder={(cartTotalCents / 100).toFixed(2)}
                             value={amountPaidInput}
                             onChange={(e) => setAmountPaidInput(e.target.value)}
                           />
@@ -740,8 +758,11 @@ function CashRegisterPage() {
               </div>
             </CardHeader>
             <CardContent>
-              {(!register.recentEntries || register.recentEntries.length === 0) ? (
-                <EmptyState title="Nenhum lançamento" description="Nenhuma movimentação realizada neste turno." />
+              {!register.recentEntries || register.recentEntries.length === 0 ? (
+                <EmptyState
+                  title="Nenhum lançamento"
+                  description="Nenhuma movimentação realizada neste turno."
+                />
               ) : (
                 <Table>
                   <TableHeader>
@@ -763,8 +784,13 @@ function CashRegisterPage() {
                           <Badge variant="outline">{entry.method}</Badge>
                         </TableCell>
                         <TableCell className="text-right font-bold text-xs">
-                          <span className={entry.amount_cents >= 0 ? "text-success" : "text-destructive"}>
-                            {entry.amount_cents >= 0 ? "+" : ""}{formatMoney(entry.amount_cents)}
+                          <span
+                            className={
+                              entry.amount_cents >= 0 ? "text-success" : "text-destructive"
+                            }
+                          >
+                            {entry.amount_cents >= 0 ? "+" : ""}
+                            {formatMoney(entry.amount_cents)}
                           </span>
                         </TableCell>
                       </TableRow>
@@ -781,7 +807,9 @@ function CashRegisterPage() {
           <Card className="max-w-xl mx-auto rounded-xl border border-border shadow-xs">
             <CardHeader>
               <CardTitle className="text-base">Encerrar Turno de Caixa</CardTitle>
-              <CardDescription>Efetue a contagem cega do dinheiro na gaveta para encerrar o caixa.</CardDescription>
+              <CardDescription>
+                Efetue a contagem cega do dinheiro na gaveta para encerrar o caixa.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Form {...closeForm}>
@@ -812,7 +840,12 @@ function CashRegisterPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" variant="destructive" disabled={isClosing} className="w-full font-bold">
+                  <Button
+                    type="submit"
+                    variant="destructive"
+                    disabled={isClosing}
+                    className="w-full font-bold"
+                  >
                     {isClosing ? "Encerrando..." : "Confirmar Fechamento de Turno"}
                   </Button>
                 </form>
@@ -892,7 +925,9 @@ function CashRegisterPage() {
                 id="pdv-cli-name"
                 required
                 value={newCustomerForm.fullName}
-                onChange={(e) => setNewCustomerForm({ ...newCustomerForm, fullName: e.target.value })}
+                onChange={(e) =>
+                  setNewCustomerForm({ ...newCustomerForm, fullName: e.target.value })
+                }
                 placeholder="Ex: Carlos Souza"
                 className="h-9"
               />

@@ -43,16 +43,18 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { listAdminProducts } from "@/services/admin-catalog.functions";
-import { listUpsellRules, createUpsellRule, updateUpsellRule, deleteUpsellRule } from "@/services/upsell.functions";
+import {
+  listUpsellRules,
+  createUpsellRule,
+  updateUpsellRule,
+  deleteUpsellRule,
+} from "@/services/upsell.functions";
 import { EmptyState } from "@/components/state/states";
 
 export const Route = createFileRoute("/admin/marketing/ofertas-checkout")({
   head: () => ({ meta: [{ title: "Ofertas de Checkout (Upsell) — Hr Shoes" }] }),
   loader: async () => {
-    const [rules, products] = await Promise.all([
-      listUpsellRules(),
-      listAdminProducts(),
-    ]);
+    const [rules, products] = await Promise.all([listUpsellRules(), listAdminProducts()]);
     return {
       rules: rules || [],
       products: products || [],
@@ -262,7 +264,8 @@ function CheckoutOffersPage() {
               {editingRuleId ? "Editar Regra de Upsell" : "Nova Regra de Upsell"}
             </DialogTitle>
             <DialogDescription>
-              Defina o produto gatilho que ativará a oferta no carrinho e o produto adicional oferecido com desconto.
+              Defina o produto gatilho que ativará a oferta no carrinho e o produto adicional
+              oferecido com desconto.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4 pt-2">
@@ -315,11 +318,7 @@ function CheckoutOffersPage() {
 
               <div className="space-y-2 flex flex-col justify-end pb-2">
                 <div className="flex items-center space-x-2">
-                  <Switch
-                    id="rule-active"
-                    checked={active}
-                    onCheckedChange={setActive}
-                  />
+                  <Switch id="rule-active" checked={active} onCheckedChange={setActive} />
                   <Label htmlFor="rule-active">Regra Ativa</Label>
                 </div>
               </div>
@@ -338,17 +337,24 @@ function CheckoutOffersPage() {
       </Dialog>
 
       {/* alert dialog de confirmação de exclusão */}
-      <AlertDialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+      <AlertDialog
+        open={!!deleteConfirmId}
+        onOpenChange={(open) => !open && setDeleteConfirmId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Tem certeza que deseja excluir esta regra?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação é permanente e a regra de upsell deixará de ser sugerida aos clientes no checkout imediatamente.
+              Esta ação é permanente e a regra de upsell deixará de ser sugerida aos clientes no
+              checkout imediatamente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Confirmar Exclusão
             </AlertDialogAction>
           </AlertDialogFooter>

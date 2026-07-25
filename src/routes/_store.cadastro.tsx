@@ -79,8 +79,6 @@ function RegisterPage() {
         },
       });
 
-
-
       if (!result.sessionActive) {
         toast.success(
           "Conta criada! Verifique seu e-mail e clique no link de confirmação para ativar seu acesso.",

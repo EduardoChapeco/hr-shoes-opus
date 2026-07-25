@@ -18,11 +18,13 @@ export const listUpsellRules = createServerFn({ method: "GET" }).handler(async (
 
   const { data, error } = await supabase
     .from("upsell_rules")
-    .select(`
+    .select(
+      `
       *,
       trigger_product:products!upsell_rules_trigger_product_id_fkey(id, title),
       offer_product:products!upsell_rules_offer_product_id_fkey(id, title)
-    `)
+    `,
+    )
     .eq("store_id", identity.store_id)
     .order("created_at", { ascending: false });
 
@@ -60,7 +62,9 @@ export const createUpsellRule = createServerFn({ method: "POST" })
     if (error) {
       console.error("[upsell] createUpsellRule error:", error);
       if (error.code === "23505") {
-        throw new Error("Já existe uma regra de upsell cadastrada para este produto gatilho e produto de oferta.");
+        throw new Error(
+          "Já existe uma regra de upsell cadastrada para este produto gatilho e produto de oferta.",
+        );
       }
       throw new Error("Erro ao cadastrar regra de upsell");
     }
@@ -97,7 +101,9 @@ export const updateUpsellRule = createServerFn({ method: "POST" })
     if (error) {
       console.error("[upsell] updateUpsellRule error:", error);
       if (error.code === "23505") {
-        throw new Error("Já existe uma regra de upsell cadastrada para este produto gatilho e produto de oferta.");
+        throw new Error(
+          "Já existe uma regra de upsell cadastrada para este produto gatilho e produto de oferta.",
+        );
       }
       throw new Error("Erro ao atualizar regra de upsell");
     }

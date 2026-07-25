@@ -31,9 +31,6 @@ export const Route = createFileRoute("/admin/fretes/cotacoes")({
       listOrdersAwaitingShippingQuote(),
     ]);
 
-    
-    
-
     return {
       zones: zonesRes || [],
       pendingOrders: pendingRes || [],
@@ -64,7 +61,7 @@ function FretesCotacoesPage() {
     setLoading(true);
     try {
       const res = await calculateShipping({ data: { zipcode } });
-      
+
       setResults(Array.isArray(res) ? res : []);
     } catch (e: any) {
       toast.error(e.message || "Erro ao calcular");

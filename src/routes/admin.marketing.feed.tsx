@@ -29,7 +29,7 @@ import { listSocialPosts, createSocialPost } from "@/services/marketing-engageme
 
 export const Route = createFileRoute("/admin/marketing/feed")({
   head: () => ({ meta: [{ title: "Feed Social — Hr Shoes" }] }),
-  loader: async () => await listSocialPosts() || [],
+  loader: async () => (await listSocialPosts()) || [],
   component: FeedPage,
 });
 
@@ -45,7 +45,7 @@ function FeedPage() {
     setIsSaving(true);
     try {
       const res = await createSocialPost({ data: form });
-      
+
       toast.success("Post criado!");
       setOpen(false);
       setForm({ platform: "instagram", content_text: "" });

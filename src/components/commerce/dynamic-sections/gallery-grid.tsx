@@ -45,10 +45,7 @@ export function GalleryGrid({ content }: GalleryGridProps) {
           Nenhuma imagem cadastrada na galeria.
         </div>
       ) : (
-        <div
-          className={`grid ${getColClass()}`}
-          style={{ gap: `${gap}px` }}
-        >
+        <div className={`grid ${getColClass()}`} style={{ gap: `${gap}px` }}>
           {images.map((img, idx) => {
             const Wrapper = img.link ? "a" : "div";
             const wrapperProps = img.link ? { href: img.link } : {};

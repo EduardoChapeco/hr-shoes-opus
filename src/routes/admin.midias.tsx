@@ -49,8 +49,8 @@ function MidiasPage() {
               data: {
                 fileName: file.name,
                 fileBase64: base64,
-                bucket: "product-media"
-              }
+                bucket: "product-media",
+              },
             });
 
             toast.success("Imagem enviada com sucesso!");
@@ -69,7 +69,6 @@ function MidiasPage() {
         if (fileRef.current) fileRef.current.value = "";
       };
       reader.readAsDataURL(file);
-
     } catch (err: any) {
       toast.error(err.message || "Erro ao enviar");
       setUploading(false);

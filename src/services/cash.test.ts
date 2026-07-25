@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { openRegisterHandler, addRegisterEntryHandler, processPOSSaleHandler } from "./cash.functions";
+import {
+  openRegisterHandler,
+  addRegisterEntryHandler,
+  processPOSSaleHandler,
+} from "./cash.functions";
 import { getServerClient } from "@/lib/supabase";
 import { getServerIdentity } from "@/lib/identity";
 
@@ -264,19 +268,22 @@ describe("Cash Functions", () => {
             select: vi.fn().mockReturnThis(),
             in: vi.fn().mockReturnThis(),
             eq: vi.fn().mockResolvedValue({
-              data: [
-                { id: "var-1", price_cents: 15000 }
-              ],
-              error: null
-            })
+              data: [{ id: "var-1", price_cents: 15000 }],
+              error: null,
+            }),
           };
         }
         return {};
       });
 
-      supabaseMock.rpc.mockResolvedValue({ 
-        data: { receiptId: "rec-1", orderId: "ord-1", orderToken: "tok-1", hasNegativeStock: false },
-        error: null 
+      supabaseMock.rpc.mockResolvedValue({
+        data: {
+          receiptId: "rec-1",
+          orderId: "ord-1",
+          orderToken: "tok-1",
+          hasNegativeStock: false,
+        },
+        error: null,
       });
 
       const res = await processPOSSaleHandler({
@@ -300,12 +307,15 @@ describe("Cash Functions", () => {
       expect(res.subtotalCents).toBe(30000);
       expect(res.totalCents).toBe(29000);
       expect(res.changeCents).toBe(1000);
-      expect(supabaseMock.rpc).toHaveBeenCalledWith("process_pos_sale_transaction", expect.objectContaining({
-        p_payment_method: "cash",
-        p_discount_cents: 1000,
-        p_customer_name: "Maria Silva",
-        p_register_id: "reg-111",
-      }));
+      expect(supabaseMock.rpc).toHaveBeenCalledWith(
+        "process_pos_sale_transaction",
+        expect.objectContaining({
+          p_payment_method: "cash",
+          p_discount_cents: 1000,
+          p_customer_name: "Maria Silva",
+          p_register_id: "reg-111",
+        }),
+      );
     });
   });
 });

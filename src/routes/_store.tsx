@@ -17,13 +17,13 @@ export const Route = createFileRoute("/_store")({
       getNavigationMenus(),
       getPublicStoreSettings(),
       getCart(),
-      getActiveGlobalPopups()
+      getActiveGlobalPopups(),
     ]);
     return {
       menus: menusRes || [],
       store: storeRes || null,
       cart,
-      popups: popupsRes || []
+      popups: popupsRes || [],
     };
   },
   component: StoreLayoutWrapper,
@@ -60,7 +60,7 @@ function StoreLayout() {
 
   const storeName = store?.name || "Hr Shoes";
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://hrshoes.com.br";
-  
+
   // JSON-LD Structured Data (Organization + WebSite with SearchAction)
   const jsonLd = {
     "@context": "https://schema.org",
@@ -103,11 +103,7 @@ function StoreLayout() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <PublicHeader 
-        menuItems={headerMenu} 
-        storeName={storeName} 
-        logoUrl={store?.logoUrl}
-      />
+      <PublicHeader menuItems={headerMenu} storeName={storeName} logoUrl={store?.logoUrl} />
       <main className="@container flex-1 pb-20 md:pb-0">
         <Outlet />
       </main>
@@ -117,5 +113,4 @@ function StoreLayout() {
       <SlideOutCart />
     </div>
   );
-
 }

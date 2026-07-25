@@ -4,10 +4,10 @@ import { ExperienceRenderer } from "@/components/commerce/experience-renderer";
 
 export const Route = createFileRoute("/_store/paginas/$slug")({
   loader: async ({ params }) => {
-    const res = await getPublicExperienceDocumentBySlug({ 
-      data: { slug: params.slug, document_type: "storefront" } 
+    const res = await getPublicExperienceDocumentBySlug({
+      data: { slug: params.slug, document_type: "storefront" },
     });
-    
+
     if (res.status === "not_found") throw notFound();
 
     return {
@@ -19,7 +19,10 @@ export const Route = createFileRoute("/_store/paginas/$slug")({
     if (!loaderData || !loaderData.document) return { meta: [{ title: "Página não encontrada" }] };
     return {
       meta: [
-        { title: loaderData.document.seo_metadata?.title || `${loaderData.document.title} — Hr Shoes` },
+        {
+          title:
+            loaderData.document.seo_metadata?.title || `${loaderData.document.title} — Hr Shoes`,
+        },
         { name: "description", content: loaderData.document.seo_metadata?.description || "" },
       ],
     };

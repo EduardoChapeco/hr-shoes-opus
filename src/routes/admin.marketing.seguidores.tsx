@@ -29,9 +29,10 @@ function FollowersPage() {
   const followers = Route.useLoaderData() as any[];
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredFollowers = followers.filter(f => 
-    f.customer?.raw_user_meta_data?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    f.customer?.raw_user_meta_data?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredFollowers = followers.filter(
+    (f) =>
+      f.customer?.raw_user_meta_data?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      f.customer?.raw_user_meta_data?.email?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -44,8 +45,8 @@ function FollowersPage() {
       <div className="flex items-center justify-between">
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Buscar por nome ou email..." 
+          <Input
+            placeholder="Buscar por nome ou email..."
             className="pl-9 bg-card"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -56,7 +57,11 @@ function FollowersPage() {
       {filteredFollowers.length === 0 ? (
         <EmptyState
           title={searchTerm ? "Nenhum seguidor encontrado" : "Ainda sem seguidores"}
-          description={searchTerm ? "Tente buscar por outro termo." : "Os clientes que clicarem em 'Seguir' na página do produto aparecerão aqui."}
+          description={
+            searchTerm
+              ? "Tente buscar por outro termo."
+              : "Os clientes que clicarem em 'Seguir' na página do produto aparecerão aqui."
+          }
         />
       ) : (
         <div className="rounded-md border bg-card">
@@ -77,16 +82,21 @@ function FollowersPage() {
                     <TableCell className="font-medium">
                       {meta.full_name || "Cliente sem nome"}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {meta.email || "-"}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground">{meta.email || "-"}</TableCell>
                     <TableCell>
                       {new Date(f.created_at).toLocaleDateString("pt-BR", {
-                        day: '2-digit', month: 'long', year: 'numeric'
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
                       })}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-primary border-primary/30 bg-primary/5">Ativo</Badge>
+                      <Badge
+                        variant="outline"
+                        className="text-primary border-primary/30 bg-primary/5"
+                      >
+                        Ativo
+                      </Badge>
                     </TableCell>
                   </TableRow>
                 );

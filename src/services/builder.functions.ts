@@ -17,10 +17,16 @@ import type { ExperienceDocument, ExperienceNode, ExperienceType } from "@/lib/b
 // Used by both the editor (draft) and public renderer (published).
 // ---------------------------------------------------------------------------
 
-async function hydrateStoreProfileForNode(db: ReturnType<typeof getServerClient>, store_id: string): Promise<Record<string, any> | null> {
+async function hydrateStoreProfileForNode(
+  db: ReturnType<typeof getServerClient>,
+  store_id: string,
+): Promise<Record<string, any> | null> {
   try {
     const { data: store } = await db
-      .from("stores").select("name, slug, description, address, city, state, phone, email, settings").eq("id", store_id).single();
+      .from("stores")
+      .select("name, slug, description, address, city, state, phone, email, settings")
+      .eq("id", store_id)
+      .single();
 
     if (!store) return null;
 
@@ -67,12 +73,14 @@ async function hydrateStoreProfileForNode(db: ReturnType<typeof getServerClient>
 async function hydrateBindings(
   nodes: ExperienceNode[],
   db: ReturnType<typeof getServerClient>,
-  store_id: string
+  store_id: string,
 ): Promise<ExperienceNode[]> {
   const needsStoreProfile = nodes.some(
-    (n) => n.data_bindings && (n.data_bindings.source === "store_profile")
+    (n) => n.data_bindings && n.data_bindings.source === "store_profile",
   );
-  const storeProfileData = needsStoreProfile ? await hydrateStoreProfileForNode(db, store_id) : null;
+  const storeProfileData = needsStoreProfile
+    ? await hydrateStoreProfileForNode(db, store_id)
+    : null;
 
   return Promise.all(
     nodes.map(async (node) => {
@@ -84,14 +92,26 @@ async function hydrateBindings(
       }
 
       if (bindingType === "product_collection" && bindings.collection_slug) {
-        const { data: col } = await db.from("collections").select("id").eq("slug", bindings.collection_slug).eq("store_id", store_id).eq("status", "active").single();
+        const { data: col } = await db
+          .from("collections")
+          .select("id")
+          .eq("slug", bindings.collection_slug)
+          .eq("store_id", store_id)
+          .eq("status", "active")
+          .single();
         let res = null;
         if (col) {
-          const { data: junction } = await db.from("product_collections").select("product_id").eq("collection_id", col.id);
+          const { data: junction } = await db
+            .from("product_collections")
+            .select("product_id")
+            .eq("collection_id", col.id);
           const pIds = junction?.map((j: any) => j.product_id) || [];
           if (pIds.length > 0) {
-            const { data } = await db.from("products")
-              .select("id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)")
+            const { data } = await db
+              .from("products")
+              .select(
+                "id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)",
+              )
               .eq("status", "published")
               .eq("store_id", store_id)
               .in("id", pIds)
@@ -99,10 +119,15 @@ async function hydrateBindings(
               .limit(12);
             if (data) {
               const formatted = data.map((p: any) => {
-                const sortedMedia = p.media ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order) : [];
+                const sortedMedia = p.media
+                  ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order)
+                  : [];
                 return {
-                  id: p.id, title: p.title, slug: p.slug,
-                  priceCents: p.price_cents, compareAtCents: p.compare_at_cents,
+                  id: p.id,
+                  title: p.title,
+                  slug: p.slug,
+                  priceCents: p.price_cents,
+                  compareAtCents: p.compare_at_cents,
                   coverUrl: sortedMedia[0]?.url || null,
                   hoverUrl: sortedMedia[1]?.url || null,
                   isOutOfStock: false,
@@ -118,13 +143,25 @@ async function hydrateBindings(
       } else if (bindingType === "latest_products" || bindingType === "dynamic_products") {
         const limit = bindings.limit || 12;
         const { data: latest } = await db
-          .from("products").select("id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)").eq("status", "published").eq("store_id", store_id).order("created_at", { ascending: false }).limit(limit);
+          .from("products")
+          .select(
+            "id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)",
+          )
+          .eq("status", "published")
+          .eq("store_id", store_id)
+          .order("created_at", { ascending: false })
+          .limit(limit);
         if (latest) {
           const formatted = latest.map((p: any) => {
-            const sortedMedia = p.media ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order) : [];
+            const sortedMedia = p.media
+              ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order)
+              : [];
             return {
-              id: p.id, title: p.title, slug: p.slug,
-              priceCents: p.price_cents, compareAtCents: p.compare_at_cents,
+              id: p.id,
+              title: p.title,
+              slug: p.slug,
+              priceCents: p.price_cents,
+              compareAtCents: p.compare_at_cents,
               coverUrl: sortedMedia[0]?.url || null,
               hoverUrl: sortedMedia[1]?.url || null,
               isOutOfStock: false,
@@ -168,7 +205,7 @@ async function hydrateBindings(
             .in("slug", slugs);
 
           if (prods && prods.length > 0) {
-            const prodMap = new Map(prods.map(p => [p.slug, p]));
+            const prodMap = new Map(prods.map((p) => [p.slug, p]));
             const enrichedHotspots = node.content.hotspots.map((h: any) => {
               if (h.product_slug && prodMap.has(h.product_slug)) {
                 const p = prodMap.get(h.product_slug)!;
@@ -190,7 +227,7 @@ async function hydrateBindings(
       }
 
       return node;
-    })
+    }),
   );
 }
 
@@ -203,20 +240,23 @@ export const listExperienceDocuments = createServerFn({ method: "GET" })
   .handler(async ({ data: input }) => {
     try {
       const db = getServerClient();
-      let query = db.from("experience_documents").select("*").order("created_at", { ascending: false });
-      
+      let query = db
+        .from("experience_documents")
+        .select("*")
+        .order("created_at", { ascending: false });
+
       if (input?.type) {
         query = query.eq("document_type", input.type);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      
-      return data as ExperienceDocument[] ;
+
+      return data as ExperienceDocument[];
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[builder.functions] listExperienceDocuments error:", e);
-      throw new Error("Erro ao listar documentos." );
+      throw new Error("Erro ao listar documentos.");
     }
   });
 
@@ -242,12 +282,12 @@ export const getExperienceDocument = createServerFn({ method: "GET" })
         .eq("document_id", input.id)
         .order("created_at", { ascending: false })
         .limit(1);
-        
+
       if (versionsError) throw versionsError;
-      
+
       const version = versions && versions.length > 0 ? versions[0] : null;
       let nodes: ExperienceNode[] = [];
-      
+
       // 3. Get Nodes if version exists
       if (version) {
         const { data: nodesData, error: nodesError } = await db
@@ -255,22 +295,25 @@ export const getExperienceDocument = createServerFn({ method: "GET" })
           .select("*")
           .eq("version_id", version.id)
           .order("sort_order", { ascending: true });
-          
+
         if (nodesError) throw nodesError;
-        
+
         // 4. Hydrate Data Bindings — shared helper covers store_profile, products, reviews
         const rawNodes = nodesData as ExperienceNode[];
         const { getServerIdentity } = await import("@/lib/identity");
-          const { store_id } = await getServerIdentity();
-          if (!store_id) throw new Error("No store found");
-          nodes = await hydrateBindings(rawNodes, db, store_id);
+        const { store_id } = await getServerIdentity();
+        if (!store_id) throw new Error("No store found");
+        nodes = await hydrateBindings(rawNodes, db, store_id);
       }
 
-      return { status: "ok" as const, data: { document: doc as ExperienceDocument, version, nodes } };
+      return {
+        status: "ok" as const,
+        data: { document: doc as ExperienceDocument, version, nodes },
+      };
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[builder.functions] getExperienceDocument error:", e);
-      throw new Error("Erro ao carregar documento." );
+      throw new Error("Erro ao carregar documento.");
     }
   });
 
@@ -307,29 +350,29 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
         .single();
 
       if (docError) throw docError;
-      
+
       // 2. Create Initial Version
       const { data: version, error: versionError } = await db
         .from("experience_versions")
         .insert({
           document_id: doc.id,
           version_number: 1,
-          status: 'draft',
+          status: "draft",
         })
         .select()
         .single();
-        
+
       if (versionError) throw versionError;
 
       // 3. Inject Seed Template if provided
       if (input.template_id && input.template_id !== "blank") {
         const { randomUUID } = await import("crypto");
         let seedNodes: Partial<ExperienceNode>[] = [];
-        
+
         if (input.template_id === "biolink_classic") {
           const sectionId = randomUUID();
           const containerId = randomUUID();
-          
+
           seedNodes = [
             {
               id: sectionId,
@@ -345,7 +388,14 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "container",
               parent_id: sectionId,
               sort_order: 0,
-              layout_rules: { maxWidth: "sm", display: "flex", flexDirection: "col", gap: "md", paddingX: "md", paddingY: "xl" },
+              layout_rules: {
+                maxWidth: "sm",
+                display: "flex",
+                flexDirection: "col",
+                gap: "md",
+                paddingX: "md",
+                paddingY: "xl",
+              },
             },
             {
               id: randomUUID(),
@@ -353,7 +403,9 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "rich_text",
               parent_id: containerId,
               sort_order: 0,
-              content: { html: "<div style='text-align:center'><img src='https://github.com/shadcn.png' style='width:96px;height:96px;border-radius:50%;margin:0 auto;'/><h3>Meu Nome</h3><p>Minha biografia incrível</p></div>" },
+              content: {
+                html: "<div style='text-align:center'><img src='https://github.com/shadcn.png' style='width:96px;height:96px;border-radius:50%;margin:0 auto;'/><h3>Meu Nome</h3><p>Minha biografia incrível</p></div>",
+              },
             },
             {
               id: randomUUID(),
@@ -361,16 +413,18 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "social_grid",
               parent_id: containerId,
               sort_order: 1,
-              content: { items: [
-                { title: "Comprar Agora", link: "/", icon: "ShoppingBag" },
-                { title: "WhatsApp", link: "https://wa.me/5511999999999", icon: "Smartphone" }
-              ]}
-            }
+              content: {
+                items: [
+                  { title: "Comprar Agora", link: "/", icon: "ShoppingBag" },
+                  { title: "WhatsApp", link: "https://wa.me/5511999999999", icon: "Smartphone" },
+                ],
+              },
+            },
           ];
         } else if (input.template_id === "landing_page") {
           const sectionId = randomUUID();
           const containerId = randomUUID();
-          
+
           seedNodes = [
             {
               id: sectionId,
@@ -385,7 +439,14 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "container",
               parent_id: sectionId,
               sort_order: 0,
-              layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "lg", paddingX: "md", paddingY: "lg" },
+              layout_rules: {
+                maxWidth: "xl",
+                display: "flex",
+                flexDirection: "col",
+                gap: "lg",
+                paddingX: "md",
+                paddingY: "lg",
+              },
             },
             {
               id: randomUUID(),
@@ -393,7 +454,13 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "hero_carousel",
               parent_id: containerId,
               sort_order: 0,
-              content: { autoPlay: true, interval: 5, banners: [{ image_url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff" }] }
+              content: {
+                autoPlay: true,
+                interval: 5,
+                banners: [
+                  { image_url: "https://images.unsplash.com/photo-1542291026-7eec264c27ff" },
+                ],
+              },
             },
             {
               id: randomUUID(),
@@ -401,7 +468,10 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "countdown_timer",
               parent_id: containerId,
               sort_order: 1,
-              content: { target_date: new Date(Date.now() + 86400000).toISOString(), title: "Oferta Encerra em" }
+              content: {
+                target_date: new Date(Date.now() + 86400000).toISOString(),
+                title: "Oferta Encerra em",
+              },
             },
             {
               id: randomUUID(),
@@ -410,7 +480,7 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               parent_id: containerId,
               sort_order: 2,
               content: { title: "Destaques da Coleção", subtitle: "As melhores ofertas pra você" },
-              data_bindings: { source: "dynamic_products" }
+              data_bindings: { source: "dynamic_products" },
             },
             {
               id: randomUUID(),
@@ -419,13 +489,13 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               parent_id: containerId,
               sort_order: 3,
               content: { title: "Mais Vendidos", subtitle: "Aproveite antes que acabe" },
-              data_bindings: { source: "dynamic_products" }
-            }
+              data_bindings: { source: "dynamic_products" },
+            },
           ];
         } else if (input.template_id === "homepage_classic") {
           const sectionId = randomUUID();
           const containerId = randomUUID();
-          
+
           seedNodes = [
             {
               id: sectionId,
@@ -440,7 +510,14 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "container",
               parent_id: sectionId,
               sort_order: 0,
-              layout_rules: { maxWidth: "full", display: "flex", flexDirection: "col", gap: "none", paddingX: "none", paddingY: "none" },
+              layout_rules: {
+                maxWidth: "full",
+                display: "flex",
+                flexDirection: "col",
+                gap: "none",
+                paddingX: "none",
+                paddingY: "none",
+              },
             },
             {
               id: randomUUID(),
@@ -448,7 +525,13 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "hero_carousel",
               parent_id: containerId,
               sort_order: 0,
-              content: { autoPlay: true, interval: 5, banners: [{ image_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b" }] }
+              content: {
+                autoPlay: true,
+                interval: 5,
+                banners: [
+                  { image_url: "https://images.unsplash.com/photo-1483985988355-763728e1935b" },
+                ],
+              },
             },
             {
               id: randomUUID(),
@@ -456,8 +539,11 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "product_carousel",
               parent_id: containerId,
               sort_order: 1,
-              content: { title: "Produtos em Destaque", subtitle: "As últimas novidades da coleção" },
-              data_bindings: { source: "dynamic_products" }
+              content: {
+                title: "Produtos em Destaque",
+                subtitle: "As últimas novidades da coleção",
+              },
+              data_bindings: { source: "dynamic_products" },
             },
             {
               id: randomUUID(),
@@ -465,13 +551,21 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "bento_grid",
               parent_id: containerId,
               sort_order: 2,
-              content: { items: [{ title: "Verão", image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446", col_span: 2 }] }
-            }
+              content: {
+                items: [
+                  {
+                    title: "Verão",
+                    image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446",
+                    col_span: 2,
+                  },
+                ],
+              },
+            },
           ];
         } else if (input.template_id === "institutional_profile") {
           const sectionId = randomUUID();
           const containerId = randomUUID();
-          
+
           seedNodes = [
             {
               id: sectionId,
@@ -487,7 +581,14 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "container",
               parent_id: sectionId,
               sort_order: 0,
-              layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "xl", paddingX: "md", paddingY: "2xl" },
+              layout_rules: {
+                maxWidth: "xl",
+                display: "flex",
+                flexDirection: "col",
+                gap: "xl",
+                paddingX: "md",
+                paddingY: "2xl",
+              },
             },
             {
               id: randomUUID(),
@@ -495,7 +596,9 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "rich_text",
               parent_id: containerId,
               sort_order: 0,
-              content: { html: "<div style='text-align:center'><h1 style='font-size:3rem;font-weight:bold;margin-bottom:1rem;'>Nossa Essência</h1><p style='color:#64748b;font-size:1.25rem;max-width:40rem;margin:0 auto;'>Conectando você ao melhor do design e conforto desde o primeiro passo.</p></div>" },
+              content: {
+                html: "<div style='text-align:center'><h1 style='font-size:3rem;font-weight:bold;margin-bottom:1rem;'>Nossa Essência</h1><p style='color:#64748b;font-size:1.25rem;max-width:40rem;margin:0 auto;'>Conectando você ao melhor do design e conforto desde o primeiro passo.</p></div>",
+              },
             },
             {
               id: randomUUID(),
@@ -503,13 +606,21 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "timeline_history",
               parent_id: containerId,
               sort_order: 1,
-              content: { 
-                title: "Como tudo começou", 
+              content: {
+                title: "Como tudo começou",
                 events: [
-                  { year: "2015", title: "Fundação", description: "Início da nossa jornada vendendo sapatos artesanais." },
-                  { year: "2020", title: "Expansão Nacional", description: "Chegamos a todos os estados do Brasil." }
-                ] 
-              }
+                  {
+                    year: "2015",
+                    title: "Fundação",
+                    description: "Início da nossa jornada vendendo sapatos artesanais.",
+                  },
+                  {
+                    year: "2020",
+                    title: "Expansão Nacional",
+                    description: "Chegamos a todos os estados do Brasil.",
+                  },
+                ],
+              },
             },
             {
               id: randomUUID(),
@@ -517,7 +628,14 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "split_banner",
               parent_id: containerId,
               sort_order: 2,
-              content: { title: "Conforto Incomparável", description: "Experimente a leveza e a flexibilidade que só os nossos produtos oferecem.", button_text: "Conhecer Coleção", button_link: "/catalog", image_position: "right" },
+              content: {
+                title: "Conforto Incomparável",
+                description:
+                  "Experimente a leveza e a flexibilidade que só os nossos produtos oferecem.",
+                button_text: "Conhecer Coleção",
+                button_link: "/catalog",
+                image_position: "right",
+              },
             },
             {
               id: randomUUID(),
@@ -525,14 +643,17 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
               block_type: "testimonial_carousel",
               parent_id: containerId,
               sort_order: 3,
-              content: { title: "O que dizem de nós", subtitle: "A opinião de quem já veste Hr Shoes." },
-              data_bindings: { source: "dynamic_reviews" }
-            }
+              content: {
+                title: "O que dizem de nós",
+                subtitle: "A opinião de quem já veste Hr Shoes.",
+              },
+              data_bindings: { source: "dynamic_reviews" },
+            },
           ];
         }
 
         if (seedNodes.length > 0) {
-          const nodesToInsert = seedNodes.map(n => ({
+          const nodesToInsert = seedNodes.map((n) => ({
             ...n,
             version_id: version.id,
           }));
@@ -543,35 +664,34 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
       return { status: "success" as const, data: { document: doc, version } };
     } catch (e: unknown) {
       console.error("[builder.functions] createExperienceDocument error:", e);
-      throw new Error("Erro ao criar documento." );
+      throw new Error("Erro ao criar documento.");
     }
   });
 
-export const listMediaAssets = createServerFn({ method: "GET" })
-  .handler(async () => {
-    try {
-      const db = getServerClient();
-      
-      const { getServerIdentity } = await import("@/lib/identity");
-      const identity = await getServerIdentity();
-      if (!identity.store_id) throw new Error("No store found");
-      const store = { id: identity.store_id };
-      if (!store) throw new Error("No store found");
+export const listMediaAssets = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
 
-      const { data, error } = await db
-        .from("media_assets")
-        .select("*")
-        .eq("store_id", store.id)
-        .order("created_at", { ascending: false });
+    const { getServerIdentity } = await import("@/lib/identity");
+    const identity = await getServerIdentity();
+    if (!identity.store_id) throw new Error("No store found");
+    const store = { id: identity.store_id };
+    if (!store) throw new Error("No store found");
 
-      if (error) throw error;
+    const { data, error } = await db
+      .from("media_assets")
+      .select("*")
+      .eq("store_id", store.id)
+      .order("created_at", { ascending: false });
 
-      return data;
-    } catch (e: any) {
-      console.error("[builder.functions] listMediaAssets error:", e);
-      throw new Error(e.message || "Erro ao carregar mídias" );
-    }
-  });
+    if (error) throw error;
+
+    return data;
+  } catch (e: any) {
+    console.error("[builder.functions] listMediaAssets error:", e);
+    throw new Error(e.message || "Erro ao carregar mídias");
+  }
+});
 
 export const updateExperienceDocument = createServerFn({ method: "POST" })
   .validator(
@@ -596,7 +716,7 @@ export const updateExperienceDocument = createServerFn({ method: "POST" })
         .maybeSingle();
 
       if (existing) {
-        throw new Error("Este slug já está em uso por outra página ativa." );
+        throw new Error("Este slug já está em uso por outra página ativa.");
       }
 
       const { error } = await db
@@ -614,66 +734,259 @@ export const updateExperienceDocument = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[builder.functions] updateExperienceDocument error:", e);
-      throw new Error("Erro ao atualizar configurações." );
+      throw new Error("Erro ao atualizar configurações.");
     }
   });
 
 const HOME_TEMPLATES: Record<string, (ids: () => string) => any[]> = {
   blank: () => [],
-  
+
   classic_commerce: (uid) => {
-    const s1 = uid(); const c1 = uid();
-    const s2 = uid(); const c2 = uid();
-    const s3 = uid(); const c3 = uid();
+    const s1 = uid();
+    const c1 = uid();
+    const s2 = uid();
+    const c2 = uid();
+    const s3 = uid();
+    const c3 = uid();
     return [
       { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0 },
-      { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0, layout_rules: { maxWidth: "full", display: "flex", flexDirection: "col", gap: "none", paddingX: "none", paddingY: "none" } },
-      { id: uid(), node_type: "composition", block_type: "hero_carousel", parent_id: c1, sort_order: 0, content: { slides: [{ title: "Nova Coleção", subtitle: "Chegou agora", button_text: "Ver produtos" }] } },
-      
+      {
+        id: c1,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s1,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "full",
+          display: "flex",
+          flexDirection: "col",
+          gap: "none",
+          paddingX: "none",
+          paddingY: "none",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "hero_carousel",
+        parent_id: c1,
+        sort_order: 0,
+        content: {
+          slides: [
+            { title: "Nova Coleção", subtitle: "Chegou agora", button_text: "Ver produtos" },
+          ],
+        },
+      },
+
       { id: s2, node_type: "section", block_type: "section", parent_id: null, sort_order: 1 },
-      { id: c2, node_type: "container", block_type: "container", parent_id: s2, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "lg", paddingX: "md", paddingY: "xl" } },
-      { id: uid(), node_type: "composition", block_type: "product_carousel", parent_id: c2, sort_order: 0, content: { title: "Destaques da Semana", subtitle: "Os queridinhos" }, data_bindings: { source: "dynamic_products" } },
-      
+      {
+        id: c2,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s2,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "lg",
+          paddingX: "md",
+          paddingY: "xl",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "product_carousel",
+        parent_id: c2,
+        sort_order: 0,
+        content: { title: "Destaques da Semana", subtitle: "Os queridinhos" },
+        data_bindings: { source: "dynamic_products" },
+      },
+
       { id: s3, node_type: "section", block_type: "section", parent_id: null, sort_order: 2 },
-      { id: c3, node_type: "container", block_type: "container", parent_id: s3, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "lg", paddingX: "md", paddingY: "xl" } },
-      { id: uid(), node_type: "composition", block_type: "split_banner", parent_id: c3, sort_order: 0, content: { title: "Desconto Especial", description: "Use o cupom na primeira compra" } },
+      {
+        id: c3,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s3,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "lg",
+          paddingX: "md",
+          paddingY: "xl",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "split_banner",
+        parent_id: c3,
+        sort_order: 0,
+        content: { title: "Desconto Especial", description: "Use o cupom na primeira compra" },
+      },
     ];
   },
 
   minimalist_fashion: (uid) => {
-    const s1 = uid(); const c1 = uid();
-    const s2 = uid(); const c2 = uid();
+    const s1 = uid();
+    const c1 = uid();
+    const s2 = uid();
+    const c2 = uid();
     return [
       { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0 },
-      { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0, layout_rules: { maxWidth: "full", display: "flex", flexDirection: "col", gap: "none", paddingX: "none", paddingY: "none" } },
-      { id: uid(), node_type: "composition", block_type: "split_banner", parent_id: c1, sort_order: 0, content: { title: "Minimalismo em Foco", description: "O essencial que transforma" } },
-      
+      {
+        id: c1,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s1,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "full",
+          display: "flex",
+          flexDirection: "col",
+          gap: "none",
+          paddingX: "none",
+          paddingY: "none",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "split_banner",
+        parent_id: c1,
+        sort_order: 0,
+        content: { title: "Minimalismo em Foco", description: "O essencial que transforma" },
+      },
+
       { id: s2, node_type: "section", block_type: "section", parent_id: null, sort_order: 1 },
-      { id: c2, node_type: "container", block_type: "container", parent_id: s2, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "lg", paddingX: "md", paddingY: "2xl" } },
-      { id: uid(), node_type: "composition", block_type: "product_grid", parent_id: c2, sort_order: 0, content: { title: "Coleção Essencial" }, data_bindings: { source: "dynamic_products" } },
+      {
+        id: c2,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s2,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "lg",
+          paddingX: "md",
+          paddingY: "2xl",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "product_grid",
+        parent_id: c2,
+        sort_order: 0,
+        content: { title: "Coleção Essencial" },
+        data_bindings: { source: "dynamic_products" },
+      },
     ];
   },
 
   street_wear: (uid) => {
-    const s1 = uid(); const c1 = uid();
-    const s2 = uid(); const c2 = uid();
+    const s1 = uid();
+    const c1 = uid();
+    const s2 = uid();
+    const c2 = uid();
     return [
-      { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0, design_tokens: { backgroundColor: "#000000", textColor: "#ffffff" } },
-      { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0, layout_rules: { maxWidth: "full", display: "flex", flexDirection: "col", gap: "none", paddingX: "none", paddingY: "none" } },
-      { id: uid(), node_type: "composition", block_type: "hero_carousel", parent_id: c1, sort_order: 0, content: { slides: [{ title: "STREET DROP", subtitle: "Edição Limitada" }] } },
-      
-      { id: s2, node_type: "section", block_type: "section", parent_id: null, sort_order: 1, design_tokens: { backgroundColor: "#111111", textColor: "#ffffff" } },
-      { id: c2, node_type: "container", block_type: "container", parent_id: s2, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "lg", paddingX: "md", paddingY: "xl" } },
-      { id: uid(), node_type: "composition", block_type: "product_carousel", parent_id: c2, sort_order: 0, content: { title: "Lançamentos" }, data_bindings: { source: "dynamic_products" } },
-      { id: uid(), node_type: "composition", block_type: "gallery_grid", parent_id: c2, sort_order: 1, content: { title: "No pé da galera" } },
+      {
+        id: s1,
+        node_type: "section",
+        block_type: "section",
+        parent_id: null,
+        sort_order: 0,
+        design_tokens: { backgroundColor: "#000000", textColor: "#ffffff" },
+      },
+      {
+        id: c1,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s1,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "full",
+          display: "flex",
+          flexDirection: "col",
+          gap: "none",
+          paddingX: "none",
+          paddingY: "none",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "hero_carousel",
+        parent_id: c1,
+        sort_order: 0,
+        content: { slides: [{ title: "STREET DROP", subtitle: "Edição Limitada" }] },
+      },
+
+      {
+        id: s2,
+        node_type: "section",
+        block_type: "section",
+        parent_id: null,
+        sort_order: 1,
+        design_tokens: { backgroundColor: "#111111", textColor: "#ffffff" },
+      },
+      {
+        id: c2,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s2,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "lg",
+          paddingX: "md",
+          paddingY: "xl",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "product_carousel",
+        parent_id: c2,
+        sort_order: 0,
+        content: { title: "Lançamentos" },
+        data_bindings: { source: "dynamic_products" },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "gallery_grid",
+        parent_id: c2,
+        sort_order: 1,
+        content: { title: "No pé da galera" },
+      },
     ];
   },
 };
 
-
-
 export const checkExperienceDocumentExists = createServerFn({ method: "GET" })
-  .validator(z.object({ slug: z.string(), document_type: z.enum(["storefront", "biolink", "pwa", "campaign", "seller_showcase", "product_template", "campaign_popup"]) }))
+  .validator(
+    z.object({
+      slug: z.string(),
+      document_type: z.enum([
+        "storefront",
+        "biolink",
+        "pwa",
+        "campaign",
+        "seller_showcase",
+        "product_template",
+        "campaign_popup",
+      ]),
+    }),
+  )
   .handler(async ({ data: { slug, document_type } }) => {
     try {
       const db = getServerClient();
@@ -687,7 +1000,7 @@ export const checkExperienceDocumentExists = createServerFn({ method: "GET" })
 
       return { status: "success" as const, data: { exists: !!doc, id: doc?.id } };
     } catch (e) {
-      throw new Error("Erro ao verificar documento." );
+      throw new Error("Erro ao verificar documento.");
     }
   });
 
@@ -737,7 +1050,7 @@ export const getOrCreateHomeDocument = createServerFn({ method: "POST" })
         .insert({
           document_id: newDoc.id,
           version_number: 1,
-          status: 'draft',
+          status: "draft",
         })
         .select()
         .single();
@@ -758,7 +1071,7 @@ export const getOrCreateHomeDocument = createServerFn({ method: "POST" })
       return { status: "success" as const, data: { id: newDoc.id, isNew: true, templateId } };
     } catch (e) {
       console.error("[builder.functions] getOrCreateHomeDocument error:", e);
-      throw new Error("Erro ao criar vitrine principal." );
+      throw new Error("Erro ao criar vitrine principal.");
     }
   });
 
@@ -767,7 +1080,7 @@ export const applyHomeTemplate = createServerFn({ method: "POST" })
     z.object({
       document_id: z.string().uuid(),
       template_id: z.string(),
-    })
+    }),
   )
   .handler(async ({ data: input }) => {
     try {
@@ -819,7 +1132,10 @@ export const applyHomeTemplate = createServerFn({ method: "POST" })
         if (insError) throw insError;
       }
 
-      return { status: "success" as const, data: { versionId: version.id, templateId: input.template_id } };
+      return {
+        status: "success" as const,
+        data: { versionId: version.id, templateId: input.template_id },
+      };
     } catch (e: any) {
       console.error("[builder.functions] applyHomeTemplate error:", e);
       throw new Error(e.message || "Erro ao aplicar template de vitrine.");
@@ -834,100 +1150,582 @@ const INSTITUTIONAL_TEMPLATES: Record<string, (ids: () => string) => any[]> = {
   blank: () => [],
 
   modern_commercial: (uid) => {
-    const s1 = uid(); const c1 = uid();
-    const s2 = uid(); const c2 = uid();
-    const s3 = uid(); const c3 = uid();
+    const s1 = uid();
+    const c1 = uid();
+    const s2 = uid();
+    const c2 = uid();
+    const s3 = uid();
+    const c3 = uid();
     return [
-      { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0, design_tokens: { backgroundColor: "#ffffff" } },
-      { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "none", paddingX: "none", paddingY: "none" } },
-      { id: uid(), node_type: "composition", block_type: "store_profile_hero", parent_id: c1, sort_order: 0, content: { layout: "centered", show_cover: true, show_logo: true, show_description: true }, data_bindings: { source: "store_profile" } },
+      {
+        id: s1,
+        node_type: "section",
+        block_type: "section",
+        parent_id: null,
+        sort_order: 0,
+        design_tokens: { backgroundColor: "#ffffff" },
+      },
+      {
+        id: c1,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s1,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "none",
+          paddingX: "none",
+          paddingY: "none",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "store_profile_hero",
+        parent_id: c1,
+        sort_order: 0,
+        content: { layout: "centered", show_cover: true, show_logo: true, show_description: true },
+        data_bindings: { source: "store_profile" },
+      },
       { id: s2, node_type: "section", block_type: "section", parent_id: null, sort_order: 1 },
-      { id: c2, node_type: "container", block_type: "container", parent_id: s2, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "lg", paddingX: "md", paddingY: "lg" } },
-      { id: uid(), node_type: "element", block_type: "store_hours", parent_id: c2, sort_order: 0, content: { title: "Horários de Funcionamento", show_status_badge: true }, data_bindings: { source: "store_profile" } },
-      { id: uid(), node_type: "element", block_type: "store_contact", parent_id: c2, sort_order: 1, content: { title: "Fale Conosco", show_whatsapp: true, show_phone: true, show_email: true, show_address: true, show_map_link: true, show_action_buttons: true }, data_bindings: { source: "store_profile" } },
+      {
+        id: c2,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s2,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "lg",
+          paddingX: "md",
+          paddingY: "lg",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "element",
+        block_type: "store_hours",
+        parent_id: c2,
+        sort_order: 0,
+        content: { title: "Horários de Funcionamento", show_status_badge: true },
+        data_bindings: { source: "store_profile" },
+      },
+      {
+        id: uid(),
+        node_type: "element",
+        block_type: "store_contact",
+        parent_id: c2,
+        sort_order: 1,
+        content: {
+          title: "Fale Conosco",
+          show_whatsapp: true,
+          show_phone: true,
+          show_email: true,
+          show_address: true,
+          show_map_link: true,
+          show_action_buttons: true,
+        },
+        data_bindings: { source: "store_profile" },
+      },
       { id: s3, node_type: "section", block_type: "section", parent_id: null, sort_order: 2 },
-      { id: c3, node_type: "container", block_type: "container", parent_id: s3, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "md", paddingX: "md", paddingY: "lg" } },
-      { id: uid(), node_type: "composition", block_type: "product_carousel", parent_id: c3, sort_order: 0, content: { title: "Nossos Produtos", subtitle: "Confira as novidades" }, data_bindings: { source: "dynamic_products" } },
-      { id: uid(), node_type: "composition", block_type: "testimonial_carousel", parent_id: c3, sort_order: 1, content: { title: "Avaliações de Clientes" }, data_bindings: { source: "dynamic_reviews" } },
+      {
+        id: c3,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s3,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "md",
+          paddingX: "md",
+          paddingY: "lg",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "product_carousel",
+        parent_id: c3,
+        sort_order: 0,
+        content: { title: "Nossos Produtos", subtitle: "Confira as novidades" },
+        data_bindings: { source: "dynamic_products" },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "testimonial_carousel",
+        parent_id: c3,
+        sort_order: 1,
+        content: { title: "Avaliações de Clientes" },
+        data_bindings: { source: "dynamic_reviews" },
+      },
     ];
   },
 
   instagram_style: (uid) => {
-    const s1 = uid(); const c1 = uid();
-    const s2 = uid(); const c2 = uid();
+    const s1 = uid();
+    const c1 = uid();
+    const s2 = uid();
+    const c2 = uid();
     return [
       { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0 },
-      { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0, layout_rules: { maxWidth: "sm", display: "flex", flexDirection: "col", gap: "md", paddingX: "md", paddingY: "lg" } },
-      { id: uid(), node_type: "composition", block_type: "store_profile_hero", parent_id: c1, sort_order: 0, content: { layout: "instagram", show_cover: false, show_logo: true, show_description: true }, data_bindings: { source: "store_profile" } },
-      { id: uid(), node_type: "element", block_type: "store_contact", parent_id: c1, sort_order: 1, content: { title: "Contato", show_whatsapp: true, show_phone: false, show_email: false, show_address: false, show_map_link: false, show_action_buttons: true }, data_bindings: { source: "store_profile" } },
+      {
+        id: c1,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s1,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "sm",
+          display: "flex",
+          flexDirection: "col",
+          gap: "md",
+          paddingX: "md",
+          paddingY: "lg",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "store_profile_hero",
+        parent_id: c1,
+        sort_order: 0,
+        content: {
+          layout: "instagram",
+          show_cover: false,
+          show_logo: true,
+          show_description: true,
+        },
+        data_bindings: { source: "store_profile" },
+      },
+      {
+        id: uid(),
+        node_type: "element",
+        block_type: "store_contact",
+        parent_id: c1,
+        sort_order: 1,
+        content: {
+          title: "Contato",
+          show_whatsapp: true,
+          show_phone: false,
+          show_email: false,
+          show_address: false,
+          show_map_link: false,
+          show_action_buttons: true,
+        },
+        data_bindings: { source: "store_profile" },
+      },
       { id: s2, node_type: "section", block_type: "section", parent_id: null, sort_order: 1 },
-      { id: c2, node_type: "container", block_type: "container", parent_id: s2, sort_order: 0, layout_rules: { maxWidth: "full", display: "flex", flexDirection: "col", gap: "none", paddingX: "none", paddingY: "none" } },
-      { id: uid(), node_type: "composition", block_type: "gallery_grid", parent_id: c2, sort_order: 0, content: { title: "", images: [] } },
+      {
+        id: c2,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s2,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "full",
+          display: "flex",
+          flexDirection: "col",
+          gap: "none",
+          paddingX: "none",
+          paddingY: "none",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "gallery_grid",
+        parent_id: c2,
+        sort_order: 0,
+        content: { title: "", images: [] },
+      },
     ];
   },
 
   google_business: (uid) => {
-    const s1 = uid(); const c1 = uid();
-    const s2 = uid(); const c2 = uid();
+    const s1 = uid();
+    const c1 = uid();
+    const s2 = uid();
+    const c2 = uid();
     return [
       { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0 },
-      { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "none", paddingX: "none", paddingY: "none" } },
-      { id: uid(), node_type: "composition", block_type: "store_profile_hero", parent_id: c1, sort_order: 0, content: { layout: "left", show_cover: true, show_logo: true, show_description: true }, data_bindings: { source: "store_profile" } },
+      {
+        id: c1,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s1,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "none",
+          paddingX: "none",
+          paddingY: "none",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "store_profile_hero",
+        parent_id: c1,
+        sort_order: 0,
+        content: { layout: "left", show_cover: true, show_logo: true, show_description: true },
+        data_bindings: { source: "store_profile" },
+      },
       { id: s2, node_type: "section", block_type: "section", parent_id: null, sort_order: 1 },
-      { id: c2, node_type: "container", block_type: "container", parent_id: s2, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "lg", paddingX: "md", paddingY: "lg" } },
-      { id: uid(), node_type: "element", block_type: "store_hours", parent_id: c2, sort_order: 0, content: { title: "Horários", show_status_badge: true }, data_bindings: { source: "store_profile" } },
-      { id: uid(), node_type: "element", block_type: "store_contact", parent_id: c2, sort_order: 1, content: { title: "Localização e Contato", show_whatsapp: true, show_phone: true, show_email: true, show_address: true, show_map_link: true, show_action_buttons: false }, data_bindings: { source: "store_profile" } },
-      { id: uid(), node_type: "composition", block_type: "testimonial_carousel", parent_id: c2, sort_order: 2, content: { title: "Avaliações" }, data_bindings: { source: "dynamic_reviews" } },
+      {
+        id: c2,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s2,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "lg",
+          paddingX: "md",
+          paddingY: "lg",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "element",
+        block_type: "store_hours",
+        parent_id: c2,
+        sort_order: 0,
+        content: { title: "Horários", show_status_badge: true },
+        data_bindings: { source: "store_profile" },
+      },
+      {
+        id: uid(),
+        node_type: "element",
+        block_type: "store_contact",
+        parent_id: c2,
+        sort_order: 1,
+        content: {
+          title: "Localização e Contato",
+          show_whatsapp: true,
+          show_phone: true,
+          show_email: true,
+          show_address: true,
+          show_map_link: true,
+          show_action_buttons: false,
+        },
+        data_bindings: { source: "store_profile" },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "testimonial_carousel",
+        parent_id: c2,
+        sort_order: 2,
+        content: { title: "Avaliações" },
+        data_bindings: { source: "dynamic_reviews" },
+      },
     ];
   },
 
   whatsapp_business: (uid) => {
-    const s1 = uid(); const c1 = uid();
-    const s2 = uid(); const c2 = uid();
+    const s1 = uid();
+    const c1 = uid();
+    const s2 = uid();
+    const c2 = uid();
     return [
-      { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0, design_tokens: { backgroundColor: "#25d366" } },
-      { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0, layout_rules: { maxWidth: "sm", display: "flex", flexDirection: "col", gap: "md", paddingX: "md", paddingY: "lg" } },
-      { id: uid(), node_type: "composition", block_type: "store_profile_hero", parent_id: c1, sort_order: 0, content: { layout: "centered", show_cover: false, show_logo: true, show_description: true }, data_bindings: { source: "store_profile" } },
+      {
+        id: s1,
+        node_type: "section",
+        block_type: "section",
+        parent_id: null,
+        sort_order: 0,
+        design_tokens: { backgroundColor: "#25d366" },
+      },
+      {
+        id: c1,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s1,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "sm",
+          display: "flex",
+          flexDirection: "col",
+          gap: "md",
+          paddingX: "md",
+          paddingY: "lg",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "store_profile_hero",
+        parent_id: c1,
+        sort_order: 0,
+        content: { layout: "centered", show_cover: false, show_logo: true, show_description: true },
+        data_bindings: { source: "store_profile" },
+      },
       { id: s2, node_type: "section", block_type: "section", parent_id: null, sort_order: 1 },
-      { id: c2, node_type: "container", block_type: "container", parent_id: s2, sort_order: 0, layout_rules: { maxWidth: "sm", display: "flex", flexDirection: "col", gap: "md", paddingX: "md", paddingY: "lg" } },
-      { id: uid(), node_type: "element", block_type: "store_hours", parent_id: c2, sort_order: 0, content: { title: "Estamos Abertos?", show_status_badge: true }, data_bindings: { source: "store_profile" } },
-      { id: uid(), node_type: "element", block_type: "store_contact", parent_id: c2, sort_order: 1, content: { title: "Fale com a Gente", show_whatsapp: true, show_phone: true, show_email: false, show_address: true, show_map_link: true, show_action_buttons: true }, data_bindings: { source: "store_profile" } },
+      {
+        id: c2,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s2,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "sm",
+          display: "flex",
+          flexDirection: "col",
+          gap: "md",
+          paddingX: "md",
+          paddingY: "lg",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "element",
+        block_type: "store_hours",
+        parent_id: c2,
+        sort_order: 0,
+        content: { title: "Estamos Abertos?", show_status_badge: true },
+        data_bindings: { source: "store_profile" },
+      },
+      {
+        id: uid(),
+        node_type: "element",
+        block_type: "store_contact",
+        parent_id: c2,
+        sort_order: 1,
+        content: {
+          title: "Fale com a Gente",
+          show_whatsapp: true,
+          show_phone: true,
+          show_email: false,
+          show_address: true,
+          show_map_link: true,
+          show_action_buttons: true,
+        },
+        data_bindings: { source: "store_profile" },
+      },
     ];
   },
 
   elegant_institutional: (uid) => {
-    const s1 = uid(); const c1 = uid();
-    const s2 = uid(); const c2 = uid();
-    const s3 = uid(); const c3 = uid();
+    const s1 = uid();
+    const c1 = uid();
+    const s2 = uid();
+    const c2 = uid();
+    const s3 = uid();
+    const c3 = uid();
     return [
       { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0 },
-      { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0, layout_rules: { maxWidth: "full", display: "flex", flexDirection: "col", gap: "none", paddingX: "none", paddingY: "none" } },
-      { id: uid(), node_type: "composition", block_type: "store_profile_hero", parent_id: c1, sort_order: 0, content: { layout: "centered", show_cover: true, show_logo: true, show_description: true }, data_bindings: { source: "store_profile" } },
+      {
+        id: c1,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s1,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "full",
+          display: "flex",
+          flexDirection: "col",
+          gap: "none",
+          paddingX: "none",
+          paddingY: "none",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "store_profile_hero",
+        parent_id: c1,
+        sort_order: 0,
+        content: { layout: "centered", show_cover: true, show_logo: true, show_description: true },
+        data_bindings: { source: "store_profile" },
+      },
       { id: s2, node_type: "section", block_type: "section", parent_id: null, sort_order: 1 },
-      { id: c2, node_type: "container", block_type: "container", parent_id: s2, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "xl", paddingX: "md", paddingY: "2xl" } },
-      { id: uid(), node_type: "composition", block_type: "trust_badges", parent_id: c2, sort_order: 0, content: { badges: [] } },
-      { id: uid(), node_type: "composition", block_type: "timeline_history", parent_id: c2, sort_order: 1, content: { title: "Nossa História", events: [] } },
-      { id: uid(), node_type: "composition", block_type: "testimonial_carousel", parent_id: c2, sort_order: 2, content: { title: "O que dizem de nós" }, data_bindings: { source: "dynamic_reviews" } },
+      {
+        id: c2,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s2,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "xl",
+          paddingX: "md",
+          paddingY: "2xl",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "trust_badges",
+        parent_id: c2,
+        sort_order: 0,
+        content: { badges: [] },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "timeline_history",
+        parent_id: c2,
+        sort_order: 1,
+        content: { title: "Nossa História", events: [] },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "testimonial_carousel",
+        parent_id: c2,
+        sort_order: 2,
+        content: { title: "O que dizem de nós" },
+        data_bindings: { source: "dynamic_reviews" },
+      },
       { id: s3, node_type: "section", block_type: "section", parent_id: null, sort_order: 2 },
-      { id: c3, node_type: "container", block_type: "container", parent_id: s3, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "lg", paddingX: "md", paddingY: "lg" } },
-      { id: uid(), node_type: "element", block_type: "store_hours", parent_id: c3, sort_order: 0, content: { title: "Horários", show_status_badge: true }, data_bindings: { source: "store_profile" } },
-      { id: uid(), node_type: "element", block_type: "store_contact", parent_id: c3, sort_order: 1, content: { title: "Fale Conosco", show_whatsapp: true, show_phone: true, show_email: true, show_address: true, show_map_link: true, show_action_buttons: true }, data_bindings: { source: "store_profile" } },
+      {
+        id: c3,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s3,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "lg",
+          paddingX: "md",
+          paddingY: "lg",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "element",
+        block_type: "store_hours",
+        parent_id: c3,
+        sort_order: 0,
+        content: { title: "Horários", show_status_badge: true },
+        data_bindings: { source: "store_profile" },
+      },
+      {
+        id: uid(),
+        node_type: "element",
+        block_type: "store_contact",
+        parent_id: c3,
+        sort_order: 1,
+        content: {
+          title: "Fale Conosco",
+          show_whatsapp: true,
+          show_phone: true,
+          show_email: true,
+          show_address: true,
+          show_map_link: true,
+          show_action_buttons: true,
+        },
+        data_bindings: { source: "store_profile" },
+      },
     ];
   },
 
   catalog_contact: (uid) => {
-    const s1 = uid(); const c1 = uid();
-    const s2 = uid(); const c2 = uid();
+    const s1 = uid();
+    const c1 = uid();
+    const s2 = uid();
+    const c2 = uid();
     return [
       { id: s1, node_type: "section", block_type: "section", parent_id: null, sort_order: 0 },
-      { id: c1, node_type: "container", block_type: "container", parent_id: s1, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "none", paddingX: "none", paddingY: "none" } },
-      { id: uid(), node_type: "composition", block_type: "store_profile_hero", parent_id: c1, sort_order: 0, content: { layout: "left", show_cover: true, show_logo: true, show_description: true }, data_bindings: { source: "store_profile" } },
-      { id: uid(), node_type: "composition", block_type: "product_carousel", parent_id: c1, sort_order: 1, content: { title: "Nosso Catálogo", subtitle: "Veja nossas últimas peças" }, data_bindings: { source: "dynamic_products" } },
-      { id: uid(), node_type: "composition", block_type: "product_grid", parent_id: c1, sort_order: 2, content: { title: "Mais Vendidos" }, data_bindings: { source: "dynamic_products" } },
+      {
+        id: c1,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s1,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "none",
+          paddingX: "none",
+          paddingY: "none",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "store_profile_hero",
+        parent_id: c1,
+        sort_order: 0,
+        content: { layout: "left", show_cover: true, show_logo: true, show_description: true },
+        data_bindings: { source: "store_profile" },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "product_carousel",
+        parent_id: c1,
+        sort_order: 1,
+        content: { title: "Nosso Catálogo", subtitle: "Veja nossas últimas peças" },
+        data_bindings: { source: "dynamic_products" },
+      },
+      {
+        id: uid(),
+        node_type: "composition",
+        block_type: "product_grid",
+        parent_id: c1,
+        sort_order: 2,
+        content: { title: "Mais Vendidos" },
+        data_bindings: { source: "dynamic_products" },
+      },
       { id: s2, node_type: "section", block_type: "section", parent_id: null, sort_order: 1 },
-      { id: c2, node_type: "container", block_type: "container", parent_id: s2, sort_order: 0, layout_rules: { maxWidth: "xl", display: "flex", flexDirection: "col", gap: "lg", paddingX: "md", paddingY: "lg" } },
-      { id: uid(), node_type: "element", block_type: "store_contact", parent_id: c2, sort_order: 0, content: { title: "Contato e Compra Assistida", show_whatsapp: true, show_phone: true, show_email: true, show_address: true, show_map_link: true, show_action_buttons: true }, data_bindings: { source: "store_profile" } },
-      { id: uid(), node_type: "element", block_type: "store_hours", parent_id: c2, sort_order: 1, content: { title: "Quando Estamos Disponíveis", show_status_badge: true }, data_bindings: { source: "store_profile" } },
+      {
+        id: c2,
+        node_type: "container",
+        block_type: "container",
+        parent_id: s2,
+        sort_order: 0,
+        layout_rules: {
+          maxWidth: "xl",
+          display: "flex",
+          flexDirection: "col",
+          gap: "lg",
+          paddingX: "md",
+          paddingY: "lg",
+        },
+      },
+      {
+        id: uid(),
+        node_type: "element",
+        block_type: "store_contact",
+        parent_id: c2,
+        sort_order: 0,
+        content: {
+          title: "Contato e Compra Assistida",
+          show_whatsapp: true,
+          show_phone: true,
+          show_email: true,
+          show_address: true,
+          show_map_link: true,
+          show_action_buttons: true,
+        },
+        data_bindings: { source: "store_profile" },
+      },
+      {
+        id: uid(),
+        node_type: "element",
+        block_type: "store_hours",
+        parent_id: c2,
+        sort_order: 1,
+        content: { title: "Quando Estamos Disponíveis", show_status_badge: true },
+        data_bindings: { source: "store_profile" },
+      },
     ];
   },
 };
@@ -995,7 +1793,7 @@ export const getOrCreateInstitutionalDocument = createServerFn({ method: "POST" 
       return { status: "success" as const, data: { id: newDoc.id, isNew: true, templateId } };
     } catch (e) {
       console.error("[builder.functions] getOrCreateInstitutionalDocument error:", e);
-      throw new Error("Erro ao inicializar perfil institucional." );
+      throw new Error("Erro ao inicializar perfil institucional.");
     }
   });
 
@@ -1004,7 +1802,22 @@ export const getOrCreateInstitutionalDocument = createServerFn({ method: "POST" 
 // ---------------------------------------------------------------------------
 
 export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" })
-  .validator(z.object({ slug: z.string(), document_type: z.enum(["storefront", "biolink", "pwa", "campaign", "seller_showcase", "product_template", "campaign_popup"]).default("storefront") }))
+  .validator(
+    z.object({
+      slug: z.string(),
+      document_type: z
+        .enum([
+          "storefront",
+          "biolink",
+          "pwa",
+          "campaign",
+          "seller_showcase",
+          "product_template",
+          "campaign_popup",
+        ])
+        .default("storefront"),
+    }),
+  )
   .handler(async ({ data: input }) => {
     try {
       const db = getServerClient();
@@ -1023,7 +1836,6 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
         throw docError;
       }
 
-      
       // Affiliate Tracking Injection
       if (doc.owner_id) {
         const { setSellerRefCookie } = await import("@/lib/session");
@@ -1038,38 +1850,38 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
         .eq("status", "published")
         .order("created_at", { ascending: false })
         .limit(1);
-        
+
       if (versionsError) throw versionsError;
-      
+
       const version = versions && versions.length > 0 ? versions[0] : null;
       if (!version) {
         return { status: "not_found" as const };
       }
-      
+
       // 3. Get Nodes
       const { data: nodesData, error: nodesError } = await db
         .from("experience_nodes")
         .select("*")
         .eq("version_id", version.id)
         .order("sort_order", { ascending: true });
-        
+
       if (nodesError) throw nodesError;
       let nodes = nodesData as ExperienceNode[];
-      
+
       // 4. Hydrate Data Bindings — shared helper covers store_profile, products, reviews
       const { resolveTenantStoreId } = await import("@/lib/tenant");
-        const storeId = await resolveTenantStoreId();
-        if (!storeId) throw new Error("Loja não encontrada");
-        const hydratedNodes = await hydrateBindings(nodes, db, storeId);
+      const storeId = await resolveTenantStoreId();
+      if (!storeId) throw new Error("Loja não encontrada");
+      const hydratedNodes = await hydrateBindings(nodes, db, storeId);
 
       // 5. Build Tree
       const buildTree = (flatNodes: any[], parentId: string | null = null): any[] => {
         return flatNodes
-          .filter(n => (parentId === null ? !n.parent_id : n.parent_id === parentId))
+          .filter((n) => (parentId === null ? !n.parent_id : n.parent_id === parentId))
           .sort((a, b) => a.sort_order - b.sort_order)
-          .map(node => ({
+          .map((node) => ({
             ...node,
-            children: buildTree(flatNodes, node.id)
+            children: buildTree(flatNodes, node.id),
           }));
       };
 
@@ -1079,7 +1891,7 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
       console.error("[builder.functions] getPublicExperienceDocumentBySlug error:", e);
-      throw new Error("Erro ao carregar página." );
+      throw new Error("Erro ao carregar página.");
     }
   });
 
@@ -1087,22 +1899,22 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
 // Nodes Editor Mutations
 // ---------------------------------------------------------------------------
 
-export const getActiveGlobalPopups = createServerFn({ method: "GET" })
-  .handler(async () => {
-    try {
-      const db = getServerClient();
+export const getActiveGlobalPopups = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
 
-      const { data: docs, error: docError } = await db
-        .from("experience_documents")
-        .select("*")
-        .eq("document_type", "campaign_popup")
-        .eq("is_active", true);
+    const { data: docs, error: docError } = await db
+      .from("experience_documents")
+      .select("*")
+      .eq("document_type", "campaign_popup")
+      .eq("is_active", true);
 
-      if (docError) throw docError;
-      if (!docs || docs.length === 0) return [] ;
+    if (docError) throw docError;
+    if (!docs || docs.length === 0) return [];
 
-      // Load published versions for all active popup documents
-      const activePopups = await Promise.all(docs.map(async (doc) => {
+    // Load published versions for all active popup documents
+    const activePopups = await Promise.all(
+      docs.map(async (doc) => {
         const { data: versions } = await db
           .from("experience_versions")
           .select("id")
@@ -1121,29 +1933,30 @@ export const getActiveGlobalPopups = createServerFn({ method: "GET" })
           .order("sort_order", { ascending: true });
 
         const nodes = (nodesData || []) as ExperienceNode[];
-        
+
         const buildTree = (flatNodes: any[], parentId: string | null = null): any[] => {
           return flatNodes
-            .filter(n => (parentId === null ? !n.parent_id : n.parent_id === parentId))
+            .filter((n) => (parentId === null ? !n.parent_id : n.parent_id === parentId))
             .sort((a, b) => a.sort_order - b.sort_order)
-            .map(node => ({
+            .map((node) => ({
               ...node,
-              children: buildTree(flatNodes, node.id)
+              children: buildTree(flatNodes, node.id),
             }));
         };
 
         return {
           id: doc.id,
           trigger_rules: doc.trigger_rules || {},
-          tree: buildTree(nodes)
+          tree: buildTree(nodes),
         };
-      }));
+      }),
+    );
 
-      return activePopups.filter(Boolean) ;
-    } catch (e) {
-      throw new Error("Erro ao carregar popups globais." );
-    }
-  });
+    return activePopups.filter(Boolean);
+  } catch (e) {
+    throw new Error("Erro ao carregar popups globais.");
+  }
+});
 
 export const saveBuilderNodes = createServerFn({ method: "POST" })
   .validator(
@@ -1183,9 +1996,7 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
           is_hidden: node.is_hidden || false,
         }));
 
-        const { error: insError } = await db
-          .from("experience_nodes")
-          .insert(nodesToInsert);
+        const { error: insError } = await db.from("experience_nodes").insert(nodesToInsert);
 
         if (insError) throw insError;
       }
@@ -1193,7 +2004,7 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[builder.functions] saveBuilderNodes error:", e);
-      throw new Error("Erro ao salvar o documento." );
+      throw new Error("Erro ao salvar o documento.");
     }
   });
 
@@ -1260,7 +2071,7 @@ export const publishBuilderVersion = createServerFn({ method: "POST" })
       return { status: "success" as const };
     } catch (e: unknown) {
       console.error("[builder.functions] publishBuilderVersion error:", e);
-      throw new Error("Erro ao publicar." );
+      throw new Error("Erro ao publicar.");
     }
   });
 
@@ -1268,22 +2079,26 @@ export const publishBuilderVersion = createServerFn({ method: "POST" })
 // Advanced Builder Data Hydration
 // ---------------------------------------------------------------------------
 
-export const getBuilderProducts = createServerFn({ method: 'GET' })
+export const getBuilderProducts = createServerFn({ method: "GET" })
   .validator(z.object({ limit: z.number().optional() }).optional())
   .handler(async ({ data: input }) => {
     try {
       const db = getServerClient();
       const { data, error } = await db
-        .from('products')
-        .select('id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
+        .from("products")
+        .select(
+          "id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)",
+        )
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
         .limit(input?.limit || 4);
-      
+
       if (error) throw error;
-      
-      const formatted = data.map(p => {
-        const sortedMedia = p.media ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order) : [];
+
+      const formatted = data.map((p) => {
+        const sortedMedia = p.media
+          ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order)
+          : [];
         return {
           id: p.id,
           title: p.title,
@@ -1292,49 +2107,47 @@ export const getBuilderProducts = createServerFn({ method: 'GET' })
           compareAtCents: p.compare_at_cents,
           coverUrl: sortedMedia[0]?.url || null,
           hoverUrl: sortedMedia[1]?.url || null,
-          isOutOfStock: false
+          isOutOfStock: false,
         };
       });
 
-      return formatted ;
+      return formatted;
     } catch (e) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error('[builder.functions] getBuilderProducts error:', e);
-      throw new Error('Erro ao buscar produtos.' );
+      console.error("[builder.functions] getBuilderProducts error:", e);
+      throw new Error("Erro ao buscar produtos.");
     }
   });
 
-export const getBuilderReviews = createServerFn({ method: 'GET' })
-  .handler(async () => {
-    try {
-      const db = getServerClient();
-      const { data, error } = await db
-        .from('reviews')
-        .select('id, rating, comment, user_id, profiles(full_name, avatar_url)')
-        .eq('status', 'approved')
-        .not('comment', 'is', null)
-        .neq('comment', '')
-        .order('created_at', { ascending: false })
-        .limit(6);
-      
-      if (error) throw error;
-      
-      const formatted = data.map(r => {
-        const profile = (r.profiles as any) || {};
-        return {
-          author: profile.full_name || 'Cliente',
-          role: 'Cliente Verificado',
-          content: r.comment,
-          rating: r.rating,
-          avatar_url: profile.avatar_url || null
-        };
-      });
+export const getBuilderReviews = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getServerClient();
+    const { data, error } = await db
+      .from("reviews")
+      .select("id, rating, comment, user_id, profiles(full_name, avatar_url)")
+      .eq("status", "approved")
+      .not("comment", "is", null)
+      .neq("comment", "")
+      .order("created_at", { ascending: false })
+      .limit(6);
 
-      return formatted ;
-    } catch (e) {
-      if (e instanceof SupabaseUnconfiguredError) throw e;
-      console.error('[builder.functions] getBuilderReviews error:', e);
-      throw new Error('Erro ao buscar avaliações.' );
-    }
-  });
+    if (error) throw error;
 
+    const formatted = data.map((r) => {
+      const profile = (r.profiles as any) || {};
+      return {
+        author: profile.full_name || "Cliente",
+        role: "Cliente Verificado",
+        content: r.comment,
+        rating: r.rating,
+        avatar_url: profile.avatar_url || null,
+      };
+    });
+
+    return formatted;
+  } catch (e) {
+    if (e instanceof SupabaseUnconfiguredError) throw e;
+    console.error("[builder.functions] getBuilderReviews error:", e);
+    throw new Error("Erro ao buscar avaliações.");
+  }
+});

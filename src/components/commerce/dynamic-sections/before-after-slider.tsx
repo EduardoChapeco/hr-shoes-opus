@@ -31,21 +31,33 @@ export function BeforeAfterSlider({
     setSliderPosition(percentage);
   }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    handleMove(e.touches[0].clientX);
-  }, [handleMove]);
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      handleMove(e.touches[0].clientX);
+    },
+    [handleMove],
+  );
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging) return;
-    handleMove(e.clientX);
-  }, [isDragging, handleMove]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging) return;
+      handleMove(e.clientX);
+    },
+    [isDragging, handleMove],
+  );
 
   return (
     <section className="w-full py-12 px-4 md:px-8 max-w-5xl mx-auto">
       {(title || subtitle) && (
         <div className="text-center mb-8">
-          {title && <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-2">{title}</h2>}
-          {subtitle && <p className="text-muted-foreground text-base max-w-2xl mx-auto">{subtitle}</p>}
+          {title && (
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-2">
+              {title}
+            </h2>
+          )}
+          {subtitle && (
+            <p className="text-muted-foreground text-base max-w-2xl mx-auto">{subtitle}</p>
+          )}
         </div>
       )}
 
@@ -60,7 +72,10 @@ export function BeforeAfterSlider({
       >
         {/* Background: After Image */}
         <img
-          src={after_image || "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=80&w=800"}
+          src={
+            after_image ||
+            "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=80&w=800"
+          }
           alt={after_label}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -69,15 +84,18 @@ export function BeforeAfterSlider({
         </span>
 
         {/* Foreground: Before Image (Clipped) */}
-        <div
-          className="absolute inset-0 overflow-hidden"
-          style={{ width: `${sliderPosition}%` }}
-        >
+        <div className="absolute inset-0 overflow-hidden" style={{ width: `${sliderPosition}%` }}>
           <img
-            src={before_image || "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800"}
+            src={
+              before_image ||
+              "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800"
+            }
             alt={before_label}
             className="absolute inset-0 w-full h-full object-cover"
-            style={{ width: containerRef.current ? `${containerRef.current.clientWidth}px` : "100%", maxWidth: "none" }}
+            style={{
+              width: containerRef.current ? `${containerRef.current.clientWidth}px` : "100%",
+              maxWidth: "none",
+            }}
           />
           <span className="absolute top-4 left-4 bg-background/80 backdrop-blur-md text-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow border border-border">
             {before_label}

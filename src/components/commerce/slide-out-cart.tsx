@@ -2,18 +2,14 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { X, Minus, Plus, ShoppingBag, ArrowRight } from "lucide-react";
 import { formatMoney } from "@/lib/money";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCartContext } from "@/lib/cart-context";
 import { cn } from "@/lib/utils";
 import { PriceDisplay } from "./price-display";
 
 export function SlideOutCart() {
-  const { cart, isCartOpen, setIsCartOpen, updateQty, removeItem, isCartUpdating } = useCartContext();
+  const { cart, isCartOpen, setIsCartOpen, updateQty, removeItem, isCartUpdating } =
+    useCartContext();
   const router = useRouter();
 
   const handleNavigateToCheckout = (e: React.MouseEvent) => {
@@ -60,7 +56,10 @@ export function SlideOutCart() {
           ) : (
             <div className="flex flex-col gap-6">
               {cart.items.map((item: any) => (
-                <div key={item.id} className={cn("flex gap-4", isCartUpdating && "opacity-60 pointer-events-none")}>
+                <div
+                  key={item.id}
+                  className={cn("flex gap-4", isCartUpdating && "opacity-60 pointer-events-none")}
+                >
                   <div className="h-24 w-20 flex-shrink-0 overflow-hidden rounded-md bg-secondary border">
                     {item.coverUrl ? (
                       <img
@@ -74,9 +73,7 @@ export function SlideOutCart() {
                   <div className="flex flex-1 flex-col">
                     <div className="flex justify-between items-start">
                       <div className="pr-2">
-                        <h4 className="text-sm font-medium line-clamp-2">
-                          {item.productTitle}
-                        </h4>
+                        <h4 className="text-sm font-medium line-clamp-2">{item.productTitle}</h4>
                         <p className="text-xs text-muted-foreground mt-1">
                           {Object.entries(item.variantAttributes || {}).length > 0
                             ? Object.entries(item.variantAttributes || {})
@@ -105,9 +102,7 @@ export function SlideOutCart() {
                         >
                           <Minus className="size-3" />
                         </button>
-                        <span className="w-8 text-center text-xs font-medium">
-                          {item.qty}
-                        </span>
+                        <span className="w-8 text-center text-xs font-medium">{item.qty}</span>
                         <button
                           type="button"
                           className="flex h-7 w-7 items-center justify-center text-muted-foreground hover:bg-muted"
@@ -144,7 +139,7 @@ export function SlideOutCart() {
               <span>Total</span>
               <span>{formatMoney(cart.totalCents - cart.shippingCents)}</span>
             </div>
-            
+
             <p className="text-xs text-muted-foreground text-center">
               Frete calculado no próximo passo.
             </p>

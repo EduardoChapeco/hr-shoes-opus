@@ -74,10 +74,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   loader: async () => {
-    const [themeRes, storeRes] = await Promise.all([
-      getThemeSettings(),
-      getPublicStoreSettings(),
-    ]);
+    const [themeRes, storeRes] = await Promise.all([getThemeSettings(), getPublicStoreSettings()]);
     return {
       theme: themeRes || null,
       store: storeRes || null,
