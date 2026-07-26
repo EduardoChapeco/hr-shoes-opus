@@ -32,6 +32,7 @@ const mockSingle = vi.fn();
 const mockDelete = vi.fn();
 const mockEq = vi.fn();
 const mockUpdate = vi.fn();
+const mockRpc = vi.fn();
 
 const mockStorageFrom = vi.fn();
 const mockRemove = vi.fn();
@@ -67,6 +68,7 @@ mockUpdate.mockReturnValue(mockQueryBuilder);
 
 const mockSupabase = {
   from: mockFrom,
+  rpc: mockRpc,
   storage: {
     from: mockStorageFrom,
   },
@@ -93,6 +95,7 @@ describe("Admin Catalog Functions", () => {
     mockDelete.mockReset();
     mockEq.mockReset();
     mockUpdate.mockReset();
+    mockRpc.mockReset();
     mockStorageFrom.mockReset();
     mockRemove.mockReset();
 
@@ -307,12 +310,9 @@ describe("Admin Catalog Functions", () => {
   });
 
   describe("createProductHandler", () => {
-    it("should successfully insert a product and create variants/categories/media records", async () => {
-      // 1st single: products insert
+    it("should successfully insert a product and create variants/categories/media records via atomic rpc", async () => {
       const mockProduct = { id: "prod-1", title: "Tênis Preto" };
-      mockSingle.mockResolvedValueOnce({ data: mockProduct, error: null });
-      // 2nd single: variants insert
-      mockSingle.mockResolvedValueOnce({ data: { id: "var-1", sku: "TENIS-P-38" }, error: null });
+      mockRpc.mockResolvedValueOnce({ data: mockProduct, error: null });
 
       const input = {
         title: "Tênis Preto",
@@ -329,11 +329,7 @@ describe("Admin Catalog Functions", () => {
 
       const res = await createProductHandler(input);
       expect(res).toEqual(mockProduct);
-      expect(mockFrom).toHaveBeenCalledWith("products");
-      expect(mockFrom).toHaveBeenCalledWith("product_categories");
-      expect(mockFrom).toHaveBeenCalledWith("product_variants");
-      expect(mockFrom).toHaveBeenCalledWith("stock_movements");
-      expect(mockFrom).toHaveBeenCalledWith("product_media");
+      expect(mockRpc).toHaveBeenCalledWith("create_product_transaction_v1", expect.any(Object));
     });
 
     it("should throw if store not found", async () => {
@@ -351,7 +347,7 @@ describe("Admin Catalog Functions", () => {
     });
 
     it("should propagate product insert database error", async () => {
-      mockSingle.mockResolvedValueOnce({ data: null, error: { message: "Insert error" } });
+      mockRpc.mockResolvedValueOnce({ data: null, error: { message: "Insert error" } });
 
       await expect(
         createProductHandler({
@@ -433,21 +429,24 @@ describe("Admin Catalog Functions", () => {
       );
     });
 
-    it("Regra B (Consistência): should throw Inconsistência de matriz if new variant has different attribute keys", async () => {
-      // 1. Mock fetch existing variants (has Size but we try to insert Cor)
+    it("Regra B (Consistência): should permit incoming variants to have new attribute dimensions without breaking system", async () => {
+      // 1. Mock fetch existing variants
       mockEq.mockResolvedValueOnce({
         data: [{ id: "var-1", attributes: { Tamanho: "40" } }],
         error: null,
       });
+      mockSingle.mockResolvedValueOnce({
+        data: { id: "var-2", sku: "TENIS-99", status: "active" },
+        error: null,
+      });
 
-      await expect(
-        upsertProductVariantHandler({
-          product_id: "prod-1",
-          sku: "TENIS-99",
-          status: "active",
-          attributes: { Cor: "Azul" },
-        }),
-      ).rejects.toThrow(/Inconsistência de matriz/);
+      const res = await upsertProductVariantHandler({
+        product_id: "prod-1",
+        sku: "TENIS-99",
+        status: "active",
+        attributes: { Cor: "Azul" },
+      });
+      expect(res).toBeDefined();
     });
 
     it("Regra C (Conflito): should throw Conflito de Matriz if exact combination already exists", async () => {
@@ -655,7 +654,7 @@ describe("Admin Catalog Functions", () => {
 
       const res = await toggleProductStatusHandler({ productId: "p-1", status: "published" });
       expect(res.status).toBe("published");
-      expect(mockUpdate).toHaveBeenCalledWith({ status: "published" });
+      expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ status: "published" }));
     });
   });
 

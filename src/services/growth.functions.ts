@@ -171,7 +171,9 @@ export const upsertIntegration = createServerFn({ method: "POST" })
           throw new Error("Para ativar o Melhor Envio, o Token de Acesso deve ser preenchido.");
         }
         if (input.provider === "google_merchant_center" && !input.credentials?.merchant_id) {
-          throw new Error("Para ativar o Google Merchant Center, o Merchant ID deve ser preenchido.");
+          throw new Error(
+            "Para ativar o Google Merchant Center, o Merchant ID deve ser preenchido.",
+          );
         }
       }
 

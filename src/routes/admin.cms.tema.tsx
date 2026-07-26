@@ -28,22 +28,11 @@ export const Route = createFileRoute("/admin/cms/tema")({
 });
 
 function ThemeSettingsPage() {
-  const res = Route.useLoaderData();
+  const res = Route.useLoaderData() as any;
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (res.status === "unconfigured") {
-    return (
-      <div className="container max-w-4xl py-12 mx-auto px-4">
-        <UnconfiguredState
-          title="Integração Indisponível"
-          description="A conexão com o Supabase não está configurada no servidor de produção."
-        />
-      </div>
-    );
-  }
-
-  const theme = res;
+  const theme = res || {};
 
   const { register, handleSubmit, setValue, watch } = useForm({
     defaultValues: {
@@ -57,6 +46,17 @@ function ThemeSettingsPage() {
       favicon_url: theme.favicon_url || null,
     },
   });
+
+  if (res?.status === "unconfigured") {
+    return (
+      <div className="container max-w-4xl py-12 mx-auto px-4">
+        <UnconfiguredState
+          title="Integração Indisponível"
+          description="A conexão com o Supabase não está configurada no servidor de produção."
+        />
+      </div>
+    );
+  }
 
   const onSubmit = async (values: any) => {
     setIsSubmitting(true);

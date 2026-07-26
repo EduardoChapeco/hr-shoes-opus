@@ -314,4 +314,3 @@ export const updateChatThreadStatus = createServerFn({ method: "POST" })
       throw new Error(e.message || "Erro ao atualizar status da conversa.");
     }
   });
-

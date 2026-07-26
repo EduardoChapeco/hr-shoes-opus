@@ -176,7 +176,9 @@ async function hydrateBindings(
           const prodsById = new Map();
           (prods as any[]).forEach((p: any) => prodsById.set(p.id, formatProduct(p)));
           cols.forEach((c) => {
-            const cPids = junctions.filter((j) => j.collection_id === c.id).map((j) => j.product_id);
+            const cPids = junctions
+              .filter((j) => j.collection_id === c.id)
+              .map((j) => j.product_id);
             cache.collections[c.slug] = cPids.map((pid) => prodsById.get(pid)).filter(Boolean);
           });
         }
@@ -255,12 +257,15 @@ async function hydrateBindings(
       transient_data = { reviews: cache.reviews };
     }
 
-    let enrichedNode = { ...node };
+    const enrichedNode = { ...node };
     if (Object.keys(transient_data).length > 0) {
       (enrichedNode as any).transient_data = transient_data;
     }
 
-    if (enrichedNode.block_type === "image_hotspots" && Array.isArray(enrichedNode.content?.hotspots)) {
+    if (
+      enrichedNode.block_type === "image_hotspots" &&
+      Array.isArray(enrichedNode.content?.hotspots)
+    ) {
       const enrichedHotspots = enrichedNode.content.hotspots.map((h: any) => {
         if (h.product_slug && cache.hotspotsMap.has(h.product_slug)) {
           const p = cache.hotspotsMap.get(h.product_slug);
@@ -732,7 +737,7 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
 
 export const listMediaAssets = createServerFn({ method: "GET" }).handler(async () => {
   try {
-      await requireAdmin(); // SECURITY FIX
+    await requireAdmin(); // SECURITY FIX
     const db = getServerClient();
 
     const { getServerIdentity } = await import("@/lib/identity");
@@ -1178,7 +1183,7 @@ export const applyHomeTemplate = createServerFn({ method: "POST" })
         .eq("id", input.document_id)
         .eq("store_id", storeId)
         .single();
-      
+
       if (docError || !doc) {
         throw new Error("Documento não encontrado ou sem permissão.");
       }
@@ -1829,7 +1834,11 @@ const INSTITUTIONAL_TEMPLATES: Record<string, (ids: () => string) => any[]> = {
 };
 
 export const getOrCreateInstitutionalDocument = createServerFn({ method: "POST" })
-  .validator(z.object({ template_id: z.string().default("blank"), overwrite: z.boolean().optional() }).optional())
+  .validator(
+    z
+      .object({ template_id: z.string().default("blank"), overwrite: z.boolean().optional() })
+      .optional(),
+  )
   .handler(async ({ data: input }) => {
     try {
       await requireAdmin(); // SECURITY FIX
@@ -1946,11 +1955,16 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
         .single();
 
       if (docError) {
-        if (docError.code === "PGRST116" && input.slug === "home" && input.document_type === "storefront") {
+        if (
+          docError.code === "PGRST116" &&
+          input.slug === "home" &&
+          input.document_type === "storefront"
+        ) {
           // Auto-seed default storefront template for new store
           const { HOME_TEMPLATES_LIBRARY } = await import("@/lib/home-templates-library");
           const { randomUUID } = await import("crypto");
-          const defaultPreset = HOME_TEMPLATES_LIBRARY["minimalist_luxury"] || Object.values(HOME_TEMPLATES_LIBRARY)[0];
+          const defaultPreset =
+            HOME_TEMPLATES_LIBRARY["minimalist_luxury"] || Object.values(HOME_TEMPLATES_LIBRARY)[0];
 
           const { data: newDoc } = await db
             .from("experience_documents")
@@ -1994,7 +2008,10 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
                   }));
               };
               const tree = buildTree(hydratedNodes);
-              return { status: "ok" as const, data: { document: newDoc as ExperienceDocument, tree } };
+              return {
+                status: "ok" as const,
+                data: { document: newDoc as ExperienceDocument, tree },
+              };
             }
           }
         }
@@ -2024,7 +2041,8 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
         // Auto-seed published version for home document
         const { HOME_TEMPLATES_LIBRARY } = await import("@/lib/home-templates-library");
         const { randomUUID } = await import("crypto");
-        const defaultPreset = HOME_TEMPLATES_LIBRARY["minimalist_luxury"] || Object.values(HOME_TEMPLATES_LIBRARY)[0];
+        const defaultPreset =
+          HOME_TEMPLATES_LIBRARY["minimalist_luxury"] || Object.values(HOME_TEMPLATES_LIBRARY)[0];
 
         const { data: newVersion } = await db
           .from("experience_versions")
@@ -2178,7 +2196,7 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
         .eq("id", input.version_id)
         .eq("experience_documents.store_id", storeId)
         .single();
-      
+
       if (!versionCheck) throw new Error("Acesso negado à versão do documento.");
 
       // Save keeps the version as "draft" — does NOT publish.
@@ -2343,7 +2361,7 @@ export const getBuilderProducts = createServerFn({ method: "GET" })
 
 export const getBuilderReviews = createServerFn({ method: "GET" }).handler(async () => {
   try {
-      await requireAdmin(); // SECURITY FIX
+    await requireAdmin(); // SECURITY FIX
     const db = getServerClient();
     const { data, error } = await db
       .from("reviews")

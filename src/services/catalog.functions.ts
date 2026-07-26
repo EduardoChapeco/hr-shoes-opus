@@ -528,7 +528,7 @@ export const getProductDetail = createServerFn({ method: "GET" })
           reason: "Nenhuma loja foi configurada.",
         };
       }
-      
+
       const db = getAnonServerClient();
 
       // Consulta o produto, mídia e variantes em uma única query

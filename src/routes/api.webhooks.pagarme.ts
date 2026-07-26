@@ -61,8 +61,8 @@ export const Route = createFileRoute("/api/webhooks/pagarme")({
           // Pagar.me V5 uses payload.data.id as the main reference
           if (payload.data && payload.data.id) {
             let gatewayOrderId = payload.data.id.toString();
-            
-            // If the event is from a charge, the provider_ref we saved is the order id, 
+
+            // If the event is from a charge, the provider_ref we saved is the order id,
             // so we should look at payload.data.order.id
             if (payload.type.startsWith("charge.") && payload.data.order && payload.data.order.id) {
               gatewayOrderId = payload.data.order.id.toString();
@@ -89,8 +89,10 @@ export const Route = createFileRoute("/api/webhooks/pagarme")({
                   .from("orders")
                   .update({ status: "processing", paid_at: new Date().toISOString() })
                   .eq("id", tx.order_id);
-
-              } else if (eventTypeStatus.endsWith(".canceled") || eventTypeStatus.endsWith(".failed")) {
+              } else if (
+                eventTypeStatus.endsWith(".canceled") ||
+                eventTypeStatus.endsWith(".failed")
+              ) {
                 await supabase
                   .from("payments")
                   .update({ status: "failed", updated_at: new Date().toISOString() })
@@ -101,7 +103,7 @@ export const Route = createFileRoute("/api/webhooks/pagarme")({
                   p_order_id: tx.order_id,
                   p_reason: "Pagamento rejeitado pelo gateway Pagar.me",
                 });
-                
+
                 if (rpcError) {
                   console.error("Erro ao estornar estoque no webhook:", rpcError);
                 }

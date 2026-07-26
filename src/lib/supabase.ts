@@ -47,12 +47,16 @@ export class SupabaseUnconfiguredError extends Error {
       // globalThis.__env__ is set by Nitro's cloudflare-pages.mjs before every request
       const gEnv = (globalThis as any).__env__;
       debugInfo += ` [__env__: ${gEnv ? Object.keys(gEnv).join(",") : "null"}]`;
-    } catch {}
+    } catch {
+      /* ignored */
+    }
     try {
       const keysInProcess =
         typeof process !== "undefined" && process.env ? Object.keys(process.env) : [];
       debugInfo += ` [process.env keys: ${keysInProcess.length}]`;
-    } catch {}
+    } catch {
+      /* ignored */
+    }
     super(`Supabase not configured: ${reason}${debugInfo}`);
   }
 }

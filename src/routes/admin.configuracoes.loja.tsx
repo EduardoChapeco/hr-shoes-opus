@@ -73,7 +73,9 @@ function StoreSettings() {
         if (Array.isArray(parsed) && parsed[0]?.message) {
           msg = parsed.map((p: any) => p.message).join(", ");
         }
-      } catch {}
+      } catch {
+        /* ignore */
+      }
       toast.error(msg);
     } finally {
       setIsSaving(false);

@@ -3,17 +3,24 @@ import { listAdminPagesHandler } from "./cms.functions";
 
 const mockFrom = vi.fn();
 const mockSelect = vi.fn();
+const mockEq = vi.fn();
 const mockOrder = vi.fn();
 
-const mockQueryChain = {
+const mockQueryChain: any = {
   select: mockSelect,
+  eq: mockEq,
   order: mockOrder,
 };
 
 mockSelect.mockReturnValue(mockQueryChain);
+mockEq.mockReturnValue(mockQueryChain);
 mockOrder.mockReturnValue(mockQueryChain);
 
 const mockSupabase = { from: mockFrom };
+
+vi.mock("@/lib/identity", () => ({
+  getServerIdentity: () => Promise.resolve({ store_id: "store_123" }),
+}));
 
 vi.mock("@/lib/supabase-ssr.server", () => ({
   getSSRClient: () => mockSupabase,
@@ -28,6 +35,7 @@ describe("CMS Functions", () => {
     vi.clearAllMocks();
     mockFrom.mockReturnValue(mockQueryChain);
     mockSelect.mockReturnValue(mockQueryChain);
+    mockEq.mockReturnValue(mockQueryChain);
     mockOrder.mockReturnValue(mockQueryChain);
   });
 

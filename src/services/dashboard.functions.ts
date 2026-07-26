@@ -93,7 +93,12 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
       : order.payments
         ? [order.payments]
         : [];
-    const isPaid = payments.some((p: any) => p.status === "approved" || p.status === "settled");
+    const isPaid =
+      order.status === "paid" ||
+      order.status === "completed" ||
+      order.status === "delivered" ||
+      order.status === "shipped" ||
+      payments.some((p: any) => p.status === "approved" || p.status === "settled");
 
     // Consider order count only if it's not cancelled, to avoid inflating fake counts
     if (order.status !== "cancelled" && order.status !== "payment_failed") {

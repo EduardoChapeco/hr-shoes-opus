@@ -176,9 +176,7 @@ export async function createManualTransactionHandler(input: {
 
   // For expenses and withdrawals, ensure amount is stored as negative
   const amountCents =
-    input.type === "adjustment"
-      ? input.amount_cents
-      : -Math.abs(input.amount_cents);
+    input.type === "adjustment" ? input.amount_cents : -Math.abs(input.amount_cents);
 
   const { data, error } = await db
     .from("financial_transactions")

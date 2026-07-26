@@ -279,7 +279,7 @@ export function AdminShell({
   const handleLogout = async () => {
     try {
       const res = await signOut();
-      
+
       // LIMPEZA ATÔMICA DE CACHES (Evita vazamento de PII multi-tenant)
       clearAppCache(router, queryClient);
 

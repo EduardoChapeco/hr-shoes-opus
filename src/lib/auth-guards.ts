@@ -7,7 +7,10 @@ import type { Role } from "@/types/domain";
  */
 export async function requireRole(allowedRoles: Role[]): Promise<{ id: string; role: Role }> {
   const supabase = getSSRClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     throw new Error("Não autorizado. Sessão expirada ou ausente.");

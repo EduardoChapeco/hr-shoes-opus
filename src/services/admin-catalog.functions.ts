@@ -31,7 +31,7 @@ export async function listProductTypesHandler() {
 
 export const listProductTypes = createServerFn({ method: "GET" }).handler(async () => {
   try {
-      await requireAdmin(); // SECURITY FIX
+    await requireAdmin(); // SECURITY FIX
     const data = await listProductTypesHandler();
     return data;
   } catch (e) {
@@ -184,7 +184,7 @@ export async function listAdminProductsHandler() {
 
 export const listAdminProducts = createServerFn({ method: "GET" }).handler(async () => {
   try {
-      await requireAdmin(); // SECURITY FIX
+    await requireAdmin(); // SECURITY FIX
     const data = await listAdminProductsHandler();
     return data || [];
   } catch (e) {
@@ -317,7 +317,7 @@ export async function listCategoriesHandler() {
 
 export const listCategories = createServerFn({ method: "GET" }).handler(async () => {
   try {
-      await requireAdmin(); // SECURITY FIX
+    await requireAdmin(); // SECURITY FIX
     const data = await listCategoriesHandler();
     return data;
   } catch (e) {
@@ -456,7 +456,7 @@ export async function listCollectionsHandler() {
 
 export const listCollections = createServerFn({ method: "GET" }).handler(async () => {
   try {
-      await requireAdmin(); // SECURITY FIX
+    await requireAdmin(); // SECURITY FIX
     const data = await listCollectionsHandler();
     return data;
   } catch (e) {
@@ -680,7 +680,12 @@ export async function updateProductHandler(input: {
     const matrix = variants.map((v) => ({
       attributes: v.attributes,
       stock: v.stock,
-      price_override_cents: v.price_override_cents !== undefined ? v.price_override_cents : (v.price_cents !== undefined ? v.price_cents : null),
+      price_override_cents:
+        v.price_override_cents !== undefined
+          ? v.price_override_cents
+          : v.price_cents !== undefined
+            ? v.price_cents
+            : null,
     }));
     await batchUpsertVariantMatrixHandler({
       product_id: id,
@@ -864,7 +869,7 @@ export async function batchUpsertVariantMatrixHandler(input: {
 }) {
   const db = getServerClient();
   const { getServerIdentity } = await import("@/lib/identity");
-  
+
   // FIX: Multi-tenant security check enforcement
   const { store_id } = await getServerIdentity();
   if (!store_id) throw new Error("Acesso não autorizado.");
@@ -1017,7 +1022,7 @@ export async function getOnboardingProgressHandler() {
 
 export const getOnboardingProgress = createServerFn({ method: "GET" }).handler(async () => {
   try {
-      await requireAdmin(); // SECURITY FIX
+    await requireAdmin(); // SECURITY FIX
     const data = await getOnboardingProgressHandler();
     return {
       status: "ok" as const,

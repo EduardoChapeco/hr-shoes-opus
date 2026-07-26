@@ -889,7 +889,7 @@ export function getRoute(path: string): RouteEntry | undefined {
   return ALL_ROUTES.find((r) => {
     if (!r.dynamic) return false;
     // Replace :param with [^/]+ for regex matching
-    const regexPath = r.path.replace(/:[^\/]+/g, "[^/]+");
+    const regexPath = r.path.replace(/:[^/]+/g, "[^/]+");
     const regex = new RegExp(`^${regexPath}$`);
     return regex.test(path);
   });

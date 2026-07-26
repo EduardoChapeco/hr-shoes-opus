@@ -69,7 +69,8 @@ function StoreLayout() {
 
   const storeData = store?.data || store;
   const storeName = storeData?.name || "Hr Shoes";
-  const logoUrl = storeData?.logoUrl || storeData?.settings?.logoUrl || storeData?.settings?.logo_url;
+  const logoUrl =
+    storeData?.logoUrl || storeData?.settings?.logoUrl || storeData?.settings?.logo_url;
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://hrshoes.com.br";
 
   // JSON-LD Structured Data (Organization + WebSite with SearchAction)

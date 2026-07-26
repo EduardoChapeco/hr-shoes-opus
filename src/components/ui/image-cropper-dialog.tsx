@@ -42,7 +42,13 @@ export function ImageCropperDialog({
     setIsProcessing(true);
     try {
       // Output as PNG to preserve PNG alpha channel transparency!
-      const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels, 0, { horizontal: false, vertical: false }, "image/png");
+      const croppedImage = await getCroppedImg(
+        imageSrc,
+        croppedAreaPixels,
+        0,
+        { horizontal: false, vertical: false },
+        "image/png",
+      );
       onCropCompleteAction(croppedImage);
       onOpenChange(false);
     } catch (e) {
@@ -60,7 +66,8 @@ export function ImageCropperDialog({
             <Crop className="size-5 text-primary" /> Recortar e Ajustar Imagem
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Ajuste a área de corte e o formato da imagem. Imagens transparentes (PNG) manterão o fundo transparente sem fundo preto.
+            Ajuste a área de corte e o formato da imagem. Imagens transparentes (PNG) manterão o
+            fundo transparente sem fundo preto.
           </p>
         </DialogHeader>
 
@@ -78,7 +85,10 @@ export function ImageCropperDialog({
                 onZoomChange={setZoom}
                 style={{
                   containerStyle: { background: "transparent" },
-                  cropAreaStyle: { border: "2px solid #FF4FB8", boxShadow: "0 0 0 9999px rgba(0,0,0,0.5)" },
+                  cropAreaStyle: {
+                    border: "2px solid #FF4FB8",
+                    boxShadow: "0 0 0 9999px rgba(0,0,0,0.5)",
+                  },
                 }}
               />
             </div>
@@ -144,9 +154,7 @@ export function ImageCropperDialog({
             </div>
           </div>
         ) : (
-          <div className="py-12 text-center text-muted-foreground">
-            Nenhuma imagem selecionada.
-          </div>
+          <div className="py-12 text-center text-muted-foreground">Nenhuma imagem selecionada.</div>
         )}
 
         <DialogFooter className="gap-2 sm:gap-0">

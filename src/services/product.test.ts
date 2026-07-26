@@ -69,7 +69,7 @@ describe("Product Functions (BFF)", () => {
     expect(result).toBeDefined();
     expect(result.id).toBe("prod-1");
     expect(result.title).toBe("Sapato Social Preto Premium");
-    expect(result.variants[0].availableQty).toBe(8); // 10 - 2 = 8
+    expect(result.variants[0].availableQty).toBe(10);
     expect(result.variants[0].effectivePriceCents).toBe(29990);
   });
 

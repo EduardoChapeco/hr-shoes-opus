@@ -49,7 +49,9 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     try {
       const { resolveTenantStoreId } = await import("@/lib/tenant");
       storeId = (await resolveTenantStoreId()) ?? null;
-    } catch {}
+    } catch {
+      /* ignored */
+    }
   }
 
   return {

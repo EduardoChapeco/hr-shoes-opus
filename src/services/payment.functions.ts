@@ -85,7 +85,11 @@ export const initiatePaymentTransaction = createServerFn({ method: "POST" })
 
     // --- GATEWAY INTEGRATION (Pagar.me V5) ---
     // Fetch required data for Pagar.me
-    const { data: fullOrder } = await supabase.from("orders").select("*").eq("id", order.id).single();
+    const { data: fullOrder } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("id", order.id)
+      .single();
 
     const pagarmePayload: any = {
       items: (fullOrder.items_snapshot || []).map((item: any) => ({
@@ -103,41 +107,45 @@ export const initiatePaymentTransaction = createServerFn({ method: "POST" })
             country_code: "55",
             area_code: "11",
             number: "999999999",
-          }
-        }
+          },
+        },
       },
-      payments: []
+      payments: [],
     };
 
     if (method === "pix") {
       pagarmePayload.payments.push({
         payment_method: "pix",
-        pix: { expires_in: 86400 }
+        pix: { expires_in: 86400 },
       });
     } else if (method === "boleto") {
       pagarmePayload.payments.push({
         payment_method: "boleto",
-        boleto: { instructions: "Pagar até o vencimento" }
+        boleto: { instructions: "Pagar até o vencimento" },
       });
     } else {
-      throw new Error("Integração de cartão de crédito via Server Function exige tokenização prévia no Frontend.");
+      throw new Error(
+        "Integração de cartão de crédito via Server Function exige tokenização prévia no Frontend.",
+      );
     }
 
-    const auth = Buffer.from(`${pagarmeSecretKey}:`).toString('base64');
+    const auth = Buffer.from(`${pagarmeSecretKey}:`).toString("base64");
     const response = await fetch("https://api.pagar.me/core/v5/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Basic ${auth}`
+        Authorization: `Basic ${auth}`,
       },
-      body: JSON.stringify(pagarmePayload)
+      body: JSON.stringify(pagarmePayload),
     });
 
     const pagarmeRes = await response.json();
 
     if (!response.ok) {
       console.error("[PAGARME] Erro na requisição:", JSON.stringify(pagarmeRes));
-      throw new Error("Falha de integração com Pagar.me: " + (pagarmeRes.message || "Erro desconhecido"));
+      throw new Error(
+        "Falha de integração com Pagar.me: " + (pagarmeRes.message || "Erro desconhecido"),
+      );
     }
 
     const transactionId = pagarmeRes.id;
@@ -153,15 +161,18 @@ export const initiatePaymentTransaction = createServerFn({ method: "POST" })
     }
 
     // Update internal payment transaction with provider reference
-    await supabase.from("payments").update({ 
-      provider_name: "pagarme",
-      provider_ref: transactionId,
-      metadata: {
-        pagarme_order_id: transactionId,
-        qr_code: qrCode,
-        qr_code_url: qrCodeUrl
-      }
-    }).eq("id", existingPayment.id);
+    await supabase
+      .from("payments")
+      .update({
+        provider_name: "pagarme",
+        provider_ref: transactionId,
+        metadata: {
+          pagarme_order_id: transactionId,
+          qr_code: qrCode,
+          qr_code_url: qrCodeUrl,
+        },
+      })
+      .eq("id", existingPayment.id);
 
     // [CRITICAL FIX] We DO NOT update the order status to "processing" here anymore.
     // The order stays "awaiting_payment". It will transition only when the Webhook arrives.

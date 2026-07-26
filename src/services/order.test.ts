@@ -120,7 +120,9 @@ describe("updateOrderStatusHandler", () => {
     const res = await updateOrderStatusHandler("ord-1", "shipped");
     expect(res).toEqual({ status: "ok", message: "Status do pedido atualizado." });
     expect(mockFrom).toHaveBeenCalledWith("orders");
-    expect(mockUpdate).toHaveBeenCalledWith({ status: "shipped" });
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "shipped", shipped_at: expect.any(String) }),
+    );
     expect(mockEq).toHaveBeenCalledWith("id", "ord-1");
   });
 

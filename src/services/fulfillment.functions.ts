@@ -148,10 +148,9 @@ export async function createShipmentHandler(input: {
     throw new Error(`Não é possível criar envio para pedido com status '${order.status}'.`);
   }
 
-  const resolvedTrackingUrl =
-    input.tracking_code
-      ? resolveTrackingUrl(input.tracking_code, input.tracking_url)
-      : input.tracking_url;
+  const resolvedTrackingUrl = input.tracking_code
+    ? resolveTrackingUrl(input.tracking_code, input.tracking_url)
+    : input.tracking_url;
 
   const { data, error } = await db
     .from("shipments")
@@ -288,10 +287,12 @@ export async function listPendingFulfillmentHandler() {
 
 export const listShipments = createServerFn({ method: "GET" })
   .validator(
-    z.object({
-      status: z.enum(SHIPMENT_STATUS_VALUES).optional(),
-      orderId: z.string().uuid().optional(),
-    }).optional(),
+    z
+      .object({
+        status: z.enum(SHIPMENT_STATUS_VALUES).optional(),
+        orderId: z.string().uuid().optional(),
+      })
+      .optional(),
   )
   .handler(async ({ data: filters }) => {
     try {

@@ -21,23 +21,6 @@ export function BeforeAfterSlider({
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Honest empty state — never show fallback images
-  if (!before_image || !after_image) {
-    return (
-      <section className="w-full py-12 px-4 md:px-8 max-w-5xl mx-auto">
-        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-2xl">
-          <span className="text-3xl opacity-40">&#8596;</span>
-          <div>
-            <p className="font-medium">Comparador não configurado</p>
-            <p className="text-sm mt-1">
-              Adicione as imagens "Antes" e "Depois" no editor para ativar o slider.
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   const handleMove = useCallback((clientX: number) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -62,6 +45,23 @@ export function BeforeAfterSlider({
     },
     [isDragging, handleMove],
   );
+
+  // Honest empty state — never show fallback images
+  if (!before_image || !after_image) {
+    return (
+      <section className="w-full py-12 px-4 md:px-8 max-w-5xl mx-auto">
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-2xl">
+          <span className="text-3xl opacity-40">&#8596;</span>
+          <div>
+            <p className="font-medium">Comparador não configurado</p>
+            <p className="text-sm mt-1">
+              Adicione as imagens "Antes" e "Depois" no editor para ativar o slider.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="w-full py-12 px-4 md:px-8 max-w-5xl mx-auto">

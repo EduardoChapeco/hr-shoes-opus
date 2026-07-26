@@ -63,17 +63,16 @@ function generateVariantsMatrix(
   attributes: DynamicAttribute[],
   baseSku: string,
   basePrice: number,
-  baseStock: number
+  baseStock: number,
 ): VariantRow[] {
   const activeAttrs = attributes.filter((a) => a.name.trim() && a.values.length > 0);
   if (activeAttrs.length === 0) return [];
 
   const optionArrays = activeAttrs.map((a) => a.values.map((v) => ({ name: a.name, value: v })));
-  
-  const cartesian = optionArrays.reduce(
-    (a, b) => a.flatMap((d) => b.map((e) => [...d, e])),
-    [[]] as { name: string; value: string }[][]
-  );
+
+  const cartesian = optionArrays.reduce((a, b) => a.flatMap((d) => b.map((e) => [...d, e])), [
+    [],
+  ] as { name: string; value: string }[][]);
 
   return cartesian.map((combo, idx) => {
     const attrsObj: Record<string, string> = {};
@@ -110,12 +109,18 @@ function QuickNewProductPage() {
 
   // Atributos dinâmicos
   const [attributes, setAttributes] = useState<DynamicAttribute[]>([]);
-  
+
   // Tabela final de variações (substitui a seleção estática)
   const [variantsMatrix, setVariantsMatrix] = useState<VariantRow[]>([]);
   const [isMatrixGenerated, setIsMatrixGenerated] = useState(false);
 
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
       title: "",
       slug: "",
@@ -149,8 +154,8 @@ function QuickNewProductPage() {
       if (val) {
         setAttributes(
           attributes.map((a) =>
-            a.id === id && !a.values.includes(val) ? { ...a, values: [...a.values, val] } : a
-          )
+            a.id === id && !a.values.includes(val) ? { ...a, values: [...a.values, val] } : a,
+          ),
         );
         e.currentTarget.value = "";
       }
@@ -160,8 +165,8 @@ function QuickNewProductPage() {
   const removeAttributeValue = (attrId: string, valueToRemove: string) => {
     setAttributes(
       attributes.map((a) =>
-        a.id === attrId ? { ...a, values: a.values.filter((v) => v !== valueToRemove) } : a
-      )
+        a.id === attrId ? { ...a, values: a.values.filter((v) => v !== valueToRemove) } : a,
+      ),
     );
   };
 
@@ -173,7 +178,9 @@ function QuickNewProductPage() {
     }
     const matrix = generateVariantsMatrix(attributes, targetSlug || "PROD", basePriceCents, 10);
     if (matrix.length > 150) {
-      toast.error(`Esta combinação gerará ${matrix.length} variações. Recomendamos criar no máximo 150 de uma vez para não travar o navegador.`);
+      toast.error(
+        `Esta combinação gerará ${matrix.length} variações. Recomendamos criar no máximo 150 de uma vez para não travar o navegador.`,
+      );
       return;
     }
     setVariantsMatrix(matrix);
@@ -232,7 +239,13 @@ function QuickNewProductPage() {
               <ArrowLeft className="mr-2 size-4" /> Cancelar
             </Button>
             <Button onClick={handleSubmit(onSubmit)} disabled={isSubmitting} className="min-w-32">
-              {isSubmitting ? "Criando..." : <><CheckCircle2 className="size-4 mr-2" /> Salvar & Continuar</>}
+              {isSubmitting ? (
+                "Criando..."
+              ) : (
+                <>
+                  <CheckCircle2 className="size-4 mr-2" /> Salvar & Continuar
+                </>
+              )}
             </Button>
           </div>
         }
@@ -258,14 +271,18 @@ function QuickNewProductPage() {
                   setValue("slug", slugify(e.target.value));
                 }}
               />
-              {errors.title && <p className="text-xs text-destructive">{errors.title.message as string}</p>}
+              {errors.title && (
+                <p className="text-xs text-destructive">{errors.title.message as string}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">Preço Base (R$) *</Label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">R$</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                    R$
+                  </span>
                   <Input
                     {...register("price_cents", { required: "Obrigatório" })}
                     className="pl-9 h-11 text-lg font-medium"
@@ -299,7 +316,9 @@ function QuickNewProductPage() {
                   <SelectContent>
                     <SelectItem value="none">Nenhuma</SelectItem>
                     {categories.map((c: any) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -314,7 +333,9 @@ function QuickNewProductPage() {
                   <SelectContent>
                     <SelectItem value="none">Geral (Padrão)</SelectItem>
                     {productTypes.map((t: any) => (
-                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -327,15 +348,13 @@ function QuickNewProductPage() {
         <Card>
           <CardHeader>
             <CardTitle>Foto de Capa Inicial (Opcional)</CardTitle>
-            <CardDescription>A imagem principal deste produto. Você poderá adicionar mais depois.</CardDescription>
+            <CardDescription>
+              A imagem principal deste produto. Você poderá adicionar mais depois.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="max-w-sm">
-              <ImageUpload
-                onChange={setMainImageUrl}
-                value={mainImageUrl}
-                bucket="product-media"
-              />
+              <ImageUpload onChange={setMainImageUrl} value={mainImageUrl} bucket="product-media" />
             </div>
           </CardContent>
         </Card>
@@ -343,12 +362,15 @@ function QuickNewProductPage() {
         {/* Gerador de Variações Dinâmicas */}
         <Card className="border-pink-500/30 overflow-hidden">
           <div className="bg-pink-500/5 px-6 py-4 border-b border-pink-500/10">
-            <h3 className="text-lg font-bold text-pink-700 dark:text-pink-400">Construtor Dinâmico de Variações</h3>
+            <h3 className="text-lg font-bold text-pink-700 dark:text-pink-400">
+              Construtor Dinâmico de Variações
+            </h3>
             <p className="text-sm text-pink-600/80 dark:text-pink-400/80 mt-1">
-              Crie opções customizadas (Tamanho, Cor, Material) para gerar automaticamente a matriz de estoque.
+              Crie opções customizadas (Tamanho, Cor, Material) para gerar automaticamente a matriz
+              de estoque.
             </p>
           </div>
-          
+
           <CardContent className="p-6 space-y-6">
             {!isMatrixGenerated ? (
               <div className="space-y-6 animate-in fade-in">
@@ -378,9 +400,16 @@ function QuickNewProductPage() {
                         />
                         <div className="flex flex-wrap gap-2 mt-2">
                           {attr.values.map((val) => (
-                            <span key={val} className="px-3 py-1 bg-secondary rounded-full text-sm font-medium flex items-center gap-1 border">
+                            <span
+                              key={val}
+                              className="px-3 py-1 bg-secondary rounded-full text-sm font-medium flex items-center gap-1 border"
+                            >
                               {val}
-                              <button type="button" onClick={() => removeAttributeValue(attr.id, val)} className="hover:text-destructive p-0.5 rounded-full hover:bg-black/5 ml-1">
+                              <button
+                                type="button"
+                                onClick={() => removeAttributeValue(attr.id, val)}
+                                className="hover:text-destructive p-0.5 rounded-full hover:bg-black/5 ml-1"
+                              >
                                 <X className="h-3 w-3" />
                               </button>
                             </span>
@@ -392,11 +421,20 @@ function QuickNewProductPage() {
                 ))}
 
                 <div className="flex gap-4">
-                  <Button type="button" variant="outline" onClick={addAttribute} className="border-dashed border-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addAttribute}
+                    className="border-dashed border-2"
+                  >
                     <Plus className="mr-2 h-4 w-4" /> Adicionar Opção (Atributo)
                   </Button>
                   {attributes.length > 0 && (
-                    <Button type="button" onClick={handleGenerateMatrix} className="bg-pink-600 hover:bg-pink-700 text-white">
+                    <Button
+                      type="button"
+                      onClick={handleGenerateMatrix}
+                      className="bg-pink-600 hover:bg-pink-700 text-white"
+                    >
                       Gerar Matriz de Variações
                     </Button>
                   )}
@@ -407,9 +445,16 @@ function QuickNewProductPage() {
                 <div className="flex items-center justify-between bg-muted/50 p-4 rounded-lg border">
                   <div>
                     <h4 className="font-bold text-base">Matriz de Variações Gerada</h4>
-                    <p className="text-sm text-muted-foreground">{variantsMatrix.length} variações prontas para revisão.</p>
+                    <p className="text-sm text-muted-foreground">
+                      {variantsMatrix.length} variações prontas para revisão.
+                    </p>
                   </div>
-                  <Button type="button" variant="outline" size="sm" onClick={() => setIsMatrixGenerated(false)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsMatrixGenerated(false)}
+                  >
                     Editar Atributos Base
                   </Button>
                 </div>
@@ -431,15 +476,25 @@ function QuickNewProductPage() {
                           <td className="px-4 py-3 w-20">
                             {variant.image_url ? (
                               <div className="relative group w-12 h-12 rounded-md overflow-hidden border">
-                                <img src={variant.image_url} alt="Variante" className="w-full h-full object-cover" />
-                                <button type="button" onClick={() => updateVariant(variant.id, "image_url", null)} className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <img
+                                  src={variant.image_url}
+                                  alt="Variante"
+                                  className="w-full h-full object-cover"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => updateVariant(variant.id, "image_url", null)}
+                                  className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
                                   <X className="h-4 w-4" />
                                 </button>
                               </div>
                             ) : (
                               <div className="w-12 h-12">
                                 <ImageUpload
-                                  onChange={(url: string) => updateVariant(variant.id, "image_url", url)}
+                                  onChange={(url: string) =>
+                                    updateVariant(variant.id, "image_url", url)
+                                  }
                                   bucket="product-media"
                                   className="h-full w-full p-0 min-h-[48px] rounded-md"
                                 />
@@ -460,22 +515,26 @@ function QuickNewProductPage() {
                             <Input
                               type="number"
                               value={variant.stock}
-                              onChange={(e) => updateVariant(variant.id, "stock", parseInt(e.target.value) || 0)}
+                              onChange={(e) =>
+                                updateVariant(variant.id, "stock", parseInt(e.target.value) || 0)
+                              }
                               className="h-8 w-20"
                               min="0"
                             />
                           </td>
                           <td className="px-4 py-3">
                             <div className="relative max-w-[120px]">
-                               <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">R$</span>
-                               <Input
-                                  value={(variant.price_cents / 100).toFixed(2).replace(".", ",")}
-                                  onChange={(e) => {
-                                    const val = e.target.value.replace(/\D/g, "");
-                                    updateVariant(variant.id, "price_cents", parseInt(val) || 0);
-                                  }}
-                                  className="h-8 pl-7"
-                                />
+                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                                R$
+                              </span>
+                              <Input
+                                value={(variant.price_cents / 100).toFixed(2).replace(".", ",")}
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/\D/g, "");
+                                  updateVariant(variant.id, "price_cents", parseInt(val) || 0);
+                                }}
+                                className="h-8 pl-7"
+                              />
                             </div>
                           </td>
                         </tr>

@@ -16,7 +16,10 @@ export function Logo({ src, className, ...props }: Omit<ComponentProps<"img">, "
       <img
         src={src}
         alt="Hr Shoes — Conforto e Estilo"
-        className={cn("h-8 w-auto max-w-[240px] select-none object-contain bg-transparent mix-blend-normal", className)}
+        className={cn(
+          "h-8 w-auto max-w-[240px] select-none object-contain bg-transparent mix-blend-normal",
+          className,
+        )}
         onError={() => setHasError(true)}
         {...props}
       />
@@ -24,7 +27,12 @@ export function Logo({ src, className, ...props }: Omit<ComponentProps<"img">, "
   }
 
   return (
-    <span className={cn("font-bold text-lg tracking-tight text-foreground select-none flex items-center gap-2", className)}>
+    <span
+      className={cn(
+        "font-bold text-lg tracking-tight text-foreground select-none flex items-center gap-2",
+        className,
+      )}
+    >
       Hr Shoes
     </span>
   );

@@ -512,4 +512,3 @@ export const deleteCustomerAddress = createServerFn({ method: "POST" })
       throw new Error(e.message || "Erro ao deletar endereço.");
     }
   });
-

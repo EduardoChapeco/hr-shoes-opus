@@ -208,6 +208,9 @@ export async function fetchCartDTO(identity: {
       } else if (coupon.discount_type === "fixed_amount") {
         dynamicDiscountCents = Math.round(coupon.discount_value * 100);
         if (dynamicDiscountCents > totalCents) dynamicDiscountCents = totalCents;
+      } else if (coupon.discount_type === "free_shipping") {
+        dynamicDiscountCents = 0;
+        cart.shipping_cents = 0;
       }
 
       // If the recomputed discount differs from the DB, update DB reliably

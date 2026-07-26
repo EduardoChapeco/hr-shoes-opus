@@ -96,9 +96,7 @@ export async function getAffiliatePerformanceHandler(filters: {
 
   // Build performance map
   const result: AffiliatePerformanceDTO[] = sellers.map((seller: any) => {
-    const sellerCommissions = (commissions || []).filter(
-      (c: any) => c.seller_id === seller.id,
-    );
+    const sellerCommissions = (commissions || []).filter((c: any) => c.seller_id === seller.id);
     const sellerOrders = (orders || []).filter(
       (o: any) =>
         o.seller_id === seller.id &&

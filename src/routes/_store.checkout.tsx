@@ -12,7 +12,11 @@ import {
 } from "@/services/cart.functions";
 import { checkGiftCardBalance } from "@/services/giftcard.functions";
 import { processCheckout } from "@/services/checkout.functions";
-import { initiatePaymentTransaction, getPublicPaymentMethods, getGatewayStatus } from "@/services/payment.functions";
+import {
+  initiatePaymentTransaction,
+  getPublicPaymentMethods,
+  getGatewayStatus,
+} from "@/services/payment.functions";
 import { calculateShipping } from "@/services/shipping.functions";
 import { getPublicStoreProfile } from "@/services/catalog.functions";
 import { getProfile } from "@/services/auth.functions";
@@ -43,14 +47,15 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Hr Shoes" }] }),
   loader: async () => {
-    const [cart, profileRes, paymentMethodsRes, gatewayStatus, userProfile, userAddresses] = await Promise.all([
-      getCart(),
-      getPublicStoreProfile(),
-      getPublicPaymentMethods(),
-      getGatewayStatus(),
-      getProfile().catch(() => null),
-      getCustomerAddresses().catch(() => []),
-    ]);
+    const [cart, profileRes, paymentMethodsRes, gatewayStatus, userProfile, userAddresses] =
+      await Promise.all([
+        getCart(),
+        getPublicStoreProfile(),
+        getPublicPaymentMethods(),
+        getGatewayStatus(),
+        getProfile().catch(() => null),
+        getCustomerAddresses().catch(() => []),
+      ]);
     const storeProfile = profileRes;
 
     return {
@@ -136,8 +141,14 @@ function CheckoutPage() {
     addressDistrict: "",
     addressCity: "",
     addressState: "",
-    paymentMethod: (isGatewayConfigured ? "pix" : (paymentMethods.length > 0 ? "manual" : "receipt")) as "pix" | "manual" | "credit_card" | "receipt",
-    paymentMethodId: (!isGatewayConfigured && paymentMethods.length > 0 ? (paymentMethods[0] as any).id : "") as string, // UUID of chosen manual payment option
+    paymentMethod: (isGatewayConfigured
+      ? "pix"
+      : paymentMethods.length > 0
+        ? "manual"
+        : "receipt") as "pix" | "manual" | "credit_card" | "receipt",
+    paymentMethodId: (!isGatewayConfigured && paymentMethods.length > 0
+      ? (paymentMethods[0] as any).id
+      : "") as string, // UUID of chosen manual payment option
     shippingMethod: "manual_table" as "manual_table" | "pickup" | "manual_quote",
     shippingAddress: {
       zipcode: "",
@@ -1036,7 +1047,10 @@ function CheckoutPage() {
                   {!isGatewayConfigured && paymentMethods.length === 0 && (
                     <div className="bg-destructive/10 text-destructive border border-destructive/20 p-4 rounded-xl flex items-center gap-3 mb-6">
                       <AlertCircle className="size-5 shrink-0" />
-                      <p className="text-sm font-medium">A loja ainda não configurou métodos de recebimento. Entre em contato com o suporte.</p>
+                      <p className="text-sm font-medium">
+                        A loja ainda não configurou métodos de recebimento. Entre em contato com o
+                        suporte.
+                      </p>
                     </div>
                   )}
 

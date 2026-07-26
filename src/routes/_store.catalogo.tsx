@@ -366,7 +366,7 @@ function CatalogPage() {
 
         {/* Product grid */}
         <div className="flex-1">
-          {result.status === "unconfigured" && <ErrorState description={result.reason} />}
+          {result.status === "unconfigured" && <UnconfiguredState description={result.reason} />}
           {result.status === "empty" && (
             <EmptyState
               title="Nenhum produto encontrado"

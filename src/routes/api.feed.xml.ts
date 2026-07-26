@@ -47,17 +47,16 @@ export const Route = createFileRoute("/api/feed/xml")({
             .single();
 
           if (!gmcIntegration || !gmcIntegration.is_active) {
-            return new Response("Google Merchant Center integration is inactive or not configured.", {
-              status: 403,
-            });
+            return new Response(
+              "Google Merchant Center integration is inactive or not configured.",
+              {
+                status: 403,
+              },
+            );
           }
 
           // Fetch store info for the feed title
-          const { data: store } = await db
-            .from("stores")
-            .select("name")
-            .eq("id", storeId)
-            .single();
+          const { data: store } = await db.from("stores").select("name").eq("id", storeId).single();
           const { data: products, error } = await db
             .from("products")
             .select(
@@ -110,7 +109,9 @@ export const Route = createFileRoute("/api/feed/xml")({
               const effectivePriceCents = v.price_override_cents ?? v.price_cents ?? p.price_cents;
               const priceBrl = (effectivePriceCents / 100).toFixed(2);
               const salePriceBrl =
-                p.compare_at_cents && p.compare_at_cents > effectivePriceCents ? priceBrl : undefined;
+                p.compare_at_cents && p.compare_at_cents > effectivePriceCents
+                  ? priceBrl
+                  : undefined;
               const regularPriceBrl = salePriceBrl
                 ? (p.compare_at_cents / 100).toFixed(2)
                 : priceBrl;
@@ -152,9 +153,7 @@ export const Route = createFileRoute("/api/feed/xml")({
 
                 // Dynamic size detection — supports multiple naming conventions
                 const sizeKeys = ["tamanho", "size", "taille", "numero", "número", "tam"];
-                const sizeKey = Object.keys(attrs).find((k) =>
-                  sizeKeys.includes(k.toLowerCase()),
-                );
+                const sizeKey = Object.keys(attrs).find((k) => sizeKeys.includes(k.toLowerCase()));
                 if (sizeKey && attrs[sizeKey]) {
                   xml += `  <g:size>${escapeXml(attrs[sizeKey])}</g:size>\n`;
                   xml += `  <g:size_system>BR</g:size_system>\n`;

@@ -79,8 +79,14 @@ describe("Dashboard Services", () => {
     const now = new Date().toISOString();
 
     const mockOrders = [
-      { id: "o-1", status: "paid", total_cents: 15000, created_at: now },
-      { id: "o-2", status: "awaiting_payment", total_cents: 8000, created_at: now },
+      {
+        id: "o-1",
+        status: "paid",
+        total_cents: 15000,
+        created_at: now,
+        payments: [{ status: "approved", amount_cents: 15000 }],
+      },
+      { id: "o-2", status: "awaiting_payment", total_cents: 8000, created_at: now, payments: [] },
     ];
 
     const mockVariants = [
@@ -120,6 +126,15 @@ describe("Dashboard Services", () => {
           select: () => ({
             eq: () => ({
               eq: () => ({
+                order: () => ({
+                  limit: () => ({
+                    maybeSingle: () =>
+                      Promise.resolve({
+                        data: { id: "reg-1", opened_at: now, initial_balance_cents: 10000 },
+                        error: null,
+                      }),
+                  }),
+                }),
                 maybeSingle: () =>
                   Promise.resolve({
                     data: { id: "reg-1", opened_at: now, initial_balance_cents: 10000 },
