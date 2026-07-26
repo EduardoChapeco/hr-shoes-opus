@@ -19,8 +19,10 @@ export function PublicFooter({ menuItems = [], store }: { menuItems?: any[]; sto
       <div className="mx-auto max-w-screen-xl px-4 py-12 md:px-6">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div className="space-y-3">
-            <Logo src={store?.logoUrl} />
-            <h2 className="font-bold text-lg">{storeName}</h2>
+            <Logo src={store?.logoUrl || store?.settings?.logoUrl || store?.settings?.logo_url} />
+            {(store?.logoUrl || store?.settings?.logoUrl || store?.settings?.logo_url) && (
+              <h2 className="font-bold text-lg">{storeName}</h2>
+            )}
             <p className="max-w-xs text-sm text-muted-foreground">{storeDesc}</p>
           </div>
 

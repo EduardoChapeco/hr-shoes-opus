@@ -67,7 +67,9 @@ function StoreLayout() {
   const headerMenu = menus.find((m: any) => m.handle === "header")?.items || [];
   const footerMenu = menus.find((m: any) => m.handle === "footer")?.items || [];
 
-  const storeName = store?.name || "Hr Shoes";
+  const storeData = store?.data || store;
+  const storeName = storeData?.name || "Hr Shoes";
+  const logoUrl = storeData?.logoUrl || storeData?.settings?.logoUrl || storeData?.settings?.logo_url;
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://hrshoes.com.br";
 
   // JSON-LD Structured Data (Organization + WebSite with SearchAction)
@@ -79,11 +81,11 @@ function StoreLayout() {
         "@id": `${baseUrl}/#organization`,
         name: storeName,
         url: baseUrl,
-        logo: store?.logoUrl || `${baseUrl}/logo.png`,
-        contactPoint: store?.contactPhone
+        logo: logoUrl || `${baseUrl}/logo.png`,
+        contactPoint: storeData?.contactPhone
           ? {
               "@type": "ContactPoint",
-              telephone: store.contactPhone,
+              telephone: storeData.contactPhone,
               contactType: "customer service",
             }
           : undefined,
@@ -112,11 +114,11 @@ function StoreLayout() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <PublicHeader menuItems={headerMenu} storeName={storeName} logoUrl={store?.logoUrl} />
+      <PublicHeader menuItems={headerMenu} storeName={storeName} logoUrl={logoUrl} />
       <main className="@container flex-1 pb-20 md:pb-0">
         <Outlet />
       </main>
-      <PublicFooter menuItems={footerMenu} store={store} />
+      <PublicFooter menuItems={footerMenu} store={storeData} />
       <BottomNav />
       <GlobalPopupRenderer popups={popups} />
       <SlideOutCart />

@@ -89,7 +89,7 @@ export function PublicHeader({
           aria-label={`${storeName || "Hr Shoes"} — início`}
         >
           <Logo src={logoUrl} />
-          {storeName && (
+          {logoUrl && storeName && (
             <span className="font-bold text-lg tracking-tight hidden lg:inline-block">
               {storeName}
             </span>

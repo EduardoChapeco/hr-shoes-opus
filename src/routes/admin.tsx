@@ -49,8 +49,10 @@ function AdminLayout() {
     }
   }, [search.error, navigate]);
 
+  const logoUrl = store?.data?.logoUrl || store?.logoUrl;
+
   return (
-    <AdminShell session={session} logoUrl={store?.logoUrl}>
+    <AdminShell session={session} logoUrl={logoUrl}>
       <Outlet />
     </AdminShell>
   );
