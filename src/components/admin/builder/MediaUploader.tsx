@@ -113,11 +113,15 @@ export function MediaUploader({
       {label && <label className="text-xs font-medium">{label}</label>}
 
       {value ? (
-        <div className="relative rounded-md overflow-hidden border group bg-muted flex items-center justify-center">
+        <div className="relative rounded-md overflow-hidden border group p-2 bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0px] bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
           {isVideo ? (
             <video src={value} className="w-full h-32 object-cover" muted />
           ) : (
-            <img src={value} alt="Media preview" className="w-full h-32 object-cover" />
+            <img
+              src={value}
+              alt="Media preview"
+              className="max-h-32 w-auto max-w-full object-contain"
+            />
           )}
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
             <Button

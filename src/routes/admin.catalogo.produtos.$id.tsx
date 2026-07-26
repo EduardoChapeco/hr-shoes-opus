@@ -81,7 +81,6 @@ import {
 } from "@/services/admin-catalog.functions";
 import { formatMoney } from "@/lib/money";
 import { adjustStock } from "@/services/stock.functions";
-import { GridBuilderDialog } from "@/components/admin/grid-builder-dialog";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/$id")({
   head: () => ({ meta: [{ title: "Editor Avançado de Produto — Hr Shoes" }] }),

@@ -24,15 +24,17 @@ async function testPriceQuery() {
       .select("price_override_cents, product_id, products(price_cents)")
       .eq("id", vid)
       .single();
-    
+
     console.log(`\nVariante: ${vid}`);
     console.log("vInfo retornado:", JSON.stringify(vInfo));
     if (error) console.error("Error:", error);
-    
+
     const productData = Array.isArray(vInfo?.products) ? vInfo?.products[0] : vInfo?.products;
     const priceCents = vInfo?.price_override_cents ?? vInfo?.products?.price_cents ?? 0;
     const arraySafePrice = vInfo?.price_override_cents ?? productData?.price_cents ?? 0;
-    console.log(`Preço com products.price_cents: ${priceCents}, com arraySafePrice: ${arraySafePrice}`);
+    console.log(
+      `Preço com products.price_cents: ${priceCents}, com arraySafePrice: ${arraySafePrice}`,
+    );
   }
 }
 

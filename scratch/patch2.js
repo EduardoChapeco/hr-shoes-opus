@@ -1,5 +1,5 @@
-const fs = require('fs');
-let content = fs.readFileSync('src/routes/api.webhooks.pagarme.ts', 'utf8');
+const fs = require("fs");
+let content = fs.readFileSync("src/routes/api.webhooks.pagarme.ts", "utf8");
 
 const target = `                await supabase
                   .from("orders")
@@ -17,4 +17,4 @@ const replacement = `                // Chamar RPC atômica para devolver estoqu
                 }`;
 
 content = content.replace(target, replacement);
-fs.writeFileSync('src/routes/api.webhooks.pagarme.ts', content);
+fs.writeFileSync("src/routes/api.webhooks.pagarme.ts", content);

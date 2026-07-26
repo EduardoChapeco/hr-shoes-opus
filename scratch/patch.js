@@ -1,5 +1,5 @@
-const fs = require('fs');
-let content = fs.readFileSync('src/services/payment.functions.ts', 'utf8');
+const fs = require("fs");
+let content = fs.readFileSync("src/services/payment.functions.ts", "utf8");
 
 const target = `      const { data, error } = await db
         .from("orders")
@@ -21,4 +21,4 @@ const replacement = `      // 2. Chamar RPC atômica para estornar o estoque, ca
       }`;
 
 content = content.replace(target, replacement);
-fs.writeFileSync('src/services/payment.functions.ts', content);
+fs.writeFileSync("src/services/payment.functions.ts", content);

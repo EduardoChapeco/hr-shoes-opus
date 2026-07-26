@@ -152,22 +152,34 @@ function getContextualAction(pathname: string) {
 // Active nav group resolver
 // ---------------------------------------------------------------------------
 function getActiveGroup(pathname: string): string {
+  // 1. Exact match in canonical sidebar nav
+  for (const group of ADMIN_SIDEBAR_NAV) {
+    if (group.items.some((item) => pathname === item.path)) {
+      return group.title;
+    }
+  }
+  // 2. Prefix match (excluding root /admin)
+  for (const group of ADMIN_SIDEBAR_NAV) {
+    if (group.items.some((item) => item.path !== "/admin" && pathname.startsWith(item.path))) {
+      return group.title;
+    }
+  }
+  // 3. Prefix fallbacks for deep screens not directly listed
   if (
     pathname.startsWith("/admin/catalogo") ||
     pathname.startsWith("/admin/estoque") ||
     pathname.startsWith("/admin/midias")
   ) {
-    return "Catálogo";
+    return "📦 Produtos & Estoque";
   }
   if (
     pathname.startsWith("/admin/pedidos") ||
-    pathname.startsWith("/admin/fretes") ||
     pathname.startsWith("/admin/pagamentos") ||
     pathname.startsWith("/admin/comprovantes") ||
     pathname.startsWith("/admin/comissoes") ||
     pathname.startsWith("/admin/match-time")
   ) {
-    return "Vendas";
+    return "🛍️ Pedidos & Vendas";
   }
   if (
     pathname.startsWith("/admin/clientes") ||
@@ -175,45 +187,76 @@ function getActiveGroup(pathname: string): string {
     pathname.startsWith("/admin/suporte") ||
     pathname.startsWith("/admin/avaliacoes")
   ) {
-    return "Relacionamento";
+    return "💬 Clientes & Atendimento";
   }
   if (
+    pathname.startsWith("/admin/vitrine") ||
     pathname.startsWith("/admin/cms") ||
     pathname.startsWith("/admin/builder") ||
-    pathname.startsWith("/admin/perfil-publico") ||
-    pathname.startsWith("/admin/marketing") ||
-    pathname.startsWith("/admin/stories") ||
-    pathname.startsWith("/admin/destaques") ||
     pathname.startsWith("/admin/link-da-bio") ||
-    pathname.startsWith("/admin/criador")
+    pathname.startsWith("/admin/destaques")
   ) {
-    return "Conteúdo & Vitrine";
+    return "✨ Vitrine & Design";
   }
   if (
-    pathname.startsWith("/admin/caixa") ||
-    pathname.startsWith("/admin/equipe") ||
-    pathname.startsWith("/admin/relatorios") ||
+    pathname.startsWith("/admin/marketing") ||
+    pathname.startsWith("/admin/stories") ||
+    pathname.startsWith("/admin/criador")
+  ) {
+    return "🚀 Marketing & Crescimento";
+  }
+  if (
     pathname.startsWith("/admin/configuracoes") ||
+    pathname.startsWith("/admin/fretes") ||
     pathname.startsWith("/admin/integracoes")
   ) {
-    return "Operação";
+    return "⚙️ Ajustes da Loja";
   }
-  return "Geral";
+  if (pathname.startsWith("/admin/caixa")) {
+    return "🏠 Início";
+  }
+  return "🏠 Início";
 }
 
-// Top-level modules list
+// Top-level modules list synced with ADMIN_SIDEBAR_NAV
 const MODULES = [
-  { label: "Visão Geral", path: "/admin", icon: "LayoutDashboard", group: "Geral" },
-  { label: "Catálogo", path: "/admin/catalogo/produtos", icon: "Package", group: "Catálogo" },
-  { label: "Vendas", path: "/admin/pedidos", icon: "ShoppingCart", group: "Vendas" },
-  { label: "Relacionamento", path: "/admin/clientes", icon: "Users", group: "Relacionamento" },
+  { label: "Visão Geral", path: "/admin", icon: "LayoutDashboard", group: "🏠 Início" },
   {
-    label: "Conteúdo & Vitrine",
-    path: "/admin/perfil-publico",
-    icon: "Store",
-    group: "Conteúdo & Vitrine",
+    label: "Vendas & Pedidos",
+    path: "/admin/pedidos",
+    icon: "ShoppingCart",
+    group: "🛍️ Pedidos & Vendas",
   },
-  { label: "Operação", path: "/admin/caixa", icon: "Wallet", group: "Operação" },
+  {
+    label: "Catálogo & Estoque",
+    path: "/admin/catalogo/produtos",
+    icon: "Package",
+    group: "📦 Produtos & Estoque",
+  },
+  {
+    label: "Clientes & Atende",
+    path: "/admin/clientes",
+    icon: "Users",
+    group: "💬 Clientes & Atendimento",
+  },
+  {
+    label: "Vitrine & Design",
+    path: "/admin/vitrine",
+    icon: "Store",
+    group: "✨ Vitrine & Design",
+  },
+  {
+    label: "Marketing",
+    path: "/admin/marketing/cupons",
+    icon: "Megaphone",
+    group: "🚀 Marketing & Crescimento",
+  },
+  {
+    label: "Ajustes & Operação",
+    path: "/admin/configuracoes/loja",
+    icon: "Settings",
+    group: "⚙️ Ajustes da Loja",
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -284,7 +327,7 @@ export function AdminShell({
       clearAppCache(router, queryClient);
 
       toast.success("Sessão encerrada.");
-      router.navigate({ to: "/entrar", replace: true });
+      window.location.href = "/entrar";
     } catch (e: any) {
       toast.error(e.message || "Erro inesperado ao encerrar sessão.");
     }

@@ -98,21 +98,34 @@ describe("Dashboard Services", () => {
       phone: "4999999999",
       address: "Rua Central",
       pix_key: "chave-pix",
+      logo_url: "https://example.com/logo.png",
     };
 
     mockFrom.mockImplementation((table: string) => {
       if (table === "orders") {
-        return { select: () => ({ eq: () => Promise.resolve({ data: mockOrders, error: null }) }) };
+        return {
+          select: () => {
+            const q: any = {
+              eq: () => q,
+              then: (resolve: any) => resolve({ data: mockOrders, count: 2, error: null }),
+            };
+            return q;
+          },
+        };
       }
       if (table === "product_variants") {
         return {
-          select: () => ({
-            lte: () => ({
-              order: () => ({
-                limit: () => Promise.resolve({ data: mockVariants, error: null }),
-              }),
-            }),
-          }),
+          select: () => {
+            const q: any = {
+              eq: () => q,
+              gt: () => q,
+              lte: () => q,
+              order: () => q,
+              limit: () => q,
+              then: (resolve: any) => resolve({ data: mockVariants, count: 5, error: null }),
+            };
+            return q;
+          },
         };
       }
       if (table === "customers") {
@@ -159,14 +172,21 @@ describe("Dashboard Services", () => {
           }),
         };
       }
-      if (table === "products") {
-        return { select: () => Promise.resolve({ count: 10, error: null }) };
-      }
-      if (table === "categories") {
-        return { select: () => Promise.resolve({ count: 3, error: null }) };
-      }
-      if (table === "shipping_rates") {
-        return { select: () => Promise.resolve({ count: 2, error: null }) };
+      if (
+        table === "products" ||
+        table === "categories" ||
+        table === "shipping_rates" ||
+        table === "coupons"
+      ) {
+        return {
+          select: () => {
+            const q: any = {
+              eq: () => q,
+              then: (resolve: any) => resolve({ count: 10, error: null }),
+            };
+            return q;
+          },
+        };
       }
       return mockQueryBuilder;
     });

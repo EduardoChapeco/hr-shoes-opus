@@ -137,6 +137,6 @@ O sistema é organizado em camadas estritamente unidirecionais. Nenhuma camada s
 
 ## 11. Escopos Híbridos e Interfaces Demonstrativas (Módulos Fantasmas)
 
-- **Agendamento (Booking):** Atualmente, o sistema **não possui banco de dados, schemas, filas ou lógicas transacionais para Agendamento de Serviços (Appointments/Booking)** no Supabase ou em provedor externo (D1/Redis). 
-- Todo e qualquer botão ou interface de "Agendar Horário" no Perfil da Loja (`store_contact`) atua estritamente como um **redirect ou call-to-action para o WhatsApp** da loja. 
-- O registro desta limitação arquitetural impede que desenvolvedores busquem integrações complexas (conflito de horários, D1, calendário) onde existe apenas roteamento frontend. Se o escopo mudar, um módulo completo de *Availability & Booking* deverá ser criado no banco.
+- **Agendamento (Booking):** Atualmente, o sistema **não possui banco de dados, schemas, filas ou lógicas transacionais para Agendamento de Serviços (Appointments/Booking)** no Supabase ou em provedor externo (D1/Redis).
+- Todo e qualquer botão ou interface de "Agendar Horário" no Perfil da Loja (`store_contact`) atua estritamente como um **redirect ou call-to-action para o WhatsApp** da loja.
+- O registro desta limitação arquitetural impede que desenvolvedores busquem integrações complexas (conflito de horários, D1, calendário) onde existe apenas roteamento frontend. Se o escopo mudar, um módulo completo de _Availability & Booking_ deverá ser criado no banco.

@@ -78,6 +78,15 @@ describe("Onboarding Services", () => {
       pix_key: "chave-pix",
     };
 
+    const makeCountQuery = (count: number) => {
+      const q: any = {
+        eq: () => q,
+        gt: () => q,
+        then: (resolve: any) => resolve({ count, error: null }),
+      };
+      return { select: () => q };
+    };
+
     mockFrom.mockImplementation((table: string) => {
       if (table === "stores") {
         return {
@@ -93,10 +102,10 @@ describe("Onboarding Services", () => {
         table === "orders" ||
         table === "coupons"
       ) {
-        return { select: () => Promise.resolve({ count: 2, error: null }) };
+        return makeCountQuery(2);
       }
       if (table === "product_variants") {
-        return { select: () => ({ gt: () => Promise.resolve({ count: 5, error: null }) }) };
+        return makeCountQuery(5);
       }
       return mockQueryBuilder;
     });
@@ -109,6 +118,15 @@ describe("Onboarding Services", () => {
   });
 
   it("should classify technical_error for a table failure without zeroing other steps", async () => {
+    const makeCountQuery = (count: number) => {
+      const q: any = {
+        eq: () => q,
+        gt: () => q,
+        then: (resolve: any) => resolve({ count, error: null }),
+      };
+      return { select: () => q };
+    };
+
     mockFrom.mockImplementation((table: string) => {
       if (table === "stores") {
         return {
@@ -124,10 +142,10 @@ describe("Onboarding Services", () => {
         table === "orders" ||
         table === "coupons"
       ) {
-        return { select: () => Promise.resolve({ count: 1, error: null }) };
+        return makeCountQuery(1);
       }
       if (table === "product_variants") {
-        return { select: () => ({ gt: () => Promise.resolve({ count: 1, error: null }) }) };
+        return makeCountQuery(1);
       }
       return mockQueryBuilder;
     });
@@ -143,6 +161,15 @@ describe("Onboarding Services", () => {
   });
 
   it("should classify locked step when prerequisites are missing", async () => {
+    const makeCountQuery = (count: number) => {
+      const q: any = {
+        eq: () => q,
+        gt: () => q,
+        then: (resolve: any) => resolve({ count, error: null }),
+      };
+      return { select: () => q };
+    };
+
     mockFrom.mockImplementation((table: string) => {
       if (table === "stores") {
         return {
@@ -153,10 +180,7 @@ describe("Onboarding Services", () => {
           }),
         };
       }
-      if (table === "product_variants") {
-        return { select: () => ({ gt: () => Promise.resolve({ count: 0, error: null }) }) };
-      }
-      return { select: () => Promise.resolve({ count: 0, error: null }) };
+      return makeCountQuery(0);
     });
 
     const overview = await getOnboardingStatusHandler();

@@ -20,6 +20,7 @@ import { Route as AdminStoriesRouteImport } from './routes/admin.stories'
 import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
 import { Route as AdminPerfilPublicoRouteImport } from './routes/admin.perfil-publico'
 import { Route as AdminPagamentosRouteImport } from './routes/admin.pagamentos'
+import { Route as AdminOnboardingRouteImport } from './routes/admin.onboarding'
 import { Route as AdminMidiasRouteImport } from './routes/admin.midias'
 import { Route as AdminMatchTimeRouteImport } from './routes/admin.match-time'
 import { Route as AdminLinkDaBioRouteImport } from './routes/admin.link-da-bio'
@@ -173,6 +174,11 @@ const AdminPerfilPublicoRoute = AdminPerfilPublicoRouteImport.update({
 const AdminPagamentosRoute = AdminPagamentosRouteImport.update({
   id: '/pagamentos',
   path: '/pagamentos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOnboardingRoute = AdminOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminMidiasRoute = AdminMidiasRouteImport.update({
@@ -725,6 +731,7 @@ export interface FileRoutesByFullPath {
   '/admin/link-da-bio': typeof AdminLinkDaBioRoute
   '/admin/match-time': typeof AdminMatchTimeRoute
   '/admin/midias': typeof AdminMidiasRoute
+  '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/pagamentos': typeof AdminPagamentosRoute
   '/admin/perfil-publico': typeof AdminPerfilPublicoRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
@@ -834,6 +841,7 @@ export interface FileRoutesByTo {
   '/admin/link-da-bio': typeof AdminLinkDaBioRoute
   '/admin/match-time': typeof AdminMatchTimeRoute
   '/admin/midias': typeof AdminMidiasRoute
+  '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/pagamentos': typeof AdminPagamentosRoute
   '/admin/perfil-publico': typeof AdminPerfilPublicoRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
@@ -948,6 +956,7 @@ export interface FileRoutesById {
   '/admin/link-da-bio': typeof AdminLinkDaBioRoute
   '/admin/match-time': typeof AdminMatchTimeRoute
   '/admin/midias': typeof AdminMidiasRoute
+  '/admin/onboarding': typeof AdminOnboardingRoute
   '/admin/pagamentos': typeof AdminPagamentosRoute
   '/admin/perfil-publico': typeof AdminPerfilPublicoRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
@@ -1063,6 +1072,7 @@ export interface FileRouteTypes {
     | '/admin/link-da-bio'
     | '/admin/match-time'
     | '/admin/midias'
+    | '/admin/onboarding'
     | '/admin/pagamentos'
     | '/admin/perfil-publico'
     | '/admin/relatorios'
@@ -1172,6 +1182,7 @@ export interface FileRouteTypes {
     | '/admin/link-da-bio'
     | '/admin/match-time'
     | '/admin/midias'
+    | '/admin/onboarding'
     | '/admin/pagamentos'
     | '/admin/perfil-publico'
     | '/admin/relatorios'
@@ -1285,6 +1296,7 @@ export interface FileRouteTypes {
     | '/admin/link-da-bio'
     | '/admin/match-time'
     | '/admin/midias'
+    | '/admin/onboarding'
     | '/admin/pagamentos'
     | '/admin/perfil-publico'
     | '/admin/relatorios'
@@ -1455,6 +1467,13 @@ declare module '@tanstack/react-router' {
       path: '/pagamentos'
       fullPath: '/admin/pagamentos'
       preLoaderRoute: typeof AdminPagamentosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/onboarding': {
+      id: '/admin/onboarding'
+      path: '/onboarding'
+      fullPath: '/admin/onboarding'
+      preLoaderRoute: typeof AdminOnboardingRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/midias': {
@@ -2271,6 +2290,7 @@ interface AdminRouteChildren {
   AdminLinkDaBioRoute: typeof AdminLinkDaBioRoute
   AdminMatchTimeRoute: typeof AdminMatchTimeRoute
   AdminMidiasRoute: typeof AdminMidiasRoute
+  AdminOnboardingRoute: typeof AdminOnboardingRoute
   AdminPagamentosRoute: typeof AdminPagamentosRoute
   AdminPerfilPublicoRoute: typeof AdminPerfilPublicoRoute
   AdminRelatoriosRoute: typeof AdminRelatoriosRoute
@@ -2336,6 +2356,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLinkDaBioRoute: AdminLinkDaBioRoute,
   AdminMatchTimeRoute: AdminMatchTimeRoute,
   AdminMidiasRoute: AdminMidiasRoute,
+  AdminOnboardingRoute: AdminOnboardingRoute,
   AdminPagamentosRoute: AdminPagamentosRoute,
   AdminPerfilPublicoRoute: AdminPerfilPublicoRoute,
   AdminRelatoriosRoute: AdminRelatoriosRoute,

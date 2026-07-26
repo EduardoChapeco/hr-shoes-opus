@@ -91,7 +91,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     }
   },
   head: ({ loaderData }) => {
-    const store = (loaderData as any)?.store;
+    const storeRaw = (loaderData as any)?.store;
+    const store = storeRaw?.data || storeRaw;
     const theme = (loaderData as any)?.theme;
     const storeName = store?.name || "Hr Shoes";
 
@@ -131,13 +132,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       metaTags.push({ name: "keywords", content: seoKeywords });
     }
 
+    const faviconUrl =
+      store?.faviconUrl ||
+      store?.settings?.faviconUrl ||
+      store?.settings?.favicon_url ||
+      theme?.favicon_url ||
+      theme?.faviconUrl ||
+      "/favicon.ico";
+
     return {
       meta: metaTags,
       links: [
         { rel: "manifest", href: "/manifest.json" },
         { rel: "apple-touch-icon", href: "/icons/icon-192x192.png" },
         { rel: "stylesheet", href: appCss },
-        { rel: "icon", href: store?.faviconUrl || "/favicon.ico", type: "image/x-icon" },
+        { rel: "icon", href: faviconUrl },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
         {
           rel: "preconnect",

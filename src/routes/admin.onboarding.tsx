@@ -23,26 +23,28 @@ import {
   type OnboardingStepStatus,
 } from "@/services/onboarding.functions";
 
-export const Route = createFileRoute("/admin/configuracoes/etapas")({
-  head: () => ({ meta: [{ title: "Etapas para uma Loja de Sucesso — Hr Shoes" }] }),
+export const Route = createFileRoute("/admin/onboarding")({
+  head: () => ({ meta: [{ title: "Onboarding e Prontidão da Loja — Hr Shoes" }] }),
   loader: async () => {
     return await getOnboardingStatus();
   },
-  errorComponent: ({ error }) => <EtapasErrorState error={error} />,
-  component: EtapasPage,
+  errorComponent: ({ error }) => <OnboardingErrorState error={error} />,
+  component: OnboardingPage,
 });
 
-function EtapasErrorState({ error }: { error: Error }) {
+function OnboardingErrorState({ error }: { error: Error }) {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Configurações"
-        title="Etapas para uma Loja de Sucesso"
+        eyebrow="Primeiros Passos"
+        title="Onboarding da Loja"
         description="Checklist inteligente de prontidão comercial."
       />
       <ErrorState
-        title="Erro ao carregar etapas de configuração"
-        description={error.message || "Não foi possível verificar o estado das configurações."}
+        title="Erro ao carregar status do onboarding"
+        description={
+          error.message || "Não foi possível verificar o estado inicial das configurações da loja."
+        }
       />
     </div>
   );
@@ -96,7 +98,7 @@ function getStatusBadge(status: OnboardingStepStatus) {
   }
 }
 
-function EtapasPage() {
+function OnboardingPage() {
   const result = Route.useLoaderData();
 
   const {
@@ -125,9 +127,9 @@ function EtapasPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="Configurações & Saúde da Loja"
-        title="Etapas para uma Loja de Sucesso"
-        description="Acompanhe o progresso real de configuração da sua loja. Complete as etapas para desbloquear o potencial máximo de vendas."
+        eyebrow="Geral & Prontidão Comercial"
+        title="Onboarding e Setup da Loja"
+        description="Acompanhe o progresso canônico da configuração de sua marca. Siga as etapas na ordem para ativar seu e-commerce com total estabilidade."
       />
 
       {/* Card de Status Geral */}
@@ -138,13 +140,14 @@ function EtapasPage() {
               <CardTitle className="text-xl flex items-center gap-2">
                 <Rocket className="size-6 text-primary" aria-hidden />
                 {progressPercentage === 100
-                  ? "Sua loja está 100% pronta!"
+                  ? "Sua loja está 100% configurada!"
                   : isStoreReadyToSell
-                    ? "Pronta para Vender! (Configurações adicionais pendentes)"
-                    : "Configuração em Progresso"}
+                    ? "Pronta para Vender! (Refinamentos finais disponíveis)"
+                    : "Setup e Onboarding em Progresso"}
               </CardTitle>
               <CardDescription>
-                {completedSteps} de {totalSteps} etapas concluídas com sucesso no banco de dados.
+                {completedSteps} de {totalSteps} etapas concluídas diretamente em suas tabelas no
+                banco de dados.
               </CardDescription>
             </div>
             <div className="flex items-center gap-3">
@@ -161,11 +164,11 @@ function EtapasPage() {
         <CardContent className="pt-2 text-xs text-muted-foreground flex flex-wrap items-center gap-4">
           <span className="flex items-center gap-1">
             <ShieldCheck className="size-4 text-emerald-600" />
-            Zero simulação — Todos os dados testam tabelas reais
+            Auditoria Canônica — Sem dados simulados ou fallbacks artificiais
           </span>
           <span className="flex items-center gap-1">
             <Sparkles className="size-4 text-primary" />
-            Progresso salvo automaticamente por entidade
+            Atualização em tempo real conforme as alterações da sua loja
           </span>
         </CardContent>
       </Card>

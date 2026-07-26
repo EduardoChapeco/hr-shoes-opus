@@ -1255,7 +1255,7 @@ export async function duplicateProductHandler(productId: string) {
         sku: `${v.sku}-CP${timestamp.toString().slice(-4)}`,
         price_override_cents: v.price_override_cents,
         attributes: v.attributes,
-        stock_on_hand: v.stock_on_hand ?? 0,
+        stock_on_hand: 0,
       });
     }
   }
@@ -1354,68 +1354,5 @@ export const bulkUpdateProductStatus = createServerFn({ method: "POST" })
     } catch (e: unknown) {
       console.error("[admin-catalog] bulkUpdateProductStatus error:", e);
       throw new Error(e instanceof Error ? e.message : "Erro ao executar ação em lote.");
-    }
-  });
-
-// ---------------------------------------------------------------------------
-// Variant Grid Generator
-// ---------------------------------------------------------------------------
-
-export const generateVariantGrid = createServerFn({ method: "POST" })
-  .validator(
-    z.object({
-      productId: z.string().uuid(),
-      options: z.array(
-        z.object({
-          name: z.string(),
-          values: z.array(z.string()),
-        }),
-      ),
-    }),
-  )
-  .handler(async ({ data: { productId, options } }) => {
-    try {
-      await requireAdmin(); // SECURITY FIX
-      const db = getServerClient();
-
-      const { data: product } = await db
-        .from("products")
-        .select("slug, store_id")
-        .eq("id", productId)
-        .single();
-      if (!product) throw new Error("Produto não encontrado");
-
-      // Generate cartesian product of options
-      const cartesian = (arrays: any[][]): any[][] => {
-        return arrays.reduce((a, b) => a.flatMap((d) => b.map((e) => [d, e].flat())));
-      };
-
-      const optionArrays = options.map((o) => o.values.map((v) => ({ [o.name]: v })));
-      const combinations =
-        optionArrays.length > 1 ? cartesian(optionArrays) : (optionArrays[0] || []).map((o) => [o]);
-
-      // Flatten array of objects into single objects
-      const variants = combinations.map((combo: any, i: number) => {
-        const attributes = Array.isArray(combo)
-          ? combo.reduce((acc, curr) => ({ ...acc, ...curr }), {})
-          : combo;
-
-        return {
-          product_id: productId,
-          sku: `${product.slug}-${Date.now().toString().slice(-6)}-${i + 1}`,
-          attributes,
-          status: "active",
-        };
-      });
-
-      if (variants.length === 0) return [];
-
-      const { data, error } = await db.from("product_variants").insert(variants).select();
-      if (error) throw error;
-
-      return data;
-    } catch (e: any) {
-      console.error("[generateVariantGrid]", e);
-      throw new Error(e.message || "Erro ao gerar grades");
     }
   });

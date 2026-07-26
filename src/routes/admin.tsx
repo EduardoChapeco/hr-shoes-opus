@@ -49,7 +49,12 @@ function AdminLayout() {
     }
   }, [search.error, navigate]);
 
-  const logoUrl = store?.data?.logoUrl || store?.logoUrl;
+  const storeData = store?.data || store;
+  const logoUrl =
+    storeData?.logoUrl ||
+    storeData?.settings?.logoUrl ||
+    storeData?.logo_url ||
+    storeData?.settings?.logo_url;
 
   return (
     <AdminShell session={session} logoUrl={logoUrl}>

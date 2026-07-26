@@ -15,22 +15,22 @@ async function test() {
     email: "test.signup@example.com",
     password: "Password123!",
     options: {
-      data: { full_name: "Test User", is_consent_lgpd: true }
-    }
+      data: { full_name: "Test User", is_consent_lgpd: true },
+    },
   });
 
   if (error) {
     console.error("Signup ERROR:", error.message);
   } else {
     console.log("Signup SUCCESS:", data.user?.id);
-    
+
     // Check if profile was created
     const { data: profile, error: profError } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", data.user?.id)
       .single();
-      
+
     if (profError) {
       console.error("Profile fetch ERROR:", profError.message);
     } else {

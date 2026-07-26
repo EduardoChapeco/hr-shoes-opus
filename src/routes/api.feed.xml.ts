@@ -99,7 +99,7 @@ export const Route = createFileRoute("/api/feed/xml")({
                 sku: p.slug,
                 price_cents: p.price_cents,
                 price_override_cents: null,
-                stock_on_hand: 1, // Assume available if published and no variant tracking
+                stock_on_hand: 0, // Estoque zero canônico (sem fallbacks fictícios)
                 attributes: {},
               });
             }

@@ -13,7 +13,9 @@ async function verifyBuilderRuntimeCore() {
   console.log("  VERIFICAÇÃO FORENSE DO BANCO REMOTO — MOTOR CANÔNICO DO BUILDER");
   console.log("====================================================================\n");
 
-  console.log("1 [INVENTÁRIO DE DOCUMENTOS] Consultando tabela 'experience_documents' no Supabase...");
+  console.log(
+    "1 [INVENTÁRIO DE DOCUMENTOS] Consultando tabela 'experience_documents' no Supabase...",
+  );
   const { data: docs, error: docErr } = await supabase
     .from("experience_documents")
     .select("id, store_id, title, slug, document_type, is_active, created_at, updated_at")
@@ -26,14 +28,18 @@ async function verifyBuilderRuntimeCore() {
 
   console.log(` -> Encontrados ${docs.length} documentos no motor canônico.`);
   docs.forEach((d) => {
-    console.log(`   * [${d.document_type.toUpperCase()}] Slug: '${d.slug}' | Título: "${d.title}" | ID: ${d.id} | Ativo: ${d.is_active}`);
+    console.log(
+      `   * [${d.document_type.toUpperCase()}] Slug: '${d.slug}' | Título: "${d.title}" | ID: ${d.id} | Ativo: ${d.is_active}`,
+    );
   });
 
   if (docs.length === 0) {
     console.log("⚠️ Nenhum documento experience_documents encontrado na base!");
   }
 
-  console.log("\n2 [INVENTÁRIO DO CMS LEGADO] Consultando tabela legada 'pages' e 'page_sections'...");
+  console.log(
+    "\n2 [INVENTÁRIO DO CMS LEGADO] Consultando tabela legada 'pages' e 'page_sections'...",
+  );
   const { data: legacyPages, error: legErr } = await supabase
     .from("pages")
     .select("id, slug, title, status");
@@ -43,15 +49,19 @@ async function verifyBuilderRuntimeCore() {
   } else {
     console.log(` -> Encontrados ${legacyPages.length} registros no CMS legado ('pages'):`);
     legacyPages.forEach((lp) => {
-      console.log(`   * [LEGADO] Slug: '${lp.slug}' | Título: "${lp.title}" | Status: ${lp.status}`);
+      console.log(
+        `   * [LEGADO] Slug: '${lp.slug}' | Título: "${lp.title}" | Status: ${lp.status}`,
+      );
     });
   }
 
   // 3. Avaliar ciclo de vida de Versões e Árvores de Nós para Documentos Principais (Home & Institucional)
   for (const doc of docs) {
     console.log(`\n--------------------------------------------------------------------`);
-    console.log(`3 [AUDITORIA PROFUNDA] Analisando Documento: "${doc.title}" (${doc.document_type} -> /${doc.slug})`);
-    
+    console.log(
+      `3 [AUDITORIA PROFUNDA] Analisando Documento: "${doc.title}" (${doc.document_type} -> /${doc.slug})`,
+    );
+
     const { data: versions, error: vErr } = await supabase
       .from("experience_versions")
       .select("id, version_number, status, created_at")
@@ -67,8 +77,12 @@ async function verifyBuilderRuntimeCore() {
     const publishedVersion = versions.find((v) => v.status === "published");
     const draftVersion = versions.find((v) => v.status === "draft");
 
-    console.log(`    * Publicada: ${publishedVersion ? `Versão #${publishedVersion.version_number} (${publishedVersion.id})` : "⚠️ NENHUMA VERSÃO PUBLICADA"}`);
-    console.log(`    * Rascunho atual: ${draftVersion ? `Versão #${draftVersion.version_number} (${draftVersion.id})` : "Nenhum rascunho independente"}`);
+    console.log(
+      `    * Publicada: ${publishedVersion ? `Versão #${publishedVersion.version_number} (${publishedVersion.id})` : "⚠️ NENHUMA VERSÃO PUBLICADA"}`,
+    );
+    console.log(
+      `    * Rascunho atual: ${draftVersion ? `Versão #${draftVersion.version_number} (${draftVersion.id})` : "Nenhum rascunho independente"}`,
+    );
 
     const targetVersionId = publishedVersion?.id || draftVersion?.id || versions[0]?.id;
     if (!targetVersionId) {
@@ -78,7 +92,9 @@ async function verifyBuilderRuntimeCore() {
 
     const { data: nodes, error: nErr } = await supabase
       .from("experience_nodes")
-      .select("id, parent_id, node_type, block_type, sort_order, content, data_bindings, layout_rules, design_tokens")
+      .select(
+        "id, parent_id, node_type, block_type, sort_order, content, data_bindings, layout_rules, design_tokens",
+      )
       .eq("version_id", targetVersionId)
       .order("sort_order", { ascending: true });
 
@@ -92,8 +108,13 @@ async function verifyBuilderRuntimeCore() {
     console.log(`    * Nós Raiz (Sections/Containers): ${rootNodes.length}`);
 
     nodes.forEach((n) => {
-      const bindings = n.data_bindings && Object.keys(n.data_bindings).length > 0 ? `| Bindings: ${JSON.stringify(n.data_bindings)}` : "";
-      console.log(`      -[${n.node_type}] Bloco: '${n.block_type}' (ID: ${n.id} | Pai: ${n.parent_id || 'RAIZ'}) ${bindings}`);
+      const bindings =
+        n.data_bindings && Object.keys(n.data_bindings).length > 0
+          ? `| Bindings: ${JSON.stringify(n.data_bindings)}`
+          : "";
+      console.log(
+        `      -[${n.node_type}] Bloco: '${n.block_type}' (ID: ${n.id} | Pai: ${n.parent_id || "RAIZ"}) ${bindings}`,
+      );
     });
   }
 

@@ -3,7 +3,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
-const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "";
+const supabaseKey =
+  process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || "";
 
 if (!supabaseUrl || !supabaseKey) {
   console.error("Missing supabase credentials in env");
@@ -20,9 +21,7 @@ async function check() {
   console.log("Documents:", JSON.stringify(docs, null, 2));
   console.error("Doc Error:", docError);
 
-  const { data: stores, error: storeError } = await supabase
-    .from("stores")
-    .select("id, slug");
+  const { data: stores, error: storeError } = await supabase.from("stores").select("id, slug");
 
   console.log("Stores:", JSON.stringify(stores, null, 2));
 }

@@ -1,5 +1,5 @@
--- 20260725290000_rpc_create_product_transaction.sql
--- Garante Atomicidade na Criação de Produtos e Variações
+-- 20260726110000_update_create_product_stock_zero.sql
+-- Atualiza a procedure de criação atômica de produtos para utilizar estoque inicial 0 (padrão da indústria e sem dados fictícios)
 
 CREATE OR REPLACE FUNCTION public.create_product_transaction_v1(payload jsonb)
 RETURNS jsonb
@@ -17,17 +17,13 @@ DECLARE
   v_result jsonb;
   v_default_variant_id uuid;
 BEGIN
-  -- 1. Validar Identidade e Segurança (Isolamento Multi-tenant)
-  -- A identidade pode vir do auth.uid() caso seja acessado diretamente por RLS,
-  -- mas neste caso, o server (BFF) é o caller, então o payload TRARÁ o store_id_param.
-  -- É fundamental que o store_id seja repassado e exigido.
   v_store_id := (payload->>'store_id')::uuid;
   
   IF v_store_id IS NULL THEN
     RAISE EXCEPTION 'O store_id é obrigatório para manter o isolamento multi-tenant.';
   END IF;
 
-  -- 2. Inserir Produto Principal
+  -- 1. Inserir Produto Principal
   INSERT INTO public.products (
     store_id,
     title,
@@ -83,7 +79,7 @@ BEGIN
     v_now
   ) RETURNING id INTO v_product_id;
 
-  -- 3. Inserir Categorias
+  -- 2. Inserir Categorias
   IF jsonb_typeof(payload->'category_ids') = 'array' AND jsonb_array_length(payload->'category_ids') > 0 THEN
     FOR v_category_id IN SELECT jsonb_array_elements_text(payload->'category_ids')::uuid
     LOOP
@@ -92,7 +88,7 @@ BEGIN
     END LOOP;
   END IF;
 
-  -- 4. Inserir Variantes e Estoque e Media
+  -- 3. Inserir Variantes e Estoque e Media
   IF jsonb_typeof(payload->'variants') = 'array' AND jsonb_array_length(payload->'variants') > 0 THEN
     FOR v_variant IN SELECT jsonb_array_elements(payload->'variants')
     LOOP
@@ -115,7 +111,6 @@ BEGIN
         v_now
       ) RETURNING id INTO v_variant_id;
 
-      -- Mídia Específica da Variante
       IF v_variant->>'image_url' IS NOT NULL AND (v_variant->>'image_url') <> '' THEN
         INSERT INTO public.product_media (
           product_id,
@@ -132,7 +127,6 @@ BEGIN
         );
       END IF;
 
-      -- Movimentação de Estoque Inicial
       IF COALESCE((v_variant->>'stock')::integer, 0) > 0 THEN
         INSERT INTO public.stock_movements (
           variant_id,
@@ -150,7 +144,7 @@ BEGIN
       END IF;
     END LOOP;
   ELSE
-    -- Criação de Variante Padrão caso array esteja vazio
+    -- Criação de Variante Padrão caso array esteja vazio (sempre em 0 unidades, padrão da indústria)
     INSERT INTO public.product_variants (
       product_id,
       sku,
@@ -165,27 +159,13 @@ BEGIN
       payload->>'slug' || '-01',
       COALESCE((payload->>'price_cents')::integer, 0),
       COALESCE(payload->'attributes', '{}'::jsonb),
-      0, -- default fallback (industry standard initial zero inventory)
+      0,
       v_now,
       v_now
     ) RETURNING id INTO v_default_variant_id;
-
-    INSERT INTO public.stock_movements (
-      variant_id,
-      store_id,
-      movement_type,
-      qty,
-      note
-    ) VALUES (
-      v_default_variant_id,
-      v_store_id,
-      'adjustment',
-      0,
-      'Estoque Inicial (Padrão)'
-    );
   END IF;
 
-  -- 5. Inserir Media Global do Produto (não associada a variante específica)
+  -- 4. Inserir Media Global do Produto
   IF jsonb_typeof(payload->'media_urls') = 'array' AND jsonb_array_length(payload->'media_urls') > 0 THEN
     FOR v_media_url IN SELECT jsonb_array_elements_text(payload->'media_urls')
     LOOP
@@ -207,7 +187,6 @@ BEGIN
   RETURN v_result;
 
 EXCEPTION WHEN OTHERS THEN
-  -- O Postgres garante rollback automático caso qualquer insert falhe ou a exceção seja lançada.
   RAISE EXCEPTION 'Falha atômica ao criar produto: %', SQLERRM;
 END;
 $$;

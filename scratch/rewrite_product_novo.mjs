@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
 const content = `import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
@@ -496,4 +496,7 @@ function QuickNewProductPage() {
 }
 `;
 
-fs.writeFileSync(path.resolve(process.cwd(), 'src/routes/admin.catalogo.produtos.novo.tsx'), content);
+fs.writeFileSync(
+  path.resolve(process.cwd(), "src/routes/admin.catalogo.produtos.novo.tsx"),
+  content,
+);

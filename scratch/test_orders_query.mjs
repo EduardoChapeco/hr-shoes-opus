@@ -21,7 +21,7 @@ async function test() {
       `
       id, public_token, status, total_cents, created_at,
       order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
-    `
+    `,
     )
     .limit(1);
 

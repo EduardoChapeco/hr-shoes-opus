@@ -97,7 +97,7 @@ export function StoreProfileHero({
               <img
                 src={store.logo_url}
                 alt={store.name}
-                className="size-24 rounded-full object-cover border-4 border-background shadow-md bg-background"
+                className="size-24 rounded-2xl object-contain p-1 border-2 border-border/60 shadow-md bg-card/80 backdrop-blur-xs"
               />
             ) : (
               <div className="size-24 rounded-full bg-background border-4 border-background shadow-md flex items-center justify-center text-primary">

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import { getServerIdentity, assertStoreAccess } from "@/lib/identity";
+import { getOnboardingStatusHandler } from "@/services/onboarding.functions";
 
 export interface DashboardMetrics {
   salesTodayCents: number;
@@ -193,61 +194,23 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
     activeCashRegister = { isOpen: false };
   }
 
-  // 6. Setup Checklist
-  const [storeRes, productsRes, categoriesRes, shippingRes] = await Promise.all([
-    db.from("stores").select("name, phone, address, pix_key").eq("id", storeId).single(),
-    db.from("products").select("id", { count: "exact", head: true }),
-    db.from("categories").select("id", { count: "exact", head: true }),
-    db.from("shipping_rates").select("id", { count: "exact", head: true }),
-  ]);
+  // 6. Setup Checklist (Fonte Única de Verdade via onboarding.functions)
+  const onboarding = await getOnboardingStatusHandler();
+  const coreIds = ["profile", "logo", "categories", "first_product", "payment", "shipping"];
 
-  const storeInfo = storeRes.data;
-  const hasStoreProfile = Boolean(storeInfo?.name && (storeInfo?.phone || storeInfo?.address));
-  const hasProducts = (productsRes.count ?? 0) > 0;
-  const hasCategories = (categoriesRes.count ?? 0) > 0;
-  const hasPayment = Boolean(storeInfo?.pix_key);
-  const hasShipping = (shippingRes.count ?? 0) > 0;
-
-  const setupChecklist = [
-    {
-      id: "profile",
-      label: "Perfil e Contato da Loja",
-      description: "Cadastre nome, telefone ou endereço principal da sua loja.",
-      completed: hasStoreProfile,
-      targetRoute: "/admin/configuracoes/loja",
-    },
-    {
-      id: "categories",
-      label: "Categorias do Catálogo",
-      description: "Crie pelo menos uma categoria para organizar seus produtos.",
-      completed: hasCategories,
-      targetRoute: "/admin/catalogo/categorias",
-    },
-    {
-      id: "products",
-      label: "Primeiro Produto",
-      description: "Cadastre seu primeiro produto com fotos e preço.",
-      completed: hasProducts,
-      targetRoute: "/admin/catalogo/produtos/novo",
-    },
-    {
-      id: "payment",
-      label: "Formas de Pagamento",
-      description: "Ative a chave Pix ou pagamentos manuais.",
-      completed: hasPayment,
-      targetRoute: "/admin/configuracoes/pagamentos",
-    },
-    {
-      id: "shipping",
-      label: "Tabela de Frete",
-      description: "Configure opções de entrega ou retirada na loja.",
-      completed: hasShipping,
-      targetRoute: "/admin/fretes/tabelas",
-    },
-  ];
+  const setupChecklist = onboarding.steps
+    .filter((s) => coreIds.includes(s.id))
+    .map((s) => ({
+      id: s.id,
+      label: s.label,
+      description: s.description,
+      completed: s.status === "completed",
+      targetRoute: s.targetRoute,
+    }));
 
   const completedCount = setupChecklist.filter((c) => c.completed).length;
-  const setupProgressPercentage = Math.round((completedCount / setupChecklist.length) * 100);
+  const setupProgressPercentage =
+    setupChecklist.length > 0 ? Math.round((completedCount / setupChecklist.length) * 100) : 100;
 
   return {
     salesTodayCents,

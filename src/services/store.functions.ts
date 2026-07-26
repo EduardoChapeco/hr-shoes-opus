@@ -56,13 +56,27 @@ export async function saveStoreSettingsHandler(data: z.infer<typeof saveStoreSet
     .single();
   const settings = { ...(currentStore?.settings || {}), logoUrl, faviconUrl };
 
-  const { error } = await db
-    .from("stores")
-    .update({ ...columns, settings })
-    .eq("id", identity.store_id);
+  const updateData: Record<string, any> = { ...columns, settings };
+  if (logoUrl !== undefined) {
+    updateData.logo_url = logoUrl;
+  }
+
+  const { error } = await db.from("stores").update(updateData).eq("id", identity.store_id);
 
   if (error) {
     throw new Error("Erro ao salvar dados da loja: " + error.message);
+  }
+
+  // Sync logo and favicon to theme_settings automatically so vitrine and admin stay identical
+  if (logoUrl !== undefined || faviconUrl !== undefined) {
+    try {
+      const themeUpdate: Record<string, string> = {};
+      if (logoUrl !== undefined) themeUpdate.logo_url = logoUrl;
+      if (faviconUrl !== undefined) themeUpdate.favicon_url = faviconUrl;
+      await db.from("theme_settings").update(themeUpdate).eq("store_id", identity.store_id);
+    } catch {
+      // Ignore if theme_settings is missing or table structurally absent
+    }
   }
 
   return { status: "success" };

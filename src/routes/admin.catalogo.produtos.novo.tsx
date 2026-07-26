@@ -176,7 +176,7 @@ function QuickNewProductPage() {
       toast.error("Adicione pelo menos um atributo com valores para gerar variações.");
       return;
     }
-    const matrix = generateVariantsMatrix(attributes, targetSlug || "PROD", basePriceCents, 10);
+    const matrix = generateVariantsMatrix(attributes, targetSlug || "PROD", basePriceCents, 0);
     if (matrix.length > 150) {
       toast.error(
         `Esta combinação gerará ${matrix.length} variações. Recomendamos criar no máximo 150 de uma vez para não travar o navegador.`,
@@ -199,6 +199,18 @@ function QuickNewProductPage() {
       const priceCents = parseInt(values.price_cents.replace(/\D/g, ""), 10) || 0;
       const finalSlug = values.slug || slugify(values.title);
 
+      // Garante que se o usuário digitou variações no cadastro inicial mas esqueceu de clicar
+      // no botão "Gerar Matriz de Variações", a matriz é gerada automaticamente no padrão da indústria (estoque inicial 0)
+      let finalVariants: VariantRow[] | undefined = undefined;
+      if (isMatrixGenerated && variantsMatrix.length > 0) {
+        finalVariants = variantsMatrix;
+      } else {
+        const activeAttrs = attributes.filter((a) => a.name.trim() && a.values.length > 0);
+        if (activeAttrs.length > 0) {
+          finalVariants = generateVariantsMatrix(attributes, finalSlug || "PROD", priceCents, 0);
+        }
+      }
+
       const res = await createProduct({
         data: {
           title: values.title,
@@ -210,12 +222,12 @@ function QuickNewProductPage() {
           media_urls: mainImageUrl ? [mainImageUrl] : [],
           is_physical: true,
           attributes: {},
-          variants: isMatrixGenerated && variantsMatrix.length > 0 ? variantsMatrix : undefined,
+          variants: finalVariants,
         },
       });
 
       if (res) {
-        toast.success(`Produto salvo com ${variantsMatrix.length || 1} variação(ões)!`);
+        toast.success(`Produto salvo com ${finalVariants?.length || 1} variação(ões)!`);
         navigate({ to: "/admin/catalogo/produtos/$id", params: { id: res.id } });
       } else {
         toast.error("Erro ao criar produto");

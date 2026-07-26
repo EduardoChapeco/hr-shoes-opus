@@ -46,7 +46,7 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
       const { data, error } = await db
         .from("stores")
         .select(
-          "id, name, email, phone, cnpj, address, city, state, zip_code, logo_url, policies, seo_title, seo_description, pix_key",
+          "id, name, email, phone, cnpj, address, city, state, zip_code, logo_url, policies, seo_title, seo_description, pix_key, settings",
         )
         .eq("id", storeId)
         .single();
@@ -57,17 +57,21 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
     }
   };
 
-  const fetchCount = async (table: string, filterColumn?: string, filterValue?: any) => {
+  const fetchCount = async (table: string, filterColumn?: string, filterValue?: unknown) => {
     try {
-      let query = db.from(table).select("id", { count: "exact", head: true });
+      let query = db
+        .from(table)
+        .select("id", { count: "exact", head: true })
+        .eq("store_id", storeId);
       if (filterColumn && filterValue !== undefined) {
         query = query.eq(filterColumn, filterValue);
       }
       const { count, error } = await query;
       if (error) return { status: "error" as const, error: error.message };
       return { status: "ok" as const, count: count ?? 0 };
-    } catch (e: any) {
-      return { status: "error" as const, error: e.message };
+    } catch (e: unknown) {
+      const err = e as Error;
+      return { status: "error" as const, error: err?.message || "Erro inesperado" };
     }
   };
 
@@ -75,12 +79,14 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
     try {
       const { count, error } = await db
         .from("product_variants")
-        .select("id", { count: "exact", head: true })
+        .select("id, products!inner(store_id)", { count: "exact", head: true })
+        .eq("products.store_id", storeId)
         .gt("stock_on_hand", 0);
       if (error) return { status: "error" as const, error: error.message };
       return { status: "ok" as const, count: count ?? 0 };
-    } catch (e: any) {
-      return { status: "error" as const, error: e.message };
+    } catch (e: unknown) {
+      const err = e as Error;
+      return { status: "error" as const, error: err?.message || "Erro inesperado" };
     }
   };
 
@@ -110,8 +116,8 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
     });
   } else {
     const s = storeRes.data;
-    const hasName = Boolean(s?.name);
-    const hasContact = Boolean(s?.phone || s?.email);
+    const hasName = Boolean(s?.name && s.name !== "Nova Loja");
+    const hasContact = Boolean(s?.phone || s?.email || s?.address || s?.cnpj);
 
     let status: OnboardingStepStatus = "unconfigured";
     if (hasName && hasContact) status = "completed";
@@ -139,7 +145,10 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
       targetRoute: "/admin/configuracoes/loja",
     });
   } else {
-    const hasLogo = Boolean(storeRes.data?.logo_url);
+    const s = storeRes.data;
+    const hasLogo = Boolean(
+      s?.logo_url || s?.settings?.logoUrl || s?.settings?.logo_url || s?.settings?.faviconUrl,
+    );
     steps.push({
       id: "logo",
       category: "fundamentos",
@@ -147,7 +156,7 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
       description: "Identidade visual da marca para o cabeçalho e recibos.",
       status: hasLogo ? "completed" : "unconfigured",
       targetRoute: "/admin/configuracoes/loja",
-      details: hasLogo ? "Logotipo cadastrado" : "Envie a imagem da sua marca",
+      details: hasLogo ? "Logotipo ou ícone cadastrados" : "Envie a imagem da sua marca",
     });
   }
 

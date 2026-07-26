@@ -15,7 +15,7 @@ async function wipe() {
     .delete()
     .eq("slug", "institucional")
     .eq("document_type", "storefront");
-  
+
   if (error) {
     console.error("Error wiping:", error);
   } else {

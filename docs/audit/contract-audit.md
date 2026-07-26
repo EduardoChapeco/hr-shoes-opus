@@ -6,18 +6,18 @@
 
 ## 1. Mapeamento de Contratos por Módulo
 
-| Módulo         | Nome do Schema Zod / DTO  | Input Validado                                         | Retorno do BFF                    | Status do Contrato |
-| :------------- | :------------------------ | :----------------------------------------------------- | :-------------------------------- | :----------------- |
-| **Catálogo**   | `ProductCreateSchema`     | `{ title, slug, price_cents, category_ids, variants }` | `ProductDTO`                      | `COMPROVADO` (Matriz sincronizada via batchUpsertVariantMatrixHandler integrado) |
+| Módulo         | Nome do Schema Zod / DTO  | Input Validado                                         | Retorno do BFF                    | Status do Contrato                                                                             |
+| :------------- | :------------------------ | :----------------------------------------------------- | :-------------------------------- | :--------------------------------------------------------------------------------------------- |
+| **Catálogo**   | `ProductCreateSchema`     | `{ title, slug, price_cents, category_ids, variants }` | `ProductDTO`                      | `COMPROVADO` (Matriz sincronizada via batchUpsertVariantMatrixHandler integrado)               |
 | **Catálogo**   | `ProductUpdateSchema`     | `{ id, title, price_cents, attributes, variants }`     | `ProductDTO`                      | `COMPROVADO` (A ignorância de variants foi mitigada, garantindo atualização atômica da matriz) |
-| **Carrinho**   | `AddToCartSchema`         | `{ variantId?, productId?, quantity, sellerId? }`      | `{ status, cart, session_token }` | `COMPROVADO` (Estoque resolvido via stock_on_hand e pg_advisory_xact_lock) |
-| **Carrinho**   | `UpdateCartQtySchema`     | `{ variantId, delta }`                                 | `CartDTO`                         | `COMPROVADO` (Estoque resolvido via stock_on_hand e pg_advisory_xact_lock) |
-| **Checkout**   | `CheckoutSchema`          | `{ items, shippingAddress, paymentMethod }`            | `{ orderId, status }`             | `COMPROVADO` (Processamento atômico, Mock do Gateway erradicado, Pagar.me V5 real) |
-| **Estoque**    | `StockAdjustSchema`       | `{ variantId, qty, type, note }`                       | `StockMovementDTO`                | `COMPROVADO`       |
-| **Builder**    | `ApplyHomeTemplateSchema` | `{ templateId }`                                       | `ExperienceDocumentDTO`           | `COMPROVADO` (Vazamento corrigido, valida RLS do tenant via db) |
-| **Builder**    | `DocumentUpdateSchema`    | `{ documentId, tree }`                                 | `ExperienceDocumentDTO`           | `COMPROVADO` (Vazamento corrigido, nós atrelados à versão validada) |
-| **Avaliações** | `ReviewSubmitSchema`      | `{ productId, rating, comment, title }`                | `ReviewDTO`                       | `COMPROVADO`       |
-| **Caixa**      | `CashSessionSchema`       | `{ initialBalanceCents, notes }`                       | `CashSessionDTO`                  | `COMPROVADO`       |
+| **Carrinho**   | `AddToCartSchema`         | `{ variantId?, productId?, quantity, sellerId? }`      | `{ status, cart, session_token }` | `COMPROVADO` (Estoque resolvido via stock_on_hand e pg_advisory_xact_lock)                     |
+| **Carrinho**   | `UpdateCartQtySchema`     | `{ variantId, delta }`                                 | `CartDTO`                         | `COMPROVADO` (Estoque resolvido via stock_on_hand e pg_advisory_xact_lock)                     |
+| **Checkout**   | `CheckoutSchema`          | `{ items, shippingAddress, paymentMethod }`            | `{ orderId, status }`             | `COMPROVADO` (Processamento atômico, Mock do Gateway erradicado, Pagar.me V5 real)             |
+| **Estoque**    | `StockAdjustSchema`       | `{ variantId, qty, type, note }`                       | `StockMovementDTO`                | `COMPROVADO`                                                                                   |
+| **Builder**    | `ApplyHomeTemplateSchema` | `{ templateId }`                                       | `ExperienceDocumentDTO`           | `COMPROVADO` (Vazamento corrigido, valida RLS do tenant via db)                                |
+| **Builder**    | `DocumentUpdateSchema`    | `{ documentId, tree }`                                 | `ExperienceDocumentDTO`           | `COMPROVADO` (Vazamento corrigido, nós atrelados à versão validada)                            |
+| **Avaliações** | `ReviewSubmitSchema`      | `{ productId, rating, comment, title }`                | `ReviewDTO`                       | `COMPROVADO`                                                                                   |
+| **Caixa**      | `CashSessionSchema`       | `{ initialBalanceCents, notes }`                       | `CashSessionDTO`                  | `COMPROVADO`                                                                                   |
 
 ---
 

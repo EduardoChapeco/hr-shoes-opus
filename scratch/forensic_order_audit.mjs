@@ -21,22 +21,35 @@ async function checkVariants() {
       .select("*, products(*)")
       .eq("id", item.variant_id)
       .single();
-    
+
     console.log(`\nItem: ${item.product_title} (${item.variant_sku}) - Qty: ${item.qty}`);
-    console.log(`Preço gravado em order_items: unit_price_cents=${item.unit_price_cents}, total_cents=${item.total_cents}`);
+    console.log(
+      `Preço gravado em order_items: unit_price_cents=${item.unit_price_cents}, total_cents=${item.total_cents}`,
+    );
     if (variant) {
-      console.log(`No DB product_variants: price_cents=${variant.price_cents}, base_price_cents=${variant.base_price_cents}`);
-      console.log(`No DB products: base_price_cents=${variant.products?.base_price_cents}, price_cents=${variant.products?.price_cents}`);
+      console.log(
+        `No DB product_variants: price_cents=${variant.price_cents}, base_price_cents=${variant.base_price_cents}`,
+      );
+      console.log(
+        `No DB products: base_price_cents=${variant.products?.base_price_cents}, price_cents=${variant.products?.price_cents}`,
+      );
     } else {
       console.log(`Variante não encontrada no banco! ID: ${item.variant_id}`);
     }
   }
 
   console.log("\n=== ONDE NA TABELA PAYMENT_TRANSACTIONS ESTÁ TENTATIVA DE PAGAMENTO? ===");
-  const { data: allTrans } = await supabase.from("payment_transactions").select("*").limit(5).order("created_at", { ascending: false });
+  const { data: allTrans } = await supabase
+    .from("payment_transactions")
+    .select("*")
+    .limit(5)
+    .order("created_at", { ascending: false });
   console.log("Últimas 5 payment_transactions:", JSON.stringify(allTrans, null, 2));
 
-  const { data: allPay } = await supabase.from("payments").select("*").eq("order_id", "18bb7554-8636-4615-9f62-fb5b79315367");
+  const { data: allPay } = await supabase
+    .from("payments")
+    .select("*")
+    .eq("order_id", "18bb7554-8636-4615-9f62-fb5b79315367");
   console.log("Payments para o pedido:", JSON.stringify(allPay, null, 2));
 }
 

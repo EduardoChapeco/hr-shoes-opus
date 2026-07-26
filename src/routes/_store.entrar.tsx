@@ -95,13 +95,10 @@ function LoginPage() {
 
       toast.success("Login efetuado com sucesso!");
 
-      // CRITICAL FIX: Ensure the server function layer sees the new cookie
-      // before invalidating the router. Sometimes the fetch cache or cookie write races.
-      await new Promise((r) => setTimeout(r, 100));
-      await getUserSession();
-
-      await router.invalidate();
-      navigate({ to: returnUrl });
+      // Redirecionamento nativo de documento no top-level (window.location.href)
+      // Garante que o navegador envie imediatamente a nova requisição HTTP com o cookie recém-atribuído,
+      // eliminando 100% dos conflitos e loops de cache no cliente ou na Cloudflare Pages.
+      window.location.href = returnUrl || "/admin";
     } catch (e: any) {
       toast.error(e.message || "Erro inesperado ao fazer login");
     }

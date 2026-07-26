@@ -15,10 +15,7 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function test() {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, name, role")
-    .limit(1);
+  const { data, error } = await supabase.from("profiles").select("id, name, role").limit(1);
 
   if (error) {
     console.error("ERROR:", error.message);
