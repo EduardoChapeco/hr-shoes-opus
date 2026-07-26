@@ -1,4 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import fs from 'fs';
+import path from 'path';
+
+const content = `import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,7 +41,7 @@ function slugify(text: string) {
   return text
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\\u0300-\\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)+/g, "");
 }
@@ -84,14 +87,14 @@ function generateVariantsMatrix(
       const cleanVal = item.value
         .toLowerCase()
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[\\u0300-\\u036f]/g, "")
         .slice(0, 4);
       skuParts.push(cleanVal);
     }
 
     return {
       id: crypto.randomUUID(),
-      sku: skuParts.join("-") || `${baseSku}-var-${idx + 1}`,
+      sku: skuParts.join("-") || \`\${baseSku}-var-\${idx + 1}\`,
       attributes: attrsObj,
       stock: baseStock,
       price_cents: basePrice,
@@ -126,7 +129,7 @@ function QuickNewProductPage() {
     },
   });
 
-  const basePriceCents = parseInt(watch("price_cents").replace(/\D/g, ""), 10) || 0;
+  const basePriceCents = parseInt(watch("price_cents").replace(/\\D/g, ""), 10) || 0;
   const targetSlug = watch("slug") || slugify(watch("title"));
 
   // --- Manipulação de Atributos ---
@@ -173,12 +176,12 @@ function QuickNewProductPage() {
     }
     const matrix = generateVariantsMatrix(attributes, targetSlug || "PROD", basePriceCents, 10);
     if (matrix.length > 150) {
-      toast.error(`Esta combinação gerará ${matrix.length} variações. Recomendamos criar no máximo 150 de uma vez para não travar o navegador.`);
+      toast.error(\`Esta combinação gerará \${matrix.length} variações. Recomendamos criar no máximo 150 de uma vez para não travar o navegador.\`);
       return;
     }
     setVariantsMatrix(matrix);
     setIsMatrixGenerated(true);
-    toast.success(`${matrix.length} variações geradas com sucesso!`);
+    toast.success(\`\${matrix.length} variações geradas com sucesso!\`);
   };
 
   // --- Atualização de Variação Individual ---
@@ -189,7 +192,7 @@ function QuickNewProductPage() {
   const onSubmit = async (values: any) => {
     setIsSubmitting(true);
     try {
-      const priceCents = parseInt(values.price_cents.replace(/\D/g, ""), 10) || 0;
+      const priceCents = parseInt(values.price_cents.replace(/\\D/g, ""), 10) || 0;
       const finalSlug = values.slug || slugify(values.title);
 
       const res = await createProduct({
@@ -208,7 +211,7 @@ function QuickNewProductPage() {
       });
 
       if (res) {
-        toast.success(`Produto salvo com ${variantsMatrix.length || 1} variação(ões)!`);
+        toast.success(\`Produto salvo com \${variantsMatrix.length || 1} variação(ões)!\`);
         navigate({ to: "/admin/catalogo/produtos/$id", params: { id: res.id } });
       } else {
         toast.error("Erro ao criar produto");
@@ -271,7 +274,7 @@ function QuickNewProductPage() {
                     className="pl-9 h-11 text-lg font-medium"
                     placeholder="0,00"
                     onChange={(e) => {
-                      let val = e.target.value.replace(/\D/g, "");
+                      let val = e.target.value.replace(/\\D/g, "");
                       if (val) {
                         val = (parseInt(val, 10) / 100).toLocaleString("pt-BR", {
                           minimumFractionDigits: 2,
@@ -332,9 +335,9 @@ function QuickNewProductPage() {
           <CardContent>
             <div className="max-w-sm">
               <ImageUpload
-                onChange={setMainImageUrl}
+                onUploadSuccess={setMainImageUrl}
                 value={mainImageUrl}
-                bucket="product-media"
+                bucket="product-images"
               />
             </div>
           </CardContent>
@@ -439,8 +442,8 @@ function QuickNewProductPage() {
                             ) : (
                               <div className="w-12 h-12">
                                 <ImageUpload
-                                  onChange={(url: string) => updateVariant(variant.id, "image_url", url)}
-                                  bucket="product-media"
+                                  onUploadSuccess={(url) => updateVariant(variant.id, "image_url", url)}
+                                  bucket="product-images"
                                   className="h-full w-full p-0 min-h-[48px] rounded-md"
                                 />
                               </div>
@@ -471,7 +474,7 @@ function QuickNewProductPage() {
                                <Input
                                   value={(variant.price_cents / 100).toFixed(2).replace(".", ",")}
                                   onChange={(e) => {
-                                    const val = e.target.value.replace(/\D/g, "");
+                                    const val = e.target.value.replace(/\\D/g, "");
                                     updateVariant(variant.id, "price_cents", parseInt(val) || 0);
                                   }}
                                   className="h-8 pl-7"
@@ -491,3 +494,6 @@ function QuickNewProductPage() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync(path.resolve(process.cwd(), 'src/routes/admin.catalogo.produtos.novo.tsx'), content);

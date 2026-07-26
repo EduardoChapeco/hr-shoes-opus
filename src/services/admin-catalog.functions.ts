@@ -215,6 +215,7 @@ export async function createProductHandler(input: {
     attributes: Record<string, any>;
     price_cents?: number;
     stock: number;
+    image_url?: string | null;
   }[];
 }) {
   const db = getServerClient();
@@ -301,6 +302,15 @@ export async function createProductHandler(input: {
 
       if (variantError) throw variantError;
 
+      if (v.image_url) {
+        await db.from("product_media").insert({
+          product_id: data.id,
+          variant_id: variantData.id,
+          url: v.image_url,
+          sort_order: 0,
+        });
+      }
+
       if (v.stock > 0) {
         await db.from("stock_movements").insert({
           variant_id: variantData.id,
@@ -383,6 +393,7 @@ export const createProduct = createServerFn({ method: "POST" })
             attributes: z.record(z.any()).default({}),
             price_cents: z.number().int().min(0).optional(),
             stock: z.number().int().min(0).default(0),
+            image_url: z.string().url().optional().nullable(),
           }),
         )
         .optional(),
