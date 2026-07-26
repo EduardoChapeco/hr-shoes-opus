@@ -76,14 +76,15 @@ export function ImageUpload({
         const byteArray = new Uint8Array(byteNumbers);
         byteArrays.push(byteArray);
       }
-      const blob = new Blob(byteArrays, { type: "image/webp" }); // Cropper returns WebP
+      const mimeType = croppedBase64.startsWith("data:image/png") ? "image/png" : "image/webp";
+      const blob = new Blob(byteArrays, { type: mimeType });
 
       // Upload directly to Supabase Storage via Signed URL
       const uploadRes = await fetch(res.signedUrl, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${res.token}`,
-          "Content-Type": "image/webp",
+          "Content-Type": mimeType,
         },
         body: blob,
       });
@@ -104,8 +105,8 @@ export function ImageUpload({
   return (
     <div className={cn("flex flex-col gap-4", className)}>
       {value ? (
-        <div className="relative aspect-video w-full max-w-sm overflow-hidden rounded-lg border bg-muted">
-          <img src={value} alt="Upload" className="h-full w-full object-cover" />
+        <div className="relative min-h-[100px] max-h-[200px] w-full max-w-sm overflow-hidden rounded-lg border border-border p-3 bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] bg-[length:16px_16px] bg-[position:0_0,0_8px,8px_-8px,-8px_0px] bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+          <img src={value} alt="Upload" className="max-h-36 w-auto max-w-full object-contain" />
           {onRemove && (
             <Button
               variant="destructive"

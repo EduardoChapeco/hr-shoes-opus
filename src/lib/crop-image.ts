@@ -25,6 +25,7 @@ export default async function getCroppedImg(
   pixelCrop: { x: number; y: number; width: number; height: number },
   rotation = 0,
   flip = { horizontal: false, vertical: false },
+  outputFormat: "image/png" | "image/webp" | "image/jpeg" = "image/png",
 ): Promise<string> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -42,6 +43,9 @@ export default async function getCroppedImg(
   // set canvas size to match the bounding box
   canvas.width = bBoxWidth;
   canvas.height = bBoxHeight;
+
+  // Clear rect to ensure 100% transparent background (no black or white canvas fill)
+  ctx.clearRect(0, 0, bBoxWidth, bBoxHeight);
 
   // translate canvas context to a central location to allow rotating and flipping around the center
   ctx.translate(bBoxWidth / 2, bBoxHeight / 2);
@@ -63,6 +67,9 @@ export default async function getCroppedImg(
   croppedCanvas.width = pixelCrop.width;
   croppedCanvas.height = pixelCrop.height;
 
+  // Clear rect on cropped canvas for transparent pixels
+  croppedCtx.clearRect(0, 0, pixelCrop.width, pixelCrop.height);
+
   // Draw the cropped image onto the new canvas
   croppedCtx.drawImage(
     canvas,
@@ -76,6 +83,6 @@ export default async function getCroppedImg(
     pixelCrop.height,
   );
 
-  // Return Base64
-  return croppedCanvas.toDataURL("image/jpeg", 0.9);
+  // Return Base64 as PNG to preserve full alpha channel transparency
+  return croppedCanvas.toDataURL(outputFormat, 1.0);
 }

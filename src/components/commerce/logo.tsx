@@ -3,9 +3,10 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Brand logo — renders the store image logo if a valid src URL is provided.
- * If src is missing or fails to load, gracefully falls back to elegant text logo
- * instead of rendering a broken image icon.
+ * Brand logo — renders the store image logo at its dynamic natural aspect ratio
+ * with a transparent background.
+ * If src is missing or fails to load, gracefully falls back to an elegant text logo
+ * without showing broken image icons or solid black boxes.
  */
 export function Logo({ src, className, ...props }: Omit<ComponentProps<"img">, "alt">) {
   const [hasError, setHasError] = useState(false);
@@ -15,10 +16,8 @@ export function Logo({ src, className, ...props }: Omit<ComponentProps<"img">, "
       <img
         src={src}
         alt="Hr Shoes — Conforto e Estilo"
-        className={cn("h-8 w-auto select-none object-contain", className)}
+        className={cn("h-8 w-auto max-w-[240px] select-none object-contain bg-transparent mix-blend-normal", className)}
         onError={() => setHasError(true)}
-        width={160}
-        height={40}
         {...props}
       />
     );
