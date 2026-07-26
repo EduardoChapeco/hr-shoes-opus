@@ -184,7 +184,7 @@ function ExperienceNodeRenderer({
   };
 
   // ── Structural: section ────────────────────────────────────────────────────
-  if (node.node_type === "section") {
+  if (node.block_type === "section") {
     const bg = (node.design_tokens as any)?.backgroundColor;
     const bgImage = (node.design_tokens as any)?.backgroundImage;
     return wrapInteractive(
@@ -219,7 +219,7 @@ function ExperienceNodeRenderer({
   }
 
   // ── Structural: container ──────────────────────────────────────────────────
-  if (node.node_type === "container") {
+  if (node.block_type === "container") {
     const rules = (node.layout_rules as any) || {};
 
     const maxWidthClass =
