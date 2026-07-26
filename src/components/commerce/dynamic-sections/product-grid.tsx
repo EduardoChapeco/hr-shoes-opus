@@ -43,6 +43,10 @@ export function ProductGrid({
     transientData?.products ??
     [];
 
+  if (products.length === 0 && !isEditing) {
+    return null;
+  }
+
   const colClass =
     (
       {

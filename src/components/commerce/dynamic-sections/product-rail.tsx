@@ -17,6 +17,7 @@ export function ProductRail({
   resolvedData?: any;
   node_id?: string;
   block_type?: string;
+  isEditing?: boolean;
 }) {
   const safeContent = content || {};
   const title = String(safeContent.title || "Destaques");
@@ -57,11 +58,11 @@ export function ProductRail({
   }, [emblaApi, onSelect]);
 
   if (productsToDisplay.length === 0) {
-    return (
+    return isEditing ? (
       <div className="p-8 text-center border-2 border-dashed border-border/50 text-muted-foreground text-sm">
         [Product Rail] Fonte de dados não configurada ou vazia.
       </div>
-    );
+    ) : null;
   }
 
   if (layout === "grid") {

@@ -55,6 +55,10 @@ export function ProductCarousel({
     transientData?.products ??
     [];
 
+  if (products.length === 0 && !isEditing) {
+    return null;
+  }
+
   const getDesktopBasis = (cols: string) => {
     switch (cols) {
       case "3":
