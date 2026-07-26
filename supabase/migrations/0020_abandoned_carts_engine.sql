@@ -1,4 +1,4 @@
-﻿-- ============================================================================
+-- ============================================================================
 -- Hr Shoes Commerce — Migration 0020: Abandoned Carts Engine
 -- ============================================================================
 
@@ -11,7 +11,7 @@ CREATE OR REPLACE FUNCTION public.process_abandoned_carts()
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-AS $$$
+AS $$
 BEGIN
   -- Insere carrinhos inativos há > 2h e que possuem itens e informações de contato
   INSERT INTO public.abandoned_carts_log (
@@ -54,4 +54,4 @@ BEGIN
     AND NOT EXISTS (SELECT 1 FROM public.abandoned_carts_log acl WHERE acl.cart_id = c.id);
 
 END;
-$$$;
+$$;

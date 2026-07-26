@@ -242,8 +242,5 @@ EXCEPTION
 END;
 $$;
 
-  INSERT INTO supabase_migrations.schema_migrations (version, name, statements)
-  VALUES ('0043', 'checkout_manual_quote_status', '{}')
-  ON CONFLICT (version) DO NOTHING;
 
 COMMIT;
