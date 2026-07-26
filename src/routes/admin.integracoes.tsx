@@ -52,6 +52,25 @@ function IntegrationsPage() {
     provider: "meta_pixel" | "google_analytics" | "melhor_envio" | "google_merchant_center",
     state: any,
   ) => {
+    if (state.is_active) {
+      if (provider === "meta_pixel" && !state.credentials?.pixel_id) {
+        toast.error("Para ativar o Meta Pixel, o ID do Pixel deve ser preenchido.");
+        return;
+      }
+      if (provider === "google_analytics" && !state.credentials?.measurement_id) {
+        toast.error("Para ativar o Google Analytics, o Measurement ID deve ser preenchido.");
+        return;
+      }
+      if (provider === "melhor_envio" && !state.credentials?.api_token) {
+        toast.error("Para ativar o Melhor Envio, o Token de Acesso deve ser preenchido.");
+        return;
+      }
+      if (provider === "google_merchant_center" && !state.credentials?.merchant_id) {
+        toast.error("Para ativar o Google Merchant Center, o Merchant ID deve ser preenchido.");
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       await upsertIntegration({

@@ -38,6 +38,20 @@ export const Route = createFileRoute("/api/feed/xml")({
             return new Response("Missing store parameter", { status: 400 });
           }
 
+          // Validate if Google Merchant Center is active
+          const { data: gmcIntegration } = await db
+            .from("integration_credentials")
+            .select("is_active")
+            .eq("store_id", storeId)
+            .eq("provider", "google_merchant_center")
+            .single();
+
+          if (!gmcIntegration || !gmcIntegration.is_active) {
+            return new Response("Google Merchant Center integration is inactive or not configured.", {
+              status: 403,
+            });
+          }
+
           // Fetch store info for the feed title
           const { data: store } = await db
             .from("stores")

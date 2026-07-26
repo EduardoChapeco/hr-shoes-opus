@@ -160,6 +160,21 @@ export const upsertIntegration = createServerFn({ method: "POST" })
         throw new Error("Apenas administradores podem gerenciar integrações.");
       }
 
+      if (input.is_active) {
+        if (input.provider === "meta_pixel" && !input.credentials?.pixel_id) {
+          throw new Error("Para ativar o Meta Pixel, o ID do Pixel deve ser preenchido.");
+        }
+        if (input.provider === "google_analytics" && !input.credentials?.measurement_id) {
+          throw new Error("Para ativar o Google Analytics, o Measurement ID deve ser preenchido.");
+        }
+        if (input.provider === "melhor_envio" && !input.credentials?.api_token) {
+          throw new Error("Para ativar o Melhor Envio, o Token de Acesso deve ser preenchido.");
+        }
+        if (input.provider === "google_merchant_center" && !input.credentials?.merchant_id) {
+          throw new Error("Para ativar o Google Merchant Center, o Merchant ID deve ser preenchido.");
+        }
+      }
+
       const db = getServerClient();
 
       const { data, error } = await db
