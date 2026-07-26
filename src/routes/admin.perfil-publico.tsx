@@ -43,7 +43,7 @@ const TEMPLATES = [
     features: ["Hero com CTAs", "Categorias em Destaque", "Horários e Mapa"],
   },
   {
-    id: "social_link_tree",
+    id: "instagram_style",
     name: "Estilo Instagram",
     description:
       "Layout vertical ideal para colocar no link da bio. Foco em botões e links rápidos.",
@@ -51,7 +51,7 @@ const TEMPLATES = [
     features: ["Avatar Redondo", "Lista de Links", "Destaque Social"],
   },
   {
-    id: "local_business",
+    id: "google_business",
     name: "Negócio Local",
     description:
       "Foco absoluto em atrair o cliente para a loja física. Mapa e horários em evidência.",
@@ -59,14 +59,14 @@ const TEMPLATES = [
     features: ["Mapa Destacado", "Botão Rota", "Informações Visíveis"],
   },
   {
-    id: "whatsapp_catalog",
+    id: "whatsapp_business",
     name: "Catálogo WhatsApp",
     description: "Direciona todas as ações para conversar com um vendedor no WhatsApp.",
     icon: <MessageCircle className="w-10 h-10 text-green-500 mb-4" />,
     features: ["Botões WhatsApp", "Produtos Rápidos", "Contato Direto"],
   },
   {
-    id: "brand_history",
+    id: "elegant_institutional",
     name: "Nossa História",
     description: "Conta a história da marca, valores e missão. Ideal para reforçar autoridade.",
     icon: <BookOpen className="w-10 h-10 text-purple-500 mb-4" />,

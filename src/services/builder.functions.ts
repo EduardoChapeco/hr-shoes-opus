@@ -1317,7 +1317,7 @@ const INSTITUTIONAL_TEMPLATES: Record<string, (ids: () => string) => any[]> = {
     ];
   },
 
-  instagram_style: (uid) => {
+  social_link_tree: (uid) => {
     const s1 = uid();
     const c1 = uid();
     const s2 = uid();
@@ -1397,7 +1397,7 @@ const INSTITUTIONAL_TEMPLATES: Record<string, (ids: () => string) => any[]> = {
     ];
   },
 
-  google_business: (uid) => {
+  local_business: (uid) => {
     const s1 = uid();
     const c1 = uid();
     const s2 = uid();
@@ -1780,10 +1780,14 @@ const INSTITUTIONAL_TEMPLATES: Record<string, (ids: () => string) => any[]> = {
 };
 
 export const getOrCreateInstitutionalDocument = createServerFn({ method: "POST" })
-  .validator(z.object({ template_id: z.string().default("blank") }).optional())
+  .validator(z.object({ template_id: z.string().default("blank"), overwrite: z.boolean().optional() }).optional())
   .handler(async ({ data: input }) => {
     try {
       const db = getServerClient();
+
+      if (input?.overwrite) {
+        await db.from("experience_documents").delete().eq("slug", "institucional").eq("document_type", "storefront");
+      }
 
       // 1. Check if institutional document exists
       const { data: doc } = await db
