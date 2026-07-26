@@ -1936,6 +1936,58 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
         .single();
 
       if (docError) {
+        if (docError.code === "PGRST116" && input.slug === "home" && input.document_type === "storefront") {
+          // Auto-seed default storefront template for new store
+          const { HOME_TEMPLATES_LIBRARY } = await import("@/lib/home-templates-library");
+          const { randomUUID } = await import("crypto");
+          const defaultPreset = HOME_TEMPLATES_LIBRARY["minimalist_luxury"] || Object.values(HOME_TEMPLATES_LIBRARY)[0];
+
+          const { data: newDoc } = await db
+            .from("experience_documents")
+            .insert({
+              store_id: storeId,
+              title: "Vitrine Principal",
+              slug: "home",
+              document_type: "storefront",
+              is_active: true,
+            })
+            .select()
+            .single();
+
+          if (newDoc) {
+            const { data: newVersion } = await db
+              .from("experience_versions")
+              .insert({
+                document_id: newDoc.id,
+                version_number: 1,
+                status: "published",
+              })
+              .select()
+              .single();
+
+            if (newVersion && defaultPreset) {
+              const seedNodes = defaultPreset.nodesFactory(() => randomUUID());
+              const nodesToInsert = seedNodes.map((n: any) => ({
+                ...n,
+                version_id: newVersion.id,
+              }));
+              await db.from("experience_nodes").insert(nodesToInsert);
+
+              const hydratedNodes = await hydrateBindings(nodesToInsert as any, db, storeId);
+              const buildTree = (flatNodes: any[], parentId: string | null = null): any[] => {
+                return flatNodes
+                  .filter((n) => (parentId === null ? !n.parent_id : n.parent_id === parentId))
+                  .sort((a, b) => a.sort_order - b.sort_order)
+                  .map((node) => ({
+                    ...node,
+                    children: buildTree(flatNodes, node.id),
+                  }));
+              };
+              const tree = buildTree(hydratedNodes);
+              return { status: "ok" as const, data: { document: newDoc as ExperienceDocument, tree } };
+            }
+          }
+        }
         if (docError.code === "PGRST116") return { status: "not_found" as const };
         throw docError;
       }
@@ -1957,7 +2009,34 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
 
       if (versionsError) throw versionsError;
 
-      const version = versions && versions.length > 0 ? versions[0] : null;
+      let version = versions && versions.length > 0 ? versions[0] : null;
+      if (!version && input.slug === "home" && input.document_type === "storefront") {
+        // Auto-seed published version for home document
+        const { HOME_TEMPLATES_LIBRARY } = await import("@/lib/home-templates-library");
+        const { randomUUID } = await import("crypto");
+        const defaultPreset = HOME_TEMPLATES_LIBRARY["minimalist_luxury"] || Object.values(HOME_TEMPLATES_LIBRARY)[0];
+
+        const { data: newVersion } = await db
+          .from("experience_versions")
+          .insert({
+            document_id: doc.id,
+            version_number: 1,
+            status: "published",
+          })
+          .select()
+          .single();
+
+        if (newVersion && defaultPreset) {
+          const seedNodes = defaultPreset.nodesFactory(() => randomUUID());
+          const nodesToInsert = seedNodes.map((n: any) => ({
+            ...n,
+            version_id: newVersion.id,
+          }));
+          await db.from("experience_nodes").insert(nodesToInsert);
+          version = newVersion;
+        }
+      }
+
       if (!version) {
         return { status: "not_found" as const };
       }
