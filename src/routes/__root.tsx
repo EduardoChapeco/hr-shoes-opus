@@ -74,11 +74,21 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   loader: async () => {
-    const [themeRes, storeRes] = await Promise.all([getThemeSettings(), getPublicStoreSettings()]);
-    return {
-      theme: themeRes || null,
-      store: storeRes || null,
-    };
+    try {
+      const [themeRes, storeRes] = await Promise.all([
+        getThemeSettings().catch(() => null),
+        getPublicStoreSettings().catch(() => null),
+      ]);
+      return {
+        theme: themeRes || null,
+        store: storeRes || null,
+      };
+    } catch {
+      return {
+        theme: null,
+        store: null,
+      };
+    }
   },
   head: ({ loaderData }) => {
     const store = (loaderData as any)?.store;

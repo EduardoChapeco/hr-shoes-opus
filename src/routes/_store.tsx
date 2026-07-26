@@ -13,18 +13,27 @@ import { SlideOutCart } from "@/components/commerce/slide-out-cart";
 
 export const Route = createFileRoute("/_store")({
   loader: async () => {
-    const [menusRes, storeRes, cart, popupsRes] = await Promise.all([
-      getNavigationMenus(),
-      getPublicStoreSettings(),
-      getCart(),
-      getActiveGlobalPopups(),
-    ]);
-    return {
-      menus: menusRes || [],
-      store: storeRes || null,
-      cart,
-      popups: popupsRes || [],
-    };
+    try {
+      const [menusRes, storeRes, cart, popupsRes] = await Promise.all([
+        getNavigationMenus().catch(() => []),
+        getPublicStoreSettings().catch(() => null),
+        getCart().catch(() => null),
+        getActiveGlobalPopups().catch(() => []),
+      ]);
+      return {
+        menus: menusRes || [],
+        store: storeRes || null,
+        cart,
+        popups: popupsRes || [],
+      };
+    } catch {
+      return {
+        menus: [],
+        store: null,
+        cart: null,
+        popups: [],
+      };
+    }
   },
   component: StoreLayoutWrapper,
   errorComponent: ({ error }: { error: any }) => (
