@@ -7,6 +7,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { requireAdmin } from "@/lib/auth-guards";
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import { getOpenStatus } from "@/lib/datetime";
 import type { ExperienceDocument, ExperienceNode, ExperienceType } from "@/lib/builder-types";
@@ -287,6 +288,7 @@ export const listExperienceDocuments = createServerFn({ method: "GET" })
   .validator(z.object({ type: z.string().optional() }).optional())
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const { getServerIdentity } = await import("@/lib/identity");
       const identity = await getServerIdentity();
       if (!identity.store_id) throw new Error("No store found");
@@ -317,6 +319,7 @@ export const getExperienceDocument = createServerFn({ method: "GET" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const { getServerIdentity } = await import("@/lib/identity");
       const identity = await getServerIdentity();
       if (!identity.store_id) throw new Error("No store found");
@@ -386,6 +389,7 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const db = getServerClient();
 
       const { getServerIdentity } = await import("@/lib/identity");
@@ -728,6 +732,7 @@ export const createExperienceDocument = createServerFn({ method: "POST" })
 
 export const listMediaAssets = createServerFn({ method: "GET" }).handler(async () => {
   try {
+      await requireAdmin(); // SECURITY FIX
     const db = getServerClient();
 
     const { getServerIdentity } = await import("@/lib/identity");
@@ -762,6 +767,7 @@ export const updateExperienceDocument = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const { getServerIdentity } = await import("@/lib/identity");
       const identity = await getServerIdentity();
       if (!identity.store_id) throw new Error("No store found");
@@ -1053,6 +1059,7 @@ export const checkExperienceDocumentExists = createServerFn({ method: "GET" })
   )
   .handler(async ({ data: { slug, document_type } }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const { getServerIdentity } = await import("@/lib/identity");
       const identity = await getServerIdentity();
       if (!identity.store_id) throw new Error("No store found");
@@ -1077,6 +1084,7 @@ export const getOrCreateHomeDocument = createServerFn({ method: "POST" })
   .validator(z.object({ template_id: z.string().default("blank") }).optional())
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       // 0. Get Identity
       const { getServerIdentity } = await import("@/lib/identity");
       const identity = await getServerIdentity();
@@ -1155,6 +1163,7 @@ export const applyHomeTemplate = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const { getServerIdentity } = await import("@/lib/identity");
       const identity = await getServerIdentity();
       if (!identity.store_id) throw new Error("No store found");
@@ -1823,6 +1832,7 @@ export const getOrCreateInstitutionalDocument = createServerFn({ method: "POST" 
   .validator(z.object({ template_id: z.string().default("blank"), overwrite: z.boolean().optional() }).optional())
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const db = getServerClient();
 
       // 0. Get Identity
@@ -2153,6 +2163,7 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const { getServerIdentity } = await import("@/lib/identity");
       const identity = await getServerIdentity();
       if (!identity.store_id) throw new Error("No store found");
@@ -2222,6 +2233,7 @@ export const publishBuilderVersion = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const { getServerIdentity } = await import("@/lib/identity");
       const identity = await getServerIdentity();
       if (!identity.store_id) throw new Error("No store found");
@@ -2292,6 +2304,7 @@ export const getBuilderProducts = createServerFn({ method: "GET" })
   .validator(z.object({ limit: z.number().optional() }).optional())
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const db = getServerClient();
       const { data, error } = await db
         .from("products")
@@ -2330,6 +2343,7 @@ export const getBuilderProducts = createServerFn({ method: "GET" })
 
 export const getBuilderReviews = createServerFn({ method: "GET" }).handler(async () => {
   try {
+      await requireAdmin(); // SECURITY FIX
     const db = getServerClient();
     const { data, error } = await db
       .from("reviews")

@@ -35,6 +35,7 @@ export function ProductGrid({
   resolvedProducts,
   resolvedData,
   transientData,
+  isEditing,
 }: ProductGridProps) {
   // Canonical: resolvedProducts → legacy resolvedData → legacy transientData
   const products: any[] =

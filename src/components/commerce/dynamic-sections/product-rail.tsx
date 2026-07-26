@@ -11,6 +11,7 @@ export function ProductRail({
   content,
   resolvedProducts,
   resolvedData,
+  isEditing,
 }: {
   content?: Record<string, unknown>;
   resolvedProducts?: any[];

@@ -47,6 +47,7 @@ export function ProductCarousel({
   resolvedProducts,
   resolvedData,
   transientData,
+  isEditing,
 }: ProductCarouselProps) {
   // Canonical: resolvedProducts → legacy resolvedData → legacy transientData
   const products: any[] =

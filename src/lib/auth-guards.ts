@@ -1,5 +1,5 @@
 import { getSSRClient } from "./supabase-ssr.server";
-import { Role } from "@/types/roles";
+import type { Role } from "@/types/domain";
 
 /**
  * Ensures the caller is authenticated and has one of the allowed roles.

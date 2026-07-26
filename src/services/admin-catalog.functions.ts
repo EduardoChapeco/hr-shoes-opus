@@ -9,6 +9,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { requireAdmin } from "@/lib/auth-guards";
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 
 // ---------------------------------------------------------------------------
@@ -30,6 +31,7 @@ export async function listProductTypesHandler() {
 
 export const listProductTypes = createServerFn({ method: "GET" }).handler(async () => {
   try {
+      await requireAdmin(); // SECURITY FIX
     const data = await listProductTypesHandler();
     return data;
   } catch (e) {
@@ -80,6 +82,7 @@ export const createProductType = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await createProductTypeHandler(input);
       return data;
     } catch (e: unknown) {
@@ -122,6 +125,7 @@ export const updateProductType = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await updateProductTypeHandler(input);
       return data;
     } catch (e: unknown) {
@@ -141,6 +145,7 @@ export const deleteProductType = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       await deleteProductTypeHandler(id);
       return { status: "success" as const };
     } catch (e: unknown) {
@@ -179,6 +184,7 @@ export async function listAdminProductsHandler() {
 
 export const listAdminProducts = createServerFn({ method: "GET" }).handler(async () => {
   try {
+      await requireAdmin(); // SECURITY FIX
     const data = await listAdminProductsHandler();
     return data || [];
   } catch (e) {
@@ -284,6 +290,7 @@ export const createProduct = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await createProductHandler(input);
       return data;
     } catch (e: unknown) {
@@ -310,6 +317,7 @@ export async function listCategoriesHandler() {
 
 export const listCategories = createServerFn({ method: "GET" }).handler(async () => {
   try {
+      await requireAdmin(); // SECURITY FIX
     const data = await listCategoriesHandler();
     return data;
   } catch (e) {
@@ -357,6 +365,7 @@ export const createCategory = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await createCategoryHandler(input);
       return data;
     } catch (e: unknown) {
@@ -376,6 +385,7 @@ export const getCategoryById = createServerFn({ method: "GET" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await getCategoryByIdHandler(id);
       return data;
     } catch (e) {
@@ -419,6 +429,7 @@ export const updateCategory = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await updateCategoryHandler(input);
       return data;
     } catch (e: unknown) {
@@ -445,6 +456,7 @@ export async function listCollectionsHandler() {
 
 export const listCollections = createServerFn({ method: "GET" }).handler(async () => {
   try {
+      await requireAdmin(); // SECURITY FIX
     const data = await listCollectionsHandler();
     return data;
   } catch (e) {
@@ -490,6 +502,7 @@ export const createCollection = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await createCollectionHandler(input);
       return data;
     } catch (e: unknown) {
@@ -509,6 +522,7 @@ export const getCollectionById = createServerFn({ method: "GET" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await getCollectionByIdHandler(id);
       return data;
     } catch (e) {
@@ -550,6 +564,7 @@ export const updateCollection = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await updateCollectionHandler(input);
       return data;
     } catch (e: unknown) {
@@ -587,6 +602,7 @@ export const getProductById = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await getProductByIdHandler(id);
       return data;
     } catch (e) {
@@ -718,6 +734,7 @@ export const updateProduct = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await updateProductHandler(input);
       return data;
     } catch (e: unknown) {
@@ -827,6 +844,7 @@ export const upsertProductVariant = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await upsertProductVariantHandler(input);
       return data;
     } catch (e: unknown) {
@@ -882,6 +900,7 @@ export const batchUpsertVariantMatrix = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       return await batchUpsertVariantMatrixHandler(input);
     } catch (e: unknown) {
       console.error("[admin-catalog] batchUpsertVariantMatrix error:", e);
@@ -901,6 +920,7 @@ export const updateProductMediaMetadata = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const db = getServerClient();
       const { id, ...updates } = data;
       const { error } = await db.from("product_media").update(updates).eq("id", id);
@@ -925,6 +945,7 @@ export const reorderProductMedia = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { mediaOrders } }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const db = getServerClient();
 
       for (const item of mediaOrders) {
@@ -996,6 +1017,7 @@ export async function getOnboardingProgressHandler() {
 
 export const getOnboardingProgress = createServerFn({ method: "GET" }).handler(async () => {
   try {
+      await requireAdmin(); // SECURITY FIX
     const data = await getOnboardingProgressHandler();
     return {
       status: "ok" as const,
@@ -1030,6 +1052,7 @@ export const deleteProductMedia = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid(), url: z.string().url() }))
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       return await deleteProductMediaHandler(input);
     } catch (e: any) {
       throw new Error(e.message || "Erro ao deletar mídia.");
@@ -1069,6 +1092,7 @@ export const addProductMediaLink = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await addProductMediaLinkHandler(input);
       return data;
     } catch (e: any) {
@@ -1139,6 +1163,7 @@ export const toggleProductCollection = createServerFn({ method: "POST" })
       data: input,
     }): Promise<{ status: "success" } | { status: "error"; message: string }> => {
       try {
+        await requireAdmin(); // SECURITY FIX
         return await toggleProductCollectionHandler(input);
       } catch (e: any) {
         console.error("[admin-catalog] toggleProductCollection error:", e);
@@ -1237,6 +1262,7 @@ export const duplicateProduct = createServerFn({ method: "POST" })
   .validator(z.object({ productId: z.string().uuid() }))
   .handler(async ({ data: { productId } }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await duplicateProductHandler(productId);
       return data;
     } catch (e: unknown) {
@@ -1275,6 +1301,7 @@ export const toggleProductStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const data = await toggleProductStatusHandler(input);
       return data;
     } catch (e: unknown) {
@@ -1316,6 +1343,7 @@ export const bulkUpdateProductStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const res = await bulkUpdateProductStatusHandler(input);
       return res;
     } catch (e: unknown) {
@@ -1342,6 +1370,7 @@ export const generateVariantGrid = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { productId, options } }) => {
     try {
+      await requireAdmin(); // SECURITY FIX
       const db = getServerClient();
 
       const { data: product } = await db
