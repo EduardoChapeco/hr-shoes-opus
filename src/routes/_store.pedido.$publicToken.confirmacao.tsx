@@ -26,6 +26,7 @@ function ConfirmationPage() {
     );
   }
 
+  const paymentMethod = order.payment_method || order.payments?.[0]?.method || "pix";
   const rawItems = order.items_snapshot || order.order_items || [];
   const items = rawItems.map((item: any) => ({
     productName: item.product_title || item.productName || item.title || "Produto",
@@ -78,7 +79,7 @@ function ConfirmationPage() {
           <div className="rounded-xl border bg-card p-6 space-y-4">
             <h3 className="font-semibold text-lg">Instruções de Pagamento</h3>
 
-            {order.payment_method === "pix" ? (
+            {paymentMethod === "pix" ? (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
                   Pague via Pix para aprovação imediata do seu pedido:
@@ -97,7 +98,7 @@ function ConfirmationPage() {
                   </Button>
                 </div>
               </div>
-            ) : order.payment_method === "manual" ? (
+            ) : paymentMethod === "manual" ? (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
                   Sua reserva foi registrada! Para confirmar seu pedido e combinar o pagamento e

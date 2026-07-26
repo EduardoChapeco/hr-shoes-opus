@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/commerce/page-header";
-import { signInWithPassword, signInWithOAuth } from "@/services/auth.functions";
+import { signInWithPassword, signInWithOAuth, getUserSession } from "@/services/auth.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/entrar")({
@@ -94,7 +94,12 @@ function LoginPage() {
       }
 
       toast.success("Login efetuado com sucesso!");
-      // CRITICAL: We must invalidate the router to clear any cached unauthenticated data
+
+      // CRITICAL FIX: Ensure the server function layer sees the new cookie
+      // before invalidating the router. Sometimes the fetch cache or cookie write races.
+      await new Promise((r) => setTimeout(r, 100));
+      await getUserSession();
+
       await router.invalidate();
       navigate({ to: returnUrl });
     } catch (e: any) {
@@ -104,8 +109,7 @@ function LoginPage() {
 
   const handleOAuth = async (provider: "google" | "github") => {
     try {
-      const redirectTo = `${window.location.origin}/api/auth/callback?next=${returnUrl}`;
-      const result = await signInWithOAuth({ data: { provider, redirectTo } });
+      const result = await signInWithOAuth({ data: { provider, redirectTo: returnUrl } });
       if (result.status === "success" && result.url) {
         window.location.href = result.url;
       } else {

@@ -13,7 +13,7 @@ export async function getStockLevelsHandler(params: { search?: string }) {
     .from("product_variants")
     .select(
       `
-      id, sku, stock_on_hand, stock_reserved,
+      id, sku, stock_on_hand,
       products ( id, title, status, store_id )
     `,
     )

@@ -53,7 +53,6 @@ describe("Stock Functions", () => {
           id: "v-1",
           sku: "TENIS-39",
           stock_on_hand: 10,
-          stock_reserved: 2,
           products: { title: "Tênis" },
         },
       ];

@@ -204,11 +204,9 @@ export function VariantFormRow({
             <Label>Estoque Total</Label>
             {variant && (
               <div className="text-[10px] mt-1 flex gap-2 font-medium text-muted-foreground">
-                <span className="text-primary font-bold">
-                  Disponível: {(variant.stock_on_hand || 0) - (variant.stock_reserved || 0)}
+                <span className="font-semibold text-foreground">
+                  Disponível: {variant.stock_on_hand || 0}
                 </span>
-                <span>|</span>
-                <span>Reservado: {variant.stock_reserved || 0}</span>
                 <span>|</span>
                 <span>Total: {variant.stock_on_hand || 0}</span>
               </div>

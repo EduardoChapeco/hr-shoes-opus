@@ -8,7 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getStoreSettings, saveStoreSettings } from "@/services/store.functions";
+import {
+  getStoreSettings,
+  saveStoreSettings,
+  executeHardRefresh,
+} from "@/services/store.functions";
 import { MediaUploader } from "@/components/admin/builder/MediaUploader";
 
 export const Route = createFileRoute("/admin/configuracoes/loja")({
@@ -34,6 +38,26 @@ function StoreSettings() {
     faviconUrl: (store as any)?.settings?.faviconUrl || "",
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [hardRefreshText, setHardRefreshText] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleHardRefresh = async () => {
+    if (hardRefreshText !== "CONFIRMAR EXCLUSAO TOTAL") {
+      toast.error("Frase de segurança incorreta.");
+      return;
+    }
+    setIsRefreshing(true);
+    try {
+      const result = await executeHardRefresh({ data: { confirmText: hardRefreshText } });
+      toast.success(result.message || "Hard Refresh concluído.");
+      setHardRefreshText("");
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao executar Hard Refresh");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,6 +216,42 @@ function StoreSettings() {
                   placeholder="89800-000"
                   maxLength={9}
                 />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-xl border border-destructive/30 bg-destructive/5 shadow-xs mt-10">
+          <CardHeader className="pb-3 border-b border-destructive/20">
+            <CardTitle className="text-sm font-bold text-destructive flex items-center gap-2">
+              ⚠️ Zona de Perigo: Autodestruição (Hard Refresh)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4 space-y-4">
+            <p className="text-sm text-foreground/80 font-medium">
+              Atenção: Ao executar o Hard Refresh, todos os produtos, pedidos, carrinhos, transações
+              e configurações vitais (exceto os Admins/Lojista) serão PERMANENTEMENTE excluídos.
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="hard-refresh-confirm" className="text-destructive font-bold">
+                Para prosseguir, digite exatamente: CONFIRMAR EXCLUSAO TOTAL
+              </Label>
+              <div className="flex gap-4">
+                <Input
+                  id="hard-refresh-confirm"
+                  value={hardRefreshText}
+                  onChange={(e) => setHardRefreshText(e.target.value)}
+                  placeholder="CONFIRMAR EXCLUSAO TOTAL"
+                  className="max-w-md border-destructive/50"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={isRefreshing || hardRefreshText !== "CONFIRMAR EXCLUSAO TOTAL"}
+                  onClick={handleHardRefresh}
+                >
+                  {isRefreshing ? "Excluindo Dados..." : "Executar Hard Refresh"}
+                </Button>
               </div>
             </div>
           </CardContent>

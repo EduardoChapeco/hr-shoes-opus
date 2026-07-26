@@ -12,7 +12,7 @@ import {
 } from "@/services/cart.functions";
 import { checkGiftCardBalance } from "@/services/giftcard.functions";
 import { processCheckout } from "@/services/checkout.functions";
-import { initiatePaymentTransaction, getPublicPaymentMethods } from "@/services/payment.functions";
+import { initiatePaymentTransaction, getPublicPaymentMethods, getGatewayStatus } from "@/services/payment.functions";
 import { calculateShipping } from "@/services/shipping.functions";
 import { getPublicStoreProfile } from "@/services/catalog.functions";
 import { getProfile } from "@/services/auth.functions";
@@ -43,10 +43,11 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_store/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Hr Shoes" }] }),
   loader: async () => {
-    const [cart, profileRes, paymentMethodsRes, userProfile, userAddresses] = await Promise.all([
+    const [cart, profileRes, paymentMethodsRes, gatewayStatus, userProfile, userAddresses] = await Promise.all([
       getCart(),
       getPublicStoreProfile(),
       getPublicPaymentMethods(),
+      getGatewayStatus(),
       getProfile().catch(() => null),
       getCustomerAddresses().catch(() => []),
     ]);
@@ -65,6 +66,7 @@ export const Route = createFileRoute("/_store/checkout")({
         itemCount: 0,
       },
       paymentMethods: paymentMethodsRes || [],
+      isGatewayConfigured: gatewayStatus || false,
       storeProfile: storeProfile || null,
       userProfile: userProfile || null,
       userAddresses: userAddresses || [],
@@ -88,6 +90,7 @@ function CheckoutPage() {
     storeProfile,
     userProfile,
     userAddresses,
+    isGatewayConfigured,
   } = Route.useLoaderData();
   const navigate = useNavigate();
   const router = useRouter();
@@ -133,8 +136,8 @@ function CheckoutPage() {
     addressDistrict: "",
     addressCity: "",
     addressState: "",
-    paymentMethod: "pix" as "pix" | "manual" | "credit_card" | "receipt",
-    paymentMethodId: "" as string, // UUID of chosen manual payment option
+    paymentMethod: (isGatewayConfigured ? "pix" : (paymentMethods.length > 0 ? "manual" : "receipt")) as "pix" | "manual" | "credit_card" | "receipt",
+    paymentMethodId: (!isGatewayConfigured && paymentMethods.length > 0 ? (paymentMethods[0] as any).id : "") as string, // UUID of chosen manual payment option
     shippingMethod: "manual_table" as "manual_table" | "pickup" | "manual_quote",
     shippingAddress: {
       zipcode: "",
@@ -516,10 +519,16 @@ function CheckoutPage() {
             },
           });
         } catch (payErr: any) {
-          console.error("Erro de transação:", payErr);
-          throw new Error(
-            "Erro na iniciação do pagamento: " + (payErr.message || "Falha na transação"),
+          console.error("Erro na transação inicial do pagamento:", payErr);
+          toast.warning(
+            `O pedido #${res.orderToken} foi gerado, mas a inicialização automática do pagamento falhou (${payErr.message || "erro de rede"}). Direcionando para as instruções de pagamento do seu pedido...`,
           );
+          // Redirecionamento obrigatório pois o pedido já foi persistido no banco e o carrinho finalizado
+          navigate({
+            to: "/pedido/$publicToken/confirmacao",
+            params: { publicToken: res.orderToken },
+          });
+          return;
         }
       }
 
@@ -722,9 +731,10 @@ function CheckoutPage() {
                               <button
                                 key={addr.id}
                                 type="button"
-                                onClick={() => {
+                                onClick={async () => {
                                   const selectedStreet =
                                     addr.street || addr.address_line1 || addr.logradouro || "";
+
                                   setFormData((prev) => ({
                                     ...prev,
                                     shippingAddress: {
@@ -737,7 +747,28 @@ function CheckoutPage() {
                                       state: addr.state || "",
                                     },
                                   }));
-                                  handleCepChange(cleanZip, true);
+
+                                  if (cleanZip.length === 8) {
+                                    setIsCalculatingShipping(true);
+                                    setNoShippingRatesFound(false);
+                                    try {
+                                      const shipRes = await calculateShipping({
+                                        data: { zipcode: cleanZip },
+                                      });
+                                      if (shipRes && Array.isArray(shipRes) && shipRes.length > 0) {
+                                        setShippingRates(shipRes);
+                                        setNoShippingRatesFound(false);
+                                      } else {
+                                        setShippingRates([]);
+                                        setNoShippingRatesFound(true);
+                                      }
+                                    } catch (e) {
+                                      setShippingRates([]);
+                                      setNoShippingRatesFound(true);
+                                    } finally {
+                                      setIsCalculatingShipping(false);
+                                    }
+                                  }
                                 }}
                                 className={`p-3 border rounded-xl text-left text-xs space-y-1 transition-all ${
                                   isSelected
@@ -1002,39 +1033,50 @@ function CheckoutPage() {
             {activeStep === 3 && (
               <div className="p-6 space-y-6">
                 <div>
-                  <Label className="text-sm font-semibold mb-3 block">Opções Principais</Label>
-                  <div className="grid grid-cols-2 gap-3 mb-6">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFormData({ ...formData, paymentMethod: "pix", paymentMethodId: "" })
-                      }
-                      className={`flex items-center justify-center p-3 border rounded-xl gap-2 font-medium transition-all ${
-                        formData.paymentMethod === "pix"
-                          ? "border-primary bg-primary/5 ring-1 ring-primary"
-                          : "hover:bg-muted/50"
-                      }`}
-                    >
-                      PIX
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFormData({
-                          ...formData,
-                          paymentMethod: "credit_card",
-                          paymentMethodId: "",
-                        })
-                      }
-                      className={`flex items-center justify-center p-3 border rounded-xl gap-2 font-medium transition-all ${
-                        formData.paymentMethod === "credit_card"
-                          ? "border-primary bg-primary/5 ring-1 ring-primary"
-                          : "hover:bg-muted/50"
-                      }`}
-                    >
-                      Cartão de Crédito
-                    </button>
-                  </div>
+                  {!isGatewayConfigured && paymentMethods.length === 0 && (
+                    <div className="bg-destructive/10 text-destructive border border-destructive/20 p-4 rounded-xl flex items-center gap-3 mb-6">
+                      <AlertCircle className="size-5 shrink-0" />
+                      <p className="text-sm font-medium">A loja ainda não configurou métodos de recebimento. Entre em contato com o suporte.</p>
+                    </div>
+                  )}
+
+                  {isGatewayConfigured && (
+                    <>
+                      <Label className="text-sm font-semibold mb-3 block">Opções Principais</Label>
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData({ ...formData, paymentMethod: "pix", paymentMethodId: "" })
+                          }
+                          className={`flex items-center justify-center p-3 border rounded-xl gap-2 font-medium transition-all ${
+                            formData.paymentMethod === "pix"
+                              ? "border-primary bg-primary/5 ring-1 ring-primary"
+                              : "hover:bg-muted/50"
+                          }`}
+                        >
+                          PIX
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              paymentMethod: "credit_card",
+                              paymentMethodId: "",
+                            })
+                          }
+                          className={`flex items-center justify-center p-3 border rounded-xl gap-2 font-medium transition-all ${
+                            formData.paymentMethod === "credit_card"
+                              ? "border-primary bg-primary/5 ring-1 ring-primary"
+                              : "hover:bg-muted/50"
+                          }`}
+                        >
+                          Cartão de Crédito
+                        </button>
+                      </div>
+                    </>
+                  )}
 
                   {/* PIX instructions card */}
                   {formData.paymentMethod === "pix" && (

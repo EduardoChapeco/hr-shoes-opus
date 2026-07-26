@@ -19,7 +19,12 @@ export const getSignedUploadUrl = createServerFn({ method: "POST" })
     try {
       const supabase = getServerClient();
       const ext = fileName.split(".").pop() || "png";
-      const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${ext}`;
+
+      const { getServerIdentity } = await import("@/lib/identity");
+      const { store_id } = await getServerIdentity();
+      if (!store_id) throw new Error("Loja não encontrada");
+
+      const uniqueName = `${store_id}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${ext}`;
 
       // Tenta criar a URL assinada
       let result = await supabase.storage.from(bucket).createSignedUploadUrl(uniqueName);
@@ -73,7 +78,12 @@ export const uploadMedia = createServerFn({ method: "POST" })
     try {
       const supabase = getServerClient();
       const ext = fileName.split(".").pop() || "png";
-      const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${ext}`;
+
+      const { getServerIdentity } = await import("@/lib/identity");
+      const { store_id } = await getServerIdentity();
+      if (!store_id) throw new Error("Loja não encontrada");
+
+      const uniqueName = `${store_id}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${ext}`;
 
       const base64Data = fileBase64.replace(/^data:image\/\w+;base64,/, "");
       const buffer = Buffer.from(base64Data, "base64");

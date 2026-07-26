@@ -84,11 +84,16 @@ function Page() {
                     <div>
                       <p className="font-medium">{item.product_title}</p>
                       <p className="text-sm text-muted-foreground">
-                        Qtd: {item.quantity} | SKU: {item.variant_sku}
+                        Qtd: {item.qty || item.quantity || 1} | SKU: {item.variant_sku}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{formatMoney(item.total_price_cents)}</p>
+                      <p className="font-medium">
+                        {formatMoney(
+                          item.total_cents ??
+                            (item.unit_price_cents || 0) * (item.qty || item.quantity || 1),
+                        )}
+                      </p>
                     </div>
                   </div>
                 ))}

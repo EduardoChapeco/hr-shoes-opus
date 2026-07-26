@@ -28,23 +28,7 @@ export function VariantOptionsBuilder({ product, onClose }: VariantOptionsBuilde
     if (product?.options && Array.isArray(product.options)) {
       setOptions(product.options);
     } else {
-      // Tenta inferir das variantes legadas se options estiver vazio
-      if (product?.product_variants?.length > 0) {
-        const inferredOptions: Record<string, Set<string>> = {};
-        product.product_variants.forEach((v: any) => {
-          const attrs = v.attributes || {};
-          Object.entries(attrs).forEach(([key, val]) => {
-            if (!inferredOptions[key]) inferredOptions[key] = new Set();
-            if (val) inferredOptions[key].add(String(val));
-          });
-        });
-
-        const newOptions = Object.entries(inferredOptions).map(([name, valuesSet]) => ({
-          name,
-          values: Array.from(valuesSet),
-        }));
-        setOptions(newOptions);
-      }
+      setOptions([]);
     }
   }, [product]);
 

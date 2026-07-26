@@ -1,58 +1,111 @@
 # Audit e Inventário do Estado Atual — CMS & Builder Engine
 
-> Data: 2026-07-24  
+> Data: 2026-07-25  
 > Projeto: Hr Shoes Commerce  
-> Status: Fase 0 — Concluída
+> Status: Fase 0 — Pós-Auditoria Profunda (Sessão 2)
 
 ---
 
 ## 1. Arquitetura Geral do Editor / Builder
 
-O sistema possui duas camadas históricas coexistentes no banco de dados e nos serviços:
+O sistema opera **exclusivamente** sobre a camada canônica `experience_documents → experience_versions → experience_nodes`. A camada legada (`pages`, `page_sections`) está desativada.
 
-1. **Camada Legada (`pages` e `page_sections`)**:
-   - Tabelas: `public.pages` e `public.page_sections`.
-   - Modelo flat: `page_id` → lista simples de seções com `section_type`, `sort_order` e JSON `content`.
-   - Utilizada em instâncias de seed antigas (`0070_cms_home_seed.sql`) e em `src/services/cms.functions.ts`.
+### Fluxo de dados canônico
 
-2. **Camada Canônica (`experience_documents`, `experience_versions`, `experience_nodes`)**:
-   - Tabelas (Migration `0048_builder_platform_core.sql`):
-     - `experience_documents`: Representa o documento mestre (`storefront`, `biolink`, `pwa`, `campaign`, `seller_showcase`).
-     - `experience_versions`: Controle atômico de versões (`draft`, `published`, `archived`), habilitando autosave e publicação sem impacto direto no storefront público.
-     - `experience_nodes`: Árvore DOM relacional hierárquica (nós auto-referenciados por `parent_id`), divididos por `node_type` (`section`, `container`, `element`, `composition`) e `block_type`.
-   - Tipagem: `src/lib/builder-types.ts`.
-   - Registrador Tipado: `src/lib/builder-registry.ts`.
-   - Servidor BFF: `src/services/builder.functions.ts`.
-   - Interface de Edição: `src/routes/admin.builder.$documentId.editor.tsx`.
-   - Renderizador Público/Storefront: `src/components/commerce/experience-renderer.tsx`.
+```
+Supabase DB (experience_nodes)
+    ↓ hydrateBindings (builder.functions.ts / servidor)
+    ↓ [resolvedData injetado por nó: products, reviews, store_profile]
+ExperienceRenderer (experience-renderer.tsx)
+    ↓ spread de content + storeData/resolvedProducts/resolvedReviews
+Componente React (dynamic-sections/*.tsx)
+    ↓ props flat + dados dinâmicos
+```
 
 ---
 
-## 2. Inventário de Arquivos e Componentes
+## 2. Correções Aplicadas na Auditoria de 2026-07-25
 
-| Arquivo / Diretório                                 | Responsabilidade                                                                                                      | Status                    | Evidência / Diagnóstico                                                                                                                                               |
-| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/lib/builder-types.ts`                          | Definição de interfaces TypeScript (`ExperienceDocument`, `ExperienceNode`, `BlockManifest`, `InspectorField`)        | **Reutilizar & Estender** | Define a base tipada da árvore DOM e dos campos de inspeção do sidepanel.                                                                                             |
-| `src/lib/builder-registry.ts`                       | Registry canônico de todos os blocos suportados (`hero_carousel`, `bento_grid`, `product_rail`, `stories_ring`, etc.) | **Reutilizar & Estender** | Contém a definição de 18+ blocos com schemas Zod e definições de inspetor.                                                                                            |
-| `src/lib/cms-templates.ts` & `templates-default.ts` | Mapeamento de presets estáticos de templates de páginas                                                               | **Refatorar & Unificar**  | Atualmente existem definições paralelas de templates em `cms-templates.ts` e `builder.functions.ts`. Devem ser consolidadas na nova Biblioteca Canônica de Templates. |
-| `src/services/builder.functions.ts`                 | BFF / Server Functions (TanStack Start) para CRUD de documentos, nodes e hidratação de bindings                       | **Reutilizar & Estender** | Hidrata `data_bindings` reais (`store_profile`, `product_collection`, `latest_products`, `dynamic_reviews`) sem duplicar catálogo no JSON.                            |
-| `src/routes/admin.builder.$documentId.editor.tsx`   | Painel visual do editor de páginas (Tree View, Preview responsivo, Sidepanel de propriedades, Drag-and-Drop)          | **Reutilizar & Estender** | Editor totalmente funcional com navegação visual por iframe/preview, inspeção dinâmica via schema e salvamento em rascunho.                                           |
-| `src/components/commerce/experience-renderer.tsx`   | Renderizador dinâmico de nós no storefront público                                                                    | **Reutilizar & Estender** | Renderiza recursivamente nós da árvore DOM `experience_nodes`, associando aos componentes visuais de `dynamic-sections`.                                              |
-| `src/components/commerce/dynamic-sections/*`        | Biblioteca de 23 componentes React visuais (`hero-carousel`, `bento-grid`, `mosaic-banners`, etc.)                    | **Reutilizar & Expandir** | Componentes estilizados com Tailwind v4. Necessitam de suporte a hotspots, variantes adicionais, PDP configurável e filtros.                                          |
+### A — ExperienceRenderer: Contrato de Props
+**Problema**: O renderer passava `content={obj}` mas todos os 27 componentes esperam props flat.  
+**Solução**: `ExperienceRenderer` agora faz `{...content}` (spread) ao chamar o componente. Introduzidas três novas props canônicas:
+- `resolvedProducts: any[]` — para blocos de produto
+- `resolvedReviews: any[]` — para blocos de avaliações
+- `storeData: StoreHeroData | StoreHoursData | StoreContactData` — para blocos de perfil da loja
+
+### B — Bindings Canonicalizados
+**Problema**: Registry usava `source:`, editor usava `type:`, BFF aceitava ambos mas não canonicalizava.  
+**Solução**: Todos os `defaultProps.data_bindings` no registry migrados para `type:`.
+
+| Bloco | Antes | Depois |
+|-------|-------|--------|
+| `product_carousel` | `{ source: "dynamic_products" }` | `{ type: "dynamic_products" }` |
+| `product_grid` | `{ source: "dynamic_products" }` | `{ type: "dynamic_products" }` |
+| `store_profile_hero` | `{ source: "store_profile" }` | `{ type: "store_profile" }` |
+| `store_hours` | `{ source: "store_profile" }` | `{ type: "store_profile" }` |
+| `store_contact` | `{ source: "store_profile" }` | `{ type: "store_profile" }` |
+
+### C — BFF: Correções de Segurança e Integridade
+**Problema 1**: `isOutOfStock: false` hardcoded — produtos sem estoque apareciam disponíveis.  
+**Solução**: Query inclui `variants:product_variants(stock_quantity)` e calcula `totalStock <= 0`.
+
+**Problema 2**: `dynamic_reviews` sem filtro `store_id` — multi-tenant leak.  
+**Solução**: `.eq("store_id", store_id)` adicionado à query de reviews.
+
+**Problema 3**: Reviews manuais (`reviewer_name`) ignoradas.  
+**Solução**: `reviewer_name` incluído no SELECT, com prioridade sobre `profiles.full_name`.
+
+### D — social_grid: Alinhamento Schema/Inspector
+**Problema**: `contentSchema` usava `handle`/`images`, inspector usava `username`/`posts`.  
+**Solução**: contentSchema e defaultProps atualizados para `username`/`posts`.
+
+### E — Componentes: Estado Vazio Honesto
+**Problema**: `before-after-slider.tsx` e `image-hotspots.tsx` tinham fallbacks hardcoded do Unsplash.  
+**Solução**: Fallbacks removidos. Ambos exibem estado vazio canônico quando imagens não configuradas.
+
+### F — Editor: Categoria de Mídia Interativa
+**Problema**: `before_after_slider`, `image_hotspots`, `routine_steps`, `ingredient_spotlight` invisíveis no painel.  
+**Solução**: Categoria `"Mídia Interativa"` adicionada a `BLOCK_CATEGORIES` no `builder-left-panel.tsx`.
+
+### G — Componentes de Perfil: Props Canônicas
+Todos os três componentes de store profile atualizados:
+- `StoreProfileHero`: aceita `storeData?: StoreHeroData` + props flat
+- `StoreHours`: aceita `storeData?: StoreHoursData` + props flat
+- `StoreContact`: aceita `storeData?: StoreContactData` + props flat
 
 ---
 
-## 3. Modelo de Banco de Dados Vigente
+## 3. Inventário de Arquivos e Componentes (Atualizado)
 
-- `public.experience_documents`: Multi-tenant via `store_id`, com `slug`, `title`, `document_type` e `seo_metadata`.
-- `public.experience_versions`: FK para `document_id`, com `version_number`, `status` e `created_at`.
-- `public.experience_nodes`: FK para `version_id` e auto-FK `parent_id`, contendo colunas separadas `content`, `design_tokens`, `layout_rules`, `responsive_overrides`, `data_bindings`, `action_bindings`.
+| Arquivo / Diretório | Responsabilidade | Status | Evidência |
+|---|---|---|---|
+| `src/lib/builder-types.ts` | Interfaces TypeScript (`ExperienceDocument`, `ExperienceNode`, `BlockManifest`) | **Canônico** | Base tipada imutável |
+| `src/lib/builder-registry.ts` | Registry de 27 blocos com schemas Zod e inspector fields | **Atualizado** | Bindings canonicalizados (`type`), social_grid alinhado |
+| `src/services/builder.functions.ts` | BFF / Server Functions para CRUD e hydration | **Atualizado** | isOutOfStock real, store_id em reviews, reviewer_name |
+| `src/components/commerce/experience-renderer.tsx` | Renderizador recursivo com spread de content | **Reescrito** | Props canônicas: resolvedProducts, resolvedReviews, storeData |
+| `src/components/commerce/dynamic-sections/*` | 27 componentes React de vitrine | **Atualizados** | Props flat via spread; store profile com storeData |
+| `src/components/admin/builder/builder-left-panel.tsx` | Painel esquerdo do editor | **Atualizado** | Categoria "Mídia Interativa" com 4 blocos |
 
 ---
 
-## 4. Avaliação de Riscos e Compatibilidade
+## 4. Blocos por Categoria (Estado Pós-Auditoria)
 
-1. **Risco de Duplicação de Templates**: Existência de presets legados no schema de `pages` versus `experience_documents`.
-   - _Mitigação_: Concentrar 100% da biblioteca de presets no motor de `experience_documents`/`experience_nodes`, mantendo compatibilidade de hidratação.
-2. **Risco de Hydration Mismatch**: Renderização SSR x Client-side no TanStack Start em blocos dinâmicos como `countdown_timer` e `product_rail`.
-   - _Mitigação_: Utilizar `transient_data` resolvido exclusivamente via BFF no servidor em `builder.functions.ts`.
+| Categoria | Blocos | Visível no Editor |
+|---|---|---|
+| Hero & Banners | hero_carousel, split_banner, announcement_bar, mosaic_banners | ✅ |
+| Produtos | product_carousel, product_grid, product_rail | ✅ |
+| Conteúdo | rich_text, info_cards, bento_grid, gallery_grid, video_section, timeline_history | ✅ |
+| Social & Comunidade | testimonial_carousel, stories_ring, social_grid | ✅ |
+| Conversão | countdown_timer, trust_badges, faq_accordion, contact_form | ✅ |
+| Perfil da Loja | store_profile_hero, store_hours, store_contact | ✅ |
+| **Mídia Interativa** (novo) | before_after_slider, image_hotspots, routine_steps, ingredient_spotlight | ✅ |
+
+---
+
+## 5. Invariantes de Segurança Ativos
+
+1. **Sem acesso direto ao Supabase em componentes React** — todos os dados passam por `builder.functions.ts`
+2. **Nenhum cálculo comercial no cliente** — preços, estoque e totais calculados/validados no servidor
+3. **Sem dados fictícios** — empty states honestos em todos os blocos; fallbacks Unsplash removidos
+4. **Multi-tenant seguro** — reviews filtradas por `store_id`; produtos filtrados por `store_id`
+5. **TypeScript strict** — zero erros após auditoria (verificado com `tsc --noEmit`)

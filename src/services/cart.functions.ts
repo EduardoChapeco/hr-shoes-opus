@@ -90,7 +90,6 @@ export async function fetchCartDTO(identity: {
           id,
           price_override_cents,
           stock_on_hand,
-          stock_reserved,
           sku,
           attributes,
           product:products (
@@ -135,7 +134,6 @@ export async function fetchCartDTO(identity: {
       sku: string;
       price_override_cents: number | null;
       stock_on_hand: number;
-      stock_reserved: number;
       attributes: Record<string, string>;
       product: {
         id: string;
@@ -161,7 +159,7 @@ export async function fetchCartDTO(identity: {
       const lineTotal = price * item.qty;
       totalCents += lineTotal;
 
-      const availableStock = (variant.stock_on_hand || 0) - (variant.stock_reserved || 0);
+      const availableStock = variant.stock_on_hand || 0;
       const isOutOfStock = availableStock < item.qty;
 
       return {
@@ -199,12 +197,11 @@ export async function fetchCartDTO(identity: {
       // Invalidated by qty change or expiration
       dynamicDiscountCents = 0;
       currentCouponCode = null;
-      // Fire-and-forget DB update to clear the invalid coupon
-      supabase
+      // Await DB update to clear the invalid coupon to prevent phantom state
+      await supabase
         .from("carts")
         .update({ coupon_code: null, discount_cents: 0 })
-        .eq("id", cart.id)
-        .then();
+        .eq("id", cart.id);
     } else {
       if (coupon.discount_type === "percentage") {
         dynamicDiscountCents = Math.floor(totalCents * (coupon.discount_value / 100));
@@ -213,13 +210,12 @@ export async function fetchCartDTO(identity: {
         if (dynamicDiscountCents > totalCents) dynamicDiscountCents = totalCents;
       }
 
-      // If the recomputed discount differs from the DB, update DB silently
+      // If the recomputed discount differs from the DB, update DB reliably
       if (dynamicDiscountCents !== cart.discount_cents) {
-        supabase
+        await supabase
           .from("carts")
           .update({ discount_cents: dynamicDiscountCents })
-          .eq("id", cart.id)
-          .then();
+          .eq("id", cart.id);
       }
     }
   }
@@ -280,88 +276,23 @@ export const addToCart = createServerFn({ method: "POST" })
     }
     const variantId = targetVariantId;
 
-    // Check if store exists to use for cart
+    // Resolve Store
     const { resolveTenantStoreId } = await import("@/lib/tenant");
     const storeId = await resolveTenantStoreId();
     if (!storeId) throw new Error("Loja não configurada");
-    const store = { id: storeId };
-    if (!store) throw new Error("Loja não configurada");
 
-    // 1. Get or create cart
-    let cartQuery = supabase.from("carts").select("id").eq("status", "active");
-    if (identity.customer_id) cartQuery = cartQuery.eq("customer_id", identity.customer_id);
-    else cartQuery = cartQuery.eq("session_token", identity.session_token);
-
-    let cartId;
-    const { data: existingCart } = await cartQuery
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (existingCart) {
-      cartId = existingCart.id;
-    } else {
-      const { data: newCart } = await supabase
-        .from("carts")
-        .insert({
-          store_id: store.id,
-          customer_id: identity.customer_id,
-          session_token: identity.session_token,
-          seller_id: activeSellerId,
-          status: "active",
-        })
-        .select("id")
-        .single();
-      cartId = newCart!.id;
-    }
-
-    // If adding to existing cart, we might want to update seller_id if it's provided now
-    if (existingCart && activeSellerId) {
-      await supabase.from("carts").update({ seller_id: activeSellerId }).eq("id", cartId);
-    }
-
-    // 2. Tenta fazer a reserva atômica no banco de dados via RPC (Fase 12: Motor Transacional)
-    // Se não houver estoque disponível (on_hand - reserved), a RPC lançará exceção e abortará
-    const { error: reserveError } = await supabase.rpc("reserve_stock_for_cart", {
-      p_cart_id: cartId,
+    // Atomic Insert via RPC (replaces the old 11-step waterfall)
+    const { data: cartId, error: rpcError } = await supabase.rpc("add_to_cart_atomic_v4", {
+      p_store_id: storeId,
+      p_customer_id: identity.customer_id,
+      p_session_token: identity.session_token,
+      p_seller_id: activeSellerId,
       p_variant_id: variantId,
       p_qty: quantity,
-      p_expires_in_minutes: 15,
     });
 
-    if (reserveError) {
-      throw new Error(reserveError.message || "Erro ao reservar estoque.");
-    }
-
-    // Find if item already in cart to check total requested
-    const { data: existingItem } = await supabase
-      .from("cart_items")
-      .select("id, qty")
-      .eq("cart_id", cartId)
-      .eq("variant_id", variantId)
-      .maybeSingle();
-
-    const newTotalQty = existingItem ? existingItem.qty + quantity : quantity;
-
-    // Fetch snapshot price for safety
-    const { data: vInfo } = await supabase
-      .from("product_variants")
-      .select("price_override_cents, product_id, products(price_cents)")
-      .eq("id", variantId)
-      .single();
-
-    const priceCents = vInfo?.price_override_cents ?? (vInfo?.products as any)?.price_cents ?? 0;
-
-    // 4. Add or update item in cart
-    if (existingItem) {
-      await supabase.from("cart_items").update({ qty: newTotalQty }).eq("id", existingItem.id);
-    } else {
-      await supabase.from("cart_items").insert({
-        cart_id: cartId,
-        variant_id: variantId,
-        qty: quantity,
-        price_snapshot_cents: priceCents,
-      });
+    if (rpcError) {
+      throw new Error(rpcError.message || "Erro ao adicionar ao carrinho.");
     }
 
     // Fetch and return the updated cart directly to bypass cookie race conditions on the frontend
@@ -385,11 +316,8 @@ export const removeFromCart = createServerFn({ method: "POST" })
 
     if (!item) throw new Error("Item não encontrado");
 
-    // Soltar reserva via RPC para garantir a atomicidade do decremento de stock_reserved
-    await supabase.rpc("release_stock_for_cart_item", {
-      p_cart_id: item.cart_id,
-      p_variant_id: item.variant_id,
-    });
+    // Removed stock reservation drop logic here since cart items no longer reserve stock immediately.
+    // Stock reservation is handled during checkout order creation now.
 
     // Delete item
     await supabase.from("cart_items").delete().eq("id", itemId);
@@ -441,42 +369,12 @@ export const updateCartItemQty = createServerFn({ method: "POST" })
     const newTotalQty = existingItem.qty + delta;
     if (newTotalQty <= 0) {
       // Just remove
-      await supabase.rpc("release_stock_for_cart_item", {
-        p_cart_id: cart.id,
-        p_variant_id: variantId,
-      });
       await supabase.from("cart_items").delete().eq("id", existingItem.id);
       return { status: "success" };
     }
 
-    if (delta > 0) {
-      // Need to verify stock for the additional delta via RPC
-      const { error: reserveError } = await supabase.rpc("reserve_stock_for_cart", {
-        p_cart_id: cart.id,
-        p_variant_id: variantId,
-        p_qty: delta,
-        p_expires_in_minutes: 15,
-      });
-
-      if (reserveError) throw new Error(reserveError.message || "Erro ao reservar estoque.");
-    } else if (delta < 0) {
-      // When reducing quantity, we need to release part of the stock reservation.
-      // But our RPCs currently either add to the reservation or clear it completely.
-      // Since it's a reduction, we can manually decrement the reservation and stock_reserved.
-      // Or we can just let it expire. For correctness, let's just clear the full item reservation and re-reserve the correct amount.
-      await supabase.rpc("release_stock_for_cart_item", {
-        p_cart_id: cart.id,
-        p_variant_id: variantId,
-      });
-      const { error: reReserveError } = await supabase.rpc("reserve_stock_for_cart", {
-        p_cart_id: cart.id,
-        p_variant_id: variantId,
-        p_qty: newTotalQty,
-        p_expires_in_minutes: 15,
-      });
-      if (reReserveError) throw new Error(reReserveError.message || "Erro ao atualizar estoque.");
-    }
-
+    // We no longer reserve stock during cart operations.
+    // Atomic validation happens at checkout.
     await supabase.from("cart_items").update({ qty: newTotalQty }).eq("id", existingItem.id);
 
     return { status: "success" };

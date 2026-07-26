@@ -119,11 +119,11 @@ function ReportsPage() {
         <StatCard icon={Users} title="Clientes Cadastrados" value={String(d.totalCustomers)} />
       </div>
 
-      <div className="rounded-lg border bg-card p-6 flex flex-col items-center justify-center gap-3 min-h-[200px]">
+      <div className="rounded-lg border bg-card p-6 flex flex-col items-center justify-center gap-3 min-h-[160px]">
         <BarChart3 className="h-10 w-10 text-muted-foreground/40" />
         <p className="text-sm text-muted-foreground text-center">
-          Gráficos de vendas por período e análise de funil serão adicionados na próxima fase de
-          análise de dados. As métricas acima são calculadas em tempo real.
+          Métricas e indicadores consolidados em tempo real com base no histórico de pedidos e
+          vendas da loja.
         </p>
       </div>
     </div>

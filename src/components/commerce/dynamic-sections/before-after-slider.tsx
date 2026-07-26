@@ -21,6 +21,23 @@ export function BeforeAfterSlider({
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Honest empty state — never show fallback images
+  if (!before_image || !after_image) {
+    return (
+      <section className="w-full py-12 px-4 md:px-8 max-w-5xl mx-auto">
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-2xl">
+          <span className="text-3xl opacity-40">&#8596;</span>
+          <div>
+            <p className="font-medium">Comparador não configurado</p>
+            <p className="text-sm mt-1">
+              Adicione as imagens "Antes" e "Depois" no editor para ativar o slider.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   const handleMove = useCallback((clientX: number) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -72,10 +89,7 @@ export function BeforeAfterSlider({
       >
         {/* Background: After Image */}
         <img
-          src={
-            after_image ||
-            "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&q=80&w=800"
-          }
+          src={after_image}
           alt={after_label}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -86,10 +100,7 @@ export function BeforeAfterSlider({
         {/* Foreground: Before Image (Clipped) */}
         <div className="absolute inset-0 overflow-hidden" style={{ width: `${sliderPosition}%` }}>
           <img
-            src={
-              before_image ||
-              "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800"
-            }
+            src={before_image}
             alt={before_label}
             className="absolute inset-0 w-full h-full object-cover"
             style={{

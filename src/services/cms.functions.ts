@@ -15,10 +15,15 @@ import { getSSRClient } from "@/lib/supabase-ssr.server";
 // ---------------------------------------------------------------------------
 
 export async function listAdminPagesHandler() {
+  const { getServerIdentity } = await import("@/lib/identity");
+  const { store_id } = await getServerIdentity();
+  if (!store_id) throw new Error("Loja não encontrada");
+
   const db = getSSRClient();
   const { data, error } = await db
     .from("pages")
     .select("id, title, slug, status, created_at, updated_at")
+    .eq("store_id", store_id)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -40,12 +45,17 @@ export const getAdminPageDetails = createServerFn({ method: "GET" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: input }) => {
     try {
+      const { getServerIdentity } = await import("@/lib/identity");
+      const { store_id } = await getServerIdentity();
+      if (!store_id) throw new Error("Loja não encontrada");
+
       const db = getServerClient();
 
       const { data: page, error: pageError } = await db
         .from("pages")
         .select("*")
         .eq("id", input.id)
+        .eq("store_id", store_id)
         .single();
 
       if (pageError) throw pageError;

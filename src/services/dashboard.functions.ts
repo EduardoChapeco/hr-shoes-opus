@@ -62,10 +62,10 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
   const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  // 1. Fetch Orders metrics
+  // 1. Fetch Orders metrics with Payments
   const { data: ordersData } = await db
     .from("orders")
-    .select("id, status, total_cents, created_at")
+    .select("id, status, total_cents, created_at, payments(status, amount_cents)")
     .eq("store_id", storeId);
 
   const validOrders = ordersData ?? [];
@@ -83,49 +83,48 @@ export async function getDashboardDataHandler(): Promise<DashboardMetrics> {
     cancelled: 0,
   };
 
-  const PAID_STATUSES = new Set([
-    "paid",
-    "processing",
-    "ready_for_pickup",
-    "shipped",
-    "delivered",
-    "completed",
-  ]);
-
   for (const order of validOrders) {
     const isToday = order.created_at >= startOfToday;
     const isThisMonth = order.created_at >= startOfMonth;
 
-    if (isToday) ordersTodayCount++;
-    if (isThisMonth) ordersMonthCount++;
+    // Check payments status. An order is paid if it has an approved payment.
+    const payments = Array.isArray(order.payments)
+      ? order.payments
+      : order.payments
+        ? [order.payments]
+        : [];
+    const isPaid = payments.some((p: any) => p.status === "approved" || p.status === "settled");
 
-    if (PAID_STATUSES.has(order.status)) {
-      if (isToday) salesTodayCents += order.total_cents ?? 0;
-      if (isThisMonth) salesMonthCents += order.total_cents ?? 0;
+    // Consider order count only if it's not cancelled, to avoid inflating fake counts
+    if (order.status !== "cancelled" && order.status !== "payment_failed") {
+      if (isToday) ordersTodayCount++;
+      if (isThisMonth) ordersMonthCount++;
     }
 
-    switch (order.status) {
-      case "awaiting_payment":
-      case "payment_processing":
-      case "awaiting_shipping_quote":
-        ordersBreakdown.awaitingPayment++;
-        break;
-      case "paid":
-      case "processing":
-        ordersBreakdown.needsSeparation++;
-        break;
-      case "ready_for_pickup":
-      case "shipped":
-        ordersBreakdown.shippedOrReady++;
-        break;
-      case "completed":
-      case "delivered":
-        ordersBreakdown.completed++;
-        break;
-      case "cancelled":
-      case "payment_failed":
-        ordersBreakdown.cancelled++;
-        break;
+    if (isPaid) {
+      // Find the approved payment amount, fallback to total_cents
+      const approvedPayment = payments.find(
+        (p: any) => p.status === "approved" || p.status === "settled",
+      );
+      const amountToSum = approvedPayment?.amount_cents ?? order.total_cents ?? 0;
+
+      if (isToday) salesTodayCents += amountToSum;
+      if (isThisMonth) salesMonthCents += amountToSum;
+    }
+
+    // Determine breakdown by both order status and payment status
+    if (order.status === "cancelled" || order.status === "payment_failed") {
+      ordersBreakdown.cancelled++;
+    } else if (order.status === "completed" || order.status === "delivered") {
+      ordersBreakdown.completed++;
+    } else if (order.status === "ready_for_pickup" || order.status === "shipped") {
+      ordersBreakdown.shippedOrReady++;
+    } else if (order.status === "processing" || order.status === "paid" || isPaid) {
+      // If it's paid but not yet shipped
+      ordersBreakdown.needsSeparation++;
+    } else {
+      // If it doesn't fit the above, it's awaiting payment or in checkout
+      ordersBreakdown.awaitingPayment++;
     }
   }
 

@@ -8,11 +8,11 @@
 
 | Módulo         | Nome do Schema Zod / DTO  | Input Validado                                         | Retorno do BFF                    | Status do Contrato |
 | :------------- | :------------------------ | :----------------------------------------------------- | :-------------------------------- | :----------------- |
-| **Catálogo**   | `ProductCreateSchema`     | `{ title, slug, price_cents, category_ids, variants }` | `ProductDTO`                      | `COMPROVADO`       |
-| **Catálogo**   | `ProductUpdateSchema`     | `{ id, title, price_cents, attributes, variants }`     | `ProductDTO`                      | `COMPROVADO`       |
-| **Carrinho**   | `AddToCartSchema`         | `{ variantId?, productId?, quantity, sellerId? }`      | `{ status, cart, session_token }` | `COMPROVADO`       |
-| **Carrinho**   | `UpdateCartQtySchema`     | `{ variantId, delta }`                                 | `CartDTO`                         | `COMPROVADO`       |
-| **Checkout**   | `CheckoutSchema`          | `{ items, shippingAddress, paymentMethod }`            | `{ orderId, status }`             | `COMPROVADO`       |
+| **Catálogo**   | `ProductCreateSchema`     | `{ title, slug, price_cents, category_ids, variants }` | `ProductDTO`                      | `ARQUITETURALMENTE FRÁGIL` (Opções deduzidas no cliente vs Atributos persistidos no banco) |
+| **Catálogo**   | `ProductUpdateSchema`     | `{ id, title, price_cents, attributes, variants }`     | `ProductDTO`                      | `ARQUITETURALMENTE FRÁGIL` (Dois modos de edição sobrescrevem dados mutuamente) |
+| **Carrinho**   | `AddToCartSchema`         | `{ variantId?, productId?, quantity, sellerId? }`      | `{ status, cart, session_token }` | `QUEBRADO` (BFF requisita stock_reserved, mas coluna foi excluída no DB) |
+| **Carrinho**   | `UpdateCartQtySchema`     | `{ variantId, delta }`                                 | `CartDTO`                         | `QUEBRADO` (BFF requisita stock_reserved, mas coluna foi excluída no DB) |
+| **Checkout**   | `CheckoutSchema`          | `{ items, shippingAddress, paymentMethod }`            | `{ orderId, status }`             | `SIMULADO` (Pagar.me SDK ignorado, processamento direto aprovado no BFF) |
 | **Estoque**    | `StockAdjustSchema`       | `{ variantId, qty, type, note }`                       | `StockMovementDTO`                | `COMPROVADO`       |
 | **Builder**    | `ApplyHomeTemplateSchema` | `{ templateId }`                                       | `ExperienceDocumentDTO`           | `COMPROVADO`       |
 | **Builder**    | `DocumentUpdateSchema`    | `{ documentId, tree }`                                 | `ExperienceDocumentDTO`           | `COMPROVADO`       |

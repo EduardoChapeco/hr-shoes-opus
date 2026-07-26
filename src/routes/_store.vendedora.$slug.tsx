@@ -34,14 +34,14 @@ export const Route = createFileRoute("/_store/vendedora/$slug")({
 function SellerShowcasePage() {
   const { document, tree } = Route.useLoaderData();
 
-  if (!document) return null;
-
   useEffect(() => {
-    if (document.owner_id) {
+    if (document && document.owner_id) {
       // Set the affiliate attribution cookie for 30 days
       window.document.cookie = `hrshoes_affiliate_id=${document.owner_id}; path=/; max-age=2592000; SameSite=Lax`;
     }
-  }, [document.owner_id]);
+  }, [document?.owner_id]);
+
+  if (!document) return null;
 
   return (
     <main className="w-full flex flex-col gap-0 min-h-screen">

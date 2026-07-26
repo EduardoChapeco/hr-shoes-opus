@@ -54,7 +54,6 @@ describe("Product Functions (BFF)", () => {
           status: "active",
           price_override_cents: null,
           stock_on_hand: 10,
-          stock_reserved: 2,
           attributes: { Tamanho: "39" },
           product_media: [],
         },

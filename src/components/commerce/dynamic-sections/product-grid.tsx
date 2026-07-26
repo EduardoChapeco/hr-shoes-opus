@@ -2,93 +2,55 @@ import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, ShoppingBag } from "lucide-react";
 import { ProductCard } from "@/components/commerce/product-card";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface ProductGridProps {
-  node_id: string;
-  block_type: string;
-  content?: {
-    title?: string;
-    subtitle?: string;
-    collection_slug?: string;
-    columns?: 2 | 3 | 4;
-  };
+  node_id?: string;
+  block_type?: string;
+  // Flat content fields (spread by ExperienceRenderer from node.content)
+  title?: string;
+  subtitle?: string;
+  collection_slug?: string;
+  columns?: 2 | 3 | 4;
   design_tokens?: any;
   data_bindings?: any;
-  transientData?: any;
+  // Canonical dynamic data props from ExperienceRenderer
+  resolvedProducts?: any[];
+  // Legacy compat
   resolvedData?: any;
+  transientData?: any;
   isEditing?: boolean;
 }
 
 /**
- * ProductGrid — reads products from server-resolved transient_data.
+ * ProductGrid — reads products from server-resolved resolvedProducts.
  * NEVER issues its own network requests. Honest empty state when no products.
  */
-import { listPublishedProducts, getProductsByCollection } from "@/services/catalog.functions";
-import { Loader2 } from "lucide-react";
-
 export function ProductGrid({
-  content,
+  title,
+  subtitle,
+  columns = 4,
   design_tokens,
-  data_bindings,
-  transientData,
+  resolvedProducts,
   resolvedData,
-  isEditing,
+  transientData,
 }: ProductGridProps) {
-  // Support both object wrapped products and direct products array
+  // Canonical: resolvedProducts → legacy resolvedData → legacy transientData
   const products: any[] =
-    resolvedData?.products ||
-    (Array.isArray(resolvedData) ? resolvedData : null) ||
-    transientData?.products ||
+    resolvedProducts ??
+    (resolvedData?.products || (Array.isArray(resolvedData) ? resolvedData : null)) ??
+    transientData?.products ??
     [];
 
-  const bindingType = data_bindings?.type || data_bindings?.source;
-  const collectionSlug = data_bindings?.collection_slug || content?.collection_slug;
-
-  const isCollection = bindingType === "product_collection" && collectionSlug;
-  const isLatest =
-    bindingType === "latest_products" ||
-    bindingType === "dynamic_products" ||
-    (!bindingType && products.length === 0);
-
-  const shouldFetchClient = !!isEditing && products.length === 0;
-
-  const { data: clientCollectionProducts, isLoading: isCollectionLoading } = useQuery({
-    queryKey: ["editorCollectionProductsGrid", collectionSlug],
-    queryFn: async () => {
-      const res = await getProductsByCollection({ data: { slug: collectionSlug! } });
-      return Array.isArray(res) ? res : [];
-    },
-    enabled: !!(shouldFetchClient && isCollection),
-  });
-
-  const { data: clientLatestProducts, isLoading: isLatestLoading } = useQuery({
-    queryKey: ["editorLatestProductsGrid", data_bindings?.limit],
-    queryFn: async () => {
-      const res = await listPublishedProducts({ data: { limit: 8 } });
-      return res?.status === "ok" ? res.data : [];
-    },
-    enabled: !!(shouldFetchClient && isLatest),
-  });
-
-  const isLoading = shouldFetchClient && (isCollectionLoading || isLatestLoading);
-
-  const activeProducts =
-    products.length > 0
-      ? products
-      : isCollection
-        ? clientCollectionProducts || []
-        : clientLatestProducts || [];
-
-  const cols = content?.columns ?? 4;
   const colClass =
-    {
-      2: "grid-cols-2",
-      3: "grid-cols-2 @md:grid-cols-3",
-      4: "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4",
-    }[cols] ?? "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4";
+    (
+      {
+        2: "grid-cols-2",
+        3: "grid-cols-2 @md:grid-cols-3",
+        4: "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4",
+      } as Record<number, string>
+    )[columns] ?? "grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4";
 
   return (
     <div
@@ -101,14 +63,10 @@ export function ProductGrid({
       <div className="mx-auto max-w-[1400px] px-4 @md:px-8">
         <div className="flex items-end justify-between mb-8 @md:mb-12">
           <div>
-            {content?.title && (
-              <h2 className="text-2xl @md:text-4xl font-bold tracking-tight mb-2">
-                {content.title}
-              </h2>
+            {title && (
+              <h2 className="text-2xl @md:text-4xl font-bold tracking-tight mb-2">{title}</h2>
             )}
-            {content?.subtitle && (
-              <p className="text-muted-foreground text-sm @md:text-lg">{content.subtitle}</p>
-            )}
+            {subtitle && <p className="text-muted-foreground text-sm @md:text-lg">{subtitle}</p>}
           </div>
           <Button variant="ghost" className="hidden @md:flex gap-2 group" asChild>
             <Link to="/catalogo">
@@ -118,14 +76,7 @@ export function ProductGrid({
           </Button>
         </div>
 
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-lg">
-            <Loader2 className="h-10 w-10 animate-spin opacity-50" />
-            <div>
-              <p className="font-medium">Carregando produtos...</p>
-            </div>
-          </div>
-        ) : activeProducts.length === 0 ? (
+        {products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-lg">
             <ShoppingBag className="h-10 w-10 opacity-30" />
             <div>
@@ -137,13 +88,13 @@ export function ProductGrid({
           </div>
         ) : (
           <div className={cn("grid gap-4 @md:gap-6 @lg:gap-8", colClass)}>
-            {activeProducts.map((product: any) => (
+            {products.map((product: any) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}
 
-        {activeProducts.length > 0 && (
+        {products.length > 0 && (
           <Button variant="outline" className="w-full mt-8 @md:hidden" asChild>
             <Link to="/catalogo">Ver Todos</Link>
           </Button>

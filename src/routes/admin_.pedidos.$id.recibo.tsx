@@ -13,7 +13,7 @@ export const Route = createFileRoute("/admin_/pedidos/$id/recibo")({
         `
         id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents,
         customer_snapshot, created_at, shipping_method,
-        order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_price_cents )
+        order_items ( id, product_title, variant_sku, qty, unit_price_cents, total_cents )
       `,
       )
       .eq("id", params.id)
@@ -88,7 +88,9 @@ function ReceiptPrintPage() {
                 <div className="text-xs text-gray-500">SKU: {item.variant_sku}</div>
               </td>
               <td className="text-right py-2">{formatMoney(item.unit_price_cents)}</td>
-              <td className="text-right py-2">{formatMoney(item.total_price_cents)}</td>
+              <td className="text-right py-2">
+                {formatMoney(item.total_cents ?? (item.unit_price_cents || 0) * (item.qty || 1))}
+              </td>
             </tr>
           ))}
         </tbody>

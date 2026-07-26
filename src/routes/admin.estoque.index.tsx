@@ -80,22 +80,18 @@ function AdminStockPage() {
   const metrics = useMemo(() => {
     const totalSKUs = stock.length;
     let totalOnHand = 0;
-    let totalReserved = 0;
     let criticalCount = 0;
 
     for (const v of stock) {
       const onHand = v.stock_on_hand ?? 0;
-      const reserved = v.stock_reserved ?? 0;
       totalOnHand += onHand;
-      totalReserved += reserved;
-      if (onHand - reserved <= 5) criticalCount++;
+      if (onHand <= 5) criticalCount++;
     }
 
     return {
       totalSKUs,
       totalOnHand,
-      totalReserved,
-      totalAvailable: Math.max(0, totalOnHand - totalReserved),
+      totalAvailable: Math.max(0, totalOnHand),
       criticalCount,
     };
   }, [stock]);
@@ -103,7 +99,7 @@ function AdminStockPage() {
   // Filter stock rows by search & tab
   const filteredStock = useMemo(() => {
     return stock.filter((v) => {
-      const available = (v.stock_on_hand ?? 0) - (v.stock_reserved ?? 0);
+      const available = v.stock_on_hand ?? 0;
       const matchesSearch =
         v.sku.toLowerCase().includes(search.toLowerCase()) ||
         (v.products?.title || "").toLowerCase().includes(search.toLowerCase());
@@ -241,21 +237,6 @@ function AdminStockPage() {
         <Card className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Reservado (Checkout)
-            </CardTitle>
-            <div className="flex size-8 items-center justify-center rounded-full bg-info/15 text-info">
-              <Clock className="size-4" aria-hidden />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">{metrics.totalReserved} un.</div>
-            <p className="text-xs text-muted-foreground mt-1">Bloqueados em pedidos</p>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden border-border/60 bg-gradient-to-br from-card to-card/60 shadow-xs">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Estoque Crítico
             </CardTitle>
             <div className="flex size-8 items-center justify-center rounded-full bg-warning/15 text-warning-foreground">
@@ -282,15 +263,13 @@ function AdminStockPage() {
               Todos ({stock.length})
             </TabsTrigger>
             <TabsTrigger value="available" className="text-xs">
-              Regular (
-              {stock.filter((v) => (v.stock_on_hand ?? 0) - (v.stock_reserved ?? 0) > 5).length})
+              Regular ({stock.filter((v) => (v.stock_on_hand ?? 0) > 5).length})
             </TabsTrigger>
             <TabsTrigger value="critical" className="text-xs">
               Crítico ({metrics.criticalCount})
             </TabsTrigger>
             <TabsTrigger value="out_of_stock" className="text-xs">
-              Esgotado (
-              {stock.filter((v) => (v.stock_on_hand ?? 0) - (v.stock_reserved ?? 0) <= 0).length})
+              Esgotado ({stock.filter((v) => (v.stock_on_hand ?? 0) <= 0).length})
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -320,9 +299,7 @@ function AdminStockPage() {
               <TableRow className="bg-muted/40">
                 <TableHead>SKU</TableHead>
                 <TableHead>Produto</TableHead>
-                <TableHead className="text-right">Em Mãos</TableHead>
-                <TableHead className="text-right">Reservado</TableHead>
-                <TableHead className="text-right">Disponível</TableHead>
+                <TableHead className="text-right">Em Mãos (Disponível)</TableHead>
                 <TableHead className="text-center">Nível</TableHead>
                 <TableHead className="text-center">Operar Estoque</TableHead>
               </TableRow>
@@ -330,8 +307,7 @@ function AdminStockPage() {
             <TableBody>
               {filteredStock.map((variant) => {
                 const onHand = variant.stock_on_hand ?? 0;
-                const reserved = variant.stock_reserved ?? 0;
-                const available = Math.max(0, onHand - reserved);
+                const available = Math.max(0, onHand);
 
                 return (
                   <TableRow key={variant.id} className="hover:bg-muted/30 transition-colors">
@@ -349,10 +325,6 @@ function AdminStockPage() {
                         )}
                       </div>
                     </TableCell>
-
-                    <TableCell className="text-right font-semibold">{onHand}</TableCell>
-
-                    <TableCell className="text-right text-muted-foreground">{reserved}</TableCell>
 
                     <TableCell className="text-right font-bold text-sm">{available}</TableCell>
 

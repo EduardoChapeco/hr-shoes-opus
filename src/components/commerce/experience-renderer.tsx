@@ -30,9 +30,12 @@ import { ImageHotspots } from "./dynamic-sections/image-hotspots";
 import { RoutineSteps } from "./dynamic-sections/routine-steps";
 import { IngredientSpotlight } from "./dynamic-sections/ingredient-spotlight";
 import { BeforeAfterSlider } from "./dynamic-sections/before-after-slider";
+import { BookingCalendar } from "./dynamic-sections/booking-calendar";
 import { TrackView } from "./analytics-provider";
 
-// Mapeamento dinâmico dos componentes React para cada bloco
+// ---------------------------------------------------------------------------
+// Block type → React component mapping
+// ---------------------------------------------------------------------------
 const componentMap: Record<string, React.FC<any>> = {
   hero_carousel: HeroCarousel,
   hero_banner: HeroCarousel,
@@ -62,8 +65,27 @@ const componentMap: Record<string, React.FC<any>> = {
   routine_steps: RoutineSteps,
   ingredient_spotlight: IngredientSpotlight,
   before_after_slider: BeforeAfterSlider,
+  booking_calendar: BookingCalendar,
 };
 
+// ---------------------------------------------------------------------------
+// Block types that receive real-time store profile data from transient_data
+// ---------------------------------------------------------------------------
+const STORE_PROFILE_BLOCKS = new Set(["store_profile_hero", "store_hours", "store_contact"]);
+
+// ---------------------------------------------------------------------------
+// Block types that receive product arrays from transient_data.products
+// ---------------------------------------------------------------------------
+const PRODUCT_DATA_BLOCKS = new Set(["product_rail", "product_carousel", "product_grid"]);
+
+// ---------------------------------------------------------------------------
+// Block types that receive review arrays from transient_data.reviews
+// ---------------------------------------------------------------------------
+const REVIEW_DATA_BLOCKS = new Set(["testimonial_carousel"]);
+
+// ---------------------------------------------------------------------------
+// ExperienceRenderer — root entry
+// ---------------------------------------------------------------------------
 interface ExperienceRendererProps {
   nodes: any[];
   bindings?: any;
@@ -99,6 +121,9 @@ export function ExperienceRenderer({
   );
 }
 
+// ---------------------------------------------------------------------------
+// ExperienceNodeRenderer — recursive node renderer
+// ---------------------------------------------------------------------------
 interface ExperienceNodeRendererProps {
   node: ExperienceNode;
   transientData?: any;
@@ -119,15 +144,18 @@ function ExperienceNodeRenderer({
   const manifest = builderRegistry[node.block_type];
 
   if (!manifest) {
-    console.warn(`Block type "${node.block_type}" not found in registry.`);
-    return (
-      <div className="p-4 border border-dashed border-red-500 bg-red-50 text-red-900 text-sm">
-        Bloco não suportado: {node.block_type}
-      </div>
-    );
+    if (isEditing) {
+      return (
+        <div className="p-4 border border-dashed border-red-500 bg-red-50 text-red-900 text-sm">
+          Bloco não suportado: {node.block_type}
+        </div>
+      );
+    }
+    console.warn(`[Builder] Block type "${node.block_type}" not found in registry.`);
+    return null;
   }
 
-  // Helper for interactive wrapper
+  // ── Interactive editing wrapper ────────────────────────────────────────────
   const wrapInteractive = (children: React.ReactNode, className: string = "") => {
     if (!isEditing) return children;
     const isSelected = selectedNodeId === node.id;
@@ -147,7 +175,7 @@ function ExperienceNodeRenderer({
       >
         {children}
         {isSelected && (
-          <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] px-2 py-1 font-mono z-20 rounded-bl-md shadow-sm">
+          <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] px-2 py-1 font-mono z-20 rounded-bl-md shadow-sm pointer-events-none">
             {manifest.name}
           </div>
         )}
@@ -155,10 +183,10 @@ function ExperienceNodeRenderer({
     );
   };
 
-  // Se o node for de layout estrutural base
+  // ── Structural: section ────────────────────────────────────────────────────
   if (node.node_type === "section") {
-    const bg = node.design_tokens?.backgroundColor;
-    const bgImage = node.design_tokens?.backgroundImage;
+    const bg = (node.design_tokens as any)?.backgroundColor;
+    const bgImage = (node.design_tokens as any)?.backgroundImage;
     return wrapInteractive(
       <section
         className={cn("w-full relative")}
@@ -170,7 +198,7 @@ function ExperienceNodeRenderer({
         }}
       >
         {node.children && node.children.length > 0 ? (
-          node.children.map((child) => (
+          node.children.map((child: ExperienceNode) => (
             <ExperienceNodeRenderer
               key={child.id}
               node={child}
@@ -181,63 +209,74 @@ function ExperienceNodeRenderer({
               onSelectNode={onSelectNode}
             />
           ))
-        ) : (
+        ) : isEditing ? (
           <div className="p-8 text-center border-2 border-dashed border-border/50 text-muted-foreground text-sm">
-            Seção Vazia
+            Seção Vazia — adicione um Container
           </div>
-        )}
+        ) : null}
       </section>,
     );
   }
 
+  // ── Structural: container ──────────────────────────────────────────────────
   if (node.node_type === "container") {
-    // Processamento das regras de layout
-    const rules = node.layout_rules || {};
+    const rules = (node.layout_rules as any) || {};
+
     const maxWidthClass =
-      {
-        sm: "max-w-sm",
-        md: "max-w-md",
-        lg: "max-w-3xl",
-        xl: "max-w-5xl",
-        "2xl": "max-w-7xl",
-        full: "max-w-full",
-      }[rules.maxWidth as string] || "max-w-5xl";
+      (
+        {
+          sm: "max-w-sm",
+          md: "max-w-md",
+          lg: "max-w-3xl",
+          xl: "max-w-5xl",
+          "2xl": "max-w-7xl",
+          full: "max-w-full",
+        } as Record<string, string>
+      )[rules.maxWidth as string] ?? "max-w-5xl";
 
     const displayClass =
-      {
-        block: "block",
-        flex: "flex",
-        grid: "grid",
-      }[rules.display as string] || "flex";
+      (
+        {
+          block: "block",
+          flex: "flex",
+          grid: "grid",
+        } as Record<string, string>
+      )[rules.display as string] ?? "flex";
 
     const flexDirClass = rules.flexDirection === "row" ? "flex-row" : "flex-col";
 
     const gapClass =
-      {
-        none: "gap-0",
-        sm: "gap-2",
-        md: "gap-6",
-        lg: "gap-12",
-        xl: "gap-20",
-      }[rules.gap as string] || "gap-6";
+      (
+        {
+          none: "gap-0",
+          sm: "gap-2",
+          md: "gap-6",
+          lg: "gap-12",
+          xl: "gap-20",
+        } as Record<string, string>
+      )[rules.gap as string] ?? "gap-6";
 
     const pxClass =
-      {
-        none: "px-0",
-        sm: "px-2",
-        md: "px-4 lg:px-8",
-        lg: "px-8 lg:px-12",
-      }[rules.paddingX as string] || "px-4 lg:px-8";
+      (
+        {
+          none: "px-0",
+          sm: "px-2",
+          md: "px-4 lg:px-8",
+          lg: "px-8 lg:px-12",
+        } as Record<string, string>
+      )[rules.paddingX as string] ?? "px-4 lg:px-8";
 
     const pyClass =
-      {
-        none: "py-0",
-        sm: "py-4",
-        md: "py-8",
-        lg: "py-12",
-        xl: "py-16",
-        "2xl": "py-24",
-      }[rules.paddingY as string] || "py-16";
+      (
+        {
+          none: "py-0",
+          sm: "py-4",
+          md: "py-8",
+          lg: "py-12",
+          xl: "py-16",
+          "2xl": "py-24",
+        } as Record<string, string>
+      )[rules.paddingY as string] ?? "py-16";
 
     return wrapInteractive(
       <div
@@ -252,7 +291,7 @@ function ExperienceNodeRenderer({
         )}
       >
         {node.children && node.children.length > 0 ? (
-          node.children.map((child) => (
+          node.children.map((child: ExperienceNode) => (
             <ExperienceNodeRenderer
               key={child.id}
               node={child}
@@ -263,56 +302,98 @@ function ExperienceNodeRenderer({
               onSelectNode={onSelectNode}
             />
           ))
-        ) : (
+        ) : isEditing ? (
           <div className="p-4 text-center border border-dashed border-border/50 text-muted-foreground text-sm w-full">
-            Container Vazio
+            Container Vazio — selecione este container e adicione um bloco
           </div>
-        )}
+        ) : null}
       </div>,
     );
   }
 
-  // Componentes visuais concretos e composições
+  // ── Leaf/Composition component ─────────────────────────────────────────────
   const Component = componentMap[node.block_type];
   if (!Component) {
-    return (
-      <div className="p-4 border border-dashed border-orange-500 bg-orange-50 text-orange-900 text-sm">
-        Falta Componente React para: {node.block_type}
-      </div>
-    );
+    if (isEditing) {
+      return (
+        <div className="p-4 border border-dashed border-orange-500 bg-orange-50 text-orange-900 text-sm">
+          Falta componente React para: {node.block_type}
+        </div>
+      );
+    }
+    return null;
   }
 
-  let resolvedData = null;
+  // ---------------------------------------------------------------------------
+  // Resolve dynamic data for this specific node.
+  //
+  // Priority order:
+  // 1. Node-level transient_data (injected by BFF hydrateBindings per-node)
+  // 2. Page-level transientData (passed top-down from route loader)
+  // 3. External bindings map (legacy fallback)
+  // ---------------------------------------------------------------------------
+  const nodeTransientData = (node as any).transient_data ?? null;
+  const bindingSource = (node.data_bindings as any)?.source || null;
 
-  // 1. Prioritize transient_data injected by the backend (e.g. products)
-  if ((node as any).transient_data) {
-    // If it's a collection or latest products, it's usually injected as 'products'
-    resolvedData = (node as any).transient_data.products || (node as any).transient_data;
+  // Props for store profile blocks: extract the correct sub-key
+  let storeProfileProps: Record<string, any> = {};
+  if (STORE_PROFILE_BLOCKS.has(node.block_type) && nodeTransientData) {
+    if (node.block_type === "store_profile_hero") {
+      storeProfileProps = { storeData: nodeTransientData.store_hero ?? nodeTransientData };
+    } else if (node.block_type === "store_hours") {
+      storeProfileProps = { storeData: nodeTransientData.store_hours ?? nodeTransientData };
+    } else if (node.block_type === "store_contact") {
+      storeProfileProps = { storeData: nodeTransientData.store_contact ?? nodeTransientData };
+    }
   }
-  // 2. Fallback to external bindings if provided
-  else if (
-    node.data_bindings &&
-    ((node.data_bindings as any).type || (node.data_bindings as any).source) &&
-    bindings
-  ) {
-    const bindingType = (node.data_bindings as any).type || (node.data_bindings as any).source;
-    const bindingKey = `${node.id}_${bindingType}`;
-    resolvedData = bindings[bindingKey];
+
+  // Props for product blocks: always an array
+  let resolvedProducts: any[] | null = null;
+  if (PRODUCT_DATA_BLOCKS.has(node.block_type)) {
+    if (nodeTransientData?.products) {
+      resolvedProducts = nodeTransientData.products;
+    } else if (transientData?.products) {
+      resolvedProducts = transientData.products;
+    } else if (bindingSource && bindings) {
+      const key = `${node.id}_${bindingSource}`;
+      resolvedProducts = bindings[key] ?? null;
+    }
   }
+
+  // Props for review blocks: always an array
+  let resolvedReviews: any[] | null = null;
+  if (REVIEW_DATA_BLOCKS.has(node.block_type)) {
+    if (nodeTransientData?.reviews) {
+      resolvedReviews = nodeTransientData.reviews;
+    } else if (transientData?.reviews) {
+      resolvedReviews = transientData.reviews;
+    }
+  }
+
+  // The canonical content object (from DB node.content JSONB)
+  const content = (node.content as Record<string, any>) ?? {};
+  const designTokens = (node.design_tokens as Record<string, any>) ?? {};
+  const layoutRules = (node.layout_rules as Record<string, any>) ?? {};
 
   return wrapInteractive(
     <TrackView nodeId={node.id} blockType={node.block_type}>
       <Component
+        // ── Canonical: Pass the full content object ─────────────────────────
+        content={content}
+        // ── Legacy Compat: Spread content fields as flat props ──────────────
+        {...content}
+        // ── Extra canonical props ───────────────────────────────────────────
         node_id={node.id}
         block_type={node.block_type}
-        content={node.content}
-        design_tokens={node.design_tokens}
+        design_tokens={designTokens}
+        layout_rules={layoutRules}
         data_bindings={node.data_bindings}
         action_bindings={node.action_bindings}
-        transientData={transientData}
-        bindings={bindings}
-        resolvedData={resolvedData}
         isEditing={isEditing}
+        // ── Dynamic data ────────────────────────────────────────────────────
+        resolvedProducts={resolvedProducts}
+        resolvedReviews={resolvedReviews}
+        {...storeProfileProps}
       />
     </TrackView>,
   );

@@ -64,17 +64,17 @@ export const Route = createFileRoute("/api/webhooks/pagarme")({
 
             // Find the internal order
             const { data: tx } = await supabase
-              .from("payment_transactions")
+              .from("payments")
               .select("order_id")
-              .eq("gateway_transaction_id", gatewayTransactionId)
+              .eq("provider_ref", gatewayTransactionId)
               .single();
 
             if (tx) {
               // Update transaction
               await supabase
-                .from("payment_transactions")
+                .from("payments")
                 .update({ status: currentStatus, updated_at: new Date().toISOString() })
-                .eq("gateway_transaction_id", gatewayTransactionId);
+                .eq("provider_ref", gatewayTransactionId);
 
               // If paid, update the order
               if (currentStatus === "paid") {

@@ -46,9 +46,9 @@
 
 | Módulo                           | Objetivo de Negócio                                          | BFF Handler / Server Functions    | Tabelas SQL              | Status       |
 | :------------------------------- | :----------------------------------------------------------- | :-------------------------------- | :----------------------- | :----------- |
-| **13. Saldos e Disponibilidade** | Derivação de `available = stock_on_hand - stock_reserved`.   | `src/services/stock.functions.ts` | `product_variants`       | `COMPROVADO` |
+| **13. Saldos e Disponibilidade** | Derivação de `available = stock_on_hand - stock_reserved`.   | `src/services/stock.functions.ts` | `product_variants`       | `QUEBRADO` (Coluna stock_reserved não existe mais) |
 | **14. Movimentações de Estoque** | Histórico de entradas, saídas e ajustes manuais.             | `src/services/stock.functions.ts` | `stock_movements`        | `COMPROVADO` |
-| **15. Reservas no Carrinho**     | RPC PostgreSQL `reserve_stock_for_cart` com expiração 15min. | `src/services/cart.functions.ts`  | `cart_item_reservations` | `COMPROVADO` |
+| **15. Reservas no Carrinho**     | RPC PostgreSQL `reserve_stock_for_cart` com expiração 15min. | `src/services/cart.functions.ts`  | `cart_item_reservations` | `DESCONECTADO` (Reservas foram removidas do modelo ativo v2) |
 | **16. Alertas de Ruptura**       | Painel de aviso de produtos abaixo do estoque mínimo.        | `src/services/stock.functions.ts` | `product_variants`       | `COMPROVADO` |
 
 ---
@@ -57,9 +57,9 @@
 
 | Módulo                            | Objetivo de Negócio                                               | BFF Handler / Server Functions          | Tabelas SQL                      | Status       |
 | :-------------------------------- | :---------------------------------------------------------------- | :-------------------------------------- | :------------------------------- | :----------- |
-| **17. Carrinho de Compras (DTO)** | Resolução por `variantId` ou `productId` e abertura de gaveta.    | `src/services/cart.functions.ts`        | `carts`, `cart_items`            | `COMPROVADO` |
+| **17. Carrinho de Compras (DTO)** | Resolução por `variantId` ou `productId` e abertura de gaveta.    | `src/services/cart.functions.ts`        | `carts`, `cart_items`            | `QUEBRADO` (BFF requisita coluna ausente) |
 | **18. Calculadora de Frete**      | Cotação de CEP com regras nacionais e prazos em dias úteis.       | `src/services/shipping.functions.ts`    | `shipping_rules`                 | `COMPROVADO` |
-| **19. Checkout Transacional v2**  | RPC atômica `process_checkout_transaction_v2` em transação única. | `src/services/checkout.functions.ts`    | `orders`, `order_items`          | `COMPROVADO` |
+| **19. Checkout Transacional v2**  | RPC atômica `process_checkout_transaction_v2` em transação única. | `src/services/checkout.functions.ts`    | `orders`, `order_items`          | `QUEBRADO`    |
 | **20. Gestão de Pedidos**         | Fluxo de acompanhamento e transição rígida de estados de pedido.  | `src/services/order.functions.ts`       | `orders`, `order_status_history` | `COMPROVADO` |
 | **21. Fulfillment & Envio**       | Separação, nota fiscal, código de rastreio e etiquetas.           | `src/services/fulfillment.functions.ts` | `shipments`, `orders`            | `PARCIAL`    |
 
@@ -71,7 +71,7 @@
 | :------------------------------ | :------------------------------------------------------------- | :---------------------------------- | :-------------------------------- | :----------- |
 | **22. Caixa & PDV**             | Abertura, suprimento, sangria e fechamento de caixa diário.    | `src/services/cash.functions.ts`    | `cash_sessions`, `cash_movements` | `COMPROVADO` |
 | **23. Lançamentos Financeiros** | DRE simplificado, receitas, despesas e relatórios de vendas.   | `src/services/finance.functions.ts` | `financial_transactions`          | `PARCIAL`    |
-| **24. Métodos de Pagamento**    | Configurações de gateway (PIX, Cartão, Boleto) e parcelamento. | `src/services/payment.functions.ts` | `payment_settings`                | `COMPROVADO` |
+| **24. Métodos de Pagamento**    | Configurações de gateway (PIX, Cartão, Boleto) e parcelamento. | `src/services/payment.functions.ts` | `payment_settings`                | `BLOQUEADO` (Anti-mock ativo) |
 
 ---
 

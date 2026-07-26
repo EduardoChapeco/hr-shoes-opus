@@ -22,7 +22,7 @@ export const Route = createFileRoute("/admin/estoque/alertas")({
   loader: async () => {
     const res = await getStockLevels({ data: {} });
     // Filter for low stock (on_hand <= 5) or out of stock
-    return (res || []).filter((v: any) => v.stock_on_hand - (v.stock_reserved || 0) <= 5);
+    return (res || []).filter((v: any) => v.stock_on_hand <= 5);
   },
   component: StockAlertsPage,
 });
@@ -71,24 +71,18 @@ function StockAlertsPage() {
               <TableRow>
                 <TableHead>Produto</TableHead>
                 <TableHead>SKU</TableHead>
-                <TableHead className="text-center">Em Mãos</TableHead>
-                <TableHead className="text-center">Reservado</TableHead>
-                <TableHead className="text-center">Disponível</TableHead>
+                <TableHead className="text-center">Em Mãos (Disponível)</TableHead>
                 <TableHead className="text-center">Status</TableHead>
                 <TableHead className="text-right">Ação Rápida</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {variants.map((v: any) => {
-                const available = v.stock_on_hand - (v.stock_reserved || 0);
+                const available = v.stock_on_hand;
                 return (
                   <TableRow key={v.id}>
                     <TableCell className="font-medium">{v.products?.title || "—"}</TableCell>
                     <TableCell className="font-mono text-sm">{v.sku}</TableCell>
-                    <TableCell className="text-center">{v.stock_on_hand}</TableCell>
-                    <TableCell className="text-center text-muted-foreground">
-                      {v.stock_reserved || 0}
-                    </TableCell>
                     <TableCell className="text-center font-semibold">{available}</TableCell>
                     <TableCell className="text-center">
                       {available <= 0 ? (

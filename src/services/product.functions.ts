@@ -32,7 +32,7 @@ export async function getProductBySlugHandler(slug: string) {
          product_media(id, url, alt, media_type, sort_order, focal_point, variant_id),
          product_variants(
            id, sku, display_name, status, price_override_cents,
-           stock_on_hand, stock_reserved, attributes, ean,
+           stock_on_hand, attributes, ean,
            weight_kg, width_cm, height_cm, length_cm,
            product_media(id, url, alt, media_type, sort_order, focal_point)
          ),
@@ -74,7 +74,6 @@ export async function getProductBySlugHandler(slug: string) {
       status: string;
       price_override_cents: number | null;
       stock_on_hand: number;
-      stock_reserved: number;
       attributes: Record<string, string>;
       ean: string | null;
       weight_kg: number | null;
@@ -112,7 +111,7 @@ export async function getProductBySlugHandler(slug: string) {
             ? v.price_override_cents
             : (product.price_cents as number),
         // available_qty computed here — never on client.
-        availableQty: Math.max(0, v.stock_on_hand - v.stock_reserved),
+        availableQty: Math.max(0, v.stock_on_hand),
         attributes: (v.attributes as Record<string, string>) ?? {},
         // Logistics: variant dims cascade over product dims
         weightKg: v.weight_kg ?? (product.weight_kg as number | null) ?? null,

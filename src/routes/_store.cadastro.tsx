@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/commerce/page-header";
-import { signUpWithPassword, signInWithOAuth } from "@/services/auth.functions";
+import { signUpWithPassword, signInWithOAuth, getUserSession } from "@/services/auth.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/cadastro")({
@@ -90,6 +90,12 @@ function RegisterPage() {
       }
 
       toast.success("Conta criada com sucesso!");
+
+      // CRITICAL FIX: Ensure the server function layer sees the new cookie
+      // before invalidating the router. Sometimes the fetch cache or cookie write races.
+      await new Promise((r) => setTimeout(r, 100));
+      await getUserSession();
+
       await router.invalidate();
       navigate({ to: returnUrl });
     } catch (e: any) {
@@ -101,8 +107,7 @@ function RegisterPage() {
 
   const handleOAuth = async (provider: "google" | "github") => {
     try {
-      const redirectTo = `${window.location.origin}/api/auth/callback?next=${returnUrl}`;
-      const result = await signInWithOAuth({ data: { provider, redirectTo } });
+      const result = await signInWithOAuth({ data: { provider, redirectTo: returnUrl } });
       if (result.status === "success" && result.url) {
         window.location.href = result.url;
       } else {

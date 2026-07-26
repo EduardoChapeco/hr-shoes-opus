@@ -9,10 +9,12 @@ import type { ProductCardDTO } from "@/types/catalog";
 
 export function ProductRail({
   content,
+  resolvedProducts,
   resolvedData,
 }: {
   content?: Record<string, unknown>;
-  resolvedData?: ProductCardDTO[];
+  resolvedProducts?: any[];
+  resolvedData?: any;
   node_id?: string;
   block_type?: string;
 }) {
@@ -21,7 +23,12 @@ export function ProductRail({
   const slug = safeContent.collection_slug ? String(safeContent.collection_slug) : null;
   const layout = String(safeContent.layout || "carousel");
 
-  const productsToDisplay = Array.isArray(resolvedData) ? resolvedData : [];
+  // resolvedProducts is the canonical prop from ExperienceRenderer;
+  // resolvedData is accepted as legacy fallback
+  const productsToDisplay: any[] =
+    (Array.isArray(resolvedProducts) ? resolvedProducts : null) ??
+    (Array.isArray(resolvedData) ? resolvedData : null) ??
+    [];
 
   // Carousel layout hooks (must be unconditional)
   const [emblaRef, emblaApi] = useEmblaCarousel({

@@ -57,16 +57,14 @@ function mapProductCardDTO(row: any): ProductCardDTO {
 
   if (activeVariants.length > 0) {
     const totalAvailable = activeVariants.reduce(
-      (sum: number, v: any) => sum + Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0)),
+      (sum: number, v: any) => sum + Math.max(0, v.stock_on_hand || 0),
       0,
     );
     isOutOfStock = totalAvailable <= 0;
 
     const variantsForPrice =
       totalAvailable > 0
-        ? activeVariants.filter(
-            (v: any) => Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0)) > 0,
-          )
+        ? activeVariants.filter((v: any) => Math.max(0, v.stock_on_hand || 0) > 0)
         : activeVariants;
 
     if (variantsForPrice.length > 0) {
@@ -126,10 +124,10 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         ? `id, slug, title, brand, price_cents, compare_at_cents, published_at,
            product_media(url, alt, sort_order),
            product_categories!inner(categories!inner(slug)),
-           product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`
+           product_variants(status, price_override_cents, stock_on_hand)`
         : `id, slug, title, brand, price_cents, compare_at_cents, published_at,
            product_media(url, alt, sort_order),
-           product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`;
+           product_variants(status, price_override_cents, stock_on_hand)`;
 
       // Determine sort order — price sorting must be done post-fetch since effective price
       // depends on variant override logic (server-calculated, never trusted from client)
@@ -352,7 +350,7 @@ export const searchProducts = createServerFn({ method: "GET" })
         priceCents:price_cents,
         compareAtCents:compare_at_cents,
         media:product_media(id, url, alt, sort_order),
-        variants:product_variants(status, price_override_cents, stock_on_hand, stock_reserved)
+        variants:product_variants(status, price_override_cents, stock_on_hand)
       `;
 
       // Stage 1: Full-text search using tsvector (Portuguese stemming + stop words)
@@ -458,7 +456,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
       const { data, error } = await db
         .from("products")
         .select(
-          `id, slug, title, brand, published_at, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order), variants:product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`,
+          `id, slug, title, brand, published_at, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order), variants:product_variants(status, price_override_cents, stock_on_hand)`,
         )
         .eq("store_id", store.id)
         .eq("status", "published")
@@ -489,7 +487,7 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
     const { data, error } = await db
       .from("products")
       .select(
-        `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order), variants:product_variants(status, price_override_cents, stock_on_hand, stock_reserved)`,
+        `id, slug, title, brand, priceCents:price_cents, compareAtCents:compare_at_cents, status, media:product_media(url, alt, sort_order), variants:product_variants(status, price_override_cents, stock_on_hand)`,
       )
       .eq("store_id", store.id)
       .eq("status", "published")
@@ -545,7 +543,7 @@ export const getProductDetail = createServerFn({ method: "GET" })
           status, seo_title, seo_description, options,
           product_media(id, url, alt, media_type, sort_order),
           product_variants(
-            id, sku, price_override_cents, stock_on_hand, stock_reserved, attributes,
+            id, sku, price_override_cents, stock_on_hand, attributes,
             product_media(id, url, alt, media_type, sort_order)
           )
         `,
@@ -584,7 +582,7 @@ export const getProductDetail = createServerFn({ method: "GET" })
           }));
 
         // Calcula estoque disponível real: on_hand - reserved
-        const availableQty = Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0));
+        const availableQty = Math.max(0, v.stock_on_hand || 0);
 
         return {
           id: v.id,
@@ -709,11 +707,7 @@ export const getPublicFaqs = createServerFn({ method: "GET" }).handler(async () 
     if (!storeId) return [];
 
     // 1. Check if store has faqs in settings
-    const { data: store } = await db
-      .from("stores")
-      .select("settings")
-      .eq("id", storeId)
-      .single();
+    const { data: store } = await db.from("stores").select("settings").eq("id", storeId).single();
 
     const storeFaqs = store?.settings?.faqs;
     if (Array.isArray(storeFaqs) && storeFaqs.length > 0) {

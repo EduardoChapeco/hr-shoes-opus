@@ -27,28 +27,39 @@ export const Route = createFileRoute("/admin/vitrine")({
 
 const TEMPLATES = [
   {
+    id: "fashion_editorial",
+    name: "Fashion Editorial",
+    description: "Design de alta moda com Hero Split, Shop The Look interativo e Bento Grid.",
+    icon: <Palette className="w-10 h-10 text-purple-500 mb-4" />,
+    features: ["Moda", "Editorial", "Shop The Look"],
+  },
+  {
+    id: "beauty_botanical",
+    name: "Beauty Botanical",
+    description: "Ideal para cosméticos, com rotina em passos, ingredientes e antes/depois.",
+    icon: <Sparkles className="w-10 h-10 text-emerald-500 mb-4" />,
+    features: ["Beleza", "Cosméticos", "Antes/Depois"],
+  },
+  {
+    id: "high_conversion_landing",
+    name: "High Conversion",
+    description: "Foco total em vendas diretas, ofertas com temporizador e escassez.",
+    icon: <LayoutTemplate className="w-10 h-10 text-red-500 mb-4" />,
+    features: ["Oferta", "Countdown", "Garantia"],
+  },
+  {
+    id: "streetwear_dark",
+    name: "Streetwear Dark",
+    description: "Visual moderno dark mode nativo com bento grids para marcas urbanas.",
+    icon: <MonitorSmartphone className="w-10 h-10 text-slate-800 mb-4" />,
+    features: ["Dark Mode", "Streetwear", "Bento Grid"],
+  },
+  {
     id: "classic_commerce",
     name: "Clássico E-commerce",
-    description:
-      "Layout tradicional com banner principal, destaques em carrossel e banners promocionais.",
+    description: "Layout tradicional com banner principal, destaques em carrossel e ofertas.",
     icon: <LayoutTemplate className="w-10 h-10 text-blue-500 mb-4" />,
-    features: ["Hero Carousel", "Carrossel de Produtos", "Banner Promocional"],
-  },
-  {
-    id: "minimalist_fashion",
-    name: "Minimalista & Moda",
-    description:
-      "Foco no produto e imagens grandes. Ideal para coleções exclusivas e marcas boutique.",
-    icon: <Palette className="w-10 h-10 text-purple-500 mb-4" />,
-    features: ["Split Banner", "Grid de Produtos", "Espaço Negativo"],
-  },
-  {
-    id: "street_wear",
-    name: "Streetwear & Dark",
-    description:
-      "Tema escuro nativo, visual agressivo e galeria estilo instagram. Focado em lançamentos.",
-    icon: <Sparkles className="w-10 h-10 text-slate-800 mb-4" />,
-    features: ["Dark Mode Nativo", "Galeria de Fotos", "Destaque de Lançamentos"],
+    features: ["Clássico", "Carrossel de Produtos", "Confiança"],
   },
   {
     id: "blank",

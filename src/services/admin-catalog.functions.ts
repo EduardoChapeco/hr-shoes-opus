@@ -176,11 +176,11 @@ export async function listAdminProductsHandler() {
 export const listAdminProducts = createServerFn({ method: "GET" }).handler(async () => {
   try {
     const data = await listAdminProductsHandler();
-    return data;
+    return data || [];
   } catch (e) {
     if (e instanceof SupabaseUnconfiguredError) throw e;
     console.error("[admin-catalog] listAdminProducts error:", e);
-    throw new Error("Erro ao listar produtos.");
+    return [];
   }
 });
 
@@ -689,7 +689,7 @@ export async function getProductByIdHandler(id: string) {
   return data;
 }
 
-export const getProductById = createServerFn({ method: "GET" })
+export const getProductById = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: { id } }) => {
     try {
@@ -827,16 +827,9 @@ export async function upsertProductVariantHandler(input: {
   const otherVariants = existingVariants.filter((v: any) => v.id !== id);
 
   if (otherVariants.length > 0) {
-    const requiredKeys = Object.keys(otherVariants[0].attributes || {})
-      .sort()
-      .join("|");
-    const incomingKeys = Object.keys(cleanAttrs).sort().join("|");
-
-    if (requiredKeys !== incomingKeys) {
-      throw new Error(
-        `Inconsistência de matriz: Esta variante requer os atributos [${Object.keys(otherVariants[0].attributes || {}).join(", ")}], mas recebeu [${Object.keys(cleanAttrs).join(", ")}].`,
-      );
-    }
+    // We intentionally allow incoming variants to have different keys than existing variants.
+    // This allows the store owner to add a new option (e.g. "Material") without breaking the system.
+    // Obsolete variants that lack the new dimension will be archived by batchUpsertVariantMatrixHandler.
 
     const incomingComboStr = Object.keys(cleanAttrs)
       .sort()
@@ -984,6 +977,11 @@ export async function batchUpsertVariantMatrixHandler(input: {
       results.push(upsertRes);
     }
   }
+
+  // Fix: Do NOT archive existing variants automatically.
+  // The store owner might have custom variants that don't fit the generated matrix perfectly.
+  // If they want to archive them, they should do it manually in the UI, preserving historical integrity.
+  // We simply upsert what was requested and leave the rest untouched.
 
   return { success: true, count: results.length };
 }

@@ -10,32 +10,38 @@ interface StoreHeroData {
 }
 
 interface StoreProfileHeroProps {
-  content?: {
-    show_description?: boolean;
-    show_logo?: boolean;
-    show_cover?: boolean;
-    layout?: "centered" | "left" | "instagram";
-  };
+  // Flat content fields (spread by ExperienceRenderer from node.content)
+  show_description?: boolean;
+  show_logo?: boolean;
+  show_cover?: boolean;
+  layout?: "centered" | "left" | "instagram";
   design_tokens?: {
     backgroundColor?: string;
     textColor?: string;
     className?: string;
   };
+  // Canonical: storeData injected by ExperienceRenderer
+  storeData?: StoreHeroData;
+  // Legacy compat: raw transient_data from BFF when component receives it directly
   transient_data?: {
     store_hero?: StoreHeroData;
   };
 }
 
 export function StoreProfileHero({
-  content,
+  show_description,
+  show_logo,
+  show_cover,
+  layout,
   design_tokens,
+  storeData,
   transient_data,
 }: StoreProfileHeroProps) {
-  const store = transient_data?.store_hero;
-  const layout = content?.layout ?? "centered";
-  const showLogo = content?.show_logo !== false;
-  const showCover = content?.show_cover !== false;
-  const showDescription = content?.show_description !== false;
+  const store = storeData ?? transient_data?.store_hero;
+  const resolvedLayout = layout ?? "centered";
+  const showLogo = show_logo !== false;
+  const showCover = show_cover !== false;
+  const showDescription = show_description !== false;
 
   if (!store) {
     return (
@@ -75,14 +81,17 @@ export function StoreProfileHero({
         className={cn(
           "mx-auto max-w-2xl px-4 @md:px-6 pb-8",
           showCover ? "-mt-12 relative z-10" : "pt-10",
-          layout === "centered" && "flex flex-col items-center text-center",
-          layout === "left" && "flex flex-col items-start",
-          layout === "instagram" && "flex flex-col items-center text-center",
+          resolvedLayout === "centered" && "flex flex-col items-center text-center",
+          resolvedLayout === "left" && "flex flex-col items-start",
+          resolvedLayout === "instagram" && "flex flex-col items-center text-center",
         )}
       >
         {showLogo && (
           <div
-            className={cn("mb-4", layout === "centered" || layout === "instagram" ? "mx-auto" : "")}
+            className={cn(
+              "mb-4",
+              resolvedLayout === "centered" || resolvedLayout === "instagram" ? "mx-auto" : "",
+            )}
           >
             {store.logo_url ? (
               <img

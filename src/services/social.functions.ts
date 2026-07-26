@@ -144,31 +144,22 @@ export const getProductReviewsList = createServerFn({ method: "GET" })
 
 export const listStoreFollowers = createServerFn({ method: "GET" }).handler(async () => {
   try {
-    const ssrClient = getServerClient();
-    const {
-      data: { user },
-    } = await ssrClient.auth.getUser();
-    if (!user) throw new Error("Não autenticado");
+    const { getServerIdentity } = await import("@/lib/identity");
+    const identity = await getServerIdentity();
+    if (!identity.id || !identity.store_id) return [];
 
-    const { data: profile } = await ssrClient
-      .from("profiles")
-      .select("store_id")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.store_id) return [];
-
-    const { data, error } = await ssrClient
+    const db = getServerClient();
+    const { data, error } = await db
       .from("store_followers")
       .select("created_at, customer:auth.users(id, raw_user_meta_data)")
-      .eq("store_id", profile.store_id)
+      .eq("store_id", identity.store_id)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    return data;
+    return data || [];
   } catch (e: any) {
     console.error("[social.functions] listStoreFollowers:", e);
-    throw new Error(e.message || "Erro ao listar seguidores");
+    return [];
   }
 });

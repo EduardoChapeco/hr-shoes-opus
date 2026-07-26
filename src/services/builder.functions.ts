@@ -82,153 +82,201 @@ async function hydrateBindings(
     ? await hydrateStoreProfileForNode(db, store_id)
     : null;
 
-  return Promise.all(
-    nodes.map(async (node) => {
-      const bindings = node.data_bindings || {};
-      const bindingType = bindings.type || bindings.source;
+  // --- BATCH FETCHING FOR PERFORMANCE (Eliminates N+1) ---
+  const collectionSlugs = new Set<string>();
+  let needsLatestProducts = false;
+  let maxLatestLimit = 12;
+  let needsReviews = false;
+  const hotspotSlugs = new Set<string>();
 
-      if (bindingType === "store_profile" && storeProfileData) {
-        return { ...node, transient_data: storeProfileData };
+  // 1. Map requirements
+  nodes.forEach((node) => {
+    const bindings = node.data_bindings || {};
+    const bindingSource = bindings.source;
+
+    if (bindingSource === "product_collection" && bindings.collection_slug) {
+      collectionSlugs.add(bindings.collection_slug);
+    } else if (bindingSource === "latest_products" || bindingSource === "dynamic_products") {
+      needsLatestProducts = true;
+      if (bindings.limit && bindings.limit > maxLatestLimit) {
+        maxLatestLimit = bindings.limit;
       }
+    } else if (bindingSource === "dynamic_reviews") {
+      needsReviews = true;
+    }
 
-      if (bindingType === "product_collection" && bindings.collection_slug) {
-        const { data: col } = await db
-          .from("collections")
-          .select("id")
-          .eq("slug", bindings.collection_slug)
-          .eq("store_id", store_id)
-          .eq("status", "active")
-          .single();
-        let res = null;
-        if (col) {
-          const { data: junction } = await db
-            .from("product_collections")
-            .select("product_id")
-            .eq("collection_id", col.id);
-          const pIds = junction?.map((j: any) => j.product_id) || [];
-          if (pIds.length > 0) {
-            const { data } = await db
-              .from("products")
-              .select(
-                "id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)",
-              )
-              .eq("status", "published")
-              .eq("store_id", store_id)
-              .in("id", pIds)
-              .order("created_at", { ascending: false })
-              .limit(12);
-            if (data) {
-              const formatted = data.map((p: any) => {
-                const sortedMedia = p.media
-                  ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order)
-                  : [];
-                return {
-                  id: p.id,
-                  title: p.title,
-                  slug: p.slug,
-                  priceCents: p.price_cents,
-                  compareAtCents: p.compare_at_cents,
-                  coverUrl: sortedMedia[0]?.url || null,
-                  hoverUrl: sortedMedia[1]?.url || null,
-                  isOutOfStock: false,
-                };
-              });
-              res = { status: "ok", data: formatted };
-            }
-          }
-        }
-        if (res && res.status === "ok") {
-          return { ...node, transient_data: { products: res.data } };
-        }
-      } else if (bindingType === "latest_products" || bindingType === "dynamic_products") {
-        const limit = bindings.limit || 12;
-        const { data: latest } = await db
+    if (node.block_type === "image_hotspots" && Array.isArray(node.content?.hotspots)) {
+      node.content.hotspots.forEach((h: any) => {
+        if (h.product_slug) hotspotSlugs.add(h.product_slug);
+      });
+    }
+  });
+
+  // Helper
+  const formatProduct = (p: any) => {
+    const sortedMedia = p.media
+      ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order)
+      : [];
+    const totalStock = Array.isArray(p.variants)
+      ? p.variants.reduce((sum: number, v: any) => sum + (v.stock_on_hand ?? 0), 0)
+      : 0;
+    return {
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      priceCents: p.price_cents,
+      compareAtCents: p.compare_at_cents,
+      coverUrl: sortedMedia[0]?.url || null,
+      hoverUrl: sortedMedia[1]?.url || null,
+      isOutOfStock: totalStock <= 0,
+    };
+  };
+
+  // 2. Execute Batched Queries
+  const cache = {
+    collections: {} as Record<string, any[]>,
+    latest: [] as any[],
+    reviews: [] as any[],
+    hotspotsMap: new Map<string, any>(),
+  };
+
+  // 2a. Collections
+  if (collectionSlugs.size > 0) {
+    const slugsArray = Array.from(collectionSlugs);
+    const { data: cols } = await db
+      .from("collections")
+      .select("id, slug")
+      .in("slug", slugsArray)
+      .eq("store_id", store_id)
+      .eq("status", "active");
+
+    if (cols && cols.length > 0) {
+      const colIds = cols.map((c) => c.id);
+      const { data: junctions } = await db
+        .from("product_collections")
+        .select("collection_id, product_id")
+        .in("collection_id", colIds);
+
+      if (junctions && junctions.length > 0) {
+        const pIds = Array.from(new Set(junctions.map((j) => j.product_id)));
+        const { data: prods } = await db
           .from("products")
           .select(
-            "id, title, slug, price_cents, compare_at_cents, media:product_media(url, alt, sort_order)",
+            "id, title, slug, price_cents, compare_at_cents, " +
+              "media:product_media(url, alt, sort_order), " +
+              "variants:product_variants(stock_on_hand)",
           )
           .eq("status", "published")
           .eq("store_id", store_id)
-          .order("created_at", { ascending: false })
-          .limit(limit);
-        if (latest) {
-          const formatted = latest.map((p: any) => {
-            const sortedMedia = p.media
-              ? [...p.media].sort((a: any, b: any) => a.sort_order - b.sort_order)
-              : [];
-            return {
-              id: p.id,
-              title: p.title,
-              slug: p.slug,
-              priceCents: p.price_cents,
-              compareAtCents: p.compare_at_cents,
-              coverUrl: sortedMedia[0]?.url || null,
-              hoverUrl: sortedMedia[1]?.url || null,
-              isOutOfStock: false,
-            };
+          .in("id", pIds)
+          .order("created_at", { ascending: false });
+
+        if (prods) {
+          const prodsById = new Map();
+          (prods as any[]).forEach((p: any) => prodsById.set(p.id, formatProduct(p)));
+          cols.forEach((c) => {
+            const cPids = junctions.filter((j) => j.collection_id === c.id).map((j) => j.product_id);
+            cache.collections[c.slug] = cPids.map((pid) => prodsById.get(pid)).filter(Boolean);
           });
-          return { ...node, transient_data: { products: formatted } };
-        }
-      } else if (bindingType === "dynamic_reviews") {
-        const { data: reviews } = await db
-          .from("reviews")
-          .select("id, rating, comment, profiles(full_name, avatar_url)")
-          .eq("status", "approved")
-          .order("created_at", { ascending: false })
-          .limit(6);
-        if (reviews) {
-          const formatted = reviews.map((r: any) => {
-            const profile = (r.profiles as any) || {};
-            return {
-              author: profile.full_name || "Cliente",
-              role: "Cliente Verificado",
-              content: r.comment || "",
-              rating: r.rating,
-              avatar_url: profile.avatar_url || null,
-            };
-          });
-          return { ...node, transient_data: { reviews: formatted } };
         }
       }
+    }
+  }
 
-      if (node.block_type === "image_hotspots" && Array.isArray(node.content?.hotspots)) {
-        const slugs = node.content.hotspots
-          .map((h: any) => h.product_slug)
-          .filter((s: string | undefined): s is string => Boolean(s));
+  // 2b. Latest Products
+  if (needsLatestProducts) {
+    const { data: latest } = await db
+      .from("products")
+      .select(
+        "id, title, slug, price_cents, compare_at_cents, " +
+          "media:product_media(url, alt, sort_order), " +
+          "variants:product_variants(stock_on_hand)",
+      )
+      .eq("status", "published")
+      .eq("store_id", store_id)
+      .order("created_at", { ascending: false })
+      .limit(maxLatestLimit);
+    if (latest) cache.latest = latest.map(formatProduct);
+  }
 
-        if (slugs.length > 0) {
-          const { data: prods } = await db
-            .from("products")
-            .select("id, title, slug, price_cents, compare_at_cents")
-            .eq("store_id", store_id)
-            .eq("status", "published")
-            .in("slug", slugs);
+  // 2c. Reviews
+  if (needsReviews) {
+    const { data: reviews } = await db
+      .from("reviews")
+      .select("id, rating, comment, reviewer_name, profiles(full_name, avatar_url)")
+      .eq("status", "approved")
+      .eq("store_id", store_id)
+      .order("created_at", { ascending: false })
+      .limit(6);
+    if (reviews) {
+      cache.reviews = reviews.map((r: any) => {
+        const profile = (r.profiles as any) || {};
+        const authorName = (r.reviewer_name as string | null) || profile.full_name || "Cliente";
+        return {
+          author: authorName,
+          role: "Cliente Verificado",
+          content: r.comment || "",
+          rating: r.rating,
+          avatar_url: profile.avatar_url || null,
+        };
+      });
+    }
+  }
 
-          if (prods && prods.length > 0) {
-            const prodMap = new Map(prods.map((p) => [p.slug, p]));
-            const enrichedHotspots = node.content.hotspots.map((h: any) => {
-              if (h.product_slug && prodMap.has(h.product_slug)) {
-                const p = prodMap.get(h.product_slug)!;
-                return {
-                  ...h,
-                  title: h.title || p.title,
-                  price_cents: p.price_cents,
-                  product_id: p.id,
-                };
-              }
-              return h;
-            });
-            return {
-              ...node,
-              content: { ...node.content, hotspots: enrichedHotspots },
-            };
-          }
+  // 2d. Hotspots
+  if (hotspotSlugs.size > 0) {
+    const { data: hProds } = await db
+      .from("products")
+      .select("id, title, slug, price_cents, compare_at_cents")
+      .eq("store_id", store_id)
+      .eq("status", "published")
+      .in("slug", Array.from(hotspotSlugs));
+    if (hProds) {
+      hProds.forEach((p) => cache.hotspotsMap.set(p.slug, p));
+    }
+  }
+
+  // 3. Hydrate the nodes using cached data (O(N) operation without async DB calls)
+  return nodes.map((node) => {
+    const bindings = node.data_bindings || {};
+    const bindingSource = bindings.source;
+    let transient_data: any = {};
+
+    if (bindingSource === "store_profile" && storeProfileData) {
+      transient_data = storeProfileData;
+    } else if (bindingSource === "product_collection" && bindings.collection_slug) {
+      const items = cache.collections[bindings.collection_slug];
+      if (items) transient_data = { products: items };
+    } else if (bindingSource === "latest_products" || bindingSource === "dynamic_products") {
+      const limit = (bindings.limit as number) || 12;
+      transient_data = { products: cache.latest.slice(0, limit) };
+    } else if (bindingSource === "dynamic_reviews") {
+      transient_data = { reviews: cache.reviews };
+    }
+
+    let enrichedNode = { ...node };
+    if (Object.keys(transient_data).length > 0) {
+      (enrichedNode as any).transient_data = transient_data;
+    }
+
+    if (enrichedNode.block_type === "image_hotspots" && Array.isArray(enrichedNode.content?.hotspots)) {
+      const enrichedHotspots = enrichedNode.content.hotspots.map((h: any) => {
+        if (h.product_slug && cache.hotspotsMap.has(h.product_slug)) {
+          const p = cache.hotspotsMap.get(h.product_slug);
+          return {
+            ...h,
+            title: h.title || p.title,
+            price_cents: p.price_cents,
+            product_id: p.id,
+          };
         }
-      }
+        return h;
+      });
+      enrichedNode.content = { ...enrichedNode.content, hotspots: enrichedHotspots };
+    }
 
-      return node;
-    }),
-  );
+    return enrichedNode;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -1059,9 +1107,10 @@ export const getOrCreateHomeDocument = createServerFn({ method: "POST" })
 
       // 4. Inject template nodes if requested
       const templateId = input?.template_id ?? "blank";
-      const templateFn = HOME_TEMPLATES[templateId] ?? HOME_TEMPLATES.blank;
+      const { HOME_TEMPLATES_LIBRARY } = await import("@/lib/home-templates-library");
+      const preset = HOME_TEMPLATES_LIBRARY[templateId];
       const { randomUUID } = await import("crypto");
-      const seedNodes = templateFn(() => randomUUID());
+      const seedNodes = preset ? preset.nodesFactory(() => randomUUID()) : [];
 
       if (seedNodes.length > 0) {
         const nodesToInsert = seedNodes.map((n: any) => ({ ...n, version_id: version.id }));

@@ -7,7 +7,8 @@ export function CookieBanner() {
 
   useEffect(() => {
     // 1. Check localStorage fallback
-    const localConsent = typeof window !== "undefined" ? localStorage.getItem("hr_shoes_cookie_consent") : null;
+    const localConsent =
+      typeof window !== "undefined" ? localStorage.getItem("hr_shoes_cookie_consent") : null;
     if (localConsent === "accepted") {
       return;
     }

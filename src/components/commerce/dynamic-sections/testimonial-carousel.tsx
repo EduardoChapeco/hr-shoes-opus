@@ -1,7 +1,5 @@
 import * as React from "react";
 import { Star } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { getBuilderReviews } from "@/services/builder.functions";
 import {
   Carousel,
   CarouselContent,
@@ -13,44 +11,44 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface TestimonialCarouselProps {
-  node_id: string;
-  block_type: string;
-  content?: {
-    title?: string;
-    subtitle?: string;
-    testimonials?: Array<any>; // Fallback para conteúdo manual, se não usar dinâmico
-  };
+  node_id?: string;
+  block_type?: string;
+  // Flat content fields (spread by ExperienceRenderer from node.content)
+  title?: string;
+  subtitle?: string;
+  testimonials?: Array<any>; // Static fallback when not using dynamic binding
   design_tokens?: any;
   data_bindings?: { type?: string; source?: string };
+  // Canonical dynamic data props from ExperienceRenderer
+  resolvedReviews?: any[];
+  // Legacy compat
   transientData?: any;
   resolvedData?: any;
 }
 
 export function TestimonialCarousel({
-  content,
+  title,
+  subtitle,
+  testimonials: staticTestimonials,
   design_tokens,
   data_bindings,
-  transientData,
+  resolvedReviews,
   resolvedData,
+  transientData,
 }: TestimonialCarouselProps) {
   const bindingType = data_bindings?.type || data_bindings?.source;
   const isDynamic =
-    bindingType === "dynamic_reviews" ||
-    !content?.testimonials ||
-    content.testimonials.length === 0;
+    bindingType === "dynamic_reviews" || !staticTestimonials || staticTestimonials.length === 0;
 
-  // Use server-side hydrated data if present
-  const serverReviews = resolvedData?.reviews || resolvedData || transientData?.reviews || null;
+  // Canonical: resolvedReviews → legacy resolvedData → transientData
+  const serverReviews: any[] | null =
+    resolvedReviews ??
+    resolvedData?.reviews ??
+    (Array.isArray(resolvedData) ? resolvedData : null) ??
+    transientData?.reviews ??
+    null;
 
-  const { data: result, isLoading } = useQuery({
-    queryKey: ["builderReviews"],
-    queryFn: () => getBuilderReviews(),
-    enabled: isDynamic && !serverReviews,
-  });
-
-  const testimonials = isDynamic
-    ? serverReviews || (Array.isArray(result) ? result : [])
-    : content?.testimonials || [];
+  const testimonials = isDynamic ? (serverReviews ?? []) : (staticTestimonials ?? []);
 
   return (
     <div
@@ -61,29 +59,18 @@ export function TestimonialCarousel({
       }}
     >
       <div className="mx-auto max-w-6xl px-4 @md:px-8">
-        {(content?.title || content?.subtitle) && (
+        {(title || subtitle) && (
           <div className="mb-12 text-center">
-            {content?.title && (
-              <h2 className="text-3xl @md:text-4xl font-bold tracking-tight mb-3">
-                {content.title}
-              </h2>
+            {title && (
+              <h2 className="text-3xl @md:text-4xl font-bold tracking-tight mb-3">{title}</h2>
             )}
-            {content?.subtitle && (
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{content.subtitle}</p>
+            {subtitle && (
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{subtitle}</p>
             )}
           </div>
         )}
 
-        {isLoading ? (
-          <div className="flex gap-4 overflow-hidden">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="w-[300px] @md:w-[350px] h-[200px] bg-muted animate-pulse rounded-lg flex-shrink-0"
-              />
-            ))}
-          </div>
-        ) : testimonials.length > 0 ? (
+        {testimonials.length > 0 ? (
           <Carousel
             opts={{
               align: "start",

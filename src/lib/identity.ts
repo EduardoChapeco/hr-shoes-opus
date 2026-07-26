@@ -44,10 +44,18 @@ export async function getServerIdentity(): Promise<ServerIdentity> {
     .eq("id", user.id)
     .maybeSingle();
 
+  let storeId = profile?.store_id ?? null;
+  if (!storeId) {
+    try {
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      storeId = (await resolveTenantStoreId()) ?? null;
+    } catch {}
+  }
+
   return {
     id: user.id,
     role: profile?.role ?? "customer",
-    store_id: profile?.store_id ?? null,
+    store_id: storeId,
     organization_id: profile?.organization_id ?? null,
   };
 }

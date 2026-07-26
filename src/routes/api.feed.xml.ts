@@ -44,7 +44,7 @@ export const Route = createFileRoute("/api/feed/xml")({
             .select(
               `
               id, slug, title, short_description, description, manufacturer, price_cents, compare_at_cents, status,
-              product_variants(id, sku, price_cents, attributes, stock_on_hand, stock_reserved),
+              product_variants(id, sku, price_cents, attributes, stock_on_hand),
               product_media(url, is_thumbnail)
             `,
             )
@@ -79,7 +79,6 @@ export const Route = createFileRoute("/api/feed/xml")({
                 sku: p.slug,
                 price_cents: p.price_cents,
                 stock_on_hand: 1, // Assume available if published and no variant tracking
-                stock_reserved: 0,
                 attributes: {},
               });
             }
@@ -112,7 +111,7 @@ export const Route = createFileRoute("/api/feed/xml")({
               }
               xml += `  <g:condition>new</g:condition>\n`;
 
-              const availableQty = (v.stock_on_hand || 0) - (v.stock_reserved || 0);
+              const availableQty = v.stock_on_hand || 0;
               xml += `  <g:availability>${availableQty > 0 ? "in stock" : "out of stock"}</g:availability>\n`;
               xml += `  <g:price>${regularPriceBrl} BRL</g:price>\n`;
               if (salePriceBrl) {

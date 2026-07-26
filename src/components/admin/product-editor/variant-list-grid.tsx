@@ -42,7 +42,7 @@ export function VariantListGrid({ product, onEditVariant }: VariantListGridProps
               sku: targetVariant.sku,
               attributes: targetVariant.attributes || {},
               price_override_cents: targetVariant.price_override_cents,
-              stock: (targetVariant.stock_on_hand || 0) - (targetVariant.stock_reserved || 0),
+              stock: targetVariant.stock_on_hand || 0,
               image_url: url,
             },
           ],
@@ -83,7 +83,7 @@ export function VariantListGrid({ product, onEditVariant }: VariantListGridProps
               .map(([k, val]) => `${val}`)
               .join(" / ");
 
-            const availableQty = Math.max(0, (v.stock_on_hand || 0) - (v.stock_reserved || 0));
+            const availableQty = Math.max(0, v.stock_on_hand || 0);
 
             // Procura se tem mídia pra essa variante
             const media = product.product_media?.find((m: any) => m.variant_id === v.id);

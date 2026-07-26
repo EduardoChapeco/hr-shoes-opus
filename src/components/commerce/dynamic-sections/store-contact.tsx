@@ -26,20 +26,22 @@ interface StoreContactData {
 }
 
 interface StoreContactProps {
-  content?: {
-    title?: string;
-    show_map_link?: boolean;
-    show_address?: boolean;
-    show_phone?: boolean;
-    show_whatsapp?: boolean;
-    show_email?: boolean;
-    show_action_buttons?: boolean;
-  };
+  // Flat content fields (spread by ExperienceRenderer from node.content)
+  title?: string;
+  show_map_link?: boolean;
+  show_address?: boolean;
+  show_phone?: boolean;
+  show_whatsapp?: boolean;
+  show_email?: boolean;
+  show_action_buttons?: boolean;
   design_tokens?: {
     backgroundColor?: string;
     textColor?: string;
     className?: string;
   };
+  // Canonical: storeData injected by ExperienceRenderer
+  storeData?: StoreContactData;
+  // Legacy compat
   transient_data?: {
     store_contact?: StoreContactData;
   };
@@ -55,15 +57,26 @@ const ICON_MAP: Record<ActionType, React.FC<{ className?: string }>> = {
   custom: ExternalLink,
 };
 
-export function StoreContact({ content, design_tokens, transient_data }: StoreContactProps) {
-  const store = transient_data?.store_contact;
-  const title = content?.title ?? "Fale Conosco";
-  const showMapLink = content?.show_map_link !== false;
-  const showAddress = content?.show_address !== false;
-  const showPhone = content?.show_phone !== false;
-  const showWhatsapp = content?.show_whatsapp !== false;
-  const showEmail = content?.show_email !== false;
-  const showActionButtons = content?.show_action_buttons !== false;
+export function StoreContact({
+  title,
+  show_map_link,
+  show_address,
+  show_phone,
+  show_whatsapp,
+  show_email,
+  show_action_buttons,
+  design_tokens,
+  storeData,
+  transient_data,
+}: StoreContactProps) {
+  const store = storeData ?? transient_data?.store_contact;
+  const resolvedTitle = title ?? "Fale Conosco";
+  const showMapLink = show_map_link !== false;
+  const showAddress = show_address !== false;
+  const showPhone = show_phone !== false;
+  const showWhatsapp = show_whatsapp !== false;
+  const showEmail = show_email !== false;
+  const showActionButtons = show_action_buttons !== false;
 
   if (!store) {
     return (

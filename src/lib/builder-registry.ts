@@ -543,6 +543,36 @@ export const builderRegistry: Record<string, BlockManifest> = {
     },
   },
 
+  booking_calendar: {
+    type: "booking_calendar",
+    version: "1.0.0",
+    name: "Agendamento de Serviços",
+    description: "Calendário interativo para agendar serviços reais",
+    category: "marketing",
+    icon: "Calendar",
+    allowedBuilderProfiles: "all",
+    allowedParentTypes: ["container"],
+    allowedChildTypes: "none",
+    contentSchema: z.object({
+      title: z.string().optional(),
+      subtitle: z.string().optional(),
+    }),
+    inspector: {
+      content: [
+        { name: "title", label: "Título", type: "text" },
+        { name: "subtitle", label: "Subtítulo", type: "textarea" },
+      ],
+    },
+    defaultProps: {
+      node_type: "composition",
+      block_type: "booking_calendar",
+      content: {
+        title: "Agende seu Atendimento",
+        subtitle: "Escolha o melhor serviço e horário para você.",
+      },
+    },
+  },
+
   gallery_grid: {
     type: "gallery_grid",
     version: "1.0.0",
@@ -670,8 +700,8 @@ export const builderRegistry: Record<string, BlockManifest> = {
     allowedChildTypes: "none",
     contentSchema: z.object({
       title: z.string().optional(),
-      handle: z.string().optional(),
-      images: z.array(z.any()),
+      username: z.string().optional(),
+      posts: z.array(z.any()),
     }),
     inspector: {
       content: [
@@ -693,7 +723,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
     defaultProps: {
       node_type: "composition",
       block_type: "social_grid",
-      content: { title: "Siga-nos", handle: "@lojahrshoes", images: [] },
+      content: { title: "Siga-nos", username: "@lojahrshoes", posts: [] },
     },
   },
 
@@ -838,7 +868,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
       node_type: "composition",
       block_type: "product_carousel",
       content: { title: "Lançamentos", subtitle: "Conheça as novidades" },
-      data_bindings: { source: "dynamic_products" },
+      data_bindings: { type: "dynamic_products" },
     },
   },
 
@@ -868,7 +898,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
       node_type: "composition",
       block_type: "product_grid",
       content: { title: "Mais Vendidos", subtitle: "Os favoritos dos clientes" },
-      data_bindings: { source: "dynamic_products" },
+      data_bindings: { type: "dynamic_products" },
     },
   },
 
@@ -959,7 +989,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
       node_type: "composition",
       block_type: "store_profile_hero",
       content: { show_description: true, show_logo: true, show_cover: true, layout: "centered" },
-      data_bindings: { source: "store_profile" },
+      data_bindings: { type: "store_profile" },
     },
   },
 
@@ -987,7 +1017,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
       node_type: "element",
       block_type: "store_hours",
       content: { title: "Horários de Funcionamento", show_status_badge: true },
-      data_bindings: { source: "store_profile" },
+      data_bindings: { type: "store_profile" },
     },
   },
 
@@ -1033,7 +1063,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
         show_email: true,
         show_action_buttons: true,
       },
-      data_bindings: { source: "store_profile" },
+      data_bindings: { type: "store_profile" },
     },
   },
 

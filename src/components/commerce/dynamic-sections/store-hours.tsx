@@ -25,24 +25,32 @@ interface StoreHoursData {
 }
 
 interface StoreHoursProps {
-  content?: {
-    title?: string;
-    show_status_badge?: boolean;
-  };
+  // Flat content fields (spread by ExperienceRenderer from node.content)
+  title?: string;
+  show_status_badge?: boolean;
   design_tokens?: {
     backgroundColor?: string;
     textColor?: string;
     className?: string;
   };
+  // Canonical: storeData injected by ExperienceRenderer
+  storeData?: StoreHoursData;
+  // Legacy compat
   transient_data?: {
     store_hours?: StoreHoursData;
   };
 }
 
-export function StoreHours({ content, design_tokens, transient_data }: StoreHoursProps) {
-  const storeHours = transient_data?.store_hours;
-  const title = content?.title ?? "Horários de Funcionamento";
-  const showBadge = content?.show_status_badge !== false;
+export function StoreHours({
+  title,
+  show_status_badge,
+  design_tokens,
+  storeData,
+  transient_data,
+}: StoreHoursProps) {
+  const storeHours = storeData ?? transient_data?.store_hours;
+  const resolvedTitle = title ?? "Horários de Funcionamento";
+  const showBadge = show_status_badge !== false;
 
   if (!storeHours) {
     return (
@@ -75,7 +83,7 @@ export function StoreHours({ content, design_tokens, transient_data }: StoreHour
         <div className="flex items-center justify-between mb-6 gap-4">
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold">{title}</h2>
+            <h2 className="text-xl font-semibold">{resolvedTitle}</h2>
           </div>
           {showBadge && (
             <span

@@ -169,16 +169,20 @@ export const signInWithOAuth = createServerFn({ method: "POST" })
   .validator(
     z.object({
       provider: z.enum(["google", "github", "apple", "azure"]),
-      redirectTo: z.string(),
+      redirectTo: z.string().optional(),
     }),
   )
   .handler(async ({ data: { provider, redirectTo } }) => {
     try {
       const supabase = getSSRClient();
+      const siteUrl = getEnvVar("VITE_SITE_URL") || "https://hrshoes.pages.dev";
+      const safeNext = normalizeInternalReturnPath(redirectTo, "/");
+      const safeRedirectTo = `${siteUrl}/api/auth/callback?next=${encodeURIComponent(safeNext)}`;
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider as Provider,
         options: {
-          redirectTo,
+          redirectTo: safeRedirectTo,
         },
       });
 
@@ -205,8 +209,9 @@ export const signUpWithPassword = createServerFn({ method: "POST" })
 
       // Build the confirmation URL. Supabase will append token_hash and type.
       // The app's /api/auth/confirm handler will process these and create the session.
+      const safeNext = redirectTo ? normalizeInternalReturnPath(redirectTo, "/") : undefined;
       const siteUrl = getEnvVar("VITE_SITE_URL") || "https://hrshoes.pages.dev";
-      const confirmUrl = `${siteUrl}/api/auth/confirm${redirectTo ? `?next=${encodeURIComponent(redirectTo)}` : ""}`;
+      const confirmUrl = `${siteUrl}/api/auth/confirm${safeNext ? `?next=${encodeURIComponent(safeNext)}` : ""}`;
 
       const { data, error } = await supabase.auth.signUp({
         email,

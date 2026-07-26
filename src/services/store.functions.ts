@@ -322,3 +322,15 @@ export async function getStorePaymentInfoByOrderId(orderId: string) {
 
   return store || null;
 }
+
+export const executeHardRefresh = createServerFn({ method: "POST" })
+  .validator(z.object({ confirmText: z.string() }))
+  .handler(async ({ data: { confirmText } }) => {
+    const db = getServerClient();
+    const { data, error } = await db.rpc("execute_hard_refresh", { p_confirm_text: confirmText });
+    if (error) {
+      console.error("[HardRefreshError]", error);
+      throw new Error(error.message);
+    }
+    return data;
+  });

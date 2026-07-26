@@ -113,13 +113,13 @@ BEGIN
     ) pm ON true
     WHERE ci.cart_id = p_cart_id
   ) LOOP
-    v_subtotal_cents := v_subtotal_cents + (v_item.qty * v_item.price_snapshot_cents);
+    v_subtotal_cents := v_subtotal_cents + (v_item.qty * COALESCE(NULLIF(v_item.effective_price_cents, 0), v_item.price_snapshot_cents, 0));
 
     v_items_snapshot := v_items_snapshot || jsonb_build_object(
       'variant_id',         v_item.variant_id,
       'qty',                v_item.qty,
-      'unit_price_cents',   v_item.price_snapshot_cents,
-      'total_cents',        (v_item.qty * v_item.price_snapshot_cents),
+      'unit_price_cents',   COALESCE(NULLIF(v_item.effective_price_cents, 0), v_item.price_snapshot_cents, 0),
+      'total_cents',        (v_item.qty * COALESCE(NULLIF(v_item.effective_price_cents, 0), v_item.price_snapshot_cents, 0)),
       'cost_cents',         v_item.effective_cost_cents,
       'product_title',      v_item.product_title,
       'display_name',       v_item.display_name,

@@ -8,15 +8,13 @@
 
 import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr.server";
-import { getOrCreateGuestSession } from "@/lib/session";
+import { getOrCreateGuestSession, getGuestSession } from "@/lib/session";
 import { getEnvVar } from "@/lib/env";
 
 export async function getCurrentIdentity() {
   const ssrClient = getSSRClient();
-  // Fetch or create guest session synchronously BEFORE any await
-  // to keep the vinxi/http unctx context alive.
-  const token = getOrCreateGuestSession();
 
+  // First, check if the user is authenticated
   const {
     data: { user },
   } = await ssrClient.auth.getUser();
@@ -25,6 +23,9 @@ export async function getCurrentIdentity() {
     return { customer_id: user.id, session_token: null };
   }
 
+  // If not authenticated, fetch or create guest session synchronously BEFORE any await
+  // to keep the vinxi/http unctx context alive.
+  const token = getOrCreateGuestSession();
   return { customer_id: null, session_token: token };
 }
 
@@ -47,73 +48,25 @@ export async function mergeGuestCartLogic(
     supabase = getSSRClient();
   }
 
+  // Resolve session token. If we are logging in, we need the existing guest token
   let session_token = explicitGuestToken;
   if (session_token === undefined) {
-    const identity = await getCurrentIdentity();
-    session_token = identity.session_token;
+    // If not explicit, get the current one from cookies (if any).
+    // Note: We use getGuestSession so we don't accidentally create a new one.
+    session_token = getGuestSession();
   }
 
   if (!session_token) return { status: "success" as const };
 
-  const { data: guestCart } = await supabase
-    .from("carts")
-    .select("id")
-    .eq("session_token", session_token)
-    .eq("status", "active")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // Use the new atomic RPC to merge carts, eliminating the catastrophic N+1 query loop.
+  const { error } = await supabase.rpc("merge_guest_cart", {
+    p_guest_session: session_token,
+    p_customer_id: customerId,
+  });
 
-  if (!guestCart) return { status: "success" as const };
-
-  const { data: userCart } = await supabase
-    .from("carts")
-    .select("id")
-    .eq("customer_id", customerId)
-    .eq("status", "active")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (!userCart) {
-    await supabase
-      .from("carts")
-      .update({ customer_id: customerId, session_token: null })
-      .eq("id", guestCart.id);
-  } else {
-    const { data: guestItems } = await supabase
-      .from("cart_items")
-      .select("id, variant_id, qty")
-      .eq("cart_id", guestCart.id);
-
-    if (guestItems && guestItems.length > 0) {
-      for (const item of guestItems) {
-        const { data: existingUserItem } = await supabase
-          .from("cart_items")
-          .select("id, qty")
-          .eq("cart_id", userCart.id)
-          .eq("variant_id", item.variant_id)
-          .maybeSingle();
-
-        if (existingUserItem) {
-          await supabase
-            .from("cart_items")
-            .update({ qty: existingUserItem.qty + item.qty })
-            .eq("id", existingUserItem.id);
-          await supabase.from("cart_items").delete().eq("id", item.id);
-        } else {
-          await supabase.from("cart_items").update({ cart_id: userCart.id }).eq("id", item.id);
-        }
-
-        await supabase
-          .from("stock_reservations")
-          .update({ cart_id: userCart.id })
-          .eq("cart_id", guestCart.id)
-          .eq("variant_id", item.variant_id);
-      }
-    }
-
-    await supabase.from("carts").delete().eq("id", guestCart.id);
+  if (error) {
+    console.error("[mergeGuestCartLogic] Error merging carts:", error);
+    // We don't throw to avoid breaking login if cart merge fails
   }
 
   // Ensure getServerClient stays imported (used by callers via cart.functions).

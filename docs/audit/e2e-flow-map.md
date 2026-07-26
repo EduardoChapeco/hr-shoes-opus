@@ -15,15 +15,16 @@ Admin Form (/admin/catalogo/produtos/novo)
   ➔ Cliente visualiza preço em BRL e seleciona cor/tamanho
 ```
 
-## 2. Fluxo Vertical de Carrinho & Reserva de Estoque
+## 2. Fluxo Vertical de Carrinho & Sessões (QUEBRADO/ARQUITETURALMENTE FRÁGIL)
 
 ```
-Cliente clica em "Adicionar ao Carrinho"
-  ➔ BFF addToCart (resolve variante)
-  ➔ RPC PostgreSQL reserve_stock_for_cart (stock_reserved + 1, expira em 15min)
-  ➔ Reconciliação DTO no CartProvider
-  ➔ Abertura automática do SlideOutCart
-  ➔ Persistência de cookie hr_shoes_guest_session / customer_id
+Cliente anônimo navega e adiciona itens
+  ➔ Cookie hr_shoes_guest_session gerado (mesmo se autenticado depois)
+  ➔ BFF addToCart salva no ID do guest
+  ➔ Cliente faz Login
+  ➔ mergeGuestCartLogic dispara um N+1 Catastrófico no banco (2 queries por item no loop)
+  ➔ Se o cupom for inválido depois, o BFF dispara atualização silenciosa (.then())
+     que morre no Serverless antes de gravar (Phantom State).
 ```
 
 ## 3. Fluxo Vertical de Checkout & Transação

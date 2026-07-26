@@ -36,6 +36,23 @@ export function ImageHotspots({
 
   const displayImage = mobile_image_url || image_url;
 
+  // Honest empty state — never show placeholder/fallback images in production
+  if (!displayImage) {
+    return (
+      <div className="w-full py-12 px-4 md:px-8 max-w-7xl mx-auto">
+        <div className="flex flex-col items-center justify-center py-16 text-center gap-4 text-muted-foreground border-2 border-dashed border-border rounded-2xl">
+          <span className="text-3xl opacity-40">&#127919;</span>
+          <div>
+            <p className="font-medium">Imagem não configurada</p>
+            <p className="text-sm mt-1">
+              Adicione a imagem principal no editor para ativar os hotspots.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full py-12 px-4 md:px-8 max-w-7xl mx-auto">
       {(title || subtitle) && (
@@ -54,10 +71,7 @@ export function ImageHotspots({
       <div className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-border bg-muted">
         {/* Main Image */}
         <img
-          src={
-            displayImage ||
-            "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=1600"
-          }
+          src={displayImage}
           alt={title || "Shop the Look"}
           className="w-full h-auto object-cover max-h-[700px]"
         />

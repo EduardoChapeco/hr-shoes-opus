@@ -191,7 +191,17 @@ export const listCustomerOrders = createServerFn({ method: "GET" }).handler(asyn
 
     if (error) throw error;
 
-    return data || [];
+    return (data || []).map((order: any) => ({
+      ...order,
+      order_items:
+        order.order_items?.map((item: any) => ({
+          ...item,
+          unit_price_cents: item.unit_price_cents ?? item.price_snapshot_cents ?? 0,
+          total_cents:
+            item.total_cents ??
+            (item.unit_price_cents ?? item.price_snapshot_cents ?? 0) * (item.qty ?? 1),
+        })) || [],
+    }));
   } catch (e: any) {
     console.error("[order.functions] listCustomerOrders:", e.message);
     throw new Error("Erro ao buscar seus pedidos.");
@@ -225,7 +235,17 @@ export const getCustomerOrder = createServerFn({ method: "GET" })
 
       if (error) throw error;
 
-      return order;
+      return {
+        ...order,
+        order_items:
+          order.order_items?.map((item: any) => ({
+            ...item,
+            unit_price_cents: item.unit_price_cents ?? item.price_snapshot_cents ?? 0,
+            total_cents:
+              item.total_cents ??
+              (item.unit_price_cents ?? item.price_snapshot_cents ?? 0) * (item.qty ?? 1),
+          })) || [],
+      };
     } catch (e: any) {
       console.error("[order.functions] getCustomerOrder:", e.message);
       throw new Error(e.message || "Erro ao buscar detalhes do pedido.");

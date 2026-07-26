@@ -51,29 +51,34 @@ export const requestExchange = createServerFn({ method: "POST" })
   });
 
 export const listExchanges = createServerFn({ method: "GET" }).handler(async () => {
-  const supabase = getServerClient();
-  const identity = await getServerIdentity();
-  assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "finance"]);
+  try {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    if (!identity.id || !identity.store_id) return [];
 
-  const { data: exchanges, error } = await supabase
-    .from("exchanges")
-    .select(
-      "id, status, reason, requested_at, orders(public_token, total_cents), profiles!exchanges_customer_id_fkey(full_name)",
-    )
-    .eq("store_id", identity.store_id)
-    .order("requested_at", { ascending: false });
+    const { data: exchanges, error } = await supabase
+      .from("exchanges")
+      .select(
+        "id, status, reason, requested_at, orders(public_token, total_cents), profiles!exchanges_customer_id_fkey(full_name)",
+      )
+      .eq("store_id", identity.store_id)
+      .order("requested_at", { ascending: false });
 
-  if (error) throw new Error("Erro ao buscar trocas");
+    if (error || !exchanges) return [];
 
-  return exchanges.map((ex: any) => ({
-    id: ex.id,
-    status: ex.status,
-    reason: ex.reason,
-    requestedAt: ex.requested_at,
-    orderToken: ex.orders?.public_token,
-    orderTotal: ex.orders?.total_cents,
-    customerName: ex.profiles?.full_name || "Cliente sem nome",
-  }));
+    return exchanges.map((ex: any) => ({
+      id: ex.id,
+      status: ex.status,
+      reason: ex.reason,
+      requestedAt: ex.requested_at,
+      orderToken: ex.orders?.public_token,
+      orderTotal: ex.orders?.total_cents,
+      customerName: ex.profiles?.full_name || "Cliente sem nome",
+    }));
+  } catch (e) {
+    console.error("[exchanges.functions] listExchanges:", e);
+    return [];
+  }
 });
 
 export const updateExchangeStatus = createServerFn({ method: "POST" })

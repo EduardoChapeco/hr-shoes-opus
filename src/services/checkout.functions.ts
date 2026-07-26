@@ -59,7 +59,7 @@ export const getOrderByToken = createServerFn({ method: "GET" })
     const { data } = await db
       .from("orders")
       .select(
-        "id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents, customer_snapshot, payment_method, shipping_method, shipping_address, created_at, stores(id, name, settings), payments(method, status, provider_name), order_items(id, product_title, variant_sku, qty, unit_price_cents, total_cents)",
+        "id, public_token, status, total_cents, subtotal_cents, shipping_cents, discount_cents, customer_snapshot, shipping_method, shipping_address, created_at, stores(id, name, settings), payments(method, status, provider_name), order_items(id, product_title, variant_sku, qty, unit_price_cents, total_cents)",
       )
       .eq("public_token", token)
       .single();
@@ -74,15 +74,17 @@ export const processCheckout = createServerFn({ method: "POST" })
     try {
       const req = getRequest();
       const clientIp = req
-        ? req.headers.get("cf-connecting-ip") ??
+        ? (req.headers.get("cf-connecting-ip") ??
           req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-          "unknown"
+          "unknown")
         : "unknown";
 
       const rateCheck = checkRateLimit(`checkout-${clientIp}`);
       if (rateCheck.blocked) {
         const timeStr = formatRetryAfter(rateCheck.retryAfterMs || 60000);
-        throw new Error(`Muitas tentativas de checkout. Por favor, aguarde ${timeStr} antes de tentar novamente.`);
+        throw new Error(
+          `Muitas tentativas de checkout. Por favor, aguarde ${timeStr} antes de tentar novamente.`,
+        );
       }
 
       const db = await getServerClient();
