@@ -128,12 +128,12 @@ function BuilderEditorIDE() {
   const navigate = useNavigate();
 
   const { data: categories } = useQuery({
-    queryKey: ["admin_categories"],
+    queryKey: ["admin_categories", document.store_id],
     queryFn: () => listCategories(),
   });
 
   const { data: collections } = useQuery({
-    queryKey: ["admin_collections"],
+    queryKey: ["admin_collections", document.store_id],
     queryFn: () => listCollections(),
   });
 

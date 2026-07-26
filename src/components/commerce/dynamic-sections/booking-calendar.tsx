@@ -44,12 +44,12 @@ export function BookingCalendar({ content }: BookingCalendarProps) {
 
   // Queries
   const { data: servicesRes, isLoading: isLoadingServices } = useQuery({
-    queryKey: ["booking_services"],
+    queryKey: ["booking_services", typeof window !== "undefined" ? window.location.hostname : "ssr"],
     queryFn: () => listServicesFn(),
   });
 
   const { data: slotsRes, isLoading: isLoadingSlots } = useQuery({
-    queryKey: ["booking_slots", selectedService, selectedDate?.toISOString().split("T")[0]],
+    queryKey: ["booking_slots", typeof window !== "undefined" ? window.location.hostname : "ssr", selectedService, selectedDate?.toISOString().split("T")[0]],
     queryFn: () =>
       getSlotsFn({
         data: {

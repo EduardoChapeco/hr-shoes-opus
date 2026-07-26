@@ -42,6 +42,9 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+import { formatMoney } from "@/lib/money";
+import { clearAppCache } from "@/lib/cache";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/commerce/logo";
 import { Button } from "@/components/ui/button";
@@ -270,11 +273,16 @@ export function AdminShell({
 }) {
   const [collapsed, setCollapsed] = useState(true);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const pathname = router.state.location.pathname;
 
   const handleLogout = async () => {
     try {
       const res = await signOut();
+      
+      // LIMPEZA ATÔMICA DE CACHES (Evita vazamento de PII multi-tenant)
+      clearAppCache(router, queryClient);
+
       toast.success("Sessão encerrada.");
       router.navigate({ to: "/entrar", replace: true });
     } catch (e: any) {

@@ -1,7 +1,11 @@
-import { createFileRoute, Outlet, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, redirect, useRouter } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { LogOut } from "lucide-react";
 
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { getUserSession } from "@/services/auth.functions";
+import { getUserSession, signOut } from "@/services/auth.functions";
+import { clearAppCache } from "@/lib/cache";
 
 export const Route = createFileRoute("/_store/conta")({
   beforeLoad: async () => {
@@ -31,6 +35,20 @@ const ACCOUNT_NAV: { to: string; label: string; exact?: boolean }[] = [
 ] as const;
 
 function AccountLayout() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      clearAppCache(router, queryClient);
+      toast.success("Sessão encerrada com sucesso.");
+      router.navigate({ to: "/entrar", replace: true });
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao encerrar sessão");
+    }
+  };
+
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-8 md:px-6 md:py-12">
       <p className="eyebrow text-primary">Minha conta</p>
@@ -70,6 +88,15 @@ function AccountLayout() {
                 </Link>
               </li>
             ))}
+            <li>
+              <button
+                onClick={handleLogout}
+                className="flex w-full min-h-10 items-center rounded-lg px-3 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <LogOut className="mr-2 size-4" />
+                Sair da conta
+              </button>
+            </li>
           </ul>
         </nav>
 
