@@ -157,6 +157,9 @@ export const deleteProductType = createServerFn({ method: "POST" })
 
 export async function listAdminProductsHandler() {
   const db = getServerClient();
+  const { getServerIdentity } = await import("@/lib/identity");
+  const { store_id } = await getServerIdentity();
+  if (!store_id) throw new Error("Acesso não autorizado.");
 
   const { data, error } = await db
     .from("products")
@@ -167,6 +170,7 @@ export async function listAdminProductsHandler() {
         product_media (url, alt, sort_order)
       `,
     )
+    .eq("store_id", store_id)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -219,141 +223,20 @@ export async function createProductHandler(input: {
   }[];
 }) {
   const db = getServerClient();
-
   const { getServerIdentity } = await import("@/lib/identity");
   const { store_id } = await getServerIdentity();
   if (!store_id) throw new Error("No store found");
-  const storeData = { id: store_id };
-  if (!storeData) throw new Error("No store found");
 
-  const { media_urls, variants, category_ids, options, ...productInput } = input;
+  const { data, error } = await db.rpc("create_product_transaction_v1", {
+    payload: {
+      store_id,
+      ...input,
+    },
+  });
 
-  // -- CONTRACT SHIELD START --
-  if (variants && variants.length > 0) {
-    const baseKeys = Object.keys(variants[0].attributes || {})
-      .map((k) => k.trim())
-      .sort()
-      .join("|");
-    const seenCombos = new Set<string>();
-
-    for (const v of variants) {
-      const cleanAttrs: Record<string, string> = {};
-      for (const [key, val] of Object.entries(v.attributes || {})) {
-        cleanAttrs[key.trim()] = String(val).trim();
-      }
-      v.attributes = cleanAttrs;
-
-      const incomingKeys = Object.keys(cleanAttrs).sort().join("|");
-      if (incomingKeys !== baseKeys) {
-        throw new Error(
-          "Inconsistência de matriz: Todas as variantes do produto devem possuir exatamente o mesmo conjunto de atributos.",
-        );
-      }
-
-      const comboStr = Object.keys(cleanAttrs)
-        .sort()
-        .map((k) => `${k}=${cleanAttrs[k]}`)
-        .join("|");
-      if (seenCombos.has(comboStr)) {
-        throw new Error(
-          "Conflito de matriz: O produto contém variantes com a mesma combinação exata de atributos na requisição.",
-        );
-      }
-      seenCombos.add(comboStr);
-    }
-  }
-  // -- CONTRACT SHIELD END --
-
-  const { data, error } = await db
-    .from("products")
-    .insert({
-      store_id: storeData.id,
-      ...productInput,
-      options,
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  // Create Categories Mapping
-  if (category_ids && category_ids.length > 0) {
-    const catRecords = category_ids.map((cid) => ({
-      product_id: data.id,
-      category_id: cid,
-    }));
-    await db.from("product_categories").insert(catRecords);
-  }
-
-  // Create Variants
-  if (variants && variants.length > 0) {
-    for (const v of variants) {
-      const { data: variantData, error: variantError } = await db
-        .from("product_variants")
-        .insert({
-          product_id: data.id,
-          sku: v.sku,
-          price_override_cents: v.price_cents,
-          attributes: v.attributes,
-          stock_on_hand: v.stock, // Allow initial stock bypass for creation
-        })
-        .select()
-        .single();
-
-      if (variantError) throw variantError;
-
-      if (v.image_url) {
-        await db.from("product_media").insert({
-          product_id: data.id,
-          variant_id: variantData.id,
-          url: v.image_url,
-          sort_order: 0,
-        });
-      }
-
-      if (v.stock > 0) {
-        await db.from("stock_movements").insert({
-          variant_id: variantData.id,
-          store_id: storeData.id,
-          movement_type: "adjustment",
-          qty: v.stock,
-          note: "Estoque Inicial (Criação)",
-        });
-      }
-    }
-  } else {
-    // Create a default variant if none provided with positive initial stock
-    const { data: defaultVariant, error: variantError } = await db
-      .from("product_variants")
-      .insert({
-        product_id: data.id,
-        sku: `${input.slug}-01`,
-        price_override_cents: input.price_cents,
-        attributes: input.attributes || {},
-        stock_on_hand: 10,
-      })
-      .select()
-      .single();
-
-    if (variantError) throw variantError;
-
-    await db.from("stock_movements").insert({
-      variant_id: defaultVariant.id,
-      store_id: storeData.id,
-      movement_type: "adjustment",
-      qty: 10,
-      note: "Estoque Inicial (Padrão)",
-    });
-  }
-
-  // Insert media if provided
-  if (media_urls && media_urls.length > 0) {
-    const mediaRecords = media_urls.map((url, idx) => ({
-      product_id: data.id,
-      url,
-      sort_order: idx,
-    }));
-    await db.from("product_media").insert(mediaRecords);
+  if (error) {
+    console.error("[admin-catalog] createProductHandler RPC error:", error);
+    throw new Error(error.message || "Erro atômico ao criar o produto e matriz.");
   }
 
   return data;
@@ -737,11 +620,31 @@ export async function updateProductHandler(input: {
   type_id?: string | null;
   category_ids?: string[];
   options?: any;
+  variants?: {
+    id?: string;
+    sku?: string;
+    attributes: Record<string, any>;
+    price_cents?: number | null;
+    price_override_cents?: number | null;
+    stock: number;
+    image_url?: string | null;
+  }[];
 }) {
   const db = getServerClient();
-  const { id, category_ids, ...updates } = input;
+  const { getServerIdentity } = await import("@/lib/identity");
+  const { store_id } = await getServerIdentity();
+  if (!store_id) throw new Error("Acesso não autorizado.");
 
-  const { data, error } = await db.from("products").update(updates).eq("id", id).select().single();
+  const { id, category_ids, variants, ...updates } = input;
+
+  // Garantir que a atualização só ocorre no tenant correto
+  const { data, error } = await db
+    .from("products")
+    .update(updates)
+    .eq("id", id)
+    .eq("store_id", store_id)
+    .select()
+    .single();
 
   if (error) throw error;
 
@@ -754,6 +657,19 @@ export async function updateProductHandler(input: {
       }));
       await db.from("product_categories").insert(catRecords);
     }
+  }
+
+  // Sincroniza a matriz de variantes se fornecida
+  if (variants && variants.length > 0) {
+    const matrix = variants.map((v) => ({
+      attributes: v.attributes,
+      stock: v.stock,
+      price_override_cents: v.price_override_cents !== undefined ? v.price_override_cents : (v.price_cents !== undefined ? v.price_cents : null),
+    }));
+    await batchUpsertVariantMatrixHandler({
+      product_id: id,
+      matrix,
+    });
   }
 
   return data;
@@ -785,6 +701,19 @@ export const updateProduct = createServerFn({ method: "POST" })
       type_id: z.string().uuid().optional().nullable(),
       category_ids: z.array(z.string().uuid()).optional(),
       options: z.any().optional(),
+      variants: z
+        .array(
+          z.object({
+            id: z.string().uuid().optional(),
+            sku: z.string().optional(),
+            attributes: z.record(z.any()).default({}),
+            price_cents: z.number().int().min(0).optional().nullable(),
+            price_override_cents: z.number().int().min(0).optional().nullable(),
+            stock: z.number().int().min(0).default(0),
+            image_url: z.string().url().optional().nullable(),
+          }),
+        )
+        .optional(),
     }),
   )
   .handler(async ({ data: input }) => {
@@ -916,85 +845,24 @@ export async function batchUpsertVariantMatrixHandler(input: {
   }[];
 }) {
   const db = getServerClient();
-  const { adjustStockHandler } = await import("@/services/stock.functions");
+  const { getServerIdentity } = await import("@/lib/identity");
+  
+  // FIX: Multi-tenant security check enforcement
+  const { store_id } = await getServerIdentity();
+  if (!store_id) throw new Error("Acesso não autorizado.");
 
-  const results = [];
+  const { data, error } = await db.rpc("batch_upsert_variant_matrix_v1", {
+    store_id_param: store_id,
+    product_id_param: input.product_id,
+    matrix: input.matrix,
+  });
 
-  for (const item of input.matrix) {
-    const { data: existing } = await db
-      .from("product_variants")
-      .select("id, stock_on_hand, attributes")
-      .eq("product_id", input.product_id);
-
-    const match = existing?.find((v: any) => {
-      const vAttrs = v.attributes || {};
-      const keysA = Object.keys(vAttrs).sort();
-      const keysB = Object.keys(item.attributes).sort();
-      if (keysA.join("|") !== keysB.join("|")) return false;
-      return keysA.every((k) => String(vAttrs[k]).trim() === String(item.attributes[k]).trim());
-    });
-
-    const skuSuffix = Object.values(item.attributes)
-      .map((val) => String(val).substring(0, 3).toUpperCase())
-      .join("-");
-    const generatedSku =
-      item.sku || `SKU-${input.product_id.split("-")[0].toUpperCase()}-${skuSuffix}`;
-
-    const upsertRes = await upsertProductVariantHandler({
-      id: match?.id,
-      product_id: input.product_id,
-      sku: generatedSku,
-      status: "active",
-      price_override_cents: item.price_override_cents ?? null,
-      attributes: item.attributes,
-    });
-
-    if (upsertRes && upsertRes.id) {
-      const currentStock = match ? match.stock_on_hand || 0 : 0;
-      const diff = item.stock - currentStock;
-      if (diff !== 0) {
-        await adjustStockHandler({
-          variantId: upsertRes.id,
-          qty: diff,
-          movementType: "adjustment",
-          note: "Ajuste em lote via Matriz 2D de Variações",
-        });
-      }
-
-      if (item.image_url) {
-        const { data: existingMedia } = await db
-          .from("product_media")
-          .select("id")
-          .eq("product_id", input.product_id)
-          .eq("url", item.image_url)
-          .maybeSingle();
-
-        if (existingMedia) {
-          await db
-            .from("product_media")
-            .update({ variant_id: upsertRes.id })
-            .eq("id", existingMedia.id);
-        } else {
-          await db.from("product_media").insert({
-            product_id: input.product_id,
-            variant_id: upsertRes.id,
-            url: item.image_url,
-            media_type: "image",
-            sort_order: 99,
-          });
-        }
-      }
-
-      results.push(upsertRes);
-    }
+  if (error) {
+    console.error("[admin-catalog] batchUpsertVariantMatrix RPC error:", error);
+    throw new Error(error.message || "Erro atômico ao atualizar matriz.");
   }
 
-  // Fix: Do NOT archive existing variants automatically.
-  // The store owner might have custom variants that don't fit the generated matrix perfectly.
-  // If they want to archive them, they should do it manually in the UI, preserving historical integrity.
-  // We simply upsert what was requested and leave the rest untouched.
-
-  return { success: true, count: results.length };
+  return data;
 }
 
 export const batchUpsertVariantMatrix = createServerFn({ method: "POST" })
@@ -1285,6 +1153,9 @@ export const toggleProductCollection = createServerFn({ method: "POST" })
 
 export async function duplicateProductHandler(productId: string) {
   const db = getServerClient();
+  const { getServerIdentity } = await import("@/lib/identity");
+  const { store_id } = await getServerIdentity();
+  if (!store_id) throw new Error("Acesso não autorizado.");
 
   const { data: original, error } = await db
     .from("products")
@@ -1297,6 +1168,7 @@ export async function duplicateProductHandler(productId: string) {
       `,
     )
     .eq("id", productId)
+    .eq("store_id", store_id)
     .single();
 
   if (error || !original) throw new Error("Produto original não encontrado para duplicação");
@@ -1378,10 +1250,15 @@ export async function toggleProductStatusHandler(input: {
   status: "draft" | "published" | "archived";
 }) {
   const db = getServerClient();
+  const { getServerIdentity } = await import("@/lib/identity");
+  const { store_id } = await getServerIdentity();
+  if (!store_id) throw new Error("Acesso não autorizado.");
+
   const { data, error } = await db
     .from("products")
-    .update({ status: input.status })
+    .update({ status: input.status, updated_at: new Date().toISOString() })
     .eq("id", input.productId)
+    .eq("store_id", store_id)
     .select()
     .single();
 

@@ -301,6 +301,89 @@ export const updateLeadStatus = createServerFn({ method: "POST" })
     }
   });
 
+export const updateLeadDetails = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      leadId: z.string().uuid(),
+      status: z.enum(["new", "contacted", "converted", "lost"]).optional(),
+      notes: z.string().optional().nullable(),
+      estimated_value_cents: z.number().int().min(0).optional().nullable(),
+      source: z.string().optional().nullable(),
+      assigned_to: z.string().uuid().optional().nullable(),
+      follow_up_at: z.string().optional().nullable(), // ISO date
+    }),
+  )
+  .handler(async ({ data: input }) => {
+    try {
+      const supabase = getServerClient();
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager", "seller"]);
+
+      const { leadId, ...updates } = input;
+
+      const { error } = await supabase
+        .from("leads_crm")
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq("id", leadId)
+        .eq("store_id", identity.store_id);
+
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[crm] updateLeadDetails error:", e);
+      throw new Error(e.message || "Erro ao atualizar lead.");
+    }
+  });
+
+export const deleteLead = createServerFn({ method: "POST" })
+  .validator(z.object({ leadId: z.string().uuid() }))
+  .handler(async ({ data: { leadId } }) => {
+    try {
+      const supabase = getServerClient();
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity, ["owner", "admin", "manager"]);
+
+      const { error } = await supabase
+        .from("leads_crm")
+        .delete()
+        .eq("id", leadId)
+        .eq("store_id", identity.store_id);
+
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[crm] deleteLead error:", e);
+      throw new Error(e.message || "Erro ao remover lead.");
+    }
+  });
+
+export const getLeadStats = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const supabase = getServerClient();
+    const identity = await getServerIdentity();
+    assertStoreAccess(identity, ["owner", "admin", "manager", "seller", "support"]);
+
+    const { data, error } = await supabase
+      .from("leads_crm")
+      .select("status")
+      .eq("store_id", identity.store_id);
+
+    if (error) throw error;
+
+    const stats = { new: 0, contacted: 0, converted: 0, lost: 0, total: 0 };
+    for (const lead of data || []) {
+      stats[lead.status as keyof typeof stats] =
+        (stats[lead.status as keyof typeof stats] as number) + 1;
+      stats.total++;
+    }
+
+    return stats;
+  } catch (e: any) {
+    console.error("[crm] getLeadStats error:", e);
+    throw new Error("Erro ao buscar estatísticas de leads.");
+  }
+});
+
 export const promoteLeadToCustomer = createServerFn({ method: "POST" })
   .validator(z.object({ leadId: z.string().uuid() }))
   .handler(async ({ data: { leadId } }) => {
@@ -320,7 +403,7 @@ export const promoteLeadToCustomer = createServerFn({ method: "POST" })
       if (fetchError || !lead) throw new Error("Lead não encontrado");
 
       // Call our existing createCustomer logic
-      const promoteRes = await createCustomer({
+      await createCustomer({
         data: {
           fullName: lead.full_name,
           email: lead.email,
@@ -429,3 +512,4 @@ export const deleteCustomerAddress = createServerFn({ method: "POST" })
       throw new Error(e.message || "Erro ao deletar endereço.");
     }
   });
+

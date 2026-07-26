@@ -20,6 +20,10 @@ import type {
 
 export async function getProductBySlugHandler(slug: string) {
   try {
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const store_id = await resolveTenantStoreId();
+    if (!store_id) throw new Error("Loja não encontrada");
+
     const db = getAnonServerClient();
 
     const { data: product, error } = await db
@@ -44,6 +48,7 @@ export async function getProductBySlugHandler(slug: string) {
         `,
       )
       .eq("slug", slug)
+      .eq("store_id", store_id)
       .eq("status", "published")
       .single();
 

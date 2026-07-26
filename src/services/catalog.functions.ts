@@ -520,19 +520,16 @@ export const getProductDetail = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string().min(1) }))
   .handler(async ({ data: { slug } }) => {
     try {
-      const db = getAnonServerClient();
-      const { data: store, error: storeError } = await db
-        .from("stores")
-        .select("id")
-        .limit(1)
-        .single();
-
-      if (storeError || !store) {
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      if (!storeId) {
         return {
           status: "unconfigured",
           reason: "Nenhuma loja foi configurada.",
         };
       }
+      
+      const db = getAnonServerClient();
 
       // Consulta o produto, mídia e variantes em uma única query
       const { data, error } = await db
@@ -548,7 +545,7 @@ export const getProductDetail = createServerFn({ method: "GET" })
           )
         `,
         )
-        .eq("store_id", store.id)
+        .eq("store_id", storeId)
         .eq("slug", slug)
         .eq("status", "published")
         .single();
@@ -650,13 +647,16 @@ export type PublicStoreProfileResult = CatalogResult<PublicStoreProfileDTO>;
 
 export const getPublicStoreProfile = createServerFn({ method: "GET" }).handler(async () => {
   try {
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) throw new Error("Loja não encontrada");
+
     const db = getAnonServerClient();
 
     const { data, error } = await db
       .from("stores")
       .select("id, name, slug, description, phone, email, address, city, state, settings")
-      .order("created_at", { ascending: true })
-      .limit(1)
+      .eq("id", storeId)
       .single();
 
     if (error || !data) {

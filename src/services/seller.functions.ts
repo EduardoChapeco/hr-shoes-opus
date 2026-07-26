@@ -7,6 +7,10 @@ export const getSellerShowcase = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string() }))
   .handler(async ({ data: { slug } }) => {
     try {
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      if (!storeId) return { status: "not_found" as const };
+
       const supabase = getAnonServerClient();
 
       const { data: showcase, error } = await supabase
@@ -18,10 +22,11 @@ export const getSellerShowcase = createServerFn({ method: "GET" })
           title,
           description,
           banner_url,
-          profiles!inner(full_name)
+          profiles!inner(full_name, store_id)
         `,
         )
         .eq("slug", slug)
+        .eq("profiles.store_id", storeId)
         .eq("is_active", true)
         .single();
 

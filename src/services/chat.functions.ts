@@ -212,3 +212,106 @@ export const sendCustomerChatMessage = createServerFn({ method: "POST" })
       throw new Error(e.message || "Erro ao enviar mensagem.");
     }
   });
+
+export const listCustomerChatThreads = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const ssrClient = getSSRClient();
+    const {
+      data: { user },
+    } = await ssrClient.auth.getUser();
+    if (!user) throw new Error("Não autorizado");
+
+    const db = getServerClient();
+    const { data, error } = await db
+      .from("chat_threads")
+      .select("id, subject, status, created_at, updated_at")
+      .eq("customer_id", user.id)
+      .order("updated_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (e: any) {
+    console.error("[chat] listCustomerChatThreads error:", e);
+    throw new Error(e.message || "Erro ao listar suas conversas.");
+  }
+});
+
+export const startCustomerChatThread = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      subject: z.string().min(3, "Assunto muito curto"),
+      message: z.string().min(1, "Mensagem inicial é obrigatória"),
+    }),
+  )
+  .handler(async ({ data: { subject, message } }) => {
+    try {
+      const ssrClient = getSSRClient();
+      const {
+        data: { user },
+      } = await ssrClient.auth.getUser();
+      if (!user) throw new Error("Não autorizado. Faça login para iniciar um atendimento.");
+
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      if (!storeId) throw new Error("Loja não identificada.");
+
+      const db = getServerClient();
+
+      // Create thread
+      const { data: thread, error: threadErr } = await db
+        .from("chat_threads")
+        .insert({
+          store_id: storeId,
+          customer_id: user.id,
+          subject,
+          status: "open",
+        })
+        .select()
+        .single();
+
+      if (threadErr || !thread) throw new Error(threadErr?.message || "Erro ao criar conversa.");
+
+      // Create initial message
+      const { error: msgErr } = await db.from("chat_messages").insert({
+        thread_id: thread.id,
+        message,
+        is_staff_reply: false,
+        sender_id: user.id,
+      });
+
+      if (msgErr) throw msgErr;
+
+      return { status: "success" as const, threadId: thread.id };
+    } catch (e: any) {
+      console.error("[chat] startCustomerChatThread error:", e);
+      throw new Error(e.message || "Erro ao iniciar conversa.");
+    }
+  });
+
+export const updateChatThreadStatus = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      threadId: z.string().uuid(),
+      status: z.enum(["open", "closed", "archived"]),
+    }),
+  )
+  .handler(async ({ data: { threadId, status } }) => {
+    try {
+      const identity = await getServerIdentity();
+      assertStoreAccess(identity);
+
+      const db = getServerClient();
+      const { error } = await db
+        .from("chat_threads")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", threadId)
+        .eq("store_id", identity.store_id);
+
+      if (error) throw error;
+      return { status: "success" as const };
+    } catch (e: any) {
+      console.error("[chat] updateChatThreadStatus error:", e);
+      throw new Error(e.message || "Erro ao atualizar status da conversa.");
+    }
+  });
+

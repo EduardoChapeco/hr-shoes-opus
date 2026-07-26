@@ -57,35 +57,45 @@ export const Route = createFileRoute("/api/webhooks/pagarme")({
             });
           }
 
-          // 3. Handle specific events (e.g., transaction_status_changed, order_paid)
-          if (payload.transaction && payload.transaction.id) {
-            const gatewayTransactionId = payload.transaction.id.toString();
-            const currentStatus = payload.current_status; // 'paid', 'refused', 'refunded'
+          // 3. Handle specific events (e.g., order.paid, order.canceled, charge.paid)
+          // Pagar.me V5 uses payload.data.id as the main reference
+          if (payload.data && payload.data.id) {
+            let gatewayOrderId = payload.data.id.toString();
+            
+            // If the event is from a charge, the provider_ref we saved is the order id, 
+            // so we should look at payload.data.order.id
+            if (payload.type.startsWith("charge.") && payload.data.order && payload.data.order.id) {
+              gatewayOrderId = payload.data.order.id.toString();
+            }
+
+            const eventTypeStatus = payload.type; // e.g. order.paid, charge.paid, order.canceled
 
             // Find the internal order
             const { data: tx } = await supabase
               .from("payments")
               .select("order_id")
-              .eq("provider_ref", gatewayTransactionId)
+              .eq("provider_ref", gatewayOrderId)
               .single();
 
             if (tx) {
-              // Update transaction
-              await supabase
-                .from("payments")
-                .update({ status: currentStatus, updated_at: new Date().toISOString() })
-                .eq("provider_ref", gatewayTransactionId);
-
               // If paid, update the order
-              if (currentStatus === "paid") {
+              if (eventTypeStatus.endsWith(".paid")) {
+                await supabase
+                  .from("payments")
+                  .update({ status: "paid", updated_at: new Date().toISOString() })
+                  .eq("provider_ref", gatewayOrderId);
+
                 await supabase
                   .from("orders")
-                  .update({ status: "paid", paid_at: new Date().toISOString() })
+                  .update({ status: "processing", paid_at: new Date().toISOString() })
                   .eq("id", tx.order_id);
 
-                // Here we would also call the Cash Register deduction, etc.
-                // (Ideally delegated to a domain service to avoid duplicating confirmPayment)
-              } else if (currentStatus === "refused") {
+              } else if (eventTypeStatus.endsWith(".canceled") || eventTypeStatus.endsWith(".failed")) {
+                await supabase
+                  .from("payments")
+                  .update({ status: "failed", updated_at: new Date().toISOString() })
+                  .eq("provider_ref", gatewayOrderId);
+
                 await supabase
                   .from("orders")
                   .update({ status: "payment_failed" })

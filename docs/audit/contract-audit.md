@@ -8,14 +8,14 @@
 
 | Módulo         | Nome do Schema Zod / DTO  | Input Validado                                         | Retorno do BFF                    | Status do Contrato |
 | :------------- | :------------------------ | :----------------------------------------------------- | :-------------------------------- | :----------------- |
-| **Catálogo**   | `ProductCreateSchema`     | `{ title, slug, price_cents, category_ids, variants }` | `ProductDTO`                      | `ARQUITETURALMENTE FRÁGIL` (Opções deduzidas no cliente vs Atributos persistidos no banco) |
-| **Catálogo**   | `ProductUpdateSchema`     | `{ id, title, price_cents, attributes, variants }`     | `ProductDTO`                      | `ARQUITETURALMENTE FRÁGIL` (Dois modos de edição sobrescrevem dados mutuamente) |
-| **Carrinho**   | `AddToCartSchema`         | `{ variantId?, productId?, quantity, sellerId? }`      | `{ status, cart, session_token }` | `QUEBRADO` (BFF requisita stock_reserved, mas coluna foi excluída no DB) |
-| **Carrinho**   | `UpdateCartQtySchema`     | `{ variantId, delta }`                                 | `CartDTO`                         | `QUEBRADO` (BFF requisita stock_reserved, mas coluna foi excluída no DB) |
-| **Checkout**   | `CheckoutSchema`          | `{ items, shippingAddress, paymentMethod }`            | `{ orderId, status }`             | `SIMULADO` (Pagar.me SDK ignorado, processamento direto aprovado no BFF) |
+| **Catálogo**   | `ProductCreateSchema`     | `{ title, slug, price_cents, category_ids, variants }` | `ProductDTO`                      | `COMPROVADO` (Matriz sincronizada via batchUpsertVariantMatrixHandler integrado) |
+| **Catálogo**   | `ProductUpdateSchema`     | `{ id, title, price_cents, attributes, variants }`     | `ProductDTO`                      | `COMPROVADO` (A ignorância de variants foi mitigada, garantindo atualização atômica da matriz) |
+| **Carrinho**   | `AddToCartSchema`         | `{ variantId?, productId?, quantity, sellerId? }`      | `{ status, cart, session_token }` | `COMPROVADO` (Estoque resolvido via stock_on_hand e pg_advisory_xact_lock) |
+| **Carrinho**   | `UpdateCartQtySchema`     | `{ variantId, delta }`                                 | `CartDTO`                         | `COMPROVADO` (Estoque resolvido via stock_on_hand e pg_advisory_xact_lock) |
+| **Checkout**   | `CheckoutSchema`          | `{ items, shippingAddress, paymentMethod }`            | `{ orderId, status }`             | `COMPROVADO` (Processamento atômico, Mock do Gateway erradicado, Pagar.me V5 real) |
 | **Estoque**    | `StockAdjustSchema`       | `{ variantId, qty, type, note }`                       | `StockMovementDTO`                | `COMPROVADO`       |
-| **Builder**    | `ApplyHomeTemplateSchema` | `{ templateId }`                                       | `ExperienceDocumentDTO`           | `COMPROVADO`       |
-| **Builder**    | `DocumentUpdateSchema`    | `{ documentId, tree }`                                 | `ExperienceDocumentDTO`           | `COMPROVADO`       |
+| **Builder**    | `ApplyHomeTemplateSchema` | `{ templateId }`                                       | `ExperienceDocumentDTO`           | `COMPROVADO` (Vazamento corrigido, valida RLS do tenant via db) |
+| **Builder**    | `DocumentUpdateSchema`    | `{ documentId, tree }`                                 | `ExperienceDocumentDTO`           | `COMPROVADO` (Vazamento corrigido, nós atrelados à versão validada) |
 | **Avaliações** | `ReviewSubmitSchema`      | `{ productId, rating, comment, title }`                | `ReviewDTO`                       | `COMPROVADO`       |
 | **Caixa**      | `CashSessionSchema`       | `{ initialBalanceCents, notes }`                       | `CashSessionDTO`                  | `COMPROVADO`       |
 

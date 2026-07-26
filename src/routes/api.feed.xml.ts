@@ -38,13 +38,18 @@ export const Route = createFileRoute("/api/feed/xml")({
             return new Response("Missing store parameter", { status: 400 });
           }
 
-          // Fetch products + variants + media
+          // Fetch store info for the feed title
+          const { data: store } = await db
+            .from("stores")
+            .select("name")
+            .eq("id", storeId)
+            .single();
           const { data: products, error } = await db
             .from("products")
             .select(
               `
               id, slug, title, short_description, description, manufacturer, price_cents, compare_at_cents, status,
-              product_variants(id, sku, price_cents, attributes, stock_on_hand),
+              product_variants(id, sku, price_cents, price_override_cents, attributes, stock_on_hand),
               product_media(url, is_thumbnail)
             `,
             )
@@ -56,13 +61,15 @@ export const Route = createFileRoute("/api/feed/xml")({
             return new Response("Error fetching catalog", { status: 500 });
           }
 
+          const storeName = store?.name || "Hr Shoes Commerce";
+
           // Generate RSS XML (Google Merchant / Facebook Catalog compatible)
           let xml = `<?xml version="1.0"?>\n`;
           xml += `<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">\n`;
           xml += `<channel>\n`;
-          xml += `<title>Hr Shoes Commerce Feed</title>\n`;
+          xml += `<title>${escapeXml(storeName)} — Catálogo</title>\n`;
           xml += `<link>${url.origin}</link>\n`;
-          xml += `<description>Catálogo de Produtos</description>\n`;
+          xml += `<description>Feed de Produtos — ${escapeXml(storeName)}</description>\n`;
 
           for (const p of products) {
             // For simple products or configurable ones, we export variants as items
@@ -78,15 +85,18 @@ export const Route = createFileRoute("/api/feed/xml")({
                 id: p.id,
                 sku: p.slug,
                 price_cents: p.price_cents,
+                price_override_cents: null,
                 stock_on_hand: 1, // Assume available if published and no variant tracking
                 attributes: {},
               });
             }
 
             for (const v of variants) {
-              const priceBrl = (v.price_cents / 100).toFixed(2);
+              // Use variant price_override_cents if available, fallback to product price
+              const effectivePriceCents = v.price_override_cents ?? v.price_cents ?? p.price_cents;
+              const priceBrl = (effectivePriceCents / 100).toFixed(2);
               const salePriceBrl =
-                p.compare_at_cents && p.compare_at_cents > v.price_cents ? priceBrl : undefined;
+                p.compare_at_cents && p.compare_at_cents > effectivePriceCents ? priceBrl : undefined;
               const regularPriceBrl = salePriceBrl
                 ? (p.compare_at_cents / 100).toFixed(2)
                 : priceBrl;
@@ -124,10 +134,35 @@ export const Route = createFileRoute("/api/feed/xml")({
               xml += `  <g:product_type>Calçados</g:product_type>\n`;
 
               if (v.attributes && typeof v.attributes === "object") {
-                if ((v.attributes as any)["Tamanho"])
-                  xml += `  <g:size>${escapeXml((v.attributes as any)["Tamanho"])}</g:size>\n`;
-                if ((v.attributes as any)["Cor"])
-                  xml += `  <g:color>${escapeXml((v.attributes as any)["Cor"])}</g:color>\n`;
+                const attrs = v.attributes as Record<string, string>;
+
+                // Dynamic size detection — supports multiple naming conventions
+                const sizeKeys = ["tamanho", "size", "taille", "numero", "número", "tam"];
+                const sizeKey = Object.keys(attrs).find((k) =>
+                  sizeKeys.includes(k.toLowerCase()),
+                );
+                if (sizeKey && attrs[sizeKey]) {
+                  xml += `  <g:size>${escapeXml(attrs[sizeKey])}</g:size>\n`;
+                  xml += `  <g:size_system>BR</g:size_system>\n`;
+                }
+
+                // Dynamic color detection
+                const colorKeys = ["cor", "color", "colour", "couleur"];
+                const colorKey = Object.keys(attrs).find((k) =>
+                  colorKeys.includes(k.toLowerCase()),
+                );
+                if (colorKey && attrs[colorKey]) {
+                  xml += `  <g:color>${escapeXml(attrs[colorKey])}</g:color>\n`;
+                }
+
+                // Dynamic material detection
+                const materialKeys = ["material", "tecido", "fabric"];
+                const materialKey = Object.keys(attrs).find((k) =>
+                  materialKeys.includes(k.toLowerCase()),
+                );
+                if (materialKey && attrs[materialKey]) {
+                  xml += `  <g:material>${escapeXml(attrs[materialKey])}</g:material>\n`;
+                }
               }
 
               xml += `</item>\n`;

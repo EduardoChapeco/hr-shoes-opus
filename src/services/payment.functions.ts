@@ -82,17 +82,95 @@ export const initiatePaymentTransaction = createServerFn({ method: "POST" })
       throw new Error("Não foi encontrada intenção de pagamento válida para este pedido.");
     }
 
-    // --- MOCK/SIMULATION FOR DEMO PURPOSES ---
-    // If the Pagar.me SDK is not actively implemented in the frontend yet,
-    // we bypass the gateway and directly transition the order.
-    // DO NOT insert a new payment record here.
+    // --- GATEWAY INTEGRATION (Pagar.me V5) ---
+    // Fetch required data for Pagar.me
+    const { data: fullOrder } = await supabase.from("orders").select("*").eq("id", order.id).single();
 
-    await supabase.from("orders").update({ status: "processing" }).eq("id", order.id);
+    const pagarmePayload: any = {
+      items: (fullOrder.items_snapshot || []).map((item: any) => ({
+        amount: item.unit_price_cents,
+        description: item.product_title || "Produto",
+        quantity: item.qty || 1,
+      })),
+      customer: {
+        name: fullOrder.customer_snapshot?.name || "Cliente",
+        email: fullOrder.customer_snapshot?.email || "email@desconhecido.com",
+        type: "individual",
+        document: fullOrder.customer_snapshot?.document || "00000000000",
+        phones: {
+          mobile_phone: {
+            country_code: "55",
+            area_code: "11",
+            number: "999999999",
+          }
+        }
+      },
+      payments: []
+    };
+
+    if (method === "pix") {
+      pagarmePayload.payments.push({
+        payment_method: "pix",
+        pix: { expires_in: 86400 }
+      });
+    } else if (method === "boleto") {
+      pagarmePayload.payments.push({
+        payment_method: "boleto",
+        boleto: { instructions: "Pagar até o vencimento" }
+      });
+    } else {
+      throw new Error("Integração de cartão de crédito via Server Function exige tokenização prévia no Frontend.");
+    }
+
+    const auth = Buffer.from(`${pagarmeSecretKey}:`).toString('base64');
+    const response = await fetch("https://api.pagar.me/core/v5/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Basic ${auth}`
+      },
+      body: JSON.stringify(pagarmePayload)
+    });
+
+    const pagarmeRes = await response.json();
+
+    if (!response.ok) {
+      console.error("[PAGARME] Erro na requisição:", JSON.stringify(pagarmeRes));
+      throw new Error("Falha de integração com Pagar.me: " + (pagarmeRes.message || "Erro desconhecido"));
+    }
+
+    const transactionId = pagarmeRes.id;
+    let qrCode = null;
+    let qrCodeUrl = null;
+
+    if (method === "pix" && pagarmeRes.charges && pagarmeRes.charges[0]) {
+      const charge = pagarmeRes.charges[0];
+      if (charge.last_transaction && charge.last_transaction.qr_code) {
+        qrCode = charge.last_transaction.qr_code;
+        qrCodeUrl = charge.last_transaction.qr_code_url;
+      }
+    }
+
+    // Update internal payment transaction with provider reference
+    await supabase.from("payments").update({ 
+      provider_name: "pagarme",
+      provider_ref: transactionId,
+      metadata: {
+        pagarme_order_id: transactionId,
+        qr_code: qrCode,
+        qr_code_url: qrCodeUrl
+      }
+    }).eq("id", existingPayment.id);
+
+    // [CRITICAL FIX] We DO NOT update the order status to "processing" here anymore.
+    // The order stays "awaiting_payment". It will transition only when the Webhook arrives.
 
     return {
       status: "success",
       paymentId: existingPayment.id,
-      message: "Intenção de pagamento registrada. Aguardando processamento do gateway.",
+      qrCode,
+      qrCodeUrl,
+      message: "Cobrança gerada com sucesso. Efetue o pagamento para liberar o pedido.",
     };
   });
 

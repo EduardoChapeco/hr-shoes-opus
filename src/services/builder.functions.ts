@@ -287,10 +287,15 @@ export const listExperienceDocuments = createServerFn({ method: "GET" })
   .validator(z.object({ type: z.string().optional() }).optional())
   .handler(async ({ data: input }) => {
     try {
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+
       const db = getServerClient();
       let query = db
         .from("experience_documents")
         .select("*")
+        .eq("store_id", identity.store_id)
         .order("created_at", { ascending: false });
 
       if (input?.type) {
@@ -312,6 +317,10 @@ export const getExperienceDocument = createServerFn({ method: "GET" })
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data: input }) => {
     try {
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+
       const db = getServerClient();
 
       // 1. Get Document
@@ -319,6 +328,7 @@ export const getExperienceDocument = createServerFn({ method: "GET" })
         .from("experience_documents")
         .select("*")
         .eq("id", input.id)
+        .eq("store_id", identity.store_id)
         .single();
 
       if (docError) throw docError;
@@ -752,12 +762,17 @@ export const updateExperienceDocument = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+
       const db = getServerClient();
 
       // Check slug collision
       const { data: existing } = await db
         .from("experience_documents")
         .select("id")
+        .eq("store_id", identity.store_id)
         .eq("slug", input.slug)
         .neq("id", input.id)
         .eq("is_active", true)
@@ -775,7 +790,8 @@ export const updateExperienceDocument = createServerFn({ method: "POST" })
           is_active: input.is_active,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", input.id);
+        .eq("id", input.id)
+        .eq("store_id", identity.store_id);
 
       if (error) throw error;
 
@@ -1037,10 +1053,15 @@ export const checkExperienceDocumentExists = createServerFn({ method: "GET" })
   )
   .handler(async ({ data: { slug, document_type } }) => {
     try {
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+
       const db = getServerClient();
       const { data: doc } = await db
         .from("experience_documents")
         .select("id")
+        .eq("store_id", identity.store_id)
         .eq("slug", slug)
         .eq("document_type", document_type)
         .eq("is_active", true)
@@ -1056,12 +1077,19 @@ export const getOrCreateHomeDocument = createServerFn({ method: "POST" })
   .validator(z.object({ template_id: z.string().default("blank") }).optional())
   .handler(async ({ data: input }) => {
     try {
+      // 0. Get Identity
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+      const storeId = identity.store_id;
+
       const db = getServerClient();
 
       // 1. Check if home document exists
       const { data: doc } = await db
         .from("experience_documents")
         .select("*")
+        .eq("store_id", storeId)
         .eq("slug", "home")
         .eq("document_type", "storefront")
         .eq("is_active", true)
@@ -1072,17 +1100,11 @@ export const getOrCreateHomeDocument = createServerFn({ method: "POST" })
       }
 
       // 2. If not, create it
-      const { getServerIdentity } = await import("@/lib/identity");
-      const identity = await getServerIdentity();
-      if (!identity.store_id) throw new Error("No store found");
-      const storeData = { id: identity.store_id };
-      if (!storeData) throw new Error("No store found");
-
       const { data: newDoc, error: newDocError } = await db
         .from("experience_documents")
         .insert({
-          store_id: storeData.id,
-          title: "Vitrine Principal",
+          store_id: storeId,
+          title: "Página Inicial",
           slug: "home",
           document_type: "storefront",
           is_active: true,
@@ -1133,7 +1155,25 @@ export const applyHomeTemplate = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+      const storeId = identity.store_id;
+
       const db = getServerClient();
+
+      // 0. Verify document belongs to tenant
+      const { data: doc, error: docError } = await db
+        .from("experience_documents")
+        .select("id")
+        .eq("id", input.document_id)
+        .eq("store_id", storeId)
+        .single();
+      
+      if (docError || !doc) {
+        throw new Error("Documento não encontrado ou sem permissão.");
+      }
+
       const { HOME_TEMPLATES_LIBRARY } = await import("@/lib/home-templates-library");
       const { randomUUID } = await import("crypto");
 
@@ -1785,14 +1825,26 @@ export const getOrCreateInstitutionalDocument = createServerFn({ method: "POST" 
     try {
       const db = getServerClient();
 
+      // 0. Get Identity
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+      const storeId = identity.store_id;
+
       if (input?.overwrite) {
-        await db.from("experience_documents").delete().eq("slug", "institucional").eq("document_type", "storefront");
+        await db
+          .from("experience_documents")
+          .delete()
+          .eq("store_id", storeId)
+          .eq("slug", "institucional")
+          .eq("document_type", "storefront");
       }
 
       // 1. Check if institutional document exists
       const { data: doc } = await db
         .from("experience_documents")
         .select("*")
+        .eq("store_id", storeId)
         .eq("slug", "institucional")
         .eq("document_type", "storefront")
         .eq("is_active", true)
@@ -1803,16 +1855,10 @@ export const getOrCreateInstitutionalDocument = createServerFn({ method: "POST" 
       }
 
       // 2. Create document
-      const { getServerIdentity } = await import("@/lib/identity");
-      const identity = await getServerIdentity();
-      if (!identity.store_id) throw new Error("No store found");
-      const storeData = { id: identity.store_id };
-      if (!storeData) throw new Error("No store found");
-
       const { data: newDoc, error: newDocError } = await db
         .from("experience_documents")
         .insert({
-          store_id: storeData.id,
+          store_id: storeId,
           title: "Perfil da Loja",
           slug: "institucional",
           document_type: "storefront",
@@ -1873,12 +1919,17 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
   )
   .handler(async ({ data: input }) => {
     try {
+      const { resolveTenantStoreId } = await import("@/lib/tenant");
+      const storeId = await resolveTenantStoreId();
+      if (!storeId) return { status: "not_found" as const };
+
       const db = getServerClient();
 
       // 1. Get Document
       const { data: doc, error: docError } = await db
         .from("experience_documents")
         .select("*")
+        .eq("store_id", storeId)
         .eq("slug", input.slug)
         .eq("document_type", input.document_type)
         .eq("is_active", true)
@@ -1922,8 +1973,6 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
       const nodes = nodesData as ExperienceNode[];
 
       // 4. Hydrate Data Bindings — shared helper covers store_profile, products, reviews
-      const { resolveTenantStoreId } = await import("@/lib/tenant");
-      const storeId = await resolveTenantStoreId();
       if (!storeId) throw new Error("Loja não encontrada");
       const hydratedNodes = await hydrateBindings(nodes, db, storeId);
 
@@ -1954,11 +2003,16 @@ export const getPublicExperienceDocumentBySlug = createServerFn({ method: "GET" 
 
 export const getActiveGlobalPopups = createServerFn({ method: "GET" }).handler(async () => {
   try {
+    const { resolveTenantStoreId } = await import("@/lib/tenant");
+    const storeId = await resolveTenantStoreId();
+    if (!storeId) return [];
+
     const db = getServerClient();
 
     const { data: docs, error: docError } = await db
       .from("experience_documents")
       .select("*")
+      .eq("store_id", storeId)
       .eq("document_type", "campaign_popup")
       .eq("is_active", true);
 
@@ -2020,7 +2074,22 @@ export const saveBuilderNodes = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+      const storeId = identity.store_id;
+
       const db = getServerClient();
+
+      // 0. Validate ownership
+      const { data: versionCheck } = await db
+        .from("experience_versions")
+        .select("id, experience_documents!inner(store_id)")
+        .eq("id", input.version_id)
+        .eq("experience_documents.store_id", storeId)
+        .single();
+      
+      if (!versionCheck) throw new Error("Acesso negado à versão do documento.");
 
       // Save keeps the version as "draft" — does NOT publish.
       // 1. Delete all current nodes for this version (full replace strategy)
@@ -2074,22 +2143,30 @@ export const publishBuilderVersion = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: input }) => {
     try {
+      const { getServerIdentity } = await import("@/lib/identity");
+      const identity = await getServerIdentity();
+      if (!identity.store_id) throw new Error("No store found");
+      const storeId = identity.store_id;
+
       const db = getServerClient();
 
-      // 1. Unpublish any previous published versions for the same document
+      // 1. Unpublish any previous published versions for the same document and validate ownership
       const { data: version } = await db
         .from("experience_versions")
-        .select("document_id")
+        .select("document_id, experience_documents!inner(store_id)")
         .eq("id", input.version_id)
+        .eq("experience_documents.store_id", storeId)
         .single();
 
-      if (version) {
-        await db
-          .from("experience_versions")
-          .update({ status: "draft" })
-          .eq("document_id", version.document_id)
-          .eq("status", "published");
+      if (!version) {
+        throw new Error("Acesso negado ou versão não encontrada.");
       }
+
+      await db
+        .from("experience_versions")
+        .update({ status: "draft" })
+        .eq("document_id", version.document_id)
+        .eq("status", "published");
 
       // 2. Replace nodes
       await db.from("experience_nodes").delete().eq("version_id", input.version_id);
