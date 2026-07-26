@@ -92,7 +92,7 @@ export function MediaUploader({
       const { uploadMedia } = await import("@/services/storage.functions");
       const res = await uploadMedia({
         data: {
-          fileName: currentImageFile.name,
+          fileName: currentImageFile.name.replace(/\.[^/.]+$/, "") + ".png",
           fileBase64: croppedBase64.split(",")[1],
           bucket: bucket as any,
         },

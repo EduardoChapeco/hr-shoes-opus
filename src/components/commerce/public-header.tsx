@@ -88,7 +88,7 @@ export function PublicHeader({
           className="flex items-center gap-2 shrink-0"
           aria-label={`${storeName || "Hr Shoes"} — início`}
         >
-          <Logo src={logoUrl} />
+          <Logo src={logoUrl} className="max-h-12 w-auto h-auto" />
           {logoUrl && storeName && (
             <span className="font-bold text-lg tracking-tight hidden lg:inline-block">
               {storeName}
