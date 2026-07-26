@@ -12,6 +12,7 @@ import crypto from "crypto";
 import { getServerClient } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr.server";
 import { getEnvVar } from "@/lib/env";
+import { requireAdmin } from "@/lib/auth-guards";
 
 // Schema for initiating a payment
 const InitiatePaymentSchema = z.object({
@@ -180,6 +181,9 @@ export const initiatePaymentTransaction = createServerFn({ method: "POST" })
 export const confirmPayment = createServerFn({ method: "POST" })
   .validator(z.object({ orderId: z.string().uuid(), receivedMethod: z.string().optional() }))
   .handler(async ({ data: { orderId, receivedMethod } }) => {
+    // SECURITY FIX: Enforce administrative authorization
+    await requireAdmin();
+
     const supabase = getServerClient();
 
     // 1. Get the order
@@ -270,6 +274,9 @@ export const approvePayment = createServerFn({ method: "POST" })
   .validator(z.object({ orderId: z.string().uuid(), receivedMethod: z.string().optional() }))
   .handler(async ({ data: { orderId, receivedMethod } }) => {
     try {
+      // SECURITY FIX: Enforce administrative authorization
+      await requireAdmin();
+
       const confirmRes = await confirmPayment({ data: { orderId, receivedMethod } });
       if (confirmRes.status !== "success") {
         throw new Error("Erro ao confirmar transação financeira");
@@ -289,6 +296,9 @@ export const rejectPayment = createServerFn({ method: "POST" })
   .validator(z.object({ orderId: z.string().uuid(), reason: z.string().optional() }))
   .handler(async ({ data: { orderId, reason } }) => {
     try {
+      // SECURITY FIX: Enforce administrative authorization
+      await requireAdmin();
+
       const db = getServerClient();
       await db
         .from("payments")

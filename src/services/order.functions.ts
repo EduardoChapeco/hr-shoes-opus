@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { getServerClient, SupabaseUnconfiguredError } from "@/lib/supabase";
 import { getSSRClient } from "@/lib/supabase-ssr.server";
+import { requireAdmin } from "@/lib/auth-guards";
 
 // ---------------------------------------------------------------------------
 // Order status enum (shared between validator and domain logic)
@@ -102,6 +103,9 @@ export async function updateOrderStatusHandler(
 
 export const listOrders = createServerFn({ method: "GET" }).handler(async () => {
   try {
+    // SECURITY FIX: Enforce administrative authorization
+    await requireAdmin();
+
     const data = await listOrdersHandler();
     return data;
   } catch (e: any) {
@@ -115,6 +119,9 @@ export const getOrderById = createServerFn({ method: "GET" })
   .validator(z.object({ orderId: z.string().uuid() }))
   .handler(async ({ data: { orderId } }) => {
     try {
+      // SECURITY FIX: Enforce administrative authorization
+      await requireAdmin();
+
       const data = await getOrderByIdHandler(orderId);
       return data;
     } catch (e: any) {
@@ -133,6 +140,9 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: params }) => {
     try {
+      // SECURITY FIX: Enforce administrative authorization
+      await requireAdmin();
+
       return await updateOrderStatusHandler(params.orderId, params.status);
     } catch (e: any) {
       if (e instanceof SupabaseUnconfiguredError) throw e;
@@ -143,6 +153,9 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
 
 export const listPayments = createServerFn({ method: "GET" }).handler(async () => {
   try {
+    // SECURITY FIX: Enforce administrative authorization
+    await requireAdmin();
+
     const db = getServerClient();
 
     const { data, error } = await db
