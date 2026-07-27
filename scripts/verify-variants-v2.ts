@@ -49,25 +49,38 @@ async function runSystemicAuditV2() {
   );
   if (createErr || !createRes) throw createErr;
   const productId = createRes.id;
-  
+
   // Buscar os IDs gerados
   const { data: initialVars } = await serviceClient
     .from("product_variants")
     .select("*")
     .eq("product_id", productId)
     .order("sku");
-    
-  const idRosa = initialVars?.find(v => v.attributes.Cor === "Rosa")?.id;
-  const idAzul = initialVars?.find(v => v.attributes.Cor === "Azul")?.id;
+
+  const idRosa = initialVars?.find((v) => v.attributes.Cor === "Rosa")?.id;
+  const idAzul = initialVars?.find((v) => v.attributes.Cor === "Azul")?.id;
   console.log(`✅ [2/5] Produto criado com 2 Cores. ID Rosa: ${idRosa}. Estoque Rosa: 50`);
 
   // 2. Expansão 2D (Sub-variações) e Teste de Delta
-  console.log(`\n⏳ Simulando expansão para incluir "Tamanho" na cor Rosa, e remover Azul (Arquivamento)...`);
+  console.log(
+    `\n⏳ Simulando expansão para incluir "Tamanho" na cor Rosa, e remover Azul (Arquivamento)...`,
+  );
   const matrixUpdate = [
     // Rosa Antigo é renomeado/atualizado para Rosa-36, preservando ID, adicionando 20 de estoque (delta +20)
-    { id: idRosa, sku: `${testSlug}-Rosa-36`, attributes: { Cor: "Rosa", Tamanho: "36" }, stock: 70, original_stock: 50 },
+    {
+      id: idRosa,
+      sku: `${testSlug}-Rosa-36`,
+      attributes: { Cor: "Rosa", Tamanho: "36" },
+      stock: 70,
+      original_stock: 50,
+    },
     // Rosa Novo (37)
-    { sku: `${testSlug}-Rosa-37`, attributes: { Cor: "Rosa", Tamanho: "37" }, stock: 15, original_stock: 0 },
+    {
+      sku: `${testSlug}-Rosa-37`,
+      attributes: { Cor: "Rosa", Tamanho: "37" },
+      stock: 15,
+      original_stock: 0,
+    },
   ];
   // Note: 'Azul' is completely omitted, expecting the RPC to archive it.
 
@@ -83,15 +96,19 @@ async function runSystemicAuditV2() {
     .select("id, sku, stock_on_hand, attributes, status")
     .eq("product_id", productId);
 
-  const rosa36 = finalVars?.find(v => v.id === idRosa);
-  const azul = finalVars?.find(v => v.id === idAzul);
-  const rosa37 = finalVars?.find(v => v.attributes.Tamanho === "37");
+  const rosa36 = finalVars?.find((v) => v.id === idRosa);
+  const azul = finalVars?.find((v) => v.id === idAzul);
+  const rosa37 = finalVars?.find((v) => v.attributes.Tamanho === "37");
 
   console.log(`   Verificações de Mutação Híbrida:`);
   console.log(`   - Rosa 36 (Manteve ID original?): ${rosa36 ? "SIM" : "NÃO"}`);
-  console.log(`   - Rosa 36 (Estoque foi para 70?): ${rosa36?.stock_on_hand === 70 ? "SIM" : "NÃO (Delta Falhou)"}`);
-  console.log(`   - Azul (Foi arquivado automaticamente por omissão?): ${azul?.status === "archived" ? "SIM" : "NÃO"}`);
-  
+  console.log(
+    `   - Rosa 36 (Estoque foi para 70?): ${rosa36?.stock_on_hand === 70 ? "SIM" : "NÃO (Delta Falhou)"}`,
+  );
+  console.log(
+    `   - Azul (Foi arquivado automaticamente por omissão?): ${azul?.status === "archived" ? "SIM" : "NÃO"}`,
+  );
+
   if (!rosa36 || rosa36.stock_on_hand !== 70 || azul?.status !== "archived") {
     console.error("❌ FALHA NO MOTOR NÃO-DESTRUTIVO V2.");
     process.exit(1);
@@ -101,15 +118,21 @@ async function runSystemicAuditV2() {
   // 3. Extrator Dinâmico de Filtros (Storefront)
   console.log(`\n⏳ Testando extração de filtros públicos (Storefront)...`);
   const { data: filters, error: filtersErr } = await serviceClient.rpc("get_available_filters_v1", {
-    store_id_param: store.id
+    store_id_param: store.id,
   });
   if (filtersErr) throw filtersErr;
 
-  const hasTamanho = filters?.some((f: any) => f.attribute_name === "Tamanho" && f.attribute_values.includes("36"));
-  const hasCorAzul = filters?.some((f: any) => f.attribute_name === "Cor" && f.attribute_values.includes("Azul"));
-  
+  const hasTamanho = filters?.some(
+    (f: any) => f.attribute_name === "Tamanho" && f.attribute_values.includes("36"),
+  );
+  const hasCorAzul = filters?.some(
+    (f: any) => f.attribute_name === "Cor" && f.attribute_values.includes("Azul"),
+  );
+
   console.log(`   - Vitrine enxerga 'Tamanho 36'? ${hasTamanho ? "SIM" : "NÃO"}`);
-  console.log(`   - Vitrine enxerga 'Cor Azul'? ${!hasCorAzul ? "SIM (Ocultou pois arquivou/zerou)" : "NÃO (Erro)"}`);
+  console.log(
+    `   - Vitrine enxerga 'Cor Azul'? ${!hasCorAzul ? "SIM (Ocultou pois arquivou/zerou)" : "NÃO (Erro)"}`,
+  );
 
   if (!hasTamanho || hasCorAzul) {
     console.error("❌ FALHA NO MOTOR DE FILTROS DA VITRINE.");
@@ -133,7 +156,7 @@ async function runSystemicAuditV2() {
   // Limpeza
   await serviceClient.from("product_variants").delete().eq("product_id", productId);
   await serviceClient.from("products").delete().eq("id", productId);
-  
+
   console.log("\n================================================================================");
   console.log("🏆 AUDITORIA SDD CONCLUÍDA: 100% DE SUCESSO. SISTEMA LIVRE DE FALHAS!");
   console.log("================================================================================\n");

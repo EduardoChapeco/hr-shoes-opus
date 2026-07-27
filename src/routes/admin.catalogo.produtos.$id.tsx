@@ -860,13 +860,16 @@ function VariantsManager({ product }: { product: any }) {
         <AccordionItem value="builder" className="border rounded-lg bg-card px-4">
           <AccordionTrigger className="hover:no-underline text-base font-semibold">
             <div className="flex items-center gap-2">
-              <Sparkles className="size-5 text-amber-500" /> 
+              <Sparkles className="size-5 text-amber-500" />
               Gerador em Lote (Usar apenas para setup inicial)
             </div>
           </AccordionTrigger>
           <AccordionContent className="pt-4 pb-6">
             <div className="mb-4 p-3 bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-md text-sm">
-              <strong>Atenção:</strong> Usar o gerador recriará a matriz baseada nas opções fornecidas. Se você já tem variações com fotos e histórico de vendas, use o botão <strong>"+ Adicionar sub-variação"</strong> diretamente na tabela abaixo para não perder dados.
+              <strong>Atenção:</strong> Usar o gerador recriará a matriz baseada nas opções
+              fornecidas. Se você já tem variações com fotos e histórico de vendas, use o botão{" "}
+              <strong>"+ Adicionar sub-variação"</strong> diretamente na tabela abaixo para não
+              perder dados.
             </div>
             <VariantOptionsBuilder product={product} />
           </AccordionContent>

@@ -1,5 +1,15 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { X, Sparkles, Copy, LayoutGrid, DollarSign, Barcode, EyeOff, Plus } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import {
+  X,
+  Sparkles,
+  Copy,
+  LayoutGrid,
+  DollarSign,
+  Barcode,
+  EyeOff,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -68,11 +78,11 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
     return Array.from(keys);
   }, [variants]);
 
-  // Apenas usa Matriz 2D se tiver EXATAMENTE 2 atributos. 
+  // Apenas usa Matriz 2D se tiver EXATAMENTE 2 atributos.
   // Se tiver 1 (Batom) ou 3+ (Joias complexas), usa a Lista Agrupada.
   const is2D = attributeKeys.length === 2;
-  const rowKey = attributeKeys[0] || "Opção"; 
-  const colKeys = attributeKeys.slice(1); 
+  const rowKey = attributeKeys[0] || "Opção";
+  const colKeys = attributeKeys.slice(1);
 
   // Generate unique Rows and Columns
   const pivotData = useMemo(() => {
@@ -88,6 +98,23 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
       </div>
     );
   }
+
+  const handleAddDimension = () => {
+    const dimName = window.prompt("Nome da nova dimensão (Ex: Tamanho, Material, Sabor):");
+    if (!dimName || dimName.trim() === "") return;
+    const newDim = dimName.trim();
+    if (attributeKeys.includes(newDim)) {
+      alert("Essa propriedade já existe!");
+      return;
+    }
+
+    // Inject the new dimension into all variants
+    const newVariants = variants.map((v) => ({
+      ...v,
+      attributes: { ...v.attributes, [newDim]: "" },
+    }));
+    onChange(newVariants);
+  };
 
   // --- Flat List Híbrida (1D ou 3D+) ---
   if (!is2D || !pivotData) {
@@ -114,13 +141,13 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
     const handleAddVariantToGroup = (groupVal: string) => {
       const group = grouped.get(groupVal);
       if (!group || group.variants.length === 0) return;
-      
+
       const templateVariant = group.variants[0];
       const newAttributes = { ...templateVariant.attributes };
-      
+
       // Limpa os valores das sub-variações para a nova linha
-      colKeys.forEach(k => {
-         newAttributes[k] = "";
+      colKeys.forEach((k) => {
+        newAttributes[k] = "";
       });
 
       const newVariant: RawVariant = {
@@ -128,7 +155,7 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
         stock: 0,
         price_override_cents: null,
         image_url: templateVariant.image_url,
-        sku: ""
+        sku: "",
       };
 
       onChange([...variants, newVariant]);
@@ -136,156 +163,262 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
 
     const handleAddEmptyVariant = () => {
       const newAttributes: Record<string, string> = {};
-      globalAttrKeys.forEach(k => newAttributes[k] = "");
-      if (globalAttrKeys.length === 0) {
-         newAttributes["Opção"] = "Nova Variação";
+      attributeKeys.forEach((k) => (newAttributes[k] = ""));
+      if (attributeKeys.length === 0) {
+        newAttributes["Opção"] = "Nova Variação";
       }
-      onChange([...variants, { attributes: newAttributes, stock: 0, price_override_cents: null, sku: "" }]);
+      onChange([
+        ...variants,
+        { attributes: newAttributes, stock: 0, price_override_cents: null, sku: "" },
+      ]);
+    };
+
+    const handleDeleteVariant = (globalIdx: number) => {
+      if (window.confirm("Deseja realmente remover esta variação?")) {
+        const newVariants = [...variants];
+        newVariants.splice(globalIdx, 1);
+        onChange(newVariants);
+      }
+    };
+
+    const handleCloneVariant = (globalIdx: number) => {
+      const template = variants[globalIdx];
+      const newVariants = [...variants];
+      newVariants.splice(globalIdx + 1, 0, {
+        ...template,
+        id: undefined, // ensure it creates a new record
+        sku: template.sku ? `${template.sku}-copy` : "",
+        original_stock: 0, // copies start with 0 history
+      });
+      onChange(newVariants);
     };
 
     return (
       <>
-      <div className="border rounded-xl overflow-x-auto bg-card shadow-sm">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-muted/40 text-muted-foreground text-xs uppercase font-semibold">
-            <tr>
-              <th className="px-4 py-3">{rowKey} (Grupo / Imagem)</th>
-              <th className="px-4 py-3">Especificação ({colKeys.join(", ")})</th>
-              <th className="px-4 py-3 text-center">Estoque</th>
-              <th className="px-4 py-3">SKU</th>
-              <th className="px-4 py-3">Preço Exceção</th>
-            </tr>
-          </thead>
-          {Array.from(grouped.entries()).map(([gName, gData]) => {
-            // First variant of the group holds the shared image
-            const sharedImage = gData.variants[0]?.image_url;
-            return (
-              <tbody key={gName} className="divide-y divide-border/30 border-b-4 border-muted/50 last:border-b-0">
-                {gData.variants.map((variant, localIdx) => {
-                  const globalIdx = gData.originalIndices[localIdx];
-                  const specKeys = Object.keys(variant.attributes).filter((k) => k !== rowKey);
+        <div className="flex justify-end mb-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAddDimension}
+            className="border-dashed text-primary hover:text-primary"
+          >
+            <Plus className="size-3 mr-1" /> Adicionar Propriedade (Ex: Tamanho)
+          </Button>
+        </div>
+        <div className="border rounded-xl overflow-x-auto bg-card shadow-sm">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-muted/40 text-muted-foreground text-xs uppercase font-semibold">
+              <tr>
+                <th className="px-4 py-3">{rowKey} (Grupo / Imagem)</th>
+                <th className="px-4 py-3">Especificação ({colKeys.join(", ")})</th>
+                <th className="px-4 py-3 text-center">Estoque</th>
+                <th className="px-4 py-3">SKU</th>
+                <th className="px-4 py-3">Preço Exceção</th>
+                <th className="px-4 py-3 text-right">Ações</th>
+              </tr>
+            </thead>
+            {Array.from(grouped.entries()).map(([gName, gData]) => {
+              // First variant of the group holds the shared image
+              const sharedImage = gData.variants[0]?.image_url;
+              return (
+                <tbody
+                  key={gName}
+                  className="divide-y divide-border/30 border-b-4 border-muted/50 last:border-b-0"
+                >
+                  {gData.variants.map((variant, localIdx) => {
+                    const globalIdx = gData.originalIndices[localIdx];
+                    const specKeys = Object.keys(variant.attributes).filter((k) => k !== rowKey);
 
-                  return (
-                    <tr key={variant.id || globalIdx} className="hover:bg-muted/10 transition-colors">
-                      {localIdx === 0 && (
-                        <td className="px-4 py-3 w-48 align-top border-r bg-muted/5" rowSpan={gData.variants.length + 1}>
-                          <div className="flex flex-col gap-2">
-                            <span className="font-semibold text-sm truncate" title={gName}>{gName}</span>
-                            {sharedImage ? (
-                              <div className="relative group w-full aspect-square rounded-md overflow-hidden border">
-                                <img src={sharedImage} alt={gName} className="w-full h-full object-cover" />
-                                <button
-                                  type="button"
-                                  onClick={() => handleGroupImageUpdate(gName, null)}
-                                  className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  <X className="size-5" />
-                                </button>
-                              </div>
+                    return (
+                      <tr
+                        key={variant.id || globalIdx}
+                        className="hover:bg-muted/10 transition-colors"
+                      >
+                        {localIdx === 0 && (
+                          <td
+                            className="px-4 py-3 w-56 align-top border-r bg-muted/5"
+                            rowSpan={gData.variants.length + 1}
+                          >
+                            <div className="flex flex-col gap-2">
+                              <Input
+                                className="h-8 font-semibold text-sm w-full"
+                                value={gName}
+                                onChange={(e) => {
+                                  const newName = e.target.value;
+                                  const newVariants = [...variants];
+                                  gData.originalIndices.forEach((idx) => {
+                                    newVariants[idx] = {
+                                      ...newVariants[idx],
+                                      attributes: {
+                                        ...newVariants[idx].attributes,
+                                        [rowKey]: newName,
+                                      },
+                                    };
+                                  });
+                                  onChange(newVariants);
+                                }}
+                              />
+                              {sharedImage ? (
+                                <div className="relative group w-full aspect-square rounded-md overflow-hidden border">
+                                  <img
+                                    src={sharedImage}
+                                    alt={gName}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleGroupImageUpdate(gName, null)}
+                                    className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <X className="size-5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="w-full aspect-square">
+                                  <ImageUpload
+                                    onChange={(url) => handleGroupImageUpdate(gName, url)}
+                                    bucket="product-media"
+                                    variant="minimal"
+                                    className="h-full w-full p-0 min-h-[48px] rounded-md"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        )}
+
+                        <td className="px-4 py-3 font-medium text-xs text-muted-foreground align-middle">
+                          <div className="flex flex-wrap gap-2">
+                            {colKeys.length > 0 ? (
+                              colKeys.map((k) => (
+                                <div key={k} className="flex flex-col gap-1">
+                                  <span className="text-[10px] text-muted-foreground uppercase">
+                                    {k}
+                                  </span>
+                                  <Input
+                                    className="h-7 text-xs w-28 px-2"
+                                    placeholder="..."
+                                    value={variant.attributes[k] || ""}
+                                    onChange={(e) => {
+                                      const newVariants = [...variants];
+                                      newVariants[globalIdx] = {
+                                        ...newVariants[globalIdx],
+                                        attributes: {
+                                          ...newVariants[globalIdx].attributes,
+                                          [k]: e.target.value,
+                                        },
+                                      };
+                                      onChange(newVariants);
+                                    }}
+                                  />
+                                </div>
+                              ))
                             ) : (
-                              <div className="w-full aspect-square">
-                                <ImageUpload
-                                  onChange={(url) => handleGroupImageUpdate(gName, url)}
-                                  bucket="product-media"
-                                  variant="minimal"
-                                  className="h-full w-full p-0 min-h-[48px] rounded-md"
-                                />
-                              </div>
+                              <span className="text-muted-foreground italic text-xs">Padrão</span>
                             )}
                           </div>
                         </td>
-                      )}
-                      
-                      <td className="px-4 py-3 font-medium text-xs text-muted-foreground align-middle">
-                        <div className="flex flex-wrap gap-2">
-                          {colKeys.length > 0 ? colKeys.map(k => (
-                             <div key={k} className="flex flex-col gap-1">
-                               <span className="text-[10px] text-muted-foreground uppercase">{k}</span>
-                               <Input 
-                                 className="h-7 text-xs w-28 px-2"
-                                 placeholder="..."
-                                 value={variant.attributes[k] || ""}
-                                 onChange={(e) => {
-                                   const newVariants = [...variants];
-                                   newVariants[globalIdx] = {
-                                     ...newVariants[globalIdx],
-                                     attributes: { ...newVariants[globalIdx].attributes, [k]: e.target.value }
-                                   };
-                                   onChange(newVariants);
-                                 }}
-                               />
-                             </div>
-                          )) : (
-                             <span className="text-muted-foreground italic text-xs">Padrão</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-2 w-32 align-middle">
-                        <Input
-                          type="number"
-                          min="0"
-                          value={variant.stock === 0 ? "" : variant.stock}
-                          placeholder="0"
-                          onChange={(e) => {
-                            const newVariants = [...variants];
-                            newVariants[globalIdx] = { ...variant, stock: parseInt(e.target.value) || 0 };
-                            onChange(newVariants);
-                          }}
-                          className="h-9 font-mono text-center bg-muted/20"
-                        />
-                      </td>
-                      <td className="px-4 py-2 w-48 align-middle">
-                        <Input
-                          type="text"
-                          value={variant.sku || ""}
-                          placeholder="Auto gerado"
-                          onChange={(e) => {
-                            const newVariants = [...variants];
-                            newVariants[globalIdx] = { ...variant, sku: e.target.value };
-                            onChange(newVariants);
-                          }}
-                          className="h-9 font-mono text-xs bg-muted/20"
-                        />
-                      </td>
-                      <td className="px-4 py-2 w-40 align-middle">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={variant.price_override_cents ? (variant.price_override_cents / 100).toFixed(2) : ""}
-                          placeholder={`Base: ${formatMoney(basePriceCents)}`}
-                          onChange={(e) => {
-                            const newVariants = [...variants];
-                            const val = parseFloat(e.target.value);
-                            newVariants[globalIdx] = { ...variant, price_override_cents: isNaN(val) ? null : Math.round(val * 100) };
-                            onChange(newVariants);
-                          }}
-                          className="h-9 font-mono text-xs bg-muted/20"
-                        />
-                      </td>
-                    </tr>
-                  );
-                })}
-                {/* Botão de Adicionar Sub-variação para este Grupo */}
-                <tr>
-                  <td colSpan={4} className="px-4 py-2 bg-muted/10">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-xs text-muted-foreground hover:text-primary"
-                      onClick={() => handleAddVariantToGroup(gName)}
-                    >
-                      <Plus className="size-3 mr-1" /> Adicionar sub-variação (Tamanho/etc) para {gName}
-                    </Button>
-                  </td>
-                </tr>
-              </tbody>
-            );
-          })}
-        </table>
-      </div>
-      <Button variant="outline" className="w-full mt-4 border-dashed" onClick={handleAddEmptyVariant}>
-        <Plus className="size-4 mr-2" /> Adicionar Nova Linha Manualmente (Grupo/Sub-variação)
-      </Button>
+                        <td className="px-4 py-2 w-32 align-middle">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={variant.stock === 0 ? "" : variant.stock}
+                            placeholder="0"
+                            onChange={(e) => {
+                              const newVariants = [...variants];
+                              newVariants[globalIdx] = {
+                                ...variant,
+                                stock: parseInt(e.target.value) || 0,
+                              };
+                              onChange(newVariants);
+                            }}
+                            className="h-9 font-mono text-center bg-muted/20"
+                          />
+                        </td>
+                        <td className="px-4 py-2 w-48 align-middle">
+                          <Input
+                            type="text"
+                            value={variant.sku || ""}
+                            placeholder="Auto gerado"
+                            onChange={(e) => {
+                              const newVariants = [...variants];
+                              newVariants[globalIdx] = { ...variant, sku: e.target.value };
+                              onChange(newVariants);
+                            }}
+                            className="h-9 font-mono text-xs bg-muted/20"
+                          />
+                        </td>
+                        <td className="px-4 py-2 w-40 align-middle">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={
+                              variant.price_override_cents
+                                ? (variant.price_override_cents / 100).toFixed(2)
+                                : ""
+                            }
+                            placeholder={`Base: ${formatMoney(basePriceCents)}`}
+                            onChange={(e) => {
+                              const newVariants = [...variants];
+                              const val = parseFloat(e.target.value);
+                              newVariants[globalIdx] = {
+                                ...variant,
+                                price_override_cents: isNaN(val) ? null : Math.round(val * 100),
+                              };
+                              onChange(newVariants);
+                            }}
+                            className="h-9 font-mono text-xs bg-muted/20"
+                          />
+                        </td>
+                        <td className="px-4 py-2 w-24 align-middle text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 text-muted-foreground hover:text-foreground"
+                              onClick={() => handleCloneVariant(globalIdx)}
+                            >
+                              <Copy className="size-3.5" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="size-7 text-muted-foreground hover:text-destructive"
+                              onClick={() => handleDeleteVariant(globalIdx)}
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr>
+                    <td colSpan={5} className="px-4 py-2 bg-muted/10">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs text-muted-foreground hover:text-primary"
+                        onClick={() => handleAddVariantToGroup(gName)}
+                      >
+                        <Plus className="size-3 mr-1" /> Adicionar linha de variação sob {gName}
+                      </Button>
+                    </td>
+                  </tr>
+                </tbody>
+              );
+            })}
+          </table>
+        </div>
+        <Button
+          variant="outline"
+          className="w-full mt-4 border-dashed"
+          onClick={handleAddEmptyVariant}
+        >
+          <Plus className="size-4 mr-2" /> Adicionar Nova Linha Manualmente (Grupo/Sub-variação)
+        </Button>
       </>
     );
   }

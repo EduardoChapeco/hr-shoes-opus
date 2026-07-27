@@ -10,7 +10,11 @@ import { Separator } from "@/components/ui/separator";
 import { EmptyState, UnconfiguredState, ErrorState } from "@/components/state/states";
 import { ProductGrid } from "@/components/commerce/product-grid";
 import { PageHeader } from "@/components/commerce/page-header";
-import { listPublishedProducts, listPublishedCategories, listAvailableAttributes } from "@/services/catalog.functions";
+import {
+  listPublishedProducts,
+  listPublishedCategories,
+  listAvailableAttributes,
+} from "@/services/catalog.functions";
 import type { ProductListResult, CategoryDTO } from "@/types/catalog";
 import { formatMoney } from "@/lib/money";
 
@@ -54,7 +58,7 @@ export const Route = createFileRoute("/_store/catalogo")({
   loaderDeps: ({ search }) => search,
   loader: async ({ location }) => {
     const search = location.search as CatalogSearch;
-    const [productsRes, categoriesRes] = await Promise.all([
+    const [productsRes, categoriesRes, attributesRes] = await Promise.all([
       listPublishedProducts({
         data: {
           categorySlug: search.categoria,
@@ -114,7 +118,7 @@ function FilterChips({ search, categories }: { search: CatalogSearch; categories
         }),
     });
   }
-  
+
   if (search.atributos) {
     Object.entries(search.atributos).forEach(([key, val]) => {
       chips.push({
@@ -124,12 +128,12 @@ function FilterChips({ search, categories }: { search: CatalogSearch; categories
           delete newAttrs[key];
           navigate({
             to: Route.fullPath,
-            search: (s: Record<string, any>) => ({ 
-              ...s, 
-              atributos: Object.keys(newAttrs).length > 0 ? newAttrs : undefined 
+            search: (s: Record<string, any>) => ({
+              ...s,
+              atributos: Object.keys(newAttrs).length > 0 ? newAttrs : undefined,
             }),
           });
-        }
+        },
       });
     });
   }
@@ -321,14 +325,17 @@ function FilterPanel({
           </div>
         );
       })}
-
     </div>
   );
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 function CatalogPage() {
-  const { products: result, categories, availableAttributes } = Route.useLoaderData() as {
+  const {
+    products: result,
+    categories,
+    availableAttributes,
+  } = Route.useLoaderData() as {
     products: ProductListResult;
     categories: CategoryDTO[];
     availableAttributes: { attribute_name: string; attribute_values: string[] }[];
@@ -441,10 +448,10 @@ function CatalogPage() {
               <SlidersHorizontal className="size-4" />
               <h2 className="font-semibold">Filtros</h2>
             </div>
-            <FilterPanel 
-              categories={categories} 
+            <FilterPanel
+              categories={categories}
               availableAttributes={availableAttributes}
-              search={search} 
+              search={search}
             />
           </div>
         </aside>

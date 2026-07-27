@@ -122,12 +122,16 @@ export function ImageUpload({
           )}
         </div>
       ) : variant === "minimal" ? (
-        <div 
+        <div
           onClick={() => inputRef.current?.click()}
           className="flex h-full w-full items-center justify-center rounded-md border border-dashed bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
           title="Clique para enviar imagem"
         >
-          {isUploading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : <Upload className="h-4 w-4 text-muted-foreground" />}
+          {isUploading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : (
+            <Upload className="h-4 w-4 text-muted-foreground" />
+          )}
         </div>
       ) : (
         <div className="flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-muted/50 p-6 hover:bg-muted">
