@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { EmptyState, UnconfiguredState, ErrorState } from "@/components/state/states";
 import { ProductGrid } from "@/components/commerce/product-grid";
 import { PageHeader } from "@/components/commerce/page-header";
-import { listPublishedProducts, listPublishedCategories } from "@/services/catalog.functions";
+import { listPublishedProducts, listPublishedCategories, listAvailableAttributes } from "@/services/catalog.functions";
 import type { ProductListResult, CategoryDTO } from "@/types/catalog";
 import { formatMoney } from "@/lib/money";
 
@@ -20,6 +20,7 @@ const SearchSchema = z.object({
   categoria: z.string().optional(),
   minCents: z.number().int().min(0).optional(),
   maxCents: z.number().int().min(0).optional(),
+  atributos: z.record(z.string()).optional(),
 });
 
 type CatalogSearch = z.infer<typeof SearchSchema>;
@@ -60,14 +61,17 @@ export const Route = createFileRoute("/_store/catalogo")({
           sort: search.sort ?? "newest",
           minCents: search.minCents,
           maxCents: search.maxCents,
+          attributes: search.atributos,
           limit: 24,
         },
       }),
       listPublishedCategories(),
+      listAvailableAttributes(),
     ]);
     return {
       products: productsRes,
       categories: categoriesRes || [],
+      availableAttributes: attributesRes || [],
     };
   },
   component: CatalogPage,
@@ -110,6 +114,25 @@ function FilterChips({ search, categories }: { search: CatalogSearch; categories
         }),
     });
   }
+  
+  if (search.atributos) {
+    Object.entries(search.atributos).forEach(([key, val]) => {
+      chips.push({
+        label: `${key}: ${val}`,
+        onRemove: () => {
+          const newAttrs = { ...search.atributos };
+          delete newAttrs[key];
+          navigate({
+            to: Route.fullPath,
+            search: (s: Record<string, any>) => ({ 
+              ...s, 
+              atributos: Object.keys(newAttrs).length > 0 ? newAttrs : undefined 
+            }),
+          });
+        }
+      });
+    });
+  }
 
   if (chips.length === 0) return null;
 
@@ -140,10 +163,12 @@ function FilterChips({ search, categories }: { search: CatalogSearch; categories
 // ─── Filter panel (used in both sidebar desktop + sheet mobile) ───────────────
 function FilterPanel({
   categories,
+  availableAttributes,
   search,
   onClose,
 }: {
   categories: CategoryDTO[];
+  availableAttributes: { attribute_name: string; attribute_values: string[] }[];
   search: CatalogSearch;
   onClose?: () => void;
 }) {
@@ -248,15 +273,65 @@ function FilterPanel({
           ))}
         </div>
       </div>
+
+      <Separator />
+
+      {/* Atributos Dinâmicos (Variações) */}
+      {availableAttributes.map((attr) => {
+        const currentValue = search.atributos?.[attr.attribute_name];
+        return (
+          <div key={attr.attribute_name} className="mb-6">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+              {attr.attribute_name}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => {
+                  const newAttrs = { ...search.atributos };
+                  delete newAttrs[attr.attribute_name];
+                  applyFilter({
+                    atributos: Object.keys(newAttrs).length > 0 ? newAttrs : undefined,
+                  });
+                }}
+                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                  !currentValue
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background hover:bg-muted text-foreground border-border"
+                }`}
+              >
+                Qualquer
+              </button>
+              {attr.attribute_values.map((val) => (
+                <button
+                  key={val}
+                  onClick={() => {
+                    const newAttrs = { ...search.atributos, [attr.attribute_name]: val };
+                    applyFilter({ atributos: newAttrs });
+                  }}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                    currentValue === val
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background hover:bg-muted text-foreground border-border"
+                  }`}
+                >
+                  {val}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+
     </div>
   );
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 function CatalogPage() {
-  const { products: result, categories } = Route.useLoaderData() as {
+  const { products: result, categories, availableAttributes } = Route.useLoaderData() as {
     products: ProductListResult;
     categories: CategoryDTO[];
+    availableAttributes: { attribute_name: string; attribute_values: string[] }[];
   };
   const search = Route.useSearch();
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
@@ -266,6 +341,7 @@ function CatalogPage() {
     search.categoria,
     search.sort && search.sort !== "newest" ? search.sort : null,
     search.minCents != null ? "price" : null,
+    ...(search.atributos ? Object.keys(search.atributos) : []),
   ].filter(Boolean).length;
 
   return (
@@ -347,6 +423,7 @@ function CatalogPage() {
               </SheetHeader>
               <FilterPanel
                 categories={categories}
+                availableAttributes={availableAttributes}
                 search={search}
                 onClose={() => setFilterSheetOpen(false)}
               />
@@ -358,9 +435,17 @@ function CatalogPage() {
       {/* Main layout: sidebar (desktop) + grid */}
       <div className="mt-8 flex gap-8">
         {/* Desktop sidebar */}
-        <aside className="hidden lg:block w-56 shrink-0">
-          <div className="sticky top-24 rounded-2xl border border-border bg-card p-5">
-            <FilterPanel categories={categories} search={search} />
+        <aside className="hidden lg:block w-64 shrink-0">
+          <div className="sticky top-24 bg-card border rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 pb-4 border-b">
+              <SlidersHorizontal className="size-4" />
+              <h2 className="font-semibold">Filtros</h2>
+            </div>
+            <FilterPanel 
+              categories={categories} 
+              availableAttributes={availableAttributes}
+              search={search} 
+            />
           </div>
         </aside>
 

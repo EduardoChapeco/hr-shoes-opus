@@ -33,6 +33,12 @@ import { PageHeader } from "@/components/commerce/page-header";
 import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
 import { Crop } from "lucide-react";
 import { PriceDisplay } from "@/components/commerce/price-display";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -850,49 +856,51 @@ function VariantsManager({ product }: { product: any }) {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="rapido" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 h-12 mb-4">
-          <TabsTrigger value="rapido" className="flex items-center gap-2 font-semibold">
-            <Sparkles className="size-4" /> Modo Rápido (Gerar Opções)
-          </TabsTrigger>
-          <TabsTrigger value="avancado" className="flex items-center gap-2 font-semibold">
-            <LayoutList className="size-4" /> Grade Matriz 2D (Estoque & Preços)
-          </TabsTrigger>
-        </TabsList>
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="builder" className="border rounded-lg bg-card px-4">
+          <AccordionTrigger className="hover:no-underline text-base font-semibold">
+            <div className="flex items-center gap-2">
+              <Sparkles className="size-5 text-amber-500" /> 
+              Gerador em Lote (Usar apenas para setup inicial)
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pt-4 pb-6">
+            <div className="mb-4 p-3 bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 rounded-md text-sm">
+              <strong>Atenção:</strong> Usar o gerador recriará a matriz baseada nas opções fornecidas. Se você já tem variações com fotos e histórico de vendas, use o botão <strong>"+ Adicionar sub-variação"</strong> diretamente na tabela abaixo para não perder dados.
+            </div>
+            <VariantOptionsBuilder product={product} />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
-        <TabsContent value="rapido" className="mt-0">
-          <VariantOptionsBuilder product={product} />
-        </TabsContent>
-
-        <TabsContent value="avancado" className="mt-0">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div>
-                <CardTitle className="text-base">Matriz de Variações 2D</CardTitle>
-                <CardDescription>
-                  Ajuste todo o estoque, preços, SKUs e imagens em lote de forma inteligente. Use
-                  TAB para navegar.
-                </CardDescription>
-              </div>
-              <Button onClick={handleSaveMatrix} disabled={isSubmitting} size="sm">
-                {isSubmitting ? (
-                  <Loader2 className="size-4 mr-2 animate-spin" />
-                ) : (
-                  <Settings className="size-4 mr-2" />
-                )}
-                Salvar Alterações da Matriz
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <VariantMatrixGrid
-                variants={variants}
-                onChange={setVariants}
-                basePriceCents={product.price_cents || 0}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              <LayoutList className="size-5" />
+              Matriz de Variações e Estoque
+            </CardTitle>
+            <CardDescription>
+              Ajuste atributos, estoque, preços e SKUs diretamente na tabela.
+            </CardDescription>
+          </div>
+          <Button onClick={handleSaveMatrix} disabled={isSubmitting} size="sm">
+            {isSubmitting ? (
+              <Loader2 className="size-4 mr-2 animate-spin" />
+            ) : (
+              <Settings className="size-4 mr-2" />
+            )}
+            Salvar Alterações da Matriz
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <VariantMatrixGrid
+            variants={variants}
+            onChange={setVariants}
+            basePriceCents={product.price_cents || 0}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -106,6 +106,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         sort: z.enum(["newest", "price_asc", "price_desc", "in_stock"]).default("newest"),
         minCents: z.number().int().min(0).optional(),
         maxCents: z.number().int().min(0).optional(),
+        attributes: z.record(z.string()).optional(),
       })
       .default({}),
   )
@@ -124,10 +125,10 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         ? `id, slug, title, brand, price_cents, compare_at_cents, published_at,
            product_media(url, alt, sort_order),
            product_categories!inner(categories!inner(slug)),
-           product_variants(status, price_override_cents, stock_on_hand)`
+           product_variants!inner(status, price_override_cents, stock_on_hand, attributes)`
         : `id, slug, title, brand, price_cents, compare_at_cents, published_at,
            product_media(url, alt, sort_order),
-           product_variants(status, price_override_cents, stock_on_hand)`;
+           product_variants!inner(status, price_override_cents, stock_on_hand, attributes)`;
 
       // Determine sort order — price sorting must be done post-fetch since effective price
       // depends on variant override logic (server-calculated, never trusted from client)
@@ -144,6 +145,16 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         .eq("status", "published")
         .order(dbOrderField, { ascending: dbOrderAsc })
         .limit(params.limit * 2); // fetch more to allow client-side re-sort after mapping
+
+      // Para a lógica de variantes funcionarem com !inner, temos que garantir que estão ativas e com estoque
+      query = query.eq("product_variants.status", "active");
+
+      // Applica filtro de atributos dinâmicos, se houver
+      if (params.attributes && Object.keys(params.attributes).length > 0) {
+        query = query.contains("product_variants.attributes", params.attributes);
+        // Só retorna se a variação Específica que deu match tiver estoque
+        query = query.gt("product_variants.stock_on_hand", 0);
+      }
 
       if (params.categorySlug) {
         query = query.eq("product_categories.categories.slug", params.categorySlug);
@@ -250,7 +261,37 @@ export const listPublishedCategories = createServerFn({ method: "GET" }).handler
         reason: "Nossas categorias de calçados estão em manutenção temporária.",
       };
     }
-    throw new Error("Erro inesperado ao carregar categorias.");
+    console.error("[catalog.functions] listPublishedCategories unexpected error:", e);
+    return [];
+  }
+});
+
+// ---------------------------------------------------------------------------
+// listAvailableAttributes (Dynamic Filters)
+// ---------------------------------------------------------------------------
+
+export const listAvailableAttributes = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const db = getAnonServerClient();
+    const storeId = await resolveTenantStoreId();
+
+    if (!storeId) {
+      return [];
+    }
+
+    const { data, error } = await db.rpc("get_available_filters_v1", {
+      store_id_param: storeId,
+    });
+
+    if (error) {
+      console.error("[catalog.functions] listAvailableAttributes RPC error:", error.message);
+      return [];
+    }
+
+    return (data || []) as { attribute_name: string; attribute_values: string[] }[];
+  } catch (e) {
+    console.error("[catalog.functions] listAvailableAttributes unexpected error:", e);
+    return [];
   }
 });
 

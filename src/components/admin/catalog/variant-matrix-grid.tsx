@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { X, Sparkles, Copy, LayoutGrid, DollarSign, Barcode, EyeOff } from "lucide-react";
+import { X, Sparkles, Copy, LayoutGrid, DollarSign, Barcode, EyeOff, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -111,7 +111,40 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
       }
     };
 
+    const handleAddVariantToGroup = (groupVal: string) => {
+      const group = grouped.get(groupVal);
+      if (!group || group.variants.length === 0) return;
+      
+      const templateVariant = group.variants[0];
+      const newAttributes = { ...templateVariant.attributes };
+      
+      // Limpa os valores das sub-variações para a nova linha
+      colKeys.forEach(k => {
+         newAttributes[k] = "";
+      });
+
+      const newVariant: RawVariant = {
+        attributes: newAttributes,
+        stock: 0,
+        price_override_cents: null,
+        image_url: templateVariant.image_url,
+        sku: ""
+      };
+
+      onChange([...variants, newVariant]);
+    };
+
+    const handleAddEmptyVariant = () => {
+      const newAttributes: Record<string, string> = {};
+      globalAttrKeys.forEach(k => newAttributes[k] = "");
+      if (globalAttrKeys.length === 0) {
+         newAttributes["Opção"] = "Nova Variação";
+      }
+      onChange([...variants, { attributes: newAttributes, stock: 0, price_override_cents: null, sku: "" }]);
+    };
+
     return (
+      <>
       <div className="border rounded-xl overflow-x-auto bg-card shadow-sm">
         <table className="w-full text-sm text-left">
           <thead className="bg-muted/40 text-muted-foreground text-xs uppercase font-semibold">
@@ -130,16 +163,12 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
               <tbody key={gName} className="divide-y divide-border/30 border-b-4 border-muted/50 last:border-b-0">
                 {gData.variants.map((variant, localIdx) => {
                   const globalIdx = gData.originalIndices[localIdx];
-                  // Oculta o atributo principal (rowKey) da especificação para não ficar redundante
                   const specKeys = Object.keys(variant.attributes).filter((k) => k !== rowKey);
-                  const specLabel = specKeys.length > 0 
-                    ? specKeys.map((k) => variant.attributes[k]).join(" / ")
-                    : "Padrão";
 
                   return (
                     <tr key={variant.id || globalIdx} className="hover:bg-muted/10 transition-colors">
                       {localIdx === 0 && (
-                        <td className="px-4 py-3 w-48 align-top border-r bg-muted/5" rowSpan={gData.variants.length}>
+                        <td className="px-4 py-3 w-48 align-top border-r bg-muted/5" rowSpan={gData.variants.length + 1}>
                           <div className="flex flex-col gap-2">
                             <span className="font-semibold text-sm truncate" title={gName}>{gName}</span>
                             {sharedImage ? (
@@ -168,7 +197,28 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
                       )}
                       
                       <td className="px-4 py-3 font-medium text-xs text-muted-foreground align-middle">
-                        {specLabel}
+                        <div className="flex flex-wrap gap-2">
+                          {colKeys.length > 0 ? colKeys.map(k => (
+                             <div key={k} className="flex flex-col gap-1">
+                               <span className="text-[10px] text-muted-foreground uppercase">{k}</span>
+                               <Input 
+                                 className="h-7 text-xs w-28 px-2"
+                                 placeholder="..."
+                                 value={variant.attributes[k] || ""}
+                                 onChange={(e) => {
+                                   const newVariants = [...variants];
+                                   newVariants[globalIdx] = {
+                                     ...newVariants[globalIdx],
+                                     attributes: { ...newVariants[globalIdx].attributes, [k]: e.target.value }
+                                   };
+                                   onChange(newVariants);
+                                 }}
+                               />
+                             </div>
+                          )) : (
+                             <span className="text-muted-foreground italic text-xs">Padrão</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-2 w-32 align-middle">
                         <Input
@@ -215,11 +265,28 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
                     </tr>
                   );
                 })}
+                {/* Botão de Adicionar Sub-variação para este Grupo */}
+                <tr>
+                  <td colSpan={4} className="px-4 py-2 bg-muted/10">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-xs text-muted-foreground hover:text-primary"
+                      onClick={() => handleAddVariantToGroup(gName)}
+                    >
+                      <Plus className="size-3 mr-1" /> Adicionar sub-variação (Tamanho/etc) para {gName}
+                    </Button>
+                  </td>
+                </tr>
               </tbody>
             );
           })}
         </table>
       </div>
+      <Button variant="outline" className="w-full mt-4 border-dashed" onClick={handleAddEmptyVariant}>
+        <Plus className="size-4 mr-2" /> Adicionar Nova Linha Manualmente (Grupo/Sub-variação)
+      </Button>
+      </>
     );
   }
 
