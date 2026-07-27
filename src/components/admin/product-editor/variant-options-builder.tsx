@@ -117,9 +117,13 @@ export function VariantOptionsBuilder({ product, onClose }: VariantOptionsBuilde
           });
 
           return {
+            id: existingVariant?.id || undefined,
             attributes: attrs,
             stock: existingVariant ? existingVariant.stock_on_hand || 0 : 0,
+            original_stock: existingVariant ? existingVariant.stock_on_hand || 0 : 0,
             price_override_cents: existingVariant?.price_override_cents || null,
+            image_url: existingVariant?.image_url || null,
+            sku: existingVariant?.sku || "",
           };
         });
 

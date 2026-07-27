@@ -11,6 +11,7 @@ export type RawVariant = {
   sku?: string;
   attributes: Record<string, string>;
   stock: number;
+  original_stock?: number;
   price_override_cents?: number | null;
   image_url?: string | null;
 };
@@ -67,16 +68,17 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
     return Array.from(keys);
   }, [variants]);
 
-  // If 0 or 1 attribute, fallback to a flat list display instead of 2D Matrix
-  const is1D = attributeKeys.length <= 1;
-  const rowKey = attributeKeys[0]; // Primary attribute (e.g., "Cor")
-  const colKeys = attributeKeys.slice(1); // Secondary attributes (e.g., "Tamanho")
+  // Apenas usa Matriz 2D se tiver EXATAMENTE 2 atributos. 
+  // Se tiver 1 (Batom) ou 3+ (Joias complexas), usa a Lista Agrupada.
+  const is2D = attributeKeys.length === 2;
+  const rowKey = attributeKeys[0] || "Opção"; 
+  const colKeys = attributeKeys.slice(1); 
 
   // Generate unique Rows and Columns
   const pivotData = useMemo(() => {
-    if (is1D) return null;
+    if (!is2D) return null;
     return generatePivotData(variants, rowKey, colKeys);
-  }, [variants, is1D, rowKey, colKeys]);
+  }, [variants, is2D, rowKey, colKeys]);
 
   if (variants.length === 0) {
     return (
@@ -87,110 +89,135 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
     );
   }
 
-  // --- 1D Flat List (Fallback) ---
-  if (is1D || !pivotData) {
+  // --- Flat List Híbrida (1D ou 3D+) ---
+  if (!is2D || !pivotData) {
+    // Agrupar pelo primeiro atributo para facilitar upload de imagens em lote
+    const grouped = new Map<string, { variants: RawVariant[]; originalIndices: number[] }>();
+    variants.forEach((v, idx) => {
+      const pVal = attributeKeys.length > 0 ? (v.attributes[rowKey] ?? "Geral") : "Geral";
+      if (!grouped.has(pVal)) grouped.set(pVal, { variants: [], originalIndices: [] });
+      grouped.get(pVal)!.variants.push(v);
+      grouped.get(pVal)!.originalIndices.push(idx);
+    });
+
+    const handleGroupImageUpdate = (groupVal: string, url: string | null) => {
+      const newVariants = [...variants];
+      const group = grouped.get(groupVal);
+      if (group) {
+        group.originalIndices.forEach((idx) => {
+          newVariants[idx] = { ...newVariants[idx], image_url: url };
+        });
+        onChange(newVariants);
+      }
+    };
+
     return (
-      <div className="border rounded-xl overflow-x-auto bg-card">
+      <div className="border rounded-xl overflow-x-auto bg-card shadow-sm">
         <table className="w-full text-sm text-left">
-          <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-semibold">
+          <thead className="bg-muted/40 text-muted-foreground text-xs uppercase font-semibold">
             <tr>
-              <th className="px-4 py-3">Imagem</th>
-              <th className="px-4 py-3">Variação</th>
-              <th className="px-4 py-3">Estoque</th>
+              <th className="px-4 py-3">{rowKey} (Grupo / Imagem)</th>
+              <th className="px-4 py-3">Especificação ({colKeys.join(", ")})</th>
+              <th className="px-4 py-3 text-center">Estoque</th>
               <th className="px-4 py-3">SKU</th>
               <th className="px-4 py-3">Preço Exceção</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/50">
-            {variants.map((variant, idx) => (
-              <tr key={variant.id || idx} className="hover:bg-muted/30 transition-colors">
-                <td className="px-4 py-3 w-20">
-                  {variant.image_url ? (
-                    <div className="relative group w-12 h-12 rounded-md overflow-hidden border">
-                      <img
-                        src={variant.image_url}
-                        alt="Variante"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newVariants = [...variants];
-                          newVariants[idx].image_url = null;
-                          onChange(newVariants);
-                        }}
-                        className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="w-12 h-12">
-                      <ImageUpload
-                        onChange={(url: string) => {
-                          const newVariants = [...variants];
-                          newVariants[idx].image_url = url;
-                          onChange(newVariants);
-                        }}
-                        bucket="product-media"
-                        className="h-full w-full p-0 min-h-[48px] rounded-md"
-                      />
-                    </div>
-                  )}
-                </td>
-                <td className="px-4 py-3 font-medium">
-                  {Object.values(variant.attributes).join(" / ")}
-                </td>
-                <td className="px-4 py-2 w-32">
-                  <Input
-                    type="number"
-                    min="0"
-                    value={variant.stock}
-                    onChange={(e) => {
-                      const newVariants = [...variants];
-                      newVariants[idx].stock = parseInt(e.target.value) || 0;
-                      onChange(newVariants);
-                    }}
-                    className="h-9 font-mono text-center bg-background"
-                  />
-                </td>
-                <td className="px-4 py-2 w-48">
-                  <Input
-                    type="text"
-                    value={variant.sku || ""}
-                    onChange={(e) => {
-                      const newVariants = [...variants];
-                      newVariants[idx].sku = e.target.value;
-                      onChange(newVariants);
-                    }}
-                    placeholder="Auto gerado"
-                    className="h-9 font-mono text-xs bg-background"
-                  />
-                </td>
-                <td className="px-4 py-2 w-40">
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={
-                      variant.price_override_cents
-                        ? (variant.price_override_cents / 100).toFixed(2)
-                        : ""
-                    }
-                    onChange={(e) => {
-                      const newVariants = [...variants];
-                      const val = parseFloat(e.target.value);
-                      newVariants[idx].price_override_cents = isNaN(val)
-                        ? null
-                        : Math.round(val * 100);
-                      onChange(newVariants);
-                    }}
-                    placeholder={`Base: ${formatMoney(basePriceCents)}`}
-                    className="h-9 font-mono text-xs bg-background"
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
+          {Array.from(grouped.entries()).map(([gName, gData]) => {
+            // First variant of the group holds the shared image
+            const sharedImage = gData.variants[0]?.image_url;
+            return (
+              <tbody key={gName} className="divide-y divide-border/30 border-b-4 border-muted/50 last:border-b-0">
+                {gData.variants.map((variant, localIdx) => {
+                  const globalIdx = gData.originalIndices[localIdx];
+                  // Oculta o atributo principal (rowKey) da especificação para não ficar redundante
+                  const specKeys = Object.keys(variant.attributes).filter((k) => k !== rowKey);
+                  const specLabel = specKeys.length > 0 
+                    ? specKeys.map((k) => variant.attributes[k]).join(" / ")
+                    : "Padrão";
+
+                  return (
+                    <tr key={variant.id || globalIdx} className="hover:bg-muted/10 transition-colors">
+                      {localIdx === 0 && (
+                        <td className="px-4 py-3 w-48 align-top border-r bg-muted/5" rowSpan={gData.variants.length}>
+                          <div className="flex flex-col gap-2">
+                            <span className="font-semibold text-sm truncate" title={gName}>{gName}</span>
+                            {sharedImage ? (
+                              <div className="relative group w-full aspect-square rounded-md overflow-hidden border">
+                                <img src={sharedImage} alt={gName} className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => handleGroupImageUpdate(gName, null)}
+                                  className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X className="size-5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="w-full aspect-square">
+                                <ImageUpload
+                                  onChange={(url) => handleGroupImageUpdate(gName, url)}
+                                  bucket="product-media"
+                                  variant="minimal"
+                                  className="h-full w-full p-0 min-h-[48px] rounded-md"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                      
+                      <td className="px-4 py-3 font-medium text-xs text-muted-foreground align-middle">
+                        {specLabel}
+                      </td>
+                      <td className="px-4 py-2 w-32 align-middle">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={variant.stock === 0 ? "" : variant.stock}
+                          placeholder="0"
+                          onChange={(e) => {
+                            const newVariants = [...variants];
+                            newVariants[globalIdx] = { ...variant, stock: parseInt(e.target.value) || 0 };
+                            onChange(newVariants);
+                          }}
+                          className="h-9 font-mono text-center bg-muted/20"
+                        />
+                      </td>
+                      <td className="px-4 py-2 w-48 align-middle">
+                        <Input
+                          type="text"
+                          value={variant.sku || ""}
+                          placeholder="Auto gerado"
+                          onChange={(e) => {
+                            const newVariants = [...variants];
+                            newVariants[globalIdx] = { ...variant, sku: e.target.value };
+                            onChange(newVariants);
+                          }}
+                          className="h-9 font-mono text-xs bg-muted/20"
+                        />
+                      </td>
+                      <td className="px-4 py-2 w-40 align-middle">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={variant.price_override_cents ? (variant.price_override_cents / 100).toFixed(2) : ""}
+                          placeholder={`Base: ${formatMoney(basePriceCents)}`}
+                          onChange={(e) => {
+                            const newVariants = [...variants];
+                            const val = parseFloat(e.target.value);
+                            newVariants[globalIdx] = { ...variant, price_override_cents: isNaN(val) ? null : Math.round(val * 100) };
+                            onChange(newVariants);
+                          }}
+                          className="h-9 font-mono text-xs bg-muted/20"
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            );
+          })}
         </table>
       </div>
     );
@@ -365,6 +392,7 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
                         <ImageUpload
                           onChange={(url: string) => handleRowImageUpdate(r, url)}
                           bucket="product-media"
+                          variant="minimal"
                           className="h-full w-full p-0 rounded border-dashed"
                         />
                       </div>

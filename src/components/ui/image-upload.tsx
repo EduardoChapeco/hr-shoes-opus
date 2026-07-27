@@ -12,6 +12,7 @@ interface ImageUploadProps {
   onRemove?: () => void;
   bucket?: "product-media" | "cms-media";
   className?: string;
+  variant?: "default" | "minimal";
 }
 
 export function ImageUpload({
@@ -20,6 +21,7 @@ export function ImageUpload({
   onRemove,
   bucket = "cms-media",
   className,
+  variant = "default",
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -118,6 +120,14 @@ export function ImageUpload({
               <X className="h-4 w-4" />
             </Button>
           )}
+        </div>
+      ) : variant === "minimal" ? (
+        <div 
+          onClick={() => inputRef.current?.click()}
+          className="flex h-full w-full items-center justify-center rounded-md border border-dashed bg-muted/50 hover:bg-muted cursor-pointer transition-colors"
+          title="Clique para enviar imagem"
+        >
+          {isUploading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : <Upload className="h-4 w-4 text-muted-foreground" />}
         </div>
       ) : (
         <div className="flex aspect-video w-full max-w-sm flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-muted/50 p-6 hover:bg-muted">

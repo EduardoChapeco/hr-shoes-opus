@@ -857,10 +857,12 @@ export const upsertProductVariant = createServerFn({ method: "POST" })
 export async function batchUpsertVariantMatrixHandler(input: {
   product_id: string;
   matrix: {
+    id?: string;
     sku?: string;
     attributes: Record<string, string>;
     price_override_cents?: number | null;
     stock: number;
+    original_stock?: number;
     image_url?: string | null;
   }[];
 }) {
@@ -871,7 +873,7 @@ export async function batchUpsertVariantMatrixHandler(input: {
   const { store_id } = await getServerIdentity();
   if (!store_id) throw new Error("Acesso não autorizado.");
 
-  const { data, error } = await db.rpc("batch_upsert_variant_matrix_v1", {
+  const { data, error } = await db.rpc("batch_upsert_variant_matrix_v2", {
     store_id_param: store_id,
     product_id_param: input.product_id,
     matrix: input.matrix,
@@ -891,10 +893,12 @@ export const batchUpsertVariantMatrix = createServerFn({ method: "POST" })
       product_id: z.string().uuid(),
       matrix: z.array(
         z.object({
+          id: z.string().uuid().optional(),
           sku: z.string().optional(),
           attributes: z.record(z.string()),
           price_override_cents: z.number().int().min(0).optional().nullable(),
           stock: z.number().int().min(0).default(0),
+          original_stock: z.number().int().min(0).optional(),
           image_url: z.string().optional().nullable(),
         }),
       ),
