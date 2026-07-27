@@ -18,6 +18,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { createProduct, listCategories } from "@/services/admin-catalog.functions";
+import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
 
 export const Route = createFileRoute("/admin/catalogo/produtos/novo")({
   head: () => ({ meta: [{ title: "Criação Rápida — Hr Shoes" }] }),
@@ -49,22 +50,12 @@ type DynamicAttribute = {
   values: string[];
 };
 
-type VariantRow = {
-  id: string;
-  sku: string;
-  attributes: Record<string, string>;
-  stock: number;
-  price_cents: number;
-  image_url: string | null;
-};
-
 // Gera o produto cartesiano das opções
 function generateVariantsMatrix(
   attributes: DynamicAttribute[],
   baseSku: string,
-  basePrice: number,
   baseStock: number,
-): VariantRow[] {
+): RawVariant[] {
   const activeAttrs = attributes.filter((a) => a.name.trim() && a.values.length > 0);
   if (activeAttrs.length === 0) return [];
 
@@ -93,7 +84,7 @@ function generateVariantsMatrix(
       sku: skuParts.join("-") || `${baseSku}-var-${idx + 1}`,
       attributes: attrsObj,
       stock: baseStock,
-      price_cents: basePrice,
+      price_override_cents: null,
       image_url: null,
     };
   });
@@ -111,7 +102,7 @@ function QuickNewProductPage() {
   const [attributes, setAttributes] = useState<DynamicAttribute[]>([]);
 
   // Tabela final de variações (substitui a seleção estática)
-  const [variantsMatrix, setVariantsMatrix] = useState<VariantRow[]>([]);
+  const [variantsMatrix, setVariantsMatrix] = useState<RawVariant[]>([]);
   const [isMatrixGenerated, setIsMatrixGenerated] = useState(false);
 
   const {
@@ -176,7 +167,7 @@ function QuickNewProductPage() {
       toast.error("Adicione pelo menos um atributo com valores para gerar variações.");
       return;
     }
-    const matrix = generateVariantsMatrix(attributes, targetSlug || "PROD", basePriceCents, 0);
+    const matrix = generateVariantsMatrix(attributes, targetSlug || "PROD", 0);
     if (matrix.length > 150) {
       toast.error(
         `Esta combinação gerará ${matrix.length} variações. Recomendamos criar no máximo 150 de uma vez para não travar o navegador.`,
@@ -189,7 +180,7 @@ function QuickNewProductPage() {
   };
 
   // --- Atualização de Variação Individual ---
-  const updateVariant = (id: string, field: keyof VariantRow, value: any) => {
+  const updateVariant = (id: string, field: keyof RawVariant, value: any) => {
     setVariantsMatrix((prev) => prev.map((v) => (v.id === id ? { ...v, [field]: value } : v)));
   };
 
@@ -201,13 +192,13 @@ function QuickNewProductPage() {
 
       // Garante que se o usuário digitou variações no cadastro inicial mas esqueceu de clicar
       // no botão "Gerar Matriz de Variações", a matriz é gerada automaticamente no padrão da indústria (estoque inicial 0)
-      let finalVariants: VariantRow[] | undefined = undefined;
+      let finalVariants: RawVariant[] | undefined = undefined;
       if (isMatrixGenerated && variantsMatrix.length > 0) {
         finalVariants = variantsMatrix;
       } else {
         const activeAttrs = attributes.filter((a) => a.name.trim() && a.values.length > 0);
         if (activeAttrs.length > 0) {
-          finalVariants = generateVariantsMatrix(attributes, finalSlug || "PROD", priceCents, 0);
+          finalVariants = generateVariantsMatrix(attributes, finalSlug || "PROD", 0);
         }
       }
 
@@ -222,7 +213,13 @@ function QuickNewProductPage() {
           media_urls: mainImageUrl ? [mainImageUrl] : [],
           is_physical: true,
           attributes: {},
-          variants: finalVariants,
+          variants: finalVariants?.map((v) => ({
+            sku: v.sku || "",
+            attributes: v.attributes,
+            price_override_cents: v.price_override_cents ?? undefined,
+            stock: v.stock,
+            image_url: v.image_url,
+          })),
         },
       });
 
@@ -471,89 +468,13 @@ function QuickNewProductPage() {
                   </Button>
                 </div>
 
-                <div className="border rounded-xl overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-muted text-muted-foreground text-xs uppercase font-semibold">
-                      <tr>
-                        <th className="px-4 py-3">Imagem</th>
-                        <th className="px-4 py-3">Variação</th>
-                        <th className="px-4 py-3">SKU</th>
-                        <th className="px-4 py-3">Estoque</th>
-                        <th className="px-4 py-3">Preço (R$)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {variantsMatrix.map((variant) => (
-                        <tr key={variant.id} className="hover:bg-muted/30 transition-colors">
-                          <td className="px-4 py-3 w-20">
-                            {variant.image_url ? (
-                              <div className="relative group w-12 h-12 rounded-md overflow-hidden border">
-                                <img
-                                  src={variant.image_url}
-                                  alt="Variante"
-                                  className="w-full h-full object-cover"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => updateVariant(variant.id, "image_url", null)}
-                                  className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="w-12 h-12">
-                                <ImageUpload
-                                  onChange={(url: string) =>
-                                    updateVariant(variant.id, "image_url", url)
-                                  }
-                                  bucket="product-media"
-                                  className="h-full w-full p-0 min-h-[48px] rounded-md"
-                                />
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 font-medium">
-                            {Object.values(variant.attributes).join(" / ")}
-                          </td>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={variant.sku}
-                              onChange={(e) => updateVariant(variant.id, "sku", e.target.value)}
-                              className="h-8 max-w-[150px]"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <Input
-                              type="number"
-                              value={variant.stock}
-                              onChange={(e) =>
-                                updateVariant(variant.id, "stock", parseInt(e.target.value) || 0)
-                              }
-                              className="h-8 w-20"
-                              min="0"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="relative max-w-[120px]">
-                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                                R$
-                              </span>
-                              <Input
-                                value={(variant.price_cents / 100).toFixed(2).replace(".", ",")}
-                                onChange={(e) => {
-                                  const val = e.target.value.replace(/\D/g, "");
-                                  updateVariant(variant.id, "price_cents", parseInt(val) || 0);
-                                }}
-                                className="h-8 pl-7"
-                              />
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <VariantMatrixGrid
+                  variants={variantsMatrix}
+                  onChange={setVariantsMatrix}
+                  basePriceCents={
+                    parseInt(watch("price_cents")?.replace(/\D/g, "") || "0", 10) || 0
+                  }
+                />
               </div>
             )}
           </CardContent>

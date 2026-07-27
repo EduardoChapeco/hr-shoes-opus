@@ -223,7 +223,7 @@ export async function createProductHandler(input: {
   variants?: {
     sku: string;
     attributes: Record<string, any>;
-    price_cents?: number;
+    price_override_cents?: number | null;
     stock: number;
     image_url?: string | null;
   }[];
@@ -280,9 +280,9 @@ export const createProduct = createServerFn({ method: "POST" })
           z.object({
             sku: z.string().min(1),
             attributes: z.record(z.any()).default({}),
-            price_cents: z.number().int().min(0).optional(),
+            price_override_cents: z.number().int().min(0).optional().nullable(),
             stock: z.number().int().min(0).default(0),
-            image_url: z.string().url().optional().nullable(),
+            image_url: z.string().optional().nullable(),
           }),
         )
         .optional(),
@@ -680,12 +680,9 @@ export async function updateProductHandler(input: {
     const matrix = variants.map((v) => ({
       attributes: v.attributes,
       stock: v.stock,
-      price_override_cents:
-        v.price_override_cents !== undefined
-          ? v.price_override_cents
-          : v.price_cents !== undefined
-            ? v.price_cents
-            : null,
+      // price_override_cents null = herança canônica do preço base do produto
+      // nunca usar price_cents como fallback — isso quebraria a herança dinâmica
+      price_override_cents: v.price_override_cents ?? null,
     }));
     await batchUpsertVariantMatrixHandler({
       product_id: id,

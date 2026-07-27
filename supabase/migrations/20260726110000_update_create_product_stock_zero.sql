@@ -104,7 +104,11 @@ BEGIN
       VALUES (
         v_product_id,
         v_variant->>'sku',
-        (v_variant->>'price_cents')::integer,
+        CASE 
+          WHEN v_variant->>'price_override_cents' IS NULL OR v_variant->>'price_override_cents' = 'null' OR v_variant->>'price_override_cents' = '' 
+          THEN NULL 
+          ELSE (v_variant->>'price_override_cents')::integer 
+        END,
         COALESCE(v_variant->'attributes', '{}'::jsonb),
         COALESCE((v_variant->>'stock')::integer, 0),
         v_now,

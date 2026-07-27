@@ -26,9 +26,8 @@ import {
 } from "lucide-react";
 
 import { ProductEditorLayout } from "@/components/admin/product-editor/product-editor-layout";
-import { VariantFormRow } from "@/components/admin/product-editor/variant-form-row";
 import { VariantOptionsBuilder } from "@/components/admin/product-editor/variant-options-builder";
-import { VariantListGrid } from "@/components/admin/product-editor/variant-list-grid";
+import { VariantMatrixGrid, type RawVariant } from "@/components/admin/catalog/variant-matrix-grid";
 
 import { PageHeader } from "@/components/commerce/page-header";
 import { ImageCropperDialog } from "@/components/ui/image-cropper-dialog";
@@ -72,6 +71,7 @@ import {
   getProductById,
   updateProduct,
   upsertProductVariant,
+  batchUpsertVariantMatrix,
   deleteProductMedia,
   addProductMediaLink,
   updateProductMediaMetadata,
@@ -817,18 +817,46 @@ function GeneralForm({
 
 function VariantsManager({ product }: { product: any }) {
   const router = useRouter();
-  const [editingVariantId, setEditingVariantId] = useState<string | null>(null);
-  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [variants, setVariants] = useState<RawVariant[]>(() => {
+    return (product.product_variants || []).map((v: any) => ({
+      id: v.id,
+      sku: v.sku,
+      attributes: v.attributes || {},
+      // Supabase retorna a coluna como stock_on_hand — mapear corretamente para RawVariant.stock
+      stock: v.stock_on_hand ?? v.stock ?? 0,
+      price_override_cents: v.price_override_cents,
+      image_url: v.image_url,
+    }));
+  });
+
+  const handleSaveMatrix = async () => {
+    setIsSubmitting(true);
+    try {
+      await batchUpsertVariantMatrix({
+        data: {
+          product_id: product.id,
+          matrix: variants,
+        },
+      });
+      toast.success("Matriz salva com sucesso!");
+      router.invalidate();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao salvar matriz");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <Tabs defaultValue="rapido" className="w-full">
         <TabsList className="grid w-full grid-cols-2 h-12 mb-4">
           <TabsTrigger value="rapido" className="flex items-center gap-2 font-semibold">
-            <Sparkles className="size-4" /> Modo Rápido (Opções)
+            <Sparkles className="size-4" /> Modo Rápido (Gerar Opções)
           </TabsTrigger>
           <TabsTrigger value="avancado" className="flex items-center gap-2 font-semibold">
-            <Settings className="size-4" /> Modo Avançado (Tabela)
+            <LayoutList className="size-4" /> Grade Matriz 2D (Estoque & Preços)
           </TabsTrigger>
         </TabsList>
 
@@ -840,39 +868,29 @@ function VariantsManager({ product }: { product: any }) {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
-                <CardTitle className="text-base">Tabela de Variantes</CardTitle>
+                <CardTitle className="text-base">Matriz de Variações 2D</CardTitle>
                 <CardDescription>
-                  Gerencie SKUs, imagens específicas, estoque e preços por variante.
+                  Ajuste todo o estoque, preços, SKUs e imagens em lote de forma inteligente. Use
+                  TAB para navegar.
                 </CardDescription>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setIsAddingNew(true);
-                    setEditingVariantId(null);
-                  }}
-                >
-                  <Plus className="mr-1.5 size-4" /> Nova Variante Manual
-                </Button>
-              </div>
+              <Button onClick={handleSaveMatrix} disabled={isSubmitting} size="sm">
+                {isSubmitting ? (
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                ) : (
+                  <Settings className="size-4 mr-2" />
+                )}
+                Salvar Alterações da Matriz
+              </Button>
             </CardHeader>
             <CardContent>
-              <VariantListGrid product={product} onEditVariant={setEditingVariantId} />
+              <VariantMatrixGrid
+                variants={variants}
+                onChange={setVariants}
+                basePriceCents={product.price_cents || 0}
+              />
             </CardContent>
           </Card>
-
-          {editingVariantId && (
-            <VariantFormRow
-              productId={product.id}
-              variant={product.product_variants?.find((v: any) => v.id === editingVariantId)}
-              onClose={() => setEditingVariantId(null)}
-            />
-          )}
-
-          {isAddingNew && (
-            <VariantFormRow productId={product.id} onClose={() => setIsAddingNew(false)} />
-          )}
         </TabsContent>
       </Tabs>
     </div>
