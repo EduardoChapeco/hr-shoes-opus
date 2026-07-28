@@ -135,6 +135,7 @@ export async function fetchCartDTO(identity: {
       price_override_cents: number | null;
       stock_on_hand: number;
       attributes: Record<string, string>;
+      status: string;
       product: {
         id: string;
         title: string;
@@ -151,6 +152,7 @@ export async function fetchCartDTO(identity: {
   const rawItems = (cart.cart_items || []) as unknown as CartItemRaw[];
   const items = rawItems
     .filter((item) => item && item.product_variants && item.product_variants.product)
+    .filter((item) => item.product_variants.status === 'active')
     .map((item) => {
       const variant = item.product_variants;
       const product = variant.product;

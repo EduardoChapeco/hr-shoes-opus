@@ -4,15 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { formatMoney } from "@/lib/money";
+import { Settings } from "lucide-react";
+import { AdvancedVariantEditor } from "./advanced-variant-editor";
 
 export type RawVariant = {
   id?: string;
   sku?: string;
+  ean?: string | null;
   attributes: Record<string, string>;
   stock: number;
   original_stock?: number;
   price_override_cents?: number | null;
+  cost_cents?: number | null;
+  weight_kg?: number | null;
   image_url?: string | null;
+  status?: string;
 };
 
 interface VariantMatrixGridProps {
@@ -22,6 +28,8 @@ interface VariantMatrixGridProps {
 }
 
 export function VariantMatrixGrid({ variants, onChange, basePriceCents }: VariantMatrixGridProps) {
+  const [advancedEditIndex, setAdvancedEditIndex] = React.useState<number | null>(null);
+
   // Coleta todas as chaves dinâmicas que existem no banco/state atual
   const attributeKeys = useMemo(() => {
     const keys = new Set<string>();
@@ -184,9 +192,9 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
               </th>
               <th className="px-4 py-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  {displayColKeys.map((k) => (
+                  {displayColKeys.map((k, colIndex) => (
                     <Input
-                      key={k}
+                      key={`col-${colIndex}`}
                       value={k}
                       onChange={(e) => handleRenameDimension(k, e.target.value)}
                       className="h-7 text-xs bg-transparent border-transparent hover:border-input focus:border-input focus:bg-background transition-all font-semibold uppercase px-1 -ml-1 cursor-text w-32"
@@ -201,11 +209,11 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
               <th className="px-4 py-3 text-right">Ações</th>
             </tr>
           </thead>
-          {Array.from(grouped.entries()).map(([gName, gData]) => {
+          {Array.from(grouped.entries()).map(([gName, gData], groupIndex) => {
             const sharedImage = gData.variants[0]?.image_url;
             return (
               <tbody
-                key={gName}
+                key={`group-${groupIndex}`}
                 className="divide-y divide-border/30 border-b-4 border-muted/50 last:border-b-0"
               >
                 {gData.variants.map((variant, localIdx) => {
@@ -272,9 +280,9 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
                       {/* Colunas de Atributos (Sub-variações Livres) */}
                       <td className="px-4 py-3 font-medium text-xs text-muted-foreground align-middle">
                         <div className="flex flex-wrap gap-2">
-                          {displayColKeys.map((k) => (
+                          {displayColKeys.map((k, colIdx) => (
                             <Input
-                              key={k}
+                              key={`cell-${colIdx}`}
                               className="h-9 text-xs w-32 px-3 bg-card shadow-sm focus:ring-primary focus:border-primary transition-all"
                               placeholder={`Ex: Rosa 36`}
                               value={variant.attributes[k] || ""}
@@ -296,20 +304,13 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
 
                       {/* Estoque */}
                       <td className="px-4 py-2 w-32 align-middle">
-                        <Input
-                          type="number"
-                          min="0"
-                          value={variant.stock === 0 ? "" : variant.stock}
-                          placeholder="0"
-                          onChange={(e) => {
+                        <StockInput
+                          value={variant.stock}
+                          onChange={(newStock) => {
                             const newVariants = [...variants];
-                            newVariants[globalIdx] = {
-                              ...variant,
-                              stock: parseInt(e.target.value) || 0,
-                            };
+                            newVariants[globalIdx] = { ...variant, stock: newStock };
                             onChange(newVariants);
                           }}
-                          className="h-9 font-mono text-center bg-muted/20 hover:bg-muted/40 focus:bg-background transition-colors shadow-sm"
                         />
                       </td>
 
@@ -330,29 +331,14 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
 
                       {/* Preço Exceção */}
                       <td className="px-4 py-2 w-40 align-middle">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={
-                            variant.price_override_cents
-                              ? (variant.price_override_cents / 100).toFixed(2)
-                              : ""
-                          }
-                          placeholder={`Base: ${formatMoney(basePriceCents)}`}
-                          onChange={(e) => {
+                        <PriceInput
+                          valueCents={variant.price_override_cents}
+                          basePriceCents={basePriceCents}
+                          onChange={(newPrice) => {
                             const newVariants = [...variants];
-                            const val = parseFloat(e.target.value);
-                            newVariants[globalIdx] = {
-                              ...variant,
-                              price_override_cents: isNaN(val) ? null : Math.round(val * 100),
-                            };
+                            newVariants[globalIdx] = { ...variant, price_override_cents: newPrice };
                             onChange(newVariants);
                           }}
-                          className={`h-9 font-mono text-xs shadow-sm transition-colors ${
-                            variant.price_override_cents
-                              ? "bg-amber-500/10 text-amber-700 font-bold border-amber-500/30"
-                              : "bg-muted/20 hover:bg-muted/40 focus:bg-background"
-                          }`}
                         />
                       </td>
 
@@ -370,12 +356,19 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
                             <Copy className="size-4" />
                           </Button>
                           <Button
-                            type="button"
                             variant="ghost"
                             size="icon"
-                            className="size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                            title="Remover linha"
-                            onClick={() => handleDeleteVariant(globalIdx)}
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={() => setAdvancedEditIndex(vIndex)}
+                            title="Edição Avançada (Código de Barras, Peso, Custos)"
+                          >
+                            <Settings className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteVariant(vIndex)}
                           >
                             <Trash2 className="size-4" />
                           </Button>
@@ -410,6 +403,120 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
       >
         <Plus className="size-5 mr-2" /> Adicionar Nova Matriz Mãe (Ex: Nova Cor)
       </Button>
+
+      {advancedEditIndex !== null && (
+        <AdvancedVariantEditor
+          variant={variants[advancedEditIndex]}
+          basePriceCents={basePriceCents}
+          isOpen={true}
+          onClose={() => setAdvancedEditIndex(null)}
+          onSave={(updatedVariant) => {
+            const newVariants = [...variants];
+            newVariants[advancedEditIndex] = updatedVariant;
+            onChange(newVariants);
+          }}
+        />
+      )}
     </>
+  );
+}
+
+function PriceInput({
+  valueCents,
+  basePriceCents,
+  onChange,
+}: {
+  valueCents: number | null;
+  basePriceCents: number;
+  onChange: (v: number | null) => void;
+}) {
+  const [str, setStr] = React.useState(valueCents != null ? (valueCents / 100).toString() : "");
+
+  React.useEffect(() => {
+    const currentVal = str === "" ? null : Math.round(parseFloat(str) * 100);
+    if (currentVal !== valueCents) {
+      setStr(valueCents != null ? (valueCents / 100).toString() : "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valueCents]);
+
+  const handleBlur = () => {
+    if (str && !isNaN(parseFloat(str))) {
+      setStr(parseFloat(str).toFixed(2));
+    } else {
+      setStr("");
+      onChange(null);
+    }
+  };
+
+  return (
+    <Input
+      type="number"
+      step="0.01"
+      value={str}
+      placeholder={`Base: ${formatMoney(basePriceCents)}`}
+      onChange={(e) => {
+        setStr(e.target.value);
+        if (e.target.value === "") {
+          onChange(null);
+          return;
+        }
+        const val = parseFloat(e.target.value);
+        if (!isNaN(val)) {
+          onChange(Math.round(val * 100));
+        }
+      }}
+      onBlur={handleBlur}
+      className={`h-9 font-mono text-xs shadow-sm transition-colors ${
+        valueCents != null
+          ? "bg-amber-500/10 text-amber-700 font-bold border-amber-500/30"
+          : "bg-muted/20 hover:bg-muted/40 focus:bg-background"
+      }`}
+    />
+  );
+}
+
+function StockInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [str, setStr] = React.useState(value === 0 ? "" : value.toString());
+
+  React.useEffect(() => {
+    const currentVal = str === "" ? 0 : parseInt(str) || 0;
+    if (currentVal !== value) {
+      setStr(value === 0 ? "" : value.toString());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  const handleBlur = () => {
+    if (str && !isNaN(parseInt(str))) {
+      const val = parseInt(str);
+      setStr(val.toString());
+      onChange(val);
+    } else {
+      setStr("");
+      onChange(0);
+    }
+  };
+
+  return (
+    <Input
+      type="number"
+      min="0"
+      value={str}
+      placeholder="0"
+      onChange={(e) => {
+        setStr(e.target.value);
+        if (e.target.value === "") {
+          onChange(0);
+          return;
+        }
+        const val = parseInt(e.target.value);
+        if (!isNaN(val)) {
+          onChange(val);
+        }
+      }}
+      onBlur={handleBlur}
+      className="h-9 font-mono text-center bg-muted/20 hover:bg-muted/40 focus:bg-background transition-colors shadow-sm"
+    />
   );
 }

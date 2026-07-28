@@ -828,11 +828,14 @@ function VariantsManager({ product }: { product: any }) {
     return (product.product_variants || []).map((v: any) => ({
       id: v.id,
       sku: v.sku,
+      ean: v.ean,
       attributes: v.attributes || {},
-      // Supabase retorna a coluna como stock_on_hand — mapear corretamente para RawVariant.stock
       stock: v.stock_on_hand ?? v.stock ?? 0,
       price_override_cents: v.price_override_cents,
+      cost_cents: v.cost_cents,
+      weight_kg: v.weight_kg,
       image_url: v.image_url,
+      status: v.status || "active",
     }));
   });
 
