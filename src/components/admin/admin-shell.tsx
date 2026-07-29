@@ -241,7 +241,7 @@ const MODULES = [
   },
   {
     label: "Vitrine & Design",
-    path: "/admin/vitrine",
+    path: "/admin/builder",
     icon: "Store",
     group: "✨ Vitrine & Design",
   },

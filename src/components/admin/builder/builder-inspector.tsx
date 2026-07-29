@@ -196,13 +196,13 @@ export function BuilderInspector({
                     </label>
                     <select
                       className="w-full text-sm p-2 rounded-lg bg-white/5 border border-white/10 text-white"
-                      value={(selectedNode.data_bindings as any)?.type ?? ""}
+                      value={(selectedNode.data_bindings as any)?.source ?? ""}
                       onChange={(e) => {
-                        const type = e.target.value;
+                        const source = e.target.value;
                         setNodes((prev: any[]) =>
                           prev.map((n) =>
                             n.id === selectedNodeId
-                              ? { ...n, data_bindings: type ? { type } : {} }
+                              ? { ...n, data_bindings: source ? { source } : {} }
                               : n,
                           ),
                         );
@@ -214,7 +214,7 @@ export function BuilderInspector({
                       <option value="dynamic_reviews">Avaliações Aprovadas</option>
                     </select>
                   </div>
-                  {(selectedNode.data_bindings as any)?.type === "product_collection" && (
+                  {(selectedNode.data_bindings as any)?.source === "product_collection" && (
                     <div className="space-y-1.5">
                       <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">
                         Coleção ou Categoria
@@ -245,7 +245,7 @@ export function BuilderInspector({
                       </select>
                     </div>
                   )}
-                  {(selectedNode.data_bindings as any)?.type === "dynamic_products" && (
+                  {(selectedNode.data_bindings as any)?.source === "dynamic_products" && (
                     <div className="space-y-1.5">
                       <label className="text-white/60 text-[11px] font-medium uppercase tracking-wide">
                         Quantidade
@@ -256,14 +256,15 @@ export function BuilderInspector({
                         max={24}
                         className="h-8 text-sm bg-white/5 border-white/10 text-white"
                         value={(selectedNode.data_bindings as any)?.limit ?? 12}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
                           updateNode(
                             selectedNode.id,
                             "data_bindings",
                             "limit",
-                            Number(e.target.value),
-                          )
-                        }
+                            isNaN(val) ? 0 : val,
+                          );
+                        }}
                       />
                     </div>
                   )}
