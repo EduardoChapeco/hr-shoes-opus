@@ -50,8 +50,15 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
         )
         .eq("id", storeId)
         .single();
+      
+      const { data: theme } = await db
+        .from("theme_settings")
+        .select("logo_url, favicon_url")
+        .eq("store_id", storeId)
+        .maybeSingle();
+
       if (error) return { status: "error" as const, error: error.message };
-      return { status: "ok" as const, data };
+      return { status: "ok" as const, data: { ...data, theme_settings: theme } };
     } catch (e: any) {
       return { status: "error" as const, error: e.message || "Erro de banco" };
     }
@@ -147,7 +154,7 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview> 
   } else {
     const s = storeRes.data;
     const hasLogo = Boolean(
-      s?.logo_url || s?.settings?.logoUrl || s?.settings?.logo_url || s?.settings?.faviconUrl,
+      s?.logo_url || s?.settings?.logoUrl || s?.settings?.logo_url || s?.settings?.faviconUrl || s?.theme_settings?.logo_url || s?.theme_settings?.favicon_url,
     );
     steps.push({
       id: "logo",

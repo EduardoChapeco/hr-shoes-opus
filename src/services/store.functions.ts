@@ -39,13 +39,14 @@ export const saveStoreSettingsSchema = z.object({
   description: z.string().max(500).optional(),
   logoUrl: z.string().optional(),
   faviconUrl: z.string().optional(),
+  hideNameWithLogo: z.boolean().optional(),
 });
 
 export async function saveStoreSettingsHandler(data: z.infer<typeof saveStoreSettingsSchema>) {
   const identity = await getServerIdentity();
   assertStoreAccess(identity, ["owner", "admin"]);
 
-  const { logoUrl, faviconUrl, ...columns } = data;
+  const { logoUrl, faviconUrl, hideNameWithLogo, ...columns } = data;
   const db = getServerClient();
 
   // Get current settings to merge
@@ -54,7 +55,7 @@ export async function saveStoreSettingsHandler(data: z.infer<typeof saveStoreSet
     .select("settings")
     .eq("id", identity.store_id)
     .single();
-  const settings = { ...(currentStore?.settings || {}), logoUrl, faviconUrl };
+  const settings = { ...(currentStore?.settings || {}), logoUrl, faviconUrl, hideNameWithLogo };
 
   const updateData: Record<string, any> = { ...columns, settings };
   if (logoUrl !== undefined) {

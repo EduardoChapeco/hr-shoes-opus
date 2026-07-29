@@ -19,11 +19,13 @@ export function PublicHeader({
   storeName,
   logoUrl,
   cart,
+  hideNameWithLogo = false,
 }: {
   menuItems?: any[];
   storeName?: string;
   logoUrl?: string;
   cart?: any;
+  hideNameWithLogo?: boolean;
 }) {
   const navItems = menuItems.length > 0 ? menuItems : FALLBACK_NAV;
   const navigate = useNavigate();
@@ -89,7 +91,7 @@ export function PublicHeader({
           aria-label={`${storeName || "Hr Shoes"} — início`}
         >
           <Logo src={logoUrl} className="max-h-12 w-auto h-auto" />
-          {logoUrl && storeName && (
+          {logoUrl && storeName && !hideNameWithLogo && (
             <span className="font-bold text-lg tracking-tight hidden lg:inline-block">
               {storeName}
             </span>

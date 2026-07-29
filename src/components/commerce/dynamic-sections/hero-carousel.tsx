@@ -47,7 +47,9 @@ export function HeroCarousel({
       ? "h-[85dvh] @md:h-[100dvh]"
       : heightMode === "square"
         ? "aspect-square"
-        : "aspect-[4/5] @md:aspect-[21/9]";
+        : heightMode === "natural"
+          ? ""
+          : "aspect-[4/5] @md:aspect-[21/9]";
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -106,15 +108,15 @@ export function HeroCarousel({
                 key={index}
                 className={`relative min-w-0 flex-full shrink-0 grow-0 basis-full bg-[#111] ${heightClass}`}
               >
-                {/* Background Image (Static to dictate height naturally without cropping) */}
+                {/* Background Image (Static to dictate height naturally without cropping if natural) */}
                 {bg_url ? (
-                  <picture className="absolute inset-0 block w-full h-full">
+                  <picture className={heightMode === "natural" ? "block w-full" : "absolute inset-0 block w-full h-full"}>
                     <source media="(max-width: 640px)" srcSet={mobile_bg_url} />
                     <img
                       src={bg_url}
                       alt={title || "Banner"}
                       loading={index === 0 ? "eager" : "lazy"}
-                      className="block w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                      className={`block w-full ${heightMode === "natural" ? "h-auto object-contain" : "h-full object-cover"} transition-transform duration-1000 group-hover:scale-105`}
                     />
                   </picture>
                 ) : (

@@ -157,7 +157,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
       ),
       showOverlay: z.boolean().default(true),
       overlayOpacity: z.enum(["light", "medium", "dark"]).default("medium"),
-      desktopHeight: z.enum(["full", "proportional", "square"]).default("proportional"),
+      desktopHeight: z.enum(["full", "proportional", "square", "natural"]).default("proportional"),
     }),
 
     inspector: {
@@ -197,7 +197,8 @@ export const builderRegistry: Record<string, BlockManifest> = {
           label: "Altura (Desktop)",
           type: "select",
           options: [
-            { label: "Proporcional (Original)", value: "proportional" },
+            { label: "Proporcional (Largo)", value: "proportional" },
+            { label: "Ajuste Nativo (Sem Cortes)", value: "natural" },
             { label: "Tela Cheia (Fullscreen)", value: "full" },
             { label: "Quadrado (1:1)", value: "square" },
           ],

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   getStoreSettings,
@@ -36,6 +37,7 @@ function StoreSettings() {
     zip_code: (store as any)?.zip_code || "",
     logoUrl: (store as any)?.settings?.logoUrl || "",
     faviconUrl: (store as any)?.settings?.faviconUrl || "",
+    hideNameWithLogo: (store as any)?.settings?.hideNameWithLogo || false,
   });
   const [isSaving, setIsSaving] = useState(false);
   const [hardRefreshText, setHardRefreshText] = useState("");
@@ -146,6 +148,18 @@ function StoreSettings() {
                 <p className="text-xs text-muted-foreground mt-1">
                   Imagem retangular, preferencialmente transparente (PNG/SVG).
                 </p>
+                <div className="flex flex-row items-center justify-between rounded-lg border p-4 mt-4">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Ocultar texto da marca</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Não exibir o nome da loja ao lado do logotipo no cabeçalho.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={form.hideNameWithLogo}
+                    onCheckedChange={(c) => setForm((f) => ({ ...f, hideNameWithLogo: c }))}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Ícone da Aba (Favicon)</Label>

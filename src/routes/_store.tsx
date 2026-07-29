@@ -115,7 +115,12 @@ function StoreLayout() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <PublicHeader menuItems={headerMenu} storeName={storeName} logoUrl={logoUrl} />
+      <PublicHeader 
+        menuItems={headerMenu} 
+        storeName={storeName} 
+        logoUrl={logoUrl} 
+        hideNameWithLogo={storeData?.settings?.hideNameWithLogo === true} 
+      />
       <main className="@container flex-1 pb-20 md:pb-0">
         <Outlet />
       </main>
