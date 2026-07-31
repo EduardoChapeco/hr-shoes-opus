@@ -3,7 +3,7 @@
 
 -- 1. A tabela de logs de auditoria (audit_log) já existe na V4, mas vamos garantir índices
 CREATE INDEX IF NOT EXISTS idx_audit_log_store_id ON public.audit_log(store_id);
-CREATE INDEX IF NOT EXISTS idx_audit_log_changed_by ON public.audit_log(changed_by);
+CREATE INDEX IF NOT EXISTS idx_audit_log_actor_id ON public.audit_log(actor_id);
 
 -- 2. Tabela Base de Vales / Adiantamentos (RH Financeiro)
 CREATE TABLE IF NOT EXISTS public.employee_advances (
@@ -28,8 +28,8 @@ CREATE POLICY "Managers view all advances"
     ON public.employee_advances FOR ALL
     USING (
         EXISTS (
-            SELECT 1 FROM public.memberships m
-            WHERE m.user_id = auth.uid()
+            SELECT 1 FROM public.profiles m
+            WHERE m.id = auth.uid()
               AND m.store_id = employee_advances.store_id
               AND m.role IN ('owner', 'admin', 'manager', 'finance')
         )
@@ -38,4 +38,4 @@ CREATE POLICY "Managers view all advances"
 -- Notificação de atualização
 CREATE OR REPLACE TRIGGER update_employee_advances_modtime
     BEFORE UPDATE ON public.employee_advances
-    FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+    FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();

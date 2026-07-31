@@ -410,9 +410,11 @@ export function AdminShell({
                 </div>
               ) : (
                 <Link to="/admin" className="flex items-center gap-2">
-                <Logo src={logoUrl} className="h-6 w-auto" />
-                {!logoUrl && <span className="font-semibold truncate w-32">{store.name}</span>}
-              </Link>
+                  <Logo src={logoUrl} className="h-6 w-auto" />
+                  {!logoUrl && <span className="font-semibold truncate w-32">{store.name}</span>}
+                </Link>
+              )}
+            </div>
           )}
           {viewMode === "subpages" && (
             <Button

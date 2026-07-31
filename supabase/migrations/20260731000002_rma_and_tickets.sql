@@ -42,13 +42,13 @@ CREATE POLICY "Customers view own ticket messages" ON public.ticket_messages FOR
 
 -- Funcionários veem todos os tickets da loja
 CREATE POLICY "Employees view store tickets" ON public.tickets FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.memberships m WHERE m.user_id = auth.uid() AND m.store_id = tickets.store_id AND m.role != 'customer')
+    EXISTS (SELECT 1 FROM public.profiles m WHERE m.id = auth.uid() AND m.store_id = tickets.store_id AND m.role != 'customer')
 );
 CREATE POLICY "Employees view store ticket msgs" ON public.ticket_messages FOR ALL USING (
-    EXISTS (
-        SELECT 1 FROM public.tickets t
-        JOIN public.memberships m ON m.store_id = t.store_id
-        WHERE t.id = ticket_id AND m.user_id = auth.uid() AND m.role != 'customer'
+    auth.uid() IN (
+        SELECT m.id FROM public.tickets t
+        JOIN public.profiles m ON m.store_id = t.store_id
+        WHERE t.id = ticket_id AND m.role != 'customer'
     )
 );
 
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS public.rma_requests (
     shipping_cost_cents INTEGER DEFAULT 0,
     shipping_responsibility VARCHAR(50) DEFAULT 'store', -- store, customer
     resolution_type VARCHAR(50), -- store_credit, gateway_refund, replacement
-    quarantine_location_id UUID REFERENCES public.locations(id) ON DELETE SET NULL,
+    quarantine_location_id UUID,
     expires_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -93,13 +93,13 @@ CREATE POLICY "Customers view own rma items" ON public.rma_items FOR SELECT USIN
 );
 
 CREATE POLICY "Employees view store rma" ON public.rma_requests FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.memberships m WHERE m.user_id = auth.uid() AND m.store_id = rma_requests.store_id AND m.role != 'customer')
+    EXISTS (SELECT 1 FROM public.profiles m WHERE m.id = auth.uid() AND m.store_id = rma_requests.store_id AND m.role != 'customer')
 );
 CREATE POLICY "Employees view store rma items" ON public.rma_items FOR ALL USING (
-    EXISTS (
-        SELECT 1 FROM public.rma_requests r
-        JOIN public.memberships m ON m.store_id = r.store_id
-        WHERE r.id = rma_id AND m.user_id = auth.uid() AND m.role != 'customer'
+    auth.uid() IN (
+        SELECT m.id FROM public.rma_requests r
+        JOIN public.profiles m ON m.store_id = r.store_id
+        WHERE r.id = rma_id AND m.role != 'customer'
     )
 );
 
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS public.inventory_adjustments_log (
     store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
     employee_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     variant_id UUID NOT NULL REFERENCES public.product_variants(id) ON DELETE CASCADE,
-    location_id UUID NOT NULL REFERENCES public.locations(id) ON DELETE CASCADE,
+    location_id UUID NOT NULL,
     qty_adjusted INTEGER NOT NULL, -- +10 ou -5
     reason VARCHAR(100) NOT NULL, -- restock_rma, damage, count_correction
     reference_id UUID, -- ex: id do RMA ou Pedido
@@ -122,9 +122,9 @@ CREATE INDEX idx_inv_adj_store_id ON public.inventory_adjustments_log(store_id);
 
 ALTER TABLE public.inventory_adjustments_log ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Store admins can view inventory adjustments" ON public.inventory_adjustments_log FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.memberships m WHERE m.user_id = auth.uid() AND m.store_id = inventory_adjustments_log.store_id AND m.role IN ('owner', 'admin', 'manager', 'stock'))
+    EXISTS (SELECT 1 FROM public.profiles m WHERE m.id = auth.uid() AND m.store_id = inventory_adjustments_log.store_id AND m.role IN ('owner', 'admin', 'manager', 'stock'))
 );
 
 -- Triggers de Updated At
-CREATE OR REPLACE TRIGGER update_tickets_modtime BEFORE UPDATE ON public.tickets FOR EACH ROW EXECUTE FUNCTION update_modified_column();
-CREATE OR REPLACE TRIGGER update_rma_requests_modtime BEFORE UPDATE ON public.rma_requests FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+CREATE OR REPLACE TRIGGER update_tickets_modtime BEFORE UPDATE ON public.tickets FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+CREATE OR REPLACE TRIGGER update_rma_requests_modtime BEFORE UPDATE ON public.rma_requests FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();

@@ -73,6 +73,8 @@ import { Route as AdminMarketingCuponsRouteImport } from './routes/admin.marketi
 import { Route as AdminMarketingCarrinhosRouteImport } from './routes/admin.marketing.carrinhos'
 import { Route as AdminFretesTabelasRouteImport } from './routes/admin.fretes.tabelas'
 import { Route as AdminFretesCotacoesRouteImport } from './routes/admin.fretes.cotacoes'
+import { Route as AdminFinanceiroFolhaRouteImport } from './routes/admin.financeiro.folha'
+import { Route as AdminFinanceiroCreditoRouteImport } from './routes/admin.financeiro.credito'
 import { Route as AdminEstoqueMovimentosRouteImport } from './routes/admin.estoque.movimentos'
 import { Route as AdminEstoqueAlertasRouteImport } from './routes/admin.estoque.alertas'
 import { Route as AdminConfiguracoesSeoRouteImport } from './routes/admin.configuracoes.seo'
@@ -102,6 +104,7 @@ import { Route as StoreContaPagamentosRouteImport } from './routes/_store.conta.
 import { Route as StoreContaGiftCardsRouteImport } from './routes/_store.conta.gift-cards'
 import { Route as StoreContaEnderecosRouteImport } from './routes/_store.conta.enderecos'
 import { Route as StoreContaCreditosRouteImport } from './routes/_store.conta.creditos'
+import { Route as StoreContaCarnesRouteImport } from './routes/_store.conta.carnes'
 import { Route as StoreContaAvaliacoesRouteImport } from './routes/_store.conta.avaliacoes'
 import { Route as StoreColecaoSlugRouteImport } from './routes/_store.colecao.$slug'
 import { Route as StoreCategoriaSlugRouteImport } from './routes/_store.categoria.$slug'
@@ -444,6 +447,16 @@ const AdminFretesCotacoesRoute = AdminFretesCotacoesRouteImport.update({
   path: '/fretes/cotacoes',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminFinanceiroFolhaRoute = AdminFinanceiroFolhaRouteImport.update({
+  id: '/financeiro/folha',
+  path: '/financeiro/folha',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminFinanceiroCreditoRoute = AdminFinanceiroCreditoRouteImport.update({
+  id: '/financeiro/credito',
+  path: '/financeiro/credito',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminEstoqueMovimentosRoute = AdminEstoqueMovimentosRouteImport.update({
   id: '/estoque/movimentos',
   path: '/estoque/movimentos',
@@ -591,6 +604,11 @@ const StoreContaEnderecosRoute = StoreContaEnderecosRouteImport.update({
 const StoreContaCreditosRoute = StoreContaCreditosRouteImport.update({
   id: '/creditos',
   path: '/creditos',
+  getParentRoute: () => StoreContaRoute,
+} as any)
+const StoreContaCarnesRoute = StoreContaCarnesRouteImport.update({
+  id: '/carnes',
+  path: '/carnes',
   getParentRoute: () => StoreContaRoute,
 } as any)
 const StoreContaAvaliacoesRoute = StoreContaAvaliacoesRouteImport.update({
@@ -743,6 +761,7 @@ export interface FileRoutesByFullPath {
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
   '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
+  '/conta/carnes': typeof StoreContaCarnesRoute
   '/conta/creditos': typeof StoreContaCreditosRoute
   '/conta/enderecos': typeof StoreContaEnderecosRoute
   '/conta/gift-cards': typeof StoreContaGiftCardsRoute
@@ -772,6 +791,8 @@ export interface FileRoutesByFullPath {
   '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
   '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
   '/admin/estoque/movimentos': typeof AdminEstoqueMovimentosRoute
+  '/admin/financeiro/credito': typeof AdminFinanceiroCreditoRoute
+  '/admin/financeiro/folha': typeof AdminFinanceiroFolhaRoute
   '/admin/fretes/cotacoes': typeof AdminFretesCotacoesRoute
   '/admin/fretes/tabelas': typeof AdminFretesTabelasRoute
   '/admin/marketing/carrinhos': typeof AdminMarketingCarrinhosRoute
@@ -854,6 +875,7 @@ export interface FileRoutesByTo {
   '/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/colecao/$slug': typeof StoreColecaoSlugRoute
   '/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
+  '/conta/carnes': typeof StoreContaCarnesRoute
   '/conta/creditos': typeof StoreContaCreditosRoute
   '/conta/enderecos': typeof StoreContaEnderecosRoute
   '/conta/gift-cards': typeof StoreContaGiftCardsRoute
@@ -883,6 +905,8 @@ export interface FileRoutesByTo {
   '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
   '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
   '/admin/estoque/movimentos': typeof AdminEstoqueMovimentosRoute
+  '/admin/financeiro/credito': typeof AdminFinanceiroCreditoRoute
+  '/admin/financeiro/folha': typeof AdminFinanceiroFolhaRoute
   '/admin/fretes/cotacoes': typeof AdminFretesCotacoesRoute
   '/admin/fretes/tabelas': typeof AdminFretesTabelasRoute
   '/admin/marketing/carrinhos': typeof AdminMarketingCarrinhosRoute
@@ -969,6 +993,7 @@ export interface FileRoutesById {
   '/_store/categoria/$slug': typeof StoreCategoriaSlugRoute
   '/_store/colecao/$slug': typeof StoreColecaoSlugRoute
   '/_store/conta/avaliacoes': typeof StoreContaAvaliacoesRoute
+  '/_store/conta/carnes': typeof StoreContaCarnesRoute
   '/_store/conta/creditos': typeof StoreContaCreditosRoute
   '/_store/conta/enderecos': typeof StoreContaEnderecosRoute
   '/_store/conta/gift-cards': typeof StoreContaGiftCardsRoute
@@ -998,6 +1023,8 @@ export interface FileRoutesById {
   '/admin/configuracoes/seo': typeof AdminConfiguracoesSeoRoute
   '/admin/estoque/alertas': typeof AdminEstoqueAlertasRoute
   '/admin/estoque/movimentos': typeof AdminEstoqueMovimentosRoute
+  '/admin/financeiro/credito': typeof AdminFinanceiroCreditoRoute
+  '/admin/financeiro/folha': typeof AdminFinanceiroFolhaRoute
   '/admin/fretes/cotacoes': typeof AdminFretesCotacoesRoute
   '/admin/fretes/tabelas': typeof AdminFretesTabelasRoute
   '/admin/marketing/carrinhos': typeof AdminMarketingCarrinhosRoute
@@ -1084,6 +1111,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/colecao/$slug'
     | '/conta/avaliacoes'
+    | '/conta/carnes'
     | '/conta/creditos'
     | '/conta/enderecos'
     | '/conta/gift-cards'
@@ -1113,6 +1141,8 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/seo'
     | '/admin/estoque/alertas'
     | '/admin/estoque/movimentos'
+    | '/admin/financeiro/credito'
+    | '/admin/financeiro/folha'
     | '/admin/fretes/cotacoes'
     | '/admin/fretes/tabelas'
     | '/admin/marketing/carrinhos'
@@ -1195,6 +1225,7 @@ export interface FileRouteTypes {
     | '/categoria/$slug'
     | '/colecao/$slug'
     | '/conta/avaliacoes'
+    | '/conta/carnes'
     | '/conta/creditos'
     | '/conta/enderecos'
     | '/conta/gift-cards'
@@ -1224,6 +1255,8 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/seo'
     | '/admin/estoque/alertas'
     | '/admin/estoque/movimentos'
+    | '/admin/financeiro/credito'
+    | '/admin/financeiro/folha'
     | '/admin/fretes/cotacoes'
     | '/admin/fretes/tabelas'
     | '/admin/marketing/carrinhos'
@@ -1309,6 +1342,7 @@ export interface FileRouteTypes {
     | '/_store/categoria/$slug'
     | '/_store/colecao/$slug'
     | '/_store/conta/avaliacoes'
+    | '/_store/conta/carnes'
     | '/_store/conta/creditos'
     | '/_store/conta/enderecos'
     | '/_store/conta/gift-cards'
@@ -1338,6 +1372,8 @@ export interface FileRouteTypes {
     | '/admin/configuracoes/seo'
     | '/admin/estoque/alertas'
     | '/admin/estoque/movimentos'
+    | '/admin/financeiro/credito'
+    | '/admin/financeiro/folha'
     | '/admin/fretes/cotacoes'
     | '/admin/fretes/tabelas'
     | '/admin/marketing/carrinhos'
@@ -1840,6 +1876,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFretesCotacoesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/financeiro/folha': {
+      id: '/admin/financeiro/folha'
+      path: '/financeiro/folha'
+      fullPath: '/admin/financeiro/folha'
+      preLoaderRoute: typeof AdminFinanceiroFolhaRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/financeiro/credito': {
+      id: '/admin/financeiro/credito'
+      path: '/financeiro/credito'
+      fullPath: '/admin/financeiro/credito'
+      preLoaderRoute: typeof AdminFinanceiroCreditoRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/estoque/movimentos': {
       id: '/admin/estoque/movimentos'
       path: '/estoque/movimentos'
@@ -2043,6 +2093,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreContaCreditosRouteImport
       parentRoute: typeof StoreContaRoute
     }
+    '/_store/conta/carnes': {
+      id: '/_store/conta/carnes'
+      path: '/carnes'
+      fullPath: '/conta/carnes'
+      preLoaderRoute: typeof StoreContaCarnesRouteImport
+      parentRoute: typeof StoreContaRoute
+    }
     '/_store/conta/avaliacoes': {
       id: '/_store/conta/avaliacoes'
       path: '/avaliacoes'
@@ -2181,6 +2238,7 @@ declare module '@tanstack/react-router' {
 
 interface StoreContaRouteChildren {
   StoreContaAvaliacoesRoute: typeof StoreContaAvaliacoesRoute
+  StoreContaCarnesRoute: typeof StoreContaCarnesRoute
   StoreContaCreditosRoute: typeof StoreContaCreditosRoute
   StoreContaEnderecosRoute: typeof StoreContaEnderecosRoute
   StoreContaGiftCardsRoute: typeof StoreContaGiftCardsRoute
@@ -2195,6 +2253,7 @@ interface StoreContaRouteChildren {
 
 const StoreContaRouteChildren: StoreContaRouteChildren = {
   StoreContaAvaliacoesRoute: StoreContaAvaliacoesRoute,
+  StoreContaCarnesRoute: StoreContaCarnesRoute,
   StoreContaCreditosRoute: StoreContaCreditosRoute,
   StoreContaEnderecosRoute: StoreContaEnderecosRoute,
   StoreContaGiftCardsRoute: StoreContaGiftCardsRoute,
@@ -2315,6 +2374,8 @@ interface AdminRouteChildren {
   AdminConfiguracoesSeoRoute: typeof AdminConfiguracoesSeoRoute
   AdminEstoqueAlertasRoute: typeof AdminEstoqueAlertasRoute
   AdminEstoqueMovimentosRoute: typeof AdminEstoqueMovimentosRoute
+  AdminFinanceiroCreditoRoute: typeof AdminFinanceiroCreditoRoute
+  AdminFinanceiroFolhaRoute: typeof AdminFinanceiroFolhaRoute
   AdminFretesCotacoesRoute: typeof AdminFretesCotacoesRoute
   AdminFretesTabelasRoute: typeof AdminFretesTabelasRoute
   AdminMarketingCarrinhosRoute: typeof AdminMarketingCarrinhosRoute
@@ -2381,6 +2442,8 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminConfiguracoesSeoRoute: AdminConfiguracoesSeoRoute,
   AdminEstoqueAlertasRoute: AdminEstoqueAlertasRoute,
   AdminEstoqueMovimentosRoute: AdminEstoqueMovimentosRoute,
+  AdminFinanceiroCreditoRoute: AdminFinanceiroCreditoRoute,
+  AdminFinanceiroFolhaRoute: AdminFinanceiroFolhaRoute,
   AdminFretesCotacoesRoute: AdminFretesCotacoesRoute,
   AdminFretesTabelasRoute: AdminFretesTabelasRoute,
   AdminMarketingCarrinhosRoute: AdminMarketingCarrinhosRoute,

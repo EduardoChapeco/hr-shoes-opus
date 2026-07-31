@@ -27,7 +27,7 @@ CREATE POLICY "Employees read own financial records" ON public.employee_financia
 
 -- Apenas Gerentes e Donos podem inserir, ler todos, atualizar (desde que não esteja settled)
 CREATE POLICY "Managers manage financial records" ON public.employee_financial_records FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.memberships m WHERE m.user_id = auth.uid() AND m.store_id = employee_financial_records.store_id AND m.role IN ('owner', 'admin', 'manager', 'finance'))
+    EXISTS (SELECT 1 FROM public.profiles m WHERE m.id = auth.uid() AND m.store_id = employee_financial_records.store_id AND m.role IN ('owner', 'admin', 'manager', 'finance'))
 );
 
 -- PROTEÇÃO ANTI-FRAUDE (Não permite deletar ou alterar registros fechados 'settled')
@@ -44,7 +44,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER check_settled_records BEFORE UPDATE OR DELETE ON public.employee_financial_records FOR EACH ROW EXECUTE FUNCTION prevent_settled_modifications();
-CREATE OR REPLACE TRIGGER update_emp_fin_modtime BEFORE UPDATE ON public.employee_financial_records FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+CREATE OR REPLACE TRIGGER update_emp_fin_modtime BEFORE UPDATE ON public.employee_financial_records FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 
 -------------------------------------------------------------------------------
@@ -68,10 +68,10 @@ CREATE INDEX idx_credit_limit_customer ON public.customer_credit_limits(store_id
 ALTER TABLE public.customer_credit_limits ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Customers view own limit" ON public.customer_credit_limits FOR SELECT USING (customer_id = auth.uid());
 CREATE POLICY "Finance manage limits" ON public.customer_credit_limits FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.memberships m WHERE m.user_id = auth.uid() AND m.store_id = customer_credit_limits.store_id AND m.role IN ('owner', 'admin', 'finance'))
+    EXISTS (SELECT 1 FROM public.profiles m WHERE m.id = auth.uid() AND m.store_id = customer_credit_limits.store_id AND m.role IN ('owner', 'admin', 'finance'))
 );
 
-CREATE OR REPLACE TRIGGER update_credit_limit_modtime BEFORE UPDATE ON public.customer_credit_limits FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+CREATE OR REPLACE TRIGGER update_credit_limit_modtime BEFORE UPDATE ON public.customer_credit_limits FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 
 -------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ CREATE INDEX idx_installments_due_date ON public.credit_installments(due_date);
 ALTER TABLE public.credit_installments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Customers view own installments" ON public.credit_installments FOR SELECT USING (customer_id = auth.uid());
 CREATE POLICY "Finance manage installments" ON public.credit_installments FOR ALL USING (
-    EXISTS (SELECT 1 FROM public.memberships m WHERE m.user_id = auth.uid() AND m.store_id = credit_installments.store_id AND m.role IN ('owner', 'admin', 'finance'))
+    EXISTS (SELECT 1 FROM public.profiles m WHERE m.id = auth.uid() AND m.store_id = credit_installments.store_id AND m.role IN ('owner', 'admin', 'finance'))
 );
 
-CREATE OR REPLACE TRIGGER update_installments_modtime BEFORE UPDATE ON public.credit_installments FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+CREATE OR REPLACE TRIGGER update_installments_modtime BEFORE UPDATE ON public.credit_installments FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
