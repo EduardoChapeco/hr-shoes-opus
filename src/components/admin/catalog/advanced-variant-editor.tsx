@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { RawVariant } from "./variant-matrix-grid";
 import { formatMoney } from "@/lib/money";
 
@@ -125,6 +126,50 @@ export function AdvancedVariantEditor({
               <option value="active">Ativo (Visível)</option>
               <option value="inactive">Inativo (Oculto)</option>
             </select>
+          </div>
+
+          <div className="col-span-2 border-t pt-4 mt-2">
+            <h4 className="text-sm font-medium mb-3">Venda Sob Encomenda (Backorders)</h4>
+            <div className="space-y-4 bg-muted/30 p-4 rounded-md">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="allow_backorder"
+                  checked={formData.allow_backorder || false}
+                  onCheckedChange={(checked) => handleChange("allow_backorder", checked === true)}
+                />
+                <Label htmlFor="allow_backorder" className="cursor-pointer">
+                  Permitir venda sem estoque (Sob Encomenda)
+                </Label>
+              </div>
+
+              {formData.allow_backorder && (
+                <div className="grid grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="space-y-2">
+                    <Label>Dias Adicionais de Preparo (Lead Time)</Label>
+                    <Input
+                      type="number"
+                      value={formData.backorder_lead_time_days || 0}
+                      onChange={(e) => handleChange("backorder_lead_time_days", parseInt(e.target.value) || 0)}
+                      placeholder="Ex: 15"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Adicionado ao prazo de frete.</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Reserva sem pagamento?</Label>
+                    <select
+                      className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                      value={formData.requires_payment_for_backorder === false ? "false" : "true"}
+                      onChange={(e) =>
+                        handleChange("requires_payment_for_backorder", e.target.value === "true")
+                      }
+                    >
+                      <option value="true">Exigir Pagamento Normal</option>
+                      <option value="false">Permitir Reserva sem Sinal</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

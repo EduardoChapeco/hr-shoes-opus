@@ -17,13 +17,13 @@ export function MosaicBanners({ content }: { content: Record<string, unknown> })
           const link = String(banner.link || "");
 
           const inner = (
-            <div className="group relative aspect-[4/5] @md:aspect-square overflow-hidden rounded-2xl bg-muted transition-transform hover:opacity-95">
+            <div className="group relative w-full overflow-hidden rounded-2xl bg-muted transition-transform hover:opacity-95">
               {bg_url ? (
                 <img
                   src={bg_url}
                   alt={title || `Banner ${index + 1}`}
                   loading="lazy"
-                  className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="w-full h-auto object-contain transition-transform duration-700 group-hover:scale-105"
                 />
               ) : (
                 <div className="flex size-full flex-col items-center justify-center gap-3 text-muted-foreground">

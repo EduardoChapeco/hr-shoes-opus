@@ -34,14 +34,13 @@ import type {
 import { resolveTenantStoreId } from "@/lib/tenant";
 
 /**
- * Helper to map Supabase joined row into ProductCardDTO,
- * applying business rules for out-of-stock and effective price.
+ * Helper to map Supabase joined row into ProductCardDTO(s).
+ * Explodes product variations into distinct cards based on the primary attribute (e.g., 'Cor').
  */
-function mapProductCardDTO(row: any): ProductCardDTO {
+function explodeProductToCards(row: any): ProductCardDTO[] {
   const mediaList = Array.isArray(row.product_media || row.media)
     ? [...(row.product_media || row.media)].sort((a, b) => a.sort_order - b.sort_order)
     : [];
-  const cover = mediaList[0] ?? null;
 
   const basePrice = row.price_cents ?? row.priceCents;
   const compareAt = row.compare_at_cents ?? row.compareAtCents ?? null;
@@ -49,47 +48,102 @@ function mapProductCardDTO(row: any): ProductCardDTO {
   const variants = Array.isArray(row.product_variants || row.variants)
     ? row.product_variants || row.variants
     : [];
-
   const activeVariants = variants.filter((v: any) => v.status === "active");
 
-  let isOutOfStock = true;
-  let displayPrice = basePrice;
+  const buildStandardCard = (
+    variantsToConsider: any[],
+    cover: any,
+    hover: any,
+    variantId?: string,
+    variantName?: string,
+  ): ProductCardDTO => {
+    let isOutOfStock = true;
+    let displayPrice = basePrice;
 
-  if (activeVariants.length > 0) {
-    const totalAvailable = activeVariants.reduce(
-      (sum: number, v: any) => sum + Math.max(0, v.stock_on_hand || 0),
-      0,
-    );
-    isOutOfStock = totalAvailable <= 0;
-
-    const variantsForPrice =
-      totalAvailable > 0
-        ? activeVariants.filter((v: any) => Math.max(0, v.stock_on_hand || 0) > 0)
-        : activeVariants;
-
-    if (variantsForPrice.length > 0) {
-      const minPrice = Math.min(
-        ...variantsForPrice.map((v: any) => v.price_override_cents ?? basePrice),
+    if (variantsToConsider.length > 0) {
+      const totalAvailable = variantsToConsider.reduce(
+        (sum: number, v: any) => sum + Math.max(0, v.stock_on_hand || 0),
+        0,
       );
-      if (minPrice < displayPrice) {
-        displayPrice = minPrice;
+      isOutOfStock = totalAvailable <= 0;
+
+      const variantsForPrice =
+        totalAvailable > 0
+          ? variantsToConsider.filter((v: any) => Math.max(0, v.stock_on_hand || 0) > 0)
+          : variantsToConsider;
+
+      if (variantsForPrice.length > 0) {
+        const minPrice = Math.min(
+          ...variantsForPrice.map((v: any) => v.price_override_cents ?? basePrice),
+        );
+        if (minPrice < displayPrice) {
+          displayPrice = minPrice;
+        }
       }
+    }
+
+    return {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      brand: row.brand ?? null,
+      priceCents: displayPrice,
+      compareAtCents: compareAt,
+      coverUrl: cover?.url ?? null,
+      coverAlt: cover?.alt ?? null,
+      hoverUrl: hover?.url ?? null,
+      isOutOfStock,
+      publishedAt: row.published_at ?? null,
+      variantId,
+      variantName,
+    };
+  };
+
+  if (activeVariants.length === 0) {
+    return [buildStandardCard([], mediaList[0] ?? null, mediaList[1] ?? null)];
+  }
+
+  // Find primary grouping attribute (prioritize 'Cor' / 'Color', else fallback to first)
+  let groupingKey: string | null = null;
+  const firstVariantAttrs = activeVariants[0].attributes;
+  if (firstVariantAttrs) {
+    const keys = Object.keys(firstVariantAttrs);
+    if (keys.length > 0) {
+      groupingKey =
+        keys.find((k) => k.toLowerCase() === "cor" || k.toLowerCase() === "color") || keys[0];
     }
   }
 
-  return {
-    id: row.id,
-    slug: row.slug,
-    title: row.title,
-    brand: row.brand ?? null,
-    priceCents: displayPrice,
-    compareAtCents: compareAt,
-    coverUrl: cover?.url ?? null,
-    coverAlt: cover?.alt ?? null,
-    hoverUrl: mediaList[1]?.url ?? null,
-    isOutOfStock,
-    publishedAt: row.published_at ?? null,
-  };
+  // If no attributes to group by, return a single card
+  if (!groupingKey) {
+    return [buildStandardCard(activeVariants, mediaList[0] ?? null, mediaList[1] ?? null)];
+  }
+
+  const groups = new Map<string, any[]>();
+  for (const v of activeVariants) {
+    const val = v.attributes?.[groupingKey];
+    if (val === undefined || val === null) continue;
+    const cleanVal = String(val).trim();
+    if (!groups.has(cleanVal)) groups.set(cleanVal, []);
+    groups.get(cleanVal)!.push(v);
+  }
+
+  if (groups.size === 0) {
+    return [buildStandardCard(activeVariants, mediaList[0] ?? null, mediaList[1] ?? null)];
+  }
+
+  const cards: ProductCardDTO[] = [];
+  for (const [groupVal, groupVariants] of groups.entries()) {
+    const variantIdsInGroup = new Set(groupVariants.map((v) => v.id));
+    const groupMedia = mediaList.filter((m) => m.variant_id && variantIdsInGroup.has(m.variant_id));
+    const cover = groupMedia[0] || mediaList[0] || null;
+    const hover = groupMedia[1] || mediaList[1] || null;
+    const mainVariant = groupVariants.find((v) => (v.stock_on_hand || 0) > 0) || groupVariants[0];
+
+    cards.push(buildStandardCard(groupVariants, cover, hover, mainVariant.id, groupVal));
+  }
+
+  return cards;
 }
 
 // ---------------------------------------------------------------------------
@@ -183,7 +237,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
         return { status: "empty" };
       }
 
-      let products: ProductCardDTO[] = data.map(mapProductCardDTO);
+      let products: ProductCardDTO[] = data.flatMap(explodeProductToCards);
 
       // Post-map sort for price (uses effective price from variant, not DB price_cents)
       if (params.sort === "price_asc") {
@@ -412,7 +466,8 @@ export const searchProducts = createServerFn({ method: "GET" })
 
       // If FTS returns results, use them
       if (!ftsError && ftsData && ftsData.length > 0) {
-        return ftsData.map(mapProductCardDTO);
+        const results: ProductCardDTO[] = ftsData.flatMap(explodeProductToCards);
+        return results;
       }
 
       // Stage 2: Trigram fallback — match across title, brand, description
@@ -436,7 +491,8 @@ export const searchProducts = createServerFn({ method: "GET" })
         return [];
       }
 
-      return trigramData.map(mapProductCardDTO);
+      const results: ProductCardDTO[] = trigramData.flatMap(explodeProductToCards);
+      return results;
     } catch (e: any) {
       throw new Error(e.message || "Erro desconhecido");
     }
@@ -507,7 +563,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
       if (error) throw new Error(error.message);
       if (!data || data.length === 0) return [];
 
-      const mapped: ProductCardDTO[] = data.map(mapProductCardDTO);
+      const mapped: ProductCardDTO[] = data.flatMap(explodeProductToCards);
 
       return mapped;
     } catch (e: any) {
@@ -545,7 +601,7 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
     );
     if (discountedData.length === 0) return [];
 
-    const mapped: ProductCardDTO[] = discountedData.map(mapProductCardDTO);
+    const mapped: ProductCardDTO[] = discountedData.flatMap(explodeProductToCards);
 
     return mapped;
   } catch (e: any) {

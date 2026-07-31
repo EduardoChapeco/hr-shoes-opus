@@ -80,6 +80,29 @@ ProductVariant + Location ──< InventoryMovement (append-only)
 - Totais (`subtotal_cents`, `discount_cents`, `shipping_cents`, `total_cents`) são sempre recomputados no servidor a cada transição relevante, nunca confiando em total enviado pelo cliente.
 
 ```text
+    store_id ──< DeliverySetting (1)
+                 │ configuração de taxas, SLAs
+                 └─< CourierSettings
+```
+
+## 7. RH e Auditoria
+
+```text
+Organization/Store ──< EmployeeAdvance (N)
+Store ──< AuditLog (N) (Append-only)
+```
+
+### 7.1 Gestão de Equipes e Adiantamentos
+- **EmployeeAdvance**: Registro de "vales" ou adiantamentos solicitados por funcionários. Controla fluxo financeiro interno.
+  - `status`: `pending`, `approved`, `paid`, `rejected`.
+  - Invariante: O saldo pago no vale deve ser abatido do comissionamento no fechamento do mês da folha de pagamento. (Processado na tabela `financial_transactions`).
+
+### 7.2 Auditoria (AuditLog)
+- Tabela `audit_log` grava todos os eventos críticos do sistema.
+  - Campos chaves: `action`, `table_name`, `record_id`, `changed_by` (quem fez a ação) e `metadata` (dados JSON com `{ old_value, new_value }`).
+  - Invariante: Append-only via Service Role RPCs ou edge functions. Apenas Admins e Owners daquela `store_id` podem visualizar no Dashboard. Ninguém pode apagar ou editar os logs através da API cliente. 
+
+```text
                          ┌─────────┐
                          │  draft  │
                          └────┬────┘

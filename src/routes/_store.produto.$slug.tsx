@@ -178,6 +178,11 @@ function SizeGuideDialog({
 }
 
 export const Route = createFileRoute("/_store/produto/$slug")({
+  validateSearch: (search: Record<string, unknown>): { v?: string } => {
+    return {
+      v: search.v as string | undefined, // variant ID
+    };
+  },
   head: ({ loaderData }) => {
     const product = (loaderData as any)?.productResult as ProductDetailDTO;
     if (!product || !product.id) {
@@ -313,9 +318,21 @@ function ProductContent({
 
   const router = useRouter();
 
+  const search = Route.useSearch();
+
+  // Encontra a variação selecionada pela URL (BFF Catalog Explosion) ou fallback
+  const initialVariant = useMemo(() => {
+    if (search.v) {
+      const match = product.variants.find((v: VariantDTO) => v.id === search.v);
+      if (match) return match;
+    }
+    const hasStock = product.variants.filter((v: VariantDTO) => v.availableQty > 0);
+    return hasStock.length > 0 ? hasStock[0] : product.variants[0];
+  }, [product.variants, search.v]);
+
   // Initialize selected attributes with the first variant's attributes
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>(
-    product.variants.length > 0 ? product.variants[0].attributes : {},
+    initialVariant?.attributes || {},
   );
   const [isAdding, setIsAdding] = useState(false);
   const [activeMedia, setActiveMedia] = useState<ProductMediaDTO | null>(coverImage);

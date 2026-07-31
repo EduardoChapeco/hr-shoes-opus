@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/commerce/page-header";
 import { ReviewModal } from "@/components/commerce/review-modal";
-import { ReturnModal } from "@/components/commerce/return-modal";
+import { RmaRequestDialog } from "@/components/commerce/rma/rma-request-dialog";
 import { ErrorState, EmptyState } from "@/components/state/states";
 import { formatMoney } from "@/lib/money";
 import { getCustomerOrder, getOrderPaymentInstructions } from "@/services/order.functions";
@@ -355,7 +355,9 @@ function CustomerOrderDetailPage() {
             </div>
           )}
 
-          {order.status === "delivered" && <ReturnModal orderId={order.id} />}
+          {order.status === "delivered" && (
+            <RmaRequestDialog orderId={order.id} orderItems={items} />
+          )}
         </div>
       </div>
     </div>

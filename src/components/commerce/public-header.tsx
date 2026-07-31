@@ -19,7 +19,7 @@ export function PublicHeader({
   storeName,
   logoUrl,
   cart,
-  hideNameWithLogo = false,
+  hideNameWithLogo = true,
 }: {
   menuItems?: any[];
   storeName?: string;

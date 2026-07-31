@@ -160,6 +160,26 @@ export function BuilderInspector({
                             )
                           }
                         />
+                      ) : field.type === "datetime" ? (
+                        <Input
+                          type="datetime-local"
+                          className="h-8 text-sm bg-white/5 border-white/10 text-white"
+                          value={
+                            (selectedNode.content as any)?.[field.name]
+                              ? new Date((selectedNode.content as any)[field.name])
+                                  .toISOString()
+                                  .slice(0, 16)
+                              : ""
+                          }
+                          onChange={(e) =>
+                            updateNode(
+                              selectedNode.id,
+                              "content",
+                              field.name,
+                              e.target.value ? new Date(e.target.value).toISOString() : "",
+                            )
+                          }
+                        />
                       ) : (
                         <Input
                           className="h-8 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30"

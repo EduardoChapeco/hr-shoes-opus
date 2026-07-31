@@ -28,6 +28,7 @@ export function ProductCard({
     <Link
       to="/produto/$slug"
       params={{ slug: product.slug }}
+      search={product.variantId ? { v: product.variantId } : undefined}
       className={cn("group flex flex-col gap-3 rounded-xl focus-visible:outline-none", className)}
     >
       {/* Image Container */}
@@ -107,7 +108,7 @@ export function ProductCard({
       <div className="space-y-1">
         {product.brand ? <p className="eyebrow text-muted-foreground">{product.brand}</p> : null}
         <h3 className="line-clamp-2 text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-          {product.title}
+          {product.title} {product.variantName ? `— ${product.variantName}` : ""}
         </h3>
         <PriceDisplay
           amountCents={product.priceCents}

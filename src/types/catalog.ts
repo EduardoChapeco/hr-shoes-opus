@@ -69,6 +69,10 @@ export interface ProductCardDTO {
   isOutOfStock?: boolean;
   /** ISO timestamp — used to derive "Novo" badge (< 7 days). */
   publishedAt?: string | null;
+  /** Specific variant ID if this card represents an exploded variant. */
+  variantId?: string;
+  /** Sub-title/variation name (e.g. "Azul") if exploded. */
+  variantName?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -106,6 +110,10 @@ export interface VariantDTO {
   widthCm?: number | null;
   heightCm?: number | null;
   lengthCm?: number | null;
+  /** Backorder Settings */
+  allowBackorder?: boolean;
+  backorderLeadTimeDays?: number;
+  requiresPaymentForBackorder?: boolean;
 }
 
 export interface ProductDetailDTO {

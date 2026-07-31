@@ -270,11 +270,15 @@ function BuilderEditorIDE() {
       const targetNode = nodes.find((n) => n.id === targetId);
       if (!sourceNode || !targetNode) return;
 
+      // Normalizando parent_id para lidar de forma consistente com null vs undefined
+      const sourceParentId = sourceNode.parent_id || null;
+      const targetParentId = targetNode.parent_id || null;
+      
       // Simplificando o drag and drop apenas entre elementos do mesmo nível (mesmo parent)
-      if (sourceNode.parent_id !== targetNode.parent_id) return;
+      if (sourceParentId !== targetParentId) return;
 
       const siblings = nodes
-        .filter((n) => n.parent_id === sourceNode.parent_id)
+        .filter((n) => (n.parent_id || null) === sourceParentId)
         .sort((a, b) => a.sort_order - b.sort_order);
       const sourceIdx = siblings.findIndex((n) => n.id === sourceId);
       const targetIdx = siblings.findIndex((n) => n.id === targetId);
@@ -288,7 +292,7 @@ function BuilderEditorIDE() {
 
       setNodes((prev) =>
         prev.map((n) => {
-          if (n.parent_id === sourceNode.parent_id) {
+          if ((n.parent_id || null) === sourceParentId) {
             const siblingIndex = newSiblings.findIndex((sib) => sib.id === n.id);
             return { ...n, sort_order: siblingIndex };
           }

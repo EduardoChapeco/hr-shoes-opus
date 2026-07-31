@@ -868,6 +868,9 @@ export async function batchUpsertVariantMatrixHandler(input: {
     original_stock?: number;
     image_url?: string | null;
     status?: string;
+    allow_backorder?: boolean;
+    backorder_lead_time_days?: number;
+    requires_payment_for_backorder?: boolean;
   }[];
 }) {
   const db = getServerClient();
@@ -877,7 +880,7 @@ export async function batchUpsertVariantMatrixHandler(input: {
   const { store_id } = await getServerIdentity();
   if (!store_id) throw new Error("Acesso não autorizado.");
 
-  const { data, error } = await db.rpc("batch_upsert_variant_matrix_v4", {
+  const { data, error } = await db.rpc("batch_upsert_variant_matrix_v5", {
     store_id_param: store_id,
     product_id_param: input.product_id,
     matrix: input.matrix,
@@ -906,8 +909,11 @@ export const batchUpsertVariantMatrix = createServerFn({ method: "POST" })
           cost_cents: z.number().int().min(0).optional().nullable(),
           weight_kg: z.number().min(0).optional().nullable(),
           ean: z.string().optional().nullable(),
-          image_url: z.string().url().optional().nullable(),
-          status: z.string().optional(),
+          image_url: z.string().nullable().optional(),
+          status: z.enum(["active", "inactive", "archived"]).optional(),
+          allow_backorder: z.boolean().optional(),
+          backorder_lead_time_days: z.number().int().min(0).optional(),
+          requires_payment_for_backorder: z.boolean().optional(),
         }),
       ),
     }),

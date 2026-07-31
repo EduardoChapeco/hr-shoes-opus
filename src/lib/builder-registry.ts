@@ -286,7 +286,7 @@ export const builderRegistry: Record<string, BlockManifest> = {
     inspector: {
       content: [
         { name: "title", label: "Título", type: "text" },
-        { name: "target_date", label: "Data Alvo (ISO)", type: "text" },
+        { name: "target_date", label: "Data Alvo", type: "datetime" },
         { name: "expired_message", label: "Mensagem Expirado", type: "text" },
       ],
     },

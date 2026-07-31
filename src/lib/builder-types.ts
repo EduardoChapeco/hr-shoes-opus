@@ -55,6 +55,7 @@ export interface ExperienceNode {
 export type InspectorFieldType =
   | "text"
   | "textarea"
+  | "datetime"
   | "number"
   | "boolean"
   | "color"

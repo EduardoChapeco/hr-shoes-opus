@@ -19,6 +19,9 @@ export type RawVariant = {
   weight_kg?: number | null;
   image_url?: string | null;
   status?: string;
+  allow_backorder?: boolean;
+  backorder_lead_time_days?: number;
+  requires_payment_for_backorder?: boolean;
 };
 
 interface VariantMatrixGridProps {

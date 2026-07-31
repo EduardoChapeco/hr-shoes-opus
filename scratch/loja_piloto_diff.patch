@@ -1,0 +1,2410 @@
+﻿diff --git a/.agents/skills/supabase-postgres-best-practices/CHANGELOG.md b/.agents/skills/supabase-postgres-best-practices/CHANGELOG.md
+index 3ae1e06..aea3200 100644
+--- a/.agents/skills/supabase-postgres-best-practices/CHANGELOG.md
++++ b/.agents/skills/supabase-postgres-best-practices/CHANGELOG.md
+@@ -2,36 +2,42 @@
+ 
+ ## [1.4.0](https://github.com/supabase/agent-skills/compare/v1.3.0...v1.4.0) (2026-07-10)
+ 
++
+ ### Features
+ 
+-- add schema-constraints reference for safe migration patterns ([#30](https://github.com/supabase/agent-skills/issues/30)) ([9b236f3](https://github.com/supabase/agent-skills/commit/9b236f3ebd65d76a2c570f19931353da9c858d5a))
+-- using Supabase agent skills ([#12](https://github.com/supabase/agent-skills/issues/12)) ([7c2e389](https://github.com/supabase/agent-skills/commit/7c2e3894fddfde8eb6c77d2a8921904543b9be7a))
++* add schema-constraints reference for safe migration patterns ([#30](https://github.com/supabase/agent-skills/issues/30)) ([9b236f3](https://github.com/supabase/agent-skills/commit/9b236f3ebd65d76a2c570f19931353da9c858d5a))
++* using Supabase agent skills ([#12](https://github.com/supabase/agent-skills/issues/12)) ([7c2e389](https://github.com/supabase/agent-skills/commit/7c2e3894fddfde8eb6c77d2a8921904543b9be7a))
++
+ 
+ ### Bug Fixes
+ 
+-- correct broken reference link in postgres best practices skill ([#58](https://github.com/supabase/agent-skills/issues/58)) ([f4e2277](https://github.com/supabase/agent-skills/commit/f4e22777fd8573537297b568c16e5a45a25927da))
+-- cover SECURITY DEFINER, auth.role() deprecation, and BOLA in security checklist ([#85](https://github.com/supabase/agent-skills/issues/85)) ([133f43e](https://github.com/supabase/agent-skills/commit/133f43e8c2ffc48823ff0630c692cabecea3e3a3))
++* correct broken reference link in postgres best practices skill ([#58](https://github.com/supabase/agent-skills/issues/58)) ([f4e2277](https://github.com/supabase/agent-skills/commit/f4e22777fd8573537297b568c16e5a45a25927da))
++* cover SECURITY DEFINER, auth.role() deprecation, and BOLA in security checklist ([#85](https://github.com/supabase/agent-skills/issues/85)) ([133f43e](https://github.com/supabase/agent-skills/commit/133f43e8c2ffc48823ff0630c692cabecea3e3a3))
+ 
+ ## [1.3.0](https://github.com/supabase/agent-skills/compare/v1.2.0...v1.3.0) (2026-06-05)
+ 
++
+ ### Features
+ 
+-- add schema-constraints reference for safe migration patterns ([#30](https://github.com/supabase/agent-skills/issues/30)) ([9b236f3](https://github.com/supabase/agent-skills/commit/9b236f3ebd65d76a2c570f19931353da9c858d5a))
+-- using Supabase agent skills ([#12](https://github.com/supabase/agent-skills/issues/12)) ([7c2e389](https://github.com/supabase/agent-skills/commit/7c2e3894fddfde8eb6c77d2a8921904543b9be7a))
++* add schema-constraints reference for safe migration patterns ([#30](https://github.com/supabase/agent-skills/issues/30)) ([9b236f3](https://github.com/supabase/agent-skills/commit/9b236f3ebd65d76a2c570f19931353da9c858d5a))
++* using Supabase agent skills ([#12](https://github.com/supabase/agent-skills/issues/12)) ([7c2e389](https://github.com/supabase/agent-skills/commit/7c2e3894fddfde8eb6c77d2a8921904543b9be7a))
++
+ 
+ ### Bug Fixes
+ 
+-- correct broken reference link in postgres best practices skill ([#58](https://github.com/supabase/agent-skills/issues/58)) ([f4e2277](https://github.com/supabase/agent-skills/commit/f4e22777fd8573537297b568c16e5a45a25927da))
+-- cover SECURITY DEFINER, auth.role() deprecation, and BOLA in security checklist ([#85](https://github.com/supabase/agent-skills/issues/85)) ([133f43e](https://github.com/supabase/agent-skills/commit/133f43e8c2ffc48823ff0630c692cabecea3e3a3))
++* correct broken reference link in postgres best practices skill ([#58](https://github.com/supabase/agent-skills/issues/58)) ([f4e2277](https://github.com/supabase/agent-skills/commit/f4e22777fd8573537297b568c16e5a45a25927da))
++* cover SECURITY DEFINER, auth.role() deprecation, and BOLA in security checklist ([#85](https://github.com/supabase/agent-skills/issues/85)) ([133f43e](https://github.com/supabase/agent-skills/commit/133f43e8c2ffc48823ff0630c692cabecea3e3a3))
+ 
+ ## [1.2.0](https://github.com/supabase/agent-skills/compare/v1.1.1...v1.2.0) (2026-06-02)
+ 
++
+ ### Features
+ 
+-- add schema-constraints reference for safe migration patterns ([#30](https://github.com/supabase/agent-skills/issues/30)) ([9b236f3](https://github.com/supabase/agent-skills/commit/9b236f3ebd65d76a2c570f19931353da9c858d5a))
+-- using Supabase agent skills ([#12](https://github.com/supabase/agent-skills/issues/12)) ([7c2e389](https://github.com/supabase/agent-skills/commit/7c2e3894fddfde8eb6c77d2a8921904543b9be7a))
++* add schema-constraints reference for safe migration patterns ([#30](https://github.com/supabase/agent-skills/issues/30)) ([9b236f3](https://github.com/supabase/agent-skills/commit/9b236f3ebd65d76a2c570f19931353da9c858d5a))
++* using Supabase agent skills ([#12](https://github.com/supabase/agent-skills/issues/12)) ([7c2e389](https://github.com/supabase/agent-skills/commit/7c2e3894fddfde8eb6c77d2a8921904543b9be7a))
++
+ 
+ ### Bug Fixes
+ 
+-- correct broken reference link in postgres best practices skill ([#58](https://github.com/supabase/agent-skills/issues/58)) ([f4e2277](https://github.com/supabase/agent-skills/commit/f4e22777fd8573537297b568c16e5a45a25927da))
+-- cover SECURITY DEFINER, auth.role() deprecation, and BOLA in security checklist ([#85](https://github.com/supabase/agent-skills/issues/85)) ([133f43e](https://github.com/supabase/agent-skills/commit/133f43e8c2ffc48823ff0630c692cabecea3e3a3))
++* correct broken reference link in postgres best practices skill ([#58](https://github.com/supabase/agent-skills/issues/58)) ([f4e2277](https://github.com/supabase/agent-skills/commit/f4e22777fd8573537297b568c16e5a45a25927da))
++* cover SECURITY DEFINER, auth.role() deprecation, and BOLA in security checklist ([#85](https://github.com/supabase/agent-skills/issues/85)) ([133f43e](https://github.com/supabase/agent-skills/commit/133f43e8c2ffc48823ff0630c692cabecea3e3a3))
+diff --git a/.agents/skills/supabase-postgres-best-practices/SKILL.md b/.agents/skills/supabase-postgres-best-practices/SKILL.md
+index 07aa1b3..d9ef194 100644
+--- a/.agents/skills/supabase-postgres-best-practices/SKILL.md
++++ b/.agents/skills/supabase-postgres-best-practices/SKILL.md
+@@ -17,7 +17,6 @@ Comprehensive performance optimization guide for Postgres, maintained by Supabas
+ ## When to Apply
+ 
+ Reference these guidelines when:
+-
+ - Writing SQL queries or designing schemas
+ - Implementing indexes or query optimization
+ - Reviewing database performance issues
+@@ -27,16 +26,16 @@ Reference these guidelines when:
+ 
+ ## Rule Categories by Priority
+ 
+-| Priority | Category                 | Impact      | Prefix      |
+-| -------- | ------------------------ | ----------- | ----------- |
+-| 1        | Query Performance        | CRITICAL    | `query-`    |
+-| 2        | Connection Management    | CRITICAL    | `conn-`     |
+-| 3        | Security & RLS           | CRITICAL    | `security-` |
+-| 4        | Schema Design            | HIGH        | `schema-`   |
+-| 5        | Concurrency & Locking    | MEDIUM-HIGH | `lock-`     |
+-| 6        | Data Access Patterns     | MEDIUM      | `data-`     |
+-| 7        | Monitoring & Diagnostics | LOW-MEDIUM  | `monitor-`  |
+-| 8        | Advanced Features        | LOW         | `advanced-` |
++| Priority | Category | Impact | Prefix |
++|----------|----------|--------|--------|
++| 1 | Query Performance | CRITICAL | `query-` |
++| 2 | Connection Management | CRITICAL | `conn-` |
++| 3 | Security & RLS | CRITICAL | `security-` |
++| 4 | Schema Design | HIGH | `schema-` |
++| 5 | Concurrency & Locking | MEDIUM-HIGH | `lock-` |
++| 6 | Data Access Patterns | MEDIUM | `data-` |
++| 7 | Monitoring & Diagnostics | LOW-MEDIUM | `monitor-` |
++| 8 | Advanced Features | LOW | `advanced-` |
+ 
+ ## How to Use
+ 
+@@ -49,7 +48,6 @@ references/_sections.md
+ ```
+ 
+ Each rule file contains:
+-
+ - Brief explanation of why it matters
+ - Incorrect SQL example with explanation
+ - Correct SQL example with explanation
+diff --git a/.agents/skills/supabase-postgres-best-practices/references/_contributing.md b/.agents/skills/supabase-postgres-best-practices/references/_contributing.md
+index 4c3efce..1c055af 100644
+--- a/.agents/skills/supabase-postgres-best-practices/references/_contributing.md
++++ b/.agents/skills/supabase-postgres-best-practices/references/_contributing.md
+@@ -27,7 +27,7 @@ to recognize anti-patterns.
+ 
+ Include specific metrics. Helps agents prioritize fixes.
+ 
+-**Good:** "10x faster queries", "50% smaller index", "Eliminates N+1"
++**Good:** "10x faster queries", "50% smaller index", "Eliminates N+1" 
+ **Bad:** "Faster", "Better", "More efficient"
+ 
+ ### 4. Self-Contained Examples
+@@ -105,7 +105,9 @@ Most references should focus on pure SQL patterns. This keeps examples portable.
+ 
+ ```typescript
+ for (const user of users) {
+-  const posts = await db.query("SELECT * FROM posts WHERE user_id = $1", [user.id]);
++  const posts = await db.query("SELECT * FROM posts WHERE user_id = $1", [
++    user.id,
++  ]);
+ }
+ ```
+ ````
+@@ -113,21 +115,23 @@ for (const user of users) {
+ **Correct (batch query):**
+ 
+ ```typescript
+-const posts = await db.query("SELECT * FROM posts WHERE user_id = ANY($1)", [userIds]);
++const posts = await db.query("SELECT * FROM posts WHERE user_id = ANY($1)", [
++  userIds,
++]);
+ ```
+ 
+ ---
+ 
+ ## Impact Level Guidelines
+ 
+-| Level           | Improvement | Use When                                                                 |
+-| --------------- | ----------- | ------------------------------------------------------------------------ |
+-| **CRITICAL**    | 10-100x     | Missing indexes, connection exhaustion, sequential scans on large tables |
+-| **HIGH**        | 5-20x       | Wrong index types, poor partitioning, missing covering indexes           |
+-| **MEDIUM-HIGH** | 2-5x        | N+1 queries, inefficient pagination, RLS optimization                    |
+-| **MEDIUM**      | 1.5-3x      | Redundant indexes, query plan instability                                |
+-| **LOW-MEDIUM**  | 1.2-2x      | VACUUM tuning, configuration tweaks                                      |
+-| **LOW**         | Incremental | Advanced patterns, edge cases                                            |
++| Level | Improvement | Use When |
++|-------|-------------|----------|
++| **CRITICAL** | 10-100x | Missing indexes, connection exhaustion, sequential scans on large tables |
++| **HIGH** | 5-20x | Wrong index types, poor partitioning, missing covering indexes |
++| **MEDIUM-HIGH** | 2-5x | N+1 queries, inefficient pagination, RLS optimization |
++| **MEDIUM** | 1.5-3x | Redundant indexes, query plan instability |
++| **LOW-MEDIUM** | 1.2-2x | VACUUM tuning, configuration tweaks |
++| **LOW** | Incremental | Advanced patterns, edge cases |
+ 
+ ---
+ 
+diff --git a/.agents/skills/supabase-postgres-best-practices/references/_sections.md b/.agents/skills/supabase-postgres-best-practices/references/_sections.md
+index 42c16e7..8ba57c2 100644
+--- a/.agents/skills/supabase-postgres-best-practices/references/_sections.md
++++ b/.agents/skills/supabase-postgres-best-practices/references/_sections.md
+@@ -7,41 +7,33 @@ Take the examples below as pure demonstrative. Replace each section with the act
+ ---
+ 
+ ## 1. Query Performance (query)
+-
+ **Impact:** CRITICAL
+ **Description:** Slow queries, missing indexes, inefficient query plans. The most common source of Postgres performance issues.
+ 
+ ## 2. Connection Management (conn)
+-
+ **Impact:** CRITICAL
+ **Description:** Connection pooling, limits, and serverless strategies. Critical for applications with high concurrency or serverless deployments.
+ 
+ ## 3. Security & RLS (security)
+-
+ **Impact:** CRITICAL
+ **Description:** Row-Level Security policies, privilege management, and authentication patterns.
+ 
+ ## 4. Schema Design (schema)
+-
+ **Impact:** HIGH
+ **Description:** Table design, index strategies, partitioning, and data type selection. Foundation for long-term performance.
+ 
+ ## 5. Concurrency & Locking (lock)
+-
+ **Impact:** MEDIUM-HIGH
+ **Description:** Transaction management, isolation levels, deadlock prevention, and lock contention patterns.
+ 
+ ## 6. Data Access Patterns (data)
+-
+ **Impact:** MEDIUM
+ **Description:** N+1 query elimination, batch operations, cursor-based pagination, and efficient data fetching.
+ 
+ ## 7. Monitoring & Diagnostics (monitor)
+-
+ **Impact:** LOW-MEDIUM
+ **Description:** Using pg_stat_statements, EXPLAIN ANALYZE, metrics collection, and performance diagnostics.
+ 
+ ## 8. Advanced Features (advanced)
+-
+ **Impact:** LOW
+ **Description:** Full-text search, JSONB optimization, PostGIS, extensions, and advanced Postgres features.
+diff --git a/.agents/skills/supabase/CHANGELOG.md b/.agents/skills/supabase/CHANGELOG.md
+index d840cc7..d83eb64 100644
+--- a/.agents/skills/supabase/CHANGELOG.md
++++ b/.agents/skills/supabase/CHANGELOG.md
+@@ -2,46 +2,52 @@
+ 
+ ## [0.1.5](https://github.com/supabase/agent-skills/compare/v0.1.4...v0.1.5) (2026-07-10)
+ 
++
+ ### Features
+ 
+-- add declarative schema section to schema management ([#120](https://github.com/supabase/agent-skills/issues/120)) ([94cf44f](https://github.com/supabase/agent-skills/commit/94cf44ff3a123edcf54a9af373929798cddefed8))
+-- add instructions to check changelog ([#74](https://github.com/supabase/agent-skills/issues/74)) ([4bb13d8](https://github.com/supabase/agent-skills/commit/4bb13d858d19f1f848505a66f46fc9603fdcde95))
+-- add npm supply-chain security guidance to supabase skill ([#94](https://github.com/supabase/agent-skills/issues/94)) ([82df90a](https://github.com/supabase/agent-skills/commit/82df90a5de1cd84386d8bc192746e50343b86dc0))
+-- instructions on exposing tables to the data api ([#71](https://github.com/supabase/agent-skills/issues/71)) ([f15a5a4](https://github.com/supabase/agent-skills/commit/f15a5a40779072a530c9e53c3f14ec4131118ea6))
+-- using Supabase agent skills ([#12](https://github.com/supabase/agent-skills/issues/12)) ([7c2e389](https://github.com/supabase/agent-skills/commit/7c2e3894fddfde8eb6c77d2a8921904543b9be7a))
++* add declarative schema section to schema management ([#120](https://github.com/supabase/agent-skills/issues/120)) ([94cf44f](https://github.com/supabase/agent-skills/commit/94cf44ff3a123edcf54a9af373929798cddefed8))
++* add instructions to check changelog ([#74](https://github.com/supabase/agent-skills/issues/74)) ([4bb13d8](https://github.com/supabase/agent-skills/commit/4bb13d858d19f1f848505a66f46fc9603fdcde95))
++* add npm supply-chain security guidance to supabase skill ([#94](https://github.com/supabase/agent-skills/issues/94)) ([82df90a](https://github.com/supabase/agent-skills/commit/82df90a5de1cd84386d8bc192746e50343b86dc0))
++* instructions on exposing tables to the data api ([#71](https://github.com/supabase/agent-skills/issues/71)) ([f15a5a4](https://github.com/supabase/agent-skills/commit/f15a5a40779072a530c9e53c3f14ec4131118ea6))
++* using Supabase agent skills ([#12](https://github.com/supabase/agent-skills/issues/12)) ([7c2e389](https://github.com/supabase/agent-skills/commit/7c2e3894fddfde8eb6c77d2a8921904543b9be7a))
++
+ 
+ ### Bug Fixes
+ 
+-- bump supabase skill to v0.1.1 and fix Data API broken link ([#72](https://github.com/supabase/agent-skills/issues/72)) ([5a6542e](https://github.com/supabase/agent-skills/commit/5a6542e08fc026d90c9a6a0f5a67749e9ceb9946))
+-- cover SECURITY DEFINER, auth.role() deprecation, and BOLA in security checklist ([#85](https://github.com/supabase/agent-skills/issues/85)) ([133f43e](https://github.com/supabase/agent-skills/commit/133f43e8c2ffc48823ff0630c692cabecea3e3a3))
+-- update Data API doc link and bump supabase skill to v0.1.1 ([#73](https://github.com/supabase/agent-skills/issues/73)) ([e5f7a7c](https://github.com/supabase/agent-skills/commit/e5f7a7cfd697765848ffd6a4505f3c02e1ee17ee))
++* bump supabase skill to v0.1.1 and fix Data API broken link ([#72](https://github.com/supabase/agent-skills/issues/72)) ([5a6542e](https://github.com/supabase/agent-skills/commit/5a6542e08fc026d90c9a6a0f5a67749e9ceb9946))
++* cover SECURITY DEFINER, auth.role() deprecation, and BOLA in security checklist ([#85](https://github.com/supabase/agent-skills/issues/85)) ([133f43e](https://github.com/supabase/agent-skills/commit/133f43e8c2ffc48823ff0630c692cabecea3e3a3))
++* update Data API doc link and bump supabase skill to v0.1.1 ([#73](https://github.com/supabase/agent-skills/issues/73)) ([e5f7a7c](https://github.com/supabase/agent-skills/commit/e5f7a7cfd697765848ffd6a4505f3c02e1ee17ee))
+ 
+ ## [0.1.4](https://github.com/supabase/agent-skills/compare/v0.1.3...v0.1.4) (2026-06-05)
+ 
++
+ ### Features
+ 
+-- add instructions to check changelog ([#74](https://github.com/supabase/agent-skills/issues/74)) ([4bb13d8](https://github.com/supabase/agent-skills/commit/4bb13d858d19f1f848505a66f46fc9603fdcde95))
+-- add npm supply-chain security guidance to supabase skill ([#94](https://github.com/supabase/agent-skills/issues/94)) ([82df90a](https://github.com/supabase/agent-skills/commit/82df90a5de1cd84386d8bc192746e50343b86dc0))
+-- instructions on exposing tables to the data api ([#71](https://github.com/supabase/agent-skills/issues/71)) ([f15a5a4](https://github.com/supabase/agent-skills/commit/f15a5a40779072a530c9e53c3f14ec4131118ea6))
+-- using Supabase agent skills ([#12](https://github.com/supabase/agent-skills/issues/12)) ([7c2e389](https://github.com/supabase/agent-skills/commit/7c2e3894fddfde8eb6c77d2a8921904543b9be7a))
++* add instructions to check changelog ([#74](https://github.com/supabase/agent-skills/issues/74)) ([4bb13d8](https://github.com/supabase/agent-skills/commit/4bb13d858d19f1f848505a66f46fc9603fdcde95))
++* add npm supply-chain security guidance to supabase skill ([#94](https://github.com/supabase/agent-skills/issues/94)) ([82df90a](https://github.com/supabase/agent-skills/commit/82df90a5de1cd84386d8bc192746e50343b86dc0))
++* instructions on exposing tables to the data api ([#71](https://github.com/supabase/agent-skills/issues/71)) ([f15a5a4](https://github.com/supabase/agent-skills/commit/f15a5a40779072a530c9e53c3f14ec4131118ea6))
++* using Supabase agent skills ([#12](https://github.com/supabase/agent-skills/issues/12)) ([7c2e389](https://github.com/supabase/agent-skills/commit/7c2e3894fddfde8eb6c77d2a8921904543b9be7a))
++
+ 
+ ### Bug Fixes
+ 
+-- bump supabase skill to v0.1.1 and fix Data API broken link ([#72](https://github.com/supabase/agent-skills/issues/72)) ([5a6542e](https://github.com/supabase/agent-skills/commit/5a6542e08fc026d90c9a6a0f5a67749e9ceb9946))
+-- cover SECURITY DEFINER, auth.role() deprecation, and BOLA in security checklist ([#85](https://github.com/supabase/agent-skills/issues/85)) ([133f43e](https://github.com/supabase/agent-skills/commit/133f43e8c2ffc48823ff0630c692cabecea3e3a3))
+-- update Data API doc link and bump supabase skill to v0.1.1 ([#73](https://github.com/supabase/agent-skills/issues/73)) ([e5f7a7c](https://github.com/supabase/agent-skills/commit/e5f7a7cfd697765848ffd6a4505f3c02e1ee17ee))
++* bump supabase skill to v0.1.1 and fix Data API broken link ([#72](https://github.com/supabase/agent-skills/issues/72)) ([5a6542e](https://github.com/supabase/agent-skills/commit/5a6542e08fc026d90c9a6a0f5a67749e9ceb9946))
++* cover SECURITY DEFINER, auth.role() deprecation, and BOLA in security checklist ([#85](https://github.com/supabase/agent-skills/issues/85)) ([133f43e](https://github.com/supabase/agent-skills/commit/133f43e8c2ffc48823ff0630c692cabecea3e3a3))
++* update Data API doc link and bump supabase skill to v0.1.1 ([#73](https://github.com/supabase/agent-skills/issues/73)) ([e5f7a7c](https://github.com/supabase/agent-skills/commit/e5f7a7cfd697765848ffd6a4505f3c02e1ee17ee))
+ 
+ ## [0.1.3](https://github.com/supabase/agent-skills/compare/v0.1.2...v0.1.3) (2026-06-02)
+ 
++
+ ### Features
+ 
+-- add instructions to check changelog ([#74](https://github.com/supabase/agent-skills/issues/74)) ([4bb13d8](https://github.com/supabase/agent-skills/commit/4bb13d858d19f1f848505a66f46fc9603fdcde95))
+-- add npm supply-chain security guidance to supabase skill ([#94](https://github.com/supabase/agent-skills/issues/94)) ([82df90a](https://github.com/supabase/agent-skills/commit/82df90a5de1cd84386d8bc192746e50343b86dc0))
+-- instructions on exposing tables to the data api ([#71](https://github.com/supabase/agent-skills/issues/71)) ([f15a5a4](https://github.com/supabase/agent-skills/commit/f15a5a40779072a530c9e53c3f14ec4131118ea6))
+-- using Supabase agent skills ([#12](https://github.com/supabase/agent-skills/issues/12)) ([7c2e389](https://github.com/supabase/agent-skills/commit/7c2e3894fddfde8eb6c77d2a8921904543b9be7a))
++* add instructions to check changelog ([#74](https://github.com/supabase/agent-skills/issues/74)) ([4bb13d8](https://github.com/supabase/agent-skills/commit/4bb13d858d19f1f848505a66f46fc9603fdcde95))
++* add npm supply-chain security guidance to supabase skill ([#94](https://github.com/supabase/agent-skills/issues/94)) ([82df90a](https://github.com/supabase/agent-skills/commit/82df90a5de1cd84386d8bc192746e50343b86dc0))
++* instructions on exposing tables to the data api ([#71](https://github.com/supabase/agent-skills/issues/71)) ([f15a5a4](https://github.com/supabase/agent-skills/commit/f15a5a40779072a530c9e53c3f14ec4131118ea6))
++* using Supabase agent skills ([#12](https://github.com/supabase/agent-skills/issues/12)) ([7c2e389](https://github.com/supabase/agent-skills/commit/7c2e3894fddfde8eb6c77d2a8921904543b9be7a))
++
+ 
+ ### Bug Fixes
+ 
+-- bump supabase skill to v0.1.1 and fix Data API broken link ([#72](https://github.com/supabase/agent-skills/issues/72)) ([5a6542e](https://github.com/supabase/agent-skills/commit/5a6542e08fc026d90c9a6a0f5a67749e9ceb9946))
+-- cover SECURITY DEFINER, auth.role() deprecation, and BOLA in security checklist ([#85](https://github.com/supabase/agent-skills/issues/85)) ([133f43e](https://github.com/supabase/agent-skills/commit/133f43e8c2ffc48823ff0630c692cabecea3e3a3))
+-- update Data API doc link and bump supabase skill to v0.1.1 ([#73](https://github.com/supabase/agent-skills/issues/73)) ([e5f7a7c](https://github.com/supabase/agent-skills/commit/e5f7a7cfd697765848ffd6a4505f3c02e1ee17ee))
++* bump supabase skill to v0.1.1 and fix Data API broken link ([#72](https://github.com/supabase/agent-skills/issues/72)) ([5a6542e](https://github.com/supabase/agent-skills/commit/5a6542e08fc026d90c9a6a0f5a67749e9ceb9946))
++* cover SECURITY DEFINER, auth.role() deprecation, and BOLA in security checklist ([#85](https://github.com/supabase/agent-skills/issues/85)) ([133f43e](https://github.com/supabase/agent-skills/commit/133f43e8c2ffc48823ff0630c692cabecea3e3a3))
++* update Data API doc link and bump supabase skill to v0.1.1 ([#73](https://github.com/supabase/agent-skills/issues/73)) ([e5f7a7c](https://github.com/supabase/agent-skills/commit/e5f7a7cfd697765848ffd6a4505f3c02e1ee17ee))
+diff --git a/package-lock.json b/package-lock.json
+index 506ee58..895affa 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -64,7 +64,7 @@
+       },
+       "devDependencies": {
+         "@eslint/js": "^9.32.0",
+-        "@lovable.dev/vite-tanstack-config": "2.7.2",
++        "@lovable.dev/vite-tanstack-config": "2.7.7",
+         "@types/node": "^22.16.5",
+         "@types/react": "^19.2.0",
+         "@types/react-dom": "^19.2.0",
+@@ -1290,9 +1290,9 @@
+       }
+     },
+     "node_modules/@lovable.dev/vite-plugin-dev-server-bridge": {
+-      "version": "1.1.0",
+-      "resolved": "https://registry.npmjs.org/@lovable.dev/vite-plugin-dev-server-bridge/-/vite-plugin-dev-server-bridge-1.1.0.tgz",
+-      "integrity": "sha512-NuIYWHEPRve+BMW9SyGFFQdigP7bcLvlVf7lW9LZHjBQveGp6vP3aaWzWUr2oP3WiLgBzr1gmw2pq7AcAHT+PQ==",
++      "version": "1.2.1",
++      "resolved": "https://registry.npmjs.org/@lovable.dev/vite-plugin-dev-server-bridge/-/vite-plugin-dev-server-bridge-1.2.1.tgz",
++      "integrity": "sha512-JdADRwpEJA5t0ggXbd96dND23Wsp69Af9lVSV5m7MnMGxJZlPgqAqz7HUKcfJESfI5M5yFZOl9e0x76JMMDOAg==",
+       "dev": true,
+       "license": "MIT",
+       "peerDependencies": {
+@@ -1305,9 +1305,9 @@
+       }
+     },
+     "node_modules/@lovable.dev/vite-plugin-hmr-gate": {
+-      "version": "1.1.2",
+-      "resolved": "https://registry.npmjs.org/@lovable.dev/vite-plugin-hmr-gate/-/vite-plugin-hmr-gate-1.1.2.tgz",
+-      "integrity": "sha512-m3tOTEm78rPAFq6+ELNMS10pX786mFLdRYFnU/xIra+aJSSalnueVhdeIgmictfoqBQw8GZLgmpeASOXVI6w9g==",
++      "version": "1.2.1",
++      "resolved": "https://registry.npmjs.org/@lovable.dev/vite-plugin-hmr-gate/-/vite-plugin-hmr-gate-1.2.1.tgz",
++      "integrity": "sha512-K7Yw2fnKaA5g8JoOqvaSt6EsAGqTi23rzYFO8bGnBtZ/ulMRLMzopfVdR1mm2rly5w1SwdAWpc1rPKpoeufSoQ==",
+       "dev": true,
+       "license": "MIT",
+       "peerDependencies": {
+@@ -1320,14 +1320,14 @@
+       }
+     },
+     "node_modules/@lovable.dev/vite-tanstack-config": {
+-      "version": "2.7.2",
+-      "resolved": "https://registry.npmjs.org/@lovable.dev/vite-tanstack-config/-/vite-tanstack-config-2.7.2.tgz",
+-      "integrity": "sha512-TwCXJNeCoUMvK3xWTOYAsUk+FpMKgQjKNPnyqsaCpHyHT8l7giEApRNXBXmSy9KJ+Ri8eZed6Exe0ID+Tg9VPA==",
++      "version": "2.7.7",
++      "resolved": "https://registry.npmjs.org/@lovable.dev/vite-tanstack-config/-/vite-tanstack-config-2.7.7.tgz",
++      "integrity": "sha512-J7IXGzGaMfsFiEpNUaG3utmA1d/tXv4a7XPJb9ONlG7xyfq7LjPebJ10J087sou4lRl08ndJkJ/reE5paAJH2w==",
+       "dev": true,
+       "license": "MIT",
+       "dependencies": {
+-        "@lovable.dev/vite-plugin-dev-server-bridge": "^1.0.2",
+-        "@lovable.dev/vite-plugin-hmr-gate": "^1.1.1",
++        "@lovable.dev/vite-plugin-dev-server-bridge": "^1.2.1",
++        "@lovable.dev/vite-plugin-hmr-gate": "^1.1.3",
+         "@tanstack/devtools-vite": "^0.8.1",
+         "lightningcss": "^1.30.0"
+       },
+diff --git a/scripts/audit-db.ts b/scripts/audit-db.ts
+new file mode 100644
+index 0000000..6c433da
+--- /dev/null
++++ b/scripts/audit-db.ts
+@@ -0,0 +1,22 @@
++import { createClient } from '@supabase/supabase-js';
++
++const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://gnfhhvcgnswctzvjcefe.supabase.co';
++const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImduZmhodmNnbnN3Y3R6dmpjZWZlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NTM1MTM1OSwiZXhwIjoyMTAwOTI3MzU5fQ.WwGeim59ZAFuOh-TlWqmLB7ejP8xI6uqNTNFCxih-iA';
++
++const supabase = createClient(supabaseUrl, supabaseKey);
++
++async function run() {
++  const { data: orgs } = await supabase.from('organizations').select('*');
++  const { data: stores } = await supabase.from('stores').select('*');
++  const { data: products } = await supabase.from('products').select('id, name, slug');
++  const { data: categories } = await supabase.from('categories').select('id, name, slug');
++  const { data: collections } = await supabase.from('collections').select('id, name, slug');
++  
++  console.log('Orgs:', JSON.stringify(orgs, null, 2));
++  console.log('Stores:', JSON.stringify(stores, null, 2));
++  console.log('Products:', JSON.stringify(products, null, 2));
++  console.log('Categories:', JSON.stringify(categories, null, 2));
++  console.log('Collections:', JSON.stringify(collections, null, 2));
++}
++
++run().catch(console.error);
+diff --git a/scripts/deploy-secrets.ps1 b/scripts/deploy-secrets.ps1
+new file mode 100644
+index 0000000..8af941b
+--- /dev/null
++++ b/scripts/deploy-secrets.ps1
+@@ -0,0 +1,47 @@
++param (
++    [string]$EnvFilePath = ".\.env.local"
++)
++
++if (-Not (Test-Path $EnvFilePath)) {
++    Write-Error "O arquivo .env.local nao foi encontrado: $EnvFilePath"
++    exit 1
++}
++
++Write-Host "=========================================="
++Write-Host " Deploy de Secrets para Cloudflare Pages"
++Write-Host "=========================================="
++Write-Host "Certifique-se de estar logado: npx wrangler login"
++Write-Host ""
++
++$lines = Get-Content $EnvFilePath
++
++foreach ($line in $lines) {
++    $line = $line.Trim()
++    
++    if ($line.StartsWith("#") -or [string]::IsNullOrWhiteSpace($line)) {
++        continue
++    }
++
++    if ($line -match "^([^=]+)=(.*)$") {
++        $key = $matches[1].Trim()
++        $value = $matches[2].Trim()
++
++        if ($value.StartsWith('"') -and $value.EndsWith('"')) {
++            $value = $value.Substring(1, $value.Length - 2)
++        } elseif ($value.StartsWith("'") -and $value.EndsWith("'")) {
++            $value = $value.Substring(1, $value.Length - 2)
++        }
++
++        Write-Host "-> Enviando secret: $key ..." -NoNewline
++        
++        try {
++            $value | npx wrangler pages secret put $key --project-name lojapiloto 2>$null
++            Write-Host " OK" -ForegroundColor Green
++        } catch {
++            Write-Host " ERRO" -ForegroundColor Red
++        }
++    }
++}
++
++Write-Host "=========================================="
++Write-Host "Deploy de secrets concluído."
+diff --git a/scripts/fix-admin-store.ts b/scripts/fix-admin-store.ts
+new file mode 100644
+index 0000000..70ad68f
+--- /dev/null
++++ b/scripts/fix-admin-store.ts
+@@ -0,0 +1,36 @@
++import { createClient } from "@supabase/supabase-js";
++import dotenv from "dotenv";
++import path from "path";
++
++dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
++
++const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
++const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
++
++const serviceClient = createClient(supabaseUrl, serviceKey);
++
++async function run() {
++  console.log("Sincronizando perfil admin com a Loja Modelo...");
++  
++  // 1. Pegar o ID da loja-modelo
++  const { data: store } = await serviceClient.from("stores").select("id, organization_id").eq("slug", "loja-modelo").single();
++  if (!store) {
++    console.log("Loja modelo não encontrada!");
++    return;
++  }
++  
++  // 2. Atualizar TODOS os perfis admin/owner para apontar para essa loja e organização
++  const { data, error } = await serviceClient
++    .from("profiles")
++    .update({ store_id: store.id, organization_id: store.organization_id })
++    .in("role", ["admin", "owner", "manager"])
++    .select("id, role");
++    
++  if (error) {
++    console.error("Erro:", error);
++  } else {
++    console.log("Perfis atualizados com sucesso:", data);
++  }
++}
++
++run();
+diff --git a/scripts/fix-home.ts b/scripts/fix-home.ts
+new file mode 100644
+index 0000000..488f087
+--- /dev/null
++++ b/scripts/fix-home.ts
+@@ -0,0 +1,97 @@
++import { createClient } from "@supabase/supabase-js";
++import dotenv from "dotenv";
++import path from "path";
++
++dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
++
++const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
++const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
++
++const serviceClient = createClient(supabaseUrl, serviceKey);
++
++async function run() {
++  const { data: store } = await serviceClient.from("stores").select("id").eq("slug", "loja-modelo").single();
++  const storeId = store.id;
++
++  const { data: colNovidades } = await serviceClient.from("collections").select("id").eq("slug", "novidades").single();
++  const { data: colMaisVendidos } = await serviceClient.from("collections").select("id").eq("slug", "mais-vendidos").single();
++
++  const mediaUrls = {
++    hero_banner: "https://gnfhhvcgnswctzvjcefe.supabase.co/storage/v1/object/public/product-media/loja-modelo/lm-hero-banner.svg"
++  };
++
++  await serviceClient.from("experience_documents").delete().eq("store_id", storeId).eq("slug", "home");
++
++  const { data: doc } = await serviceClient.from("experience_documents").insert({
++    store_id: storeId,
++    document_type: "storefront",
++    slug: "home",
++    title: "Página Inicial da Loja Modelo",
++    is_active: true
++  }).select("id").single();
++
++  const { data: version } = await serviceClient.from("experience_versions").insert({
++    document_id: doc!.id,
++    version_number: 2,
++    status: "published",
++    commit_message: "Fix: Top level sections"
++  }).select("id").single();
++
++  const nodesToInsert = [
++    {
++      version_id: version!.id,
++      parent_id: null, // Top level!
++      node_type: "section",
++      block_type: "hero_carousel",
++      sort_order: 0,
++      content: {
++        banners: [
++          {
++            image_url: mediaUrls.hero_banner,
++            title: "Coleção de Inverno 2026",
++            subtitle: "Conforto e elegância para os dias mais frios.",
++            button_text: "Explorar Coleção",
++            link: "/colecao/novidades"
++          }
++        ]
++      }
++    },
++    {
++      version_id: version!.id,
++      parent_id: null, // Top level!
++      node_type: "section",
++      block_type: "product_carousel",
++      sort_order: 1,
++      content: {
++        title: "Lançamentos Quentes"
++      },
++      data_bindings: {
++        source: "product_collection",
++        collection_slug: "novidades",
++        limit: 8
++      }
++    },
++    {
++      version_id: version!.id,
++      parent_id: null, // Top level!
++      node_type: "section",
++      block_type: "product_grid",
++      sort_order: 2,
++      content: {
++        title: "Os Mais Vendidos",
++        subtitle: "As peças favoritas dos nossos clientes."
++      },
++      data_bindings: {
++        source: "product_collection",
++        collection_slug: "mais-vendidos",
++        limit: 12
++      }
++    }
++  ];
++
++  const { error: nodesErr } = await serviceClient.from("experience_nodes").insert(nodesToInsert);
++  if (nodesErr) console.error("Error:", nodesErr);
++  else console.log("Fixed! 3 top-level sections inserted.");
++}
++
++run();
+diff --git a/scripts/loja-modelo-seed.ts b/scripts/loja-modelo-seed.ts
+new file mode 100644
+index 0000000..f73b436
+--- /dev/null
++++ b/scripts/loja-modelo-seed.ts
+@@ -0,0 +1,394 @@
++import { createClient } from "@supabase/supabase-js";
++import dotenv from "dotenv";
++import path from "path";
++
++dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
++
++const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
++const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
++
++if (!supabaseUrl || !serviceKey) {
++  console.error("❌ ERRO: Faltando VITE_SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY no ambiente.");
++  process.exit(1);
++}
++
++const serviceClient = createClient(supabaseUrl, serviceKey);
++
++// ==============================================================================
++// 1. UTILITÁRIOS
++// ==============================================================================
++
++async function uploadSvgPlaceholder(filename: string, text: string, color: string) {
++  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800">
++    <rect width="100%" height="100%" fill="${color}" />
++    <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#ffffff" text-anchor="middle" dy=".3em">${text}</text>
++  </svg>`;
++
++  const { data, error } = await serviceClient.storage
++    .from("product-media")
++    .upload(`loja-modelo/${filename}`, svg, {
++      contentType: "image/svg+xml",
++      upsert: true,
++    });
++
++  if (error) {
++    console.warn(`⚠️ Aviso: Falha ao fazer upload de ${filename}:`, error);
++    return null;
++  }
++
++  const { data: publicData } = serviceClient.storage.from("product-media").getPublicUrl(`loja-modelo/${filename}`);
++  return publicData.publicUrl;
++}
++
++// ==============================================================================
++// 2. ORQUESTRADOR
++// ==============================================================================
++
++async function runSeed() {
++  console.log("================================================================================");
++  console.log("🌱 INICIANDO ORQUESTRADOR DE SEED - LOJA MODELO");
++  console.log("================================================================================\n");
++
++  // 1. ESTABILIZAÇÃO DO TENANT
++  console.log("⏳ [1/5] Estabilizando Tenant (Organização e Loja)...");
++
++  // Ajusta a organização
++  const { data: org, error: orgErr } = await serviceClient
++    .from("organizations")
++    .select("*")
++    .order("created_at", { ascending: true })
++    .limit(1)
++    .single();
++
++  if (orgErr || !org) {
++    console.error("❌ ERRO: Nenhuma organização encontrada.", orgErr);
++    process.exit(1);
++  }
++
++  await serviceClient
++    .from("organizations")
++    .update({ name: "Loja Modelo Org", slug: "loja-modelo-org" })
++    .eq("id", org.id);
++
++  // Ajusta a loja
++  const { data: store, error: storeErr } = await serviceClient
++    .from("stores")
++    .select("*")
++    .eq("organization_id", org.id)
++    .order("created_at", { ascending: true })
++    .limit(1)
++    .single();
++
++  if (storeErr || !store) {
++    console.error("❌ ERRO: Nenhuma loja encontrada.", storeErr);
++    process.exit(1);
++  }
++
++  await serviceClient
++    .from("stores")
++    .update({ name: "Loja Modelo", slug: "loja-modelo" })
++    .eq("id", store.id);
++
++  console.log(`✅ Loja configurada: "${store.name}" -> "Loja Modelo" (ID: ${store.id})`);
++
++  // 2. UPLOAD DE MÍDIAS
++  console.log("\n⏳ [2/5] Gerando Mídias de Demonstração...");
++  const mediaUrls = {
++    geral: await uploadSvgPlaceholder("lm-geral.svg", "Loja Modelo", "#4F46E5"),
++    luminaria: await uploadSvgPlaceholder("lm-luminaria.svg", "Luminária", "#F59E0B"),
++    tenis: await uploadSvgPlaceholder("lm-tenis.svg", "Tênis Runner", "#10B981"),
++    cam_branco: await uploadSvgPlaceholder("lm-cam-branco.svg", "Camiseta Branca", "#D1D5DB"), // text white on light gray is hard, but it's ok for demo
++    cam_preto: await uploadSvgPlaceholder("lm-cam-preto.svg", "Camiseta Preta", "#111827"),
++    cam_azul: await uploadSvgPlaceholder("lm-cam-azul.svg", "Camiseta Azul", "#3B82F6"),
++    smart_128: await uploadSvgPlaceholder("lm-smart-128.svg", "Phone 128GB", "#8B5CF6"),
++    smart_256: await uploadSvgPlaceholder("lm-smart-256.svg", "Phone 256GB", "#6D28D9"),
++    calca: await uploadSvgPlaceholder("lm-calca.svg", "Calça Alfaiataria", "#EC4899"),
++    cama_branco: await uploadSvgPlaceholder("lm-cama-branco.svg", "Cama Branca", "#D1D5DB"),
++    cama_cinza: await uploadSvgPlaceholder("lm-cama-cinza.svg", "Cama Cinza", "#6B7280"),
++  };
++  console.log("✅ Imagens processadas e hospedadas no Supabase Storage.");
++
++  // 3. CATEGORIAS E COLEÇÕES
++  console.log("\n⏳ [3/5] Estruturando Categorias e Coleções...");
++
++  const catNames = ["Moda Feminina", "Moda Masculina", "Eletrônicos", "Casa e Decoração"];
++  const categoryIds: Record<string, string> = {};
++
++  for (const name of catNames) {
++    const slug = name.toLowerCase().replace(/ /g, "-").replace(/ç/g, "c").replace(/ã/g, "a");
++    const { data: cat } = await serviceClient
++      .from("categories")
++      .select("id")
++      .eq("slug", slug)
++      .eq("store_id", store.id)
++      .single();
++
++    if (cat) {
++      categoryIds[name] = cat.id;
++    } else {
++      const { data: newCat } = await serviceClient
++        .from("categories")
++        .insert({ store_id: store.id, name, slug, ordering: 0 })
++        .select("id")
++        .single();
++      if (newCat) categoryIds[name] = newCat.id;
++    }
++  }
++
++  const colNames = ["Novidades", "Mais Vendidos", "Ofertas"];
++  const collectionIds: Record<string, string> = {};
++
++  for (const name of colNames) {
++    const slug = name.toLowerCase().replace(/ /g, "-");
++    const { data: col } = await serviceClient
++      .from("collections")
++      .select("id")
++      .eq("slug", slug)
++      .eq("store_id", store.id)
++      .single();
++
++    if (col) {
++      collectionIds[name] = col.id;
++    } else {
++      const { data: newCol } = await serviceClient
++        .from("collections")
++        .insert({ store_id: store.id, name, slug })
++        .select("id")
++        .single();
++      if (newCol) collectionIds[name] = newCol.id;
++    }
++  }
++  console.log("✅ Categorias e Coleções configuradas.");
++
++  // 4. CARGA EXTREMA DE PRODUTOS
++  console.log("\n⏳ [4/5] Processando Matriz de Produtos...");
++
++  // Função auxiliar para injetar produto
++  async function seedProduct(
++    skuPrefix: string,
++    title: string,
++    priceCents: number,
++    options: { name: string; values: string[] }[],
++    variants: { sku: string; price_cents: number; stock: number; attributes: any; image_url?: string }[],
++    categoryId: string,
++    collectionId?: string
++  ) {
++    const slug = skuPrefix.toLowerCase();
++    
++    // Deleta anterior (Idempotência total baseada no slug)
++    const { data: existing } = await serviceClient.from("products").select("id").eq("slug", slug).single();
++    if (existing) {
++      const pId = existing.id;
++      // cascade deletes via foreign keys might not be fully configured, let's manually clean
++      await serviceClient.from("product_media").delete().eq("product_id", pId);
++      const { data: vars } = await serviceClient.from("product_variants").select("id").eq("product_id", pId);
++      if (vars && vars.length > 0) {
++        await serviceClient.from("stock_movements").delete().in("variant_id", vars.map(v => v.id));
++      }
++      await serviceClient.from("product_variants").delete().eq("product_id", pId);
++      await serviceClient.from("product_categories").delete().eq("product_id", pId);
++      await serviceClient.from("product_collections").delete().eq("product_id", pId);
++      await serviceClient.from("products").delete().eq("id", pId);
++    }
++
++    // Cria Produto
++    const payload = {
++      store_id: store.id,
++      title,
++      slug,
++      description: `Produto demonstrativo (${title}) criado pelo orquestrador LojaModelo.`,
++      price_cents: priceCents,
++      status: "published",
++      options,
++      variants,
++    };
++
++    const { data: createRes, error: createErr } = await serviceClient.rpc("create_product_transaction_v1", { payload });
++    if (createErr || !createRes) {
++      console.error(`❌ Erro ao criar produto ${title}:`, createErr);
++      return;
++    }
++    const productId = createRes.id;
++
++    // Associa categoria e coleção
++    if (categoryId) {
++      await serviceClient.from("product_categories").insert({ product_id: productId, category_id: categoryId });
++    }
++    if (collectionId) {
++      await serviceClient.from("product_collections").insert({ product_id: productId, collection_id: collectionId });
++    }
++
++    // Saldo real atômico
++    const matrixUpdate = variants.map(v => ({
++      sku: v.sku,
++      attributes: v.attributes,
++      stock: v.stock
++    }));
++
++    await serviceClient.rpc("batch_upsert_variant_matrix_v1", {
++      store_id_param: store.id,
++      product_id_param: productId,
++      matrix: matrixUpdate,
++    });
++
++    // Anexa imagem padrão (primeira url)
++    const defaultImage = variants.find(v => v.image_url)?.image_url || mediaUrls.geral;
++    if (defaultImage) {
++      await serviceClient.from("product_media").insert({
++        product_id: productId,
++        url: defaultImage,
++        position: 0,
++        type: "image",
++      });
++    }
++
++    console.log(`   ✔️ Criado: ${title} (${variants.length} variantes)`);
++  }
++
++  // P1: Simples
++  await seedProduct(
++    "LM-SMP-01", "Luminária de Mesa", 15000,
++    [],
++    [{ sku: "LM-SMP-01", price_cents: 15000, stock: 10, attributes: {}, image_url: mediaUrls.luminaria }],
++    categoryIds["Casa e Decoração"], collectionIds["Novidades"]
++  );
++
++  // P2: 1 Opção (Tênis)
++  await seedProduct(
++    "LM-TNS-02", "Tênis Runner", 35000,
++    [{ name: "Tamanho", values: ["38", "39", "40", "41"] }],
++    [
++      { sku: "LM-TNS-02-38", price_cents: 35000, stock: 5, attributes: { Tamanho: "38" } },
++      { sku: "LM-TNS-02-39", price_cents: 35000, stock: 12, attributes: { Tamanho: "39" } },
++      { sku: "LM-TNS-02-40", price_cents: 35000, stock: 0, attributes: { Tamanho: "40" } }, // Esgotado
++      { sku: "LM-TNS-02-41", price_cents: 35000, stock: 2, attributes: { Tamanho: "41" } }, // Baixo
++    ],
++    categoryIds["Moda Masculina"], collectionIds["Mais Vendidos"]
++  );
++
++  // P3: 2 Opções c/ Lacuna (Camiseta)
++  // Lacuna: Preto não tem P.
++  await seedProduct(
++    "LM-CAM-03", "Camiseta Básica", 8900,
++    [
++      { name: "Cor", values: ["Branco", "Preto", "Azul"] },
++      { name: "Tamanho", values: ["P", "M", "G"] }
++    ],
++    [
++      { sku: "LM-CAM-03-BR-P", price_cents: 8900, stock: 10, attributes: { Cor: "Branco", Tamanho: "P" }, image_url: mediaUrls.cam_branco },
++      { sku: "LM-CAM-03-BR-M", price_cents: 8900, stock: 10, attributes: { Cor: "Branco", Tamanho: "M" } },
++      { sku: "LM-CAM-03-BR-G", price_cents: 8900, stock: 10, attributes: { Cor: "Branco", Tamanho: "G" } },
++      
++      { sku: "LM-CAM-03-PR-M", price_cents: 8900, stock: 10, attributes: { Cor: "Preto", Tamanho: "M" }, image_url: mediaUrls.cam_preto },
++      { sku: "LM-CAM-03-PR-G", price_cents: 8900, stock: 10, attributes: { Cor: "Preto", Tamanho: "G" } },
++      
++      { sku: "LM-CAM-03-AZ-P", price_cents: 8900, stock: 10, attributes: { Cor: "Azul", Tamanho: "P" }, image_url: mediaUrls.cam_azul },
++      { sku: "LM-CAM-03-AZ-M", price_cents: 8900, stock: 10, attributes: { Cor: "Azul", Tamanho: "M" } },
++      { sku: "LM-CAM-03-AZ-G", price_cents: 8900, stock: 10, attributes: { Cor: "Azul", Tamanho: "G" } },
++    ],
++    categoryIds["Moda Masculina"], collectionIds["Ofertas"]
++  );
++
++  // P4: Preço Flexível (Smartphone)
++  await seedProduct(
++    "LM-CEL-04", "Smartphone X1", 250000,
++    [{ name: "Armazenamento", values: ["128GB", "256GB"] }],
++    [
++      { sku: "LM-CEL-04-128", price_cents: 250000, stock: 20, attributes: { Armazenamento: "128GB" }, image_url: mediaUrls.smart_128 },
++      { sku: "LM-CEL-04-256", price_cents: 290000, stock: 10, attributes: { Armazenamento: "256GB" }, image_url: mediaUrls.smart_256 },
++    ],
++    categoryIds["Eletrônicos"], undefined
++  );
++
++  // P5: 3 Opções (Calça)
++  await seedProduct(
++    "LM-CAL-05", "Calça Alfaiataria", 19900,
++    [
++      { name: "Cor", values: ["Bege", "Preto"] },
++      { name: "Tamanho", values: ["38", "40"] },
++      { name: "Modelagem", values: ["Reta", "Pantalona"] }
++    ],
++    [
++      { sku: "LM-CAL-05-BE-38-RT", price_cents: 19900, stock: 5, attributes: { Cor: "Bege", Tamanho: "38", Modelagem: "Reta" }, image_url: mediaUrls.calca },
++      { sku: "LM-CAL-05-BE-40-RT", price_cents: 19900, stock: 5, attributes: { Cor: "Bege", Tamanho: "40", Modelagem: "Reta" } },
++      { sku: "LM-CAL-05-PR-38-PA", price_cents: 19900, stock: 5, attributes: { Cor: "Preto", Tamanho: "38", Modelagem: "Pantalona" } },
++      { sku: "LM-CAL-05-PR-40-PA", price_cents: 19900, stock: 5, attributes: { Cor: "Preto", Tamanho: "40", Modelagem: "Pantalona" } },
++    ],
++    categoryIds["Moda Feminina"], collectionIds["Novidades"]
++  );
++
++  console.log("✅ Carga de catálogo e estoque concluída atômica e deterministicamente.");
++
++  // 5. ATUALIZANDO HOMEPAGE (BUILDER)
++  console.log("\n⏳ [5/5] Injetando DataBindings na Homepage CMS...");
++  // Limpa Home existente
++  const { data: pages } = await serviceClient.from("pages").select("id").eq("store_id", store.id).eq("slug", "home");
++  if (pages && pages.length > 0) {
++    const pageId = pages[0].id;
++    // O sistema de pages pode não ter CASCADE simples (mas não precisamos recriar a Page, só a Version)
++    
++    // Despublica versoes antigas
++    await serviceClient.from("page_versions").update({ published: false }).eq("page_id", pageId);
++
++    // Cria nova versao
++    const { data: newVersion } = await serviceClient
++      .from("page_versions")
++      .insert({
++        page_id: pageId,
++        published: true,
++        schema_version: 1,
++        content: {},
++      })
++      .select("id")
++      .single();
++
++    if (newVersion) {
++      // Insere sections (Nodes)
++      const sections = [
++        {
++          version_id: newVersion.id,
++          type: "hero",
++          position: 0,
++          settings: {
++            title: "Bem-vindo à Loja Modelo",
++            subtitle: "Esta é a vitrine demonstrativa rodando 100% sobre o motor canônico da plataforma Hr Shoes.",
++            image_url: mediaUrls.geral,
++            cta_text: "Ver Novidades"
++          }
++        },
++        {
++          version_id: newVersion.id,
++          type: "product_carousel",
++          position: 1,
++          settings: {
++            title: "Novidades Quentes",
++            dataSource: { type: "collection", id: collectionIds["Novidades"] }
++          }
++        },
++        {
++          version_id: newVersion.id,
++          type: "product_grid",
++          position: 2,
++          settings: {
++            title: "Os Mais Vendidos",
++            dataSource: { type: "collection", id: collectionIds["Mais Vendidos"] }
++          }
++        }
++      ];
++
++      await serviceClient.from("page_sections").insert(sections);
++    }
++    console.log("✅ Homepage estruturada com Coleções Dinâmicas.");
++  } else {
++    console.warn("⚠️ Aviso: Página 'home' não encontrada. O seed da homepage foi pulado. Verifique as migrations de CMS iniciais.");
++  }
++
++  console.log("\n================================================================================");
++  console.log("🏆 SEED CONCLUÍDO COM SUCESSO! A Loja Modelo está pronta para demonstração.");
++  console.log("================================================================================\n");
++}
++
++runSeed().catch((err) => {
++  console.error("Erro fatal no orquestrador de seed:", err);
++  process.exit(1);
++});
+diff --git a/scripts/q.ts b/scripts/q.ts
+new file mode 100644
+index 0000000..0b44724
+--- /dev/null
++++ b/scripts/q.ts
+@@ -0,0 +1,13 @@
++import { createClient } from "@supabase/supabase-js";
++import dotenv from "dotenv";
++import path from "path";
++dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
++
++const supabase = createClient(process.env.VITE_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
++async function r() {
++  const c1 = await supabase.from('categories').select('slug');
++  console.log('Categories:', c1.data);
++  const c2 = await supabase.from('collections').select('slug');
++  console.log('Collections:', c2.data);
++}
++r();
+diff --git a/scripts/seed-home-catalog.ts b/scripts/seed-home-catalog.ts
+new file mode 100644
+index 0000000..f8cc9d2
+--- /dev/null
++++ b/scripts/seed-home-catalog.ts
+@@ -0,0 +1,356 @@
++import { createClient } from "@supabase/supabase-js";
++import dotenv from "dotenv";
++import path from "path";
++
++dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
++
++const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
++const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
++
++if (!supabaseUrl || !serviceKey) {
++  console.error("❌ ERRO: Faltando chaves do Supabase.");
++  process.exit(1);
++}
++
++const serviceClient = createClient(supabaseUrl, serviceKey);
++
++// ==============================================================================
++// UTILITÁRIOS
++// ==============================================================================
++
++async function uploadSvgPlaceholder(filename: string, text: string, color: string) {
++  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800">
++    <rect width="100%" height="100%" fill="${color}" />
++    <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#ffffff" text-anchor="middle" dy=".3em">${text}</text>
++  </svg>`;
++
++  const { error } = await serviceClient.storage
++    .from("product-media")
++    .upload(`loja-modelo/${filename}`, svg, {
++      contentType: "image/svg+xml",
++      upsert: true,
++    });
++
++  if (error) {
++    console.warn(`⚠️ Aviso: Falha no upload de ${filename}:`, error);
++  }
++
++  const { data } = serviceClient.storage.from("product-media").getPublicUrl(`loja-modelo/${filename}`);
++  return data.publicUrl;
++}
++
++// ==============================================================================
++// MAIN SCRIPT
++// ==============================================================================
++
++async function runExpandedSeed() {
++  console.log("================================================================================");
++  console.log("👗 INICIANDO EXPANSÃO DO CATÁLOGO DE VESTUÁRIO E BUILDER HOMEPAGE");
++  console.log("================================================================================\n");
++
++  const { data: store } = await serviceClient.from("stores").select("id").eq("slug", "loja-modelo").single();
++  if (!store) {
++    console.error("❌ ERRO: Loja Modelo não encontrada! Execute o orquestrador base primeiro.");
++    process.exit(1);
++  }
++  const storeId = store.id;
++
++  // 1. CARGA DE MÍDIAS (Vestuário)
++  console.log("⏳ [1/4] Gerando imagens de vestuário...");
++  const mediaUrls = {
++    jaqueta_preta: await uploadSvgPlaceholder("lm-jaq-preto.svg", "Jaqueta Preta", "#111827"),
++    jaqueta_bege: await uploadSvgPlaceholder("lm-jaq-bege.svg", "Jaqueta Bege", "#D4D4D8"),
++    jaqueta_verde: await uploadSvgPlaceholder("lm-jaq-verde.svg", "Jaqueta Verde", "#047857"),
++    moletom_cinza: await uploadSvgPlaceholder("lm-mol-cinza.svg", "Moletom Cinza", "#9CA3AF"),
++    moletom_azul: await uploadSvgPlaceholder("lm-mol-azul.svg", "Moletom Azul", "#1D4ED8"),
++    jeans_claro: await uploadSvgPlaceholder("lm-jeans-claro.svg", "Jeans Claro", "#60A5FA"),
++    jeans_escuro: await uploadSvgPlaceholder("lm-jeans-escuro.svg", "Jeans Escuro", "#1E3A8A"),
++    hero_banner: await uploadSvgPlaceholder("lm-hero-banner.svg", "Coleção de Inverno", "#0F172A")
++  };
++
++  // 2. CATEGORIAS / COLEÇÕES
++  console.log("⏳ [2/4] Identificando referências de taxonomia...");
++  
++  async function getOrCreateCategory(name: string, slug: string) {
++    let { data: cat } = await serviceClient.from("categories").select("id").eq("slug", slug).single();
++    if (!cat) {
++      const { data: newCat, error } = await serviceClient.from("categories").insert({ store_id: storeId, name, slug, sort_order: 0 }).select("id").single();
++      if (error) console.error("Error creating category:", error);
++      cat = newCat;
++    }
++    return cat;
++  }
++
++  async function getOrCreateCollection(name: string, slug: string) {
++    let { data: col } = await serviceClient.from("collections").select("id").eq("slug", slug).single();
++    if (!col) {
++      const { data: newCol, error } = await serviceClient.from("collections").insert({ store_id: storeId, name, slug }).select("id").single();
++      if (error) console.error("Error creating collection:", error);
++      col = newCol;
++    }
++    return col;
++  }
++
++  const catMasc = await getOrCreateCategory("Moda Masculina", "moda-masculina");
++  const catFem = await getOrCreateCategory("Moda Feminina", "moda-feminina");
++  const colNovidades = await getOrCreateCollection("Novidades", "novidades");
++  const colMaisVendidos = await getOrCreateCollection("Mais Vendidos", "mais-vendidos");
++
++  if (!catMasc || !catFem || !colNovidades || !colMaisVendidos) {
++    console.error("❌ ERRO: Falha ao obter ou criar categorias e coleções.");
++    process.exit(1);
++  }
++
++  // 3. SEED DOS PRODUTOS
++  console.log("⏳ [3/4] Injetando matriz de produtos (Vestuário)...");
++
++  async function seedProduct(
++    skuPrefix: string,
++    title: string,
++    priceCents: number,
++    options: { name: string; values: string[] }[],
++    variants: { sku: string; price_cents: number; stock: number; attributes: any; image_url?: string }[],
++    categoryId: string,
++    collectionId: string
++  ) {
++    const slug = skuPrefix.toLowerCase();
++    
++    // Limpeza idempotente
++    const { data: existing } = await serviceClient.from("products").select("id").eq("slug", slug).single();
++    if (existing) {
++      const pId = existing.id;
++      await serviceClient.from("product_media").delete().eq("product_id", pId);
++      const { data: vars } = await serviceClient.from("product_variants").select("id").eq("product_id", pId);
++      if (vars && vars.length > 0) {
++        await serviceClient.from("stock_movements").delete().in("variant_id", vars.map(v => v.id));
++      }
++      await serviceClient.from("product_variants").delete().eq("product_id", pId);
++      await serviceClient.from("product_categories").delete().eq("product_id", pId);
++      await serviceClient.from("product_collections").delete().eq("product_id", pId);
++      await serviceClient.from("products").delete().eq("id", pId);
++    }
++
++    const payload = {
++      store_id: storeId,
++      title,
++      slug,
++      description: `Peça premium de vestuário demonstrativo (${title}).`,
++      price_cents: priceCents,
++      status: "published",
++      options,
++      variants,
++    };
++
++    const { data: createRes, error: createErr } = await serviceClient.rpc("create_product_transaction_v1", { payload });
++    if (createErr || !createRes) {
++      console.error(`❌ Erro ao criar ${title}:`, createErr);
++      return;
++    }
++    const productId = createRes.id;
++
++    await serviceClient.from("product_categories").insert({ product_id: productId, category_id: categoryId });
++    await serviceClient.from("product_collections").insert({ product_id: productId, collection_id: collectionId });
++
++    const matrixUpdate = variants.map(v => ({ sku: v.sku, attributes: v.attributes, stock: v.stock }));
++    await serviceClient.rpc("batch_upsert_variant_matrix_v1", { store_id_param: storeId, product_id_param: productId, matrix: matrixUpdate });
++
++    // Vincula a imagem (usando a primeira disponível)
++    const defaultImage = variants.find(v => v.image_url)?.image_url;
++    if (defaultImage) {
++      await serviceClient.from("product_media").insert({
++        product_id: productId,
++        url: defaultImage,
++        position: 0,
++        type: "image",
++      });
++    }
++
++    console.log(`   ✔️ Criado: ${title} (${variants.length} variantes)`);
++  }
++
++  // P6: Jaqueta Puffer (3 cores x 4 tamanhos)
++  await seedProduct(
++    "LM-JAQ-06", "Jaqueta Puffer Essential", 34990,
++    [
++      { name: "Cor", values: ["Preto", "Bege", "Verde"] },
++      { name: "Tamanho", values: ["P", "M", "G", "GG"] }
++    ],
++    [
++      { sku: "LM-JAQ-06-PR-P", price_cents: 34990, stock: 5, attributes: { Cor: "Preto", Tamanho: "P" }, image_url: mediaUrls.jaqueta_preta },
++      { sku: "LM-JAQ-06-PR-M", price_cents: 34990, stock: 8, attributes: { Cor: "Preto", Tamanho: "M" } },
++      { sku: "LM-JAQ-06-PR-G", price_cents: 34990, stock: 0, attributes: { Cor: "Preto", Tamanho: "G" } }, // Esgotado
++      { sku: "LM-JAQ-06-PR-GG", price_cents: 34990, stock: 2, attributes: { Cor: "Preto", Tamanho: "GG" } },
++      
++      { sku: "LM-JAQ-06-BE-P", price_cents: 34990, stock: 4, attributes: { Cor: "Bege", Tamanho: "P" }, image_url: mediaUrls.jaqueta_bege },
++      { sku: "LM-JAQ-06-BE-M", price_cents: 34990, stock: 5, attributes: { Cor: "Bege", Tamanho: "M" } },
++      { sku: "LM-JAQ-06-BE-G", price_cents: 34990, stock: 5, attributes: { Cor: "Bege", Tamanho: "G" } },
++      { sku: "LM-JAQ-06-BE-GG", price_cents: 34990, stock: 2, attributes: { Cor: "Bege", Tamanho: "GG" } },
++      
++      { sku: "LM-JAQ-06-VD-P", price_cents: 34990, stock: 3, attributes: { Cor: "Verde", Tamanho: "P" }, image_url: mediaUrls.jaqueta_verde },
++      { sku: "LM-JAQ-06-VD-M", price_cents: 34990, stock: 0, attributes: { Cor: "Verde", Tamanho: "M" } },
++      { sku: "LM-JAQ-06-VD-G", price_cents: 34990, stock: 2, attributes: { Cor: "Verde", Tamanho: "G" } },
++      { sku: "LM-JAQ-06-VD-GG", price_cents: 34990, stock: 1, attributes: { Cor: "Verde", Tamanho: "GG" } },
++    ],
++    catFem.id, colNovidades.id
++  );
++
++  // P7: Moletom Canguru (2 cores x 4 tamanhos)
++  await seedProduct(
++    "LM-MOL-07", "Moletom Canguru", 19900,
++    [
++      { name: "Cor", values: ["Cinza", "Azul"] },
++      { name: "Tamanho", values: ["P", "M", "G", "GG"] }
++    ],
++    [
++      { sku: "LM-MOL-07-CZ-P", price_cents: 19900, stock: 10, attributes: { Cor: "Cinza", Tamanho: "P" }, image_url: mediaUrls.moletom_cinza },
++      { sku: "LM-MOL-07-CZ-M", price_cents: 19900, stock: 10, attributes: { Cor: "Cinza", Tamanho: "M" } },
++      { sku: "LM-MOL-07-CZ-G", price_cents: 19900, stock: 5, attributes: { Cor: "Cinza", Tamanho: "G" } },
++      { sku: "LM-MOL-07-CZ-GG", price_cents: 19900, stock: 0, attributes: { Cor: "Cinza", Tamanho: "GG" } },
++      
++      { sku: "LM-MOL-07-AZ-P", price_cents: 19900, stock: 8, attributes: { Cor: "Azul", Tamanho: "P" }, image_url: mediaUrls.moletom_azul },
++      { sku: "LM-MOL-07-AZ-M", price_cents: 19900, stock: 7, attributes: { Cor: "Azul", Tamanho: "M" } },
++      { sku: "LM-MOL-07-AZ-G", price_cents: 19900, stock: 0, attributes: { Cor: "Azul", Tamanho: "G" } },
++      { sku: "LM-MOL-07-AZ-GG", price_cents: 19900, stock: 3, attributes: { Cor: "Azul", Tamanho: "GG" } },
++    ],
++    catMasc.id, colMaisVendidos.id
++  );
++
++  // P8: Calça Jeans Slim (2 Lavagens x 4 Tamanhos)
++  await seedProduct(
++    "LM-JNS-08", "Calça Jeans Slim", 15990,
++    [
++      { name: "Lavagem", values: ["Clara", "Escura"] },
++      { name: "Tamanho", values: ["38", "40", "42", "44"] }
++    ],
++    [
++      { sku: "LM-JNS-08-CL-38", price_cents: 15990, stock: 4, attributes: { Lavagem: "Clara", Tamanho: "38" }, image_url: mediaUrls.jeans_claro },
++      { sku: "LM-JNS-08-CL-40", price_cents: 15990, stock: 6, attributes: { Lavagem: "Clara", Tamanho: "40" } },
++      { sku: "LM-JNS-08-CL-42", price_cents: 15990, stock: 3, attributes: { Lavagem: "Clara", Tamanho: "42" } },
++      { sku: "LM-JNS-08-CL-44", price_cents: 15990, stock: 2, attributes: { Lavagem: "Clara", Tamanho: "44" } },
++      
++      { sku: "LM-JNS-08-ES-38", price_cents: 15990, stock: 5, attributes: { Lavagem: "Escura", Tamanho: "38" }, image_url: mediaUrls.jeans_escuro },
++      { sku: "LM-JNS-08-ES-40", price_cents: 15990, stock: 7, attributes: { Lavagem: "Escura", Tamanho: "40" } },
++      { sku: "LM-JNS-08-ES-42", price_cents: 15990, stock: 0, attributes: { Lavagem: "Escura", Tamanho: "42" } }, // Esgotado
++      { sku: "LM-JNS-08-ES-44", price_cents: 15990, stock: 1, attributes: { Lavagem: "Escura", Tamanho: "44" } },
++    ],
++    catMasc.id, colMaisVendidos.id
++  );
++
++  // 4. CMS BUILDER - HOMEPAGE
++  console.log("\n⏳ [4/4] Construindo Árvore DOM da Homepage...");
++  
++  // Clean up existing experience_documents with slug 'home' for idempotency
++  await serviceClient.from("experience_documents").delete().eq("store_id", storeId).eq("slug", "home");
++
++  // Create Document
++  const { data: doc, error: docErr } = await serviceClient.from("experience_documents").insert({
++    store_id: storeId,
++    document_type: "storefront",
++    slug: "home",
++    title: "Página Inicial da Loja Modelo",
++    is_active: true
++  }).select("id").single();
++
++  if (docErr || !doc) {
++    console.error("❌ Erro ao criar documento CMS:", docErr);
++    process.exit(1);
++  }
++
++  // Create Version
++  const { data: version, error: verErr } = await serviceClient.from("experience_versions").insert({
++    document_id: doc.id,
++    version_number: 1,
++    status: "published",
++    commit_message: "LojaModelo: Initial Seed"
++  }).select("id").single();
++
++  if (verErr || !version) {
++    console.error("❌ Erro ao criar versão do documento CMS:", verErr);
++    process.exit(1);
++  }
++
++  // Create Nodes
++  // Root node
++  const { data: rootNode, error: rootErr } = await serviceClient.from("experience_nodes").insert({
++    version_id: version.id,
++    parent_id: null,
++    node_type: "container",
++    block_type: "root",
++    sort_order: 0,
++    content: {},
++  }).select("id").single();
++
++  if (rootErr || !rootNode) {
++    console.error("❌ Erro ao criar root node:", rootErr);
++    process.exit(1);
++  }
++
++  // Child Nodes
++  const nodesToInsert = [
++    {
++      version_id: version.id,
++      parent_id: rootNode.id,
++      node_type: "section",
++      block_type: "hero_carousel",
++      sort_order: 0,
++      content: {
++        slides: [
++          {
++            image_url: mediaUrls.hero_banner,
++            title: "Coleção de Inverno 2026",
++            subtitle: "Conforto e elegância para os dias mais frios.",
++            cta_text: "Explorar Coleção",
++            cta_link: "/colecao/novidades"
++          }
++        ]
++      }
++    },
++    {
++      version_id: version.id,
++      parent_id: rootNode.id,
++      node_type: "section",
++      block_type: "product_carousel",
++      sort_order: 1,
++      content: {
++        title: "Lançamentos Quentes"
++      },
++      data_bindings: {
++        collection_id: colNovidades.id,
++        limit: 8
++      }
++    },
++    {
++      version_id: version.id,
++      parent_id: rootNode.id,
++      node_type: "section",
++      block_type: "product_grid",
++      sort_order: 2,
++      content: {
++        title: "Os Mais Vendidos",
++        subtitle: "As peças favoritas dos nossos clientes."
++      },
++      data_bindings: {
++        collection_id: colMaisVendidos.id,
++        limit: 12
++      }
++    }
++  ];
++
++  const { error: nodesErr } = await serviceClient.from("experience_nodes").insert(nodesToInsert);
++  
++  if (nodesErr) {
++    console.error("❌ Erro ao inserir nodes filho:", nodesErr);
++    process.exit(1);
++  }
++
++  console.log("✅ CMS DOM Tree injetada com sucesso e vinculada às coleções Reais!");
++
++  console.log("\n================================================================================");
++  console.log("🏆 EXPANSÃO E BUILDER CONCLUÍDOS! A Homepage está conectada ao Catálogo.");
++  console.log("================================================================================\n");
++}
++
++runExpandedSeed().catch(err => {
++  console.error("Erro fatal:", err);
++  process.exit(1);
++});
+diff --git a/src/components/admin/catalog/advanced-variant-editor.tsx b/src/components/admin/catalog/advanced-variant-editor.tsx
+index 52311a2..808164b 100644
+--- a/src/components/admin/catalog/advanced-variant-editor.tsx
++++ b/src/components/admin/catalog/advanced-variant-editor.tsx
+@@ -1,8 +1,16 @@
+ import React from "react";
+-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
++import {
++  Dialog,
++  DialogContent,
++  DialogHeader,
++  DialogTitle,
++  DialogFooter,
++  DialogDescription,
++} from "@/components/ui/dialog";
+ import { Button } from "@/components/ui/button";
+ import { Input } from "@/components/ui/input";
+ import { Label } from "@/components/ui/label";
++import { Checkbox } from "@/components/ui/checkbox";
+ import { RawVariant } from "./variant-matrix-grid";
+ import { formatMoney } from "@/lib/money";
+ 
+@@ -42,25 +50,28 @@ export function AdvancedVariantEditor({
+         <DialogHeader>
+           <DialogTitle>Edição Avançada da Variação</DialogTitle>
+           <DialogDescription>
+-            Atributos: {Object.entries(formData.attributes).map(([k, v]) => `${k}: ${v}`).join(" | ")}
++            Atributos:{" "}
++            {Object.entries(formData.attributes)
++              .map(([k, v]) => `${k}: ${v}`)
++              .join(" | ")}
+           </DialogDescription>
+         </DialogHeader>
+-        
++
+         <div className="grid grid-cols-2 gap-4 py-4">
+           <div className="space-y-2">
+             <Label>SKU</Label>
+-            <Input 
+-              value={formData.sku || ""} 
+-              onChange={(e) => handleChange("sku", e.target.value)} 
++            <Input
++              value={formData.sku || ""}
++              onChange={(e) => handleChange("sku", e.target.value)}
+               placeholder="Gerado automaticamente se vazio"
+             />
+           </div>
+-          
++
+           <div className="space-y-2">
+             <Label>Código de Barras (EAN / GTIN)</Label>
+-            <Input 
+-              value={formData.ean || ""} 
+-              onChange={(e) => handleChange("ean", e.target.value)} 
++            <Input
++              value={formData.ean || ""}
++              onChange={(e) => handleChange("ean", e.target.value)}
+               placeholder="Ex: 7891020304050"
+             />
+           </div>
+@@ -73,7 +84,11 @@ export function AdvancedVariantEditor({
+                 type="number"
+                 step="0.01"
+                 className="pl-8"
+-                value={formData.price_override_cents != null ? (formData.price_override_cents / 100).toFixed(2) : ""}
++                value={
++                  formData.price_override_cents != null
++                    ? (formData.price_override_cents / 100).toFixed(2)
++                    : ""
++                }
+                 onChange={(e) => {
+                   const val = parseFloat(e.target.value);
+                   handleChange("price_override_cents", isNaN(val) ? null : Math.round(val * 100));
+@@ -81,7 +96,9 @@ export function AdvancedVariantEditor({
+                 placeholder={`Base: ${formatMoney(basePriceCents)}`}
+               />
+             </div>
+-            <p className="text-xs text-muted-foreground">Deixe em branco para herdar o preço do produto mãe.</p>
++            <p className="text-xs text-muted-foreground">
++              Deixe em branco para herdar o preço do produto mãe.
++            </p>
+           </div>
+ 
+           <div className="space-y-2">
+@@ -103,10 +120,10 @@ export function AdvancedVariantEditor({
+ 
+           <div className="space-y-2">
+             <Label>Peso Logístico (Kg)</Label>
+-            <Input 
++            <Input
+               type="number"
+               step="0.001"
+-              value={formData.weight_kg || ""} 
++              value={formData.weight_kg || ""}
+               onChange={(e) => {
+                 const val = parseFloat(e.target.value);
+                 handleChange("weight_kg", isNaN(val) ? null : val);
+@@ -126,10 +143,55 @@ export function AdvancedVariantEditor({
+               <option value="inactive">Inativo (Oculto)</option>
+             </select>
+           </div>
++          <div className="col-span-2 border-t pt-4 mt-2">
++            <h4 className="text-sm font-medium mb-3">Venda Sob Encomenda (Backorders)</h4>
++            <div className="space-y-4 bg-muted/30 p-4 rounded-md">
++              <div className="flex items-center space-x-2">
++                <Checkbox
++                  id="allow_backorder"
++                  checked={formData.allow_backorder || false}
++                  onCheckedChange={(checked) => handleChange("allow_backorder", checked === true)}
++                />
++                <Label htmlFor="allow_backorder" className="cursor-pointer">
++                  Permitir venda sem estoque (Sob Encomenda)
++                </Label>
++              </div>
++
++              {formData.allow_backorder && (
++                <div className="grid grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-200">
++                  <div className="space-y-2">
++                    <Label>Dias Adicionais de Preparo (Lead Time)</Label>
++                    <Input
++                      type="number"
++                      value={formData.backorder_lead_time_days || 0}
++                      onChange={(e) => handleChange("backorder_lead_time_days", parseInt(e.target.value) || 0)}
++                      placeholder="Ex: 15"
++                    />
++                    <p className="text-[10px] text-muted-foreground">Adicionado ao prazo de frete.</p>
++                  </div>
++                  <div className="space-y-2">
++                    <Label>Reserva sem pagamento?</Label>
++                    <select
++                      className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
++                      value={formData.requires_payment_for_backorder === false ? "false" : "true"}
++                      onChange={(e) =>
++                        handleChange("requires_payment_for_backorder", e.target.value === "true")
++                      }
++                    >
++                      <option value="true">Exigir Pagamento Normal</option>
++                      <option value="false">Permitir Reserva sem Sinal</option>
++                    </select>
++                  </div>
++                </div>
++              )}
++            </div>
++          </div>
+         </div>
+ 
+         <DialogFooter>
+-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
++          <Button variant="outline" onClick={onClose}>
++            Cancelar
++          </Button>
+           <Button onClick={handleSave}>Salvar Alterações Locais</Button>
+         </DialogFooter>
+       </DialogContent>
+diff --git a/src/components/admin/catalog/variant-matrix-grid.tsx b/src/components/admin/catalog/variant-matrix-grid.tsx
+index 9dfbf47..f5e6ff4 100644
+--- a/src/components/admin/catalog/variant-matrix-grid.tsx
++++ b/src/components/admin/catalog/variant-matrix-grid.tsx
+@@ -19,6 +19,9 @@ export type RawVariant = {
+   weight_kg?: number | null;
+   image_url?: string | null;
+   status?: string;
++  allow_backorder?: boolean;
++  backorder_lead_time_days?: number;
++  requires_payment_for_backorder?: boolean;
+ };
+ 
+ interface VariantMatrixGridProps {
+@@ -40,8 +43,8 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
+   // A primeira chave vira a Mestra (ex: Cor). O resto vira Sub-variáveis.
+   const rowKey = attributeKeys[0] || "Opção";
+   const colKeys = attributeKeys.slice(1);
+-  
+-  // O SEGREDO DO CRUD UNIVERSAL: Se não houver sub-variável (colKeys vazio), 
++
++  // O SEGREDO DO CRUD UNIVERSAL: Se não houver sub-variável (colKeys vazio),
+   // nós INJETAMOS visualmente uma coluna chamada "Especificação" que salvará no banco com esse nome.
+   const displayColKeys = colKeys.length > 0 ? colKeys : ["Especificação"];
+ 
+@@ -56,7 +59,9 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
+ 
+   // --- Funções Auxiliares de Atualização ---
+   const handleAddDimension = () => {
+-    const dimName = window.prompt("Nome da nova coluna/propriedade (Ex: Tamanho, Material, Voltagem):");
++    const dimName = window.prompt(
++      "Nome da nova coluna/propriedade (Ex: Tamanho, Material, Voltagem):",
++    );
+     if (!dimName || dimName.trim() === "") return;
+     const newDim = dimName.trim();
+     if (attributeKeys.includes(newDim)) {
+@@ -163,7 +168,10 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
+       <div className="flex justify-between items-center mb-4 p-4 border rounded-xl bg-card border-dashed">
+         <div className="text-sm">
+           <p className="font-semibold text-foreground">Construtor Livre de Variações</p>
+-          <p className="text-muted-foreground text-xs">Adicione propriedades infinitas (Cor, Tamanho, Material). Clique nos cabeçalhos para renomear.</p>
++          <p className="text-muted-foreground text-xs">
++            Adicione propriedades infinitas (Cor, Tamanho, Material). Clique nos cabeçalhos para
++            renomear.
++          </p>
+         </div>
+         <Button
+           variant="outline"
+@@ -174,7 +182,7 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
+           <Plus className="size-4 mr-2" /> Adicionar Coluna de Propriedade
+         </Button>
+       </div>
+-      
++
+       <div className="border rounded-xl overflow-x-auto bg-card shadow-sm mb-4">
+         <table className="w-full text-sm text-left">
+           <thead className="bg-muted/40 text-muted-foreground text-xs uppercase font-semibold">
+@@ -187,7 +195,9 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
+                     className="h-7 text-xs bg-transparent border-transparent hover:border-input focus:border-input focus:bg-background transition-all font-bold uppercase px-1 -ml-1 cursor-text w-full"
+                     title="Renomear matriz mãe"
+                   />
+-                  <span className="text-[9px] font-normal lowercase opacity-70 whitespace-nowrap">(Matriz Mãe)</span>
++                  <span className="text-[9px] font-normal lowercase opacity-70 whitespace-nowrap">
++                    (Matriz Mãe)
++                  </span>
+                 </div>
+               </th>
+               <th className="px-4 py-3">
+@@ -381,7 +391,10 @@ export function VariantMatrixGrid({ variants, onChange, basePriceCents }: Varian
+                 })}
+                 {/* Rodapé do Grupo */}
+                 <tr>
+-                  <td colSpan={5} className="px-4 py-3 bg-muted/10 border-t-0 rounded-bl-xl rounded-br-xl">
++                  <td
++                    colSpan={5}
++                    className="px-4 py-3 bg-muted/10 border-t-0 rounded-bl-xl rounded-br-xl"
++                  >
+                     <Button
+                       variant="ghost"
+                       size="sm"
+diff --git a/src/components/admin/pos/manager-override-dialog.tsx b/src/components/admin/pos/manager-override-dialog.tsx
+new file mode 100644
+index 0000000..ff62bc0
+--- /dev/null
++++ b/src/components/admin/pos/manager-override-dialog.tsx
+@@ -0,0 +1,103 @@
++import React, { useState } from "react";
++import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
++import { Button } from "@/components/ui/button";
++import { Input } from "@/components/ui/input";
++import { Label } from "@/components/ui/label";
++import { Lock, AlertCircle } from "lucide-react";
++
++interface ManagerOverrideDialogProps {
++  isOpen: boolean;
++  onClose: () => void;
++  onSuccess: () => void;
++  title?: string;
++  description?: string;
++}
++
++export function ManagerOverrideDialog({
++  isOpen,
++  onClose,
++  onSuccess,
++  title = "Autorização Gerencial",
++  description = "Esta ação requer a senha de um gerente para prosseguir.",
++}: ManagerOverrideDialogProps) {
++  const [pin, setPin] = useState("");
++  const [error, setError] = useState<string | null>(null);
++  const [isLoading, setIsLoading] = useState(false);
++
++  // Idealmente, chamaríamos uma Server Function real: await validateManagerPin({ pin })
++  const handleSubmit = async (e: React.FormEvent) => {
++    e.preventDefault();
++    if (!pin) return;
++
++    setIsLoading(true);
++    setError(null);
++
++    try {
++      // Simulação temporária até o backend estar totalmente integrado
++      await new Promise((resolve) => setTimeout(resolve, 800));
++      if (pin === "1234") {
++        onSuccess();
++        setPin("");
++        onClose();
++      } else {
++        setError("PIN incorreto. Tente novamente.");
++      }
++    } catch (err) {
++      setError("Ocorreu um erro ao validar o PIN.");
++    } finally {
++      setIsLoading(false);
++    }
++  };
++
++  return (
++    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
++      <DialogContent className="sm:max-w-md">
++        <DialogHeader>
++          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 mb-4">
++            <Lock className="h-6 w-6 text-orange-600" />
++          </div>
++          <DialogTitle className="text-center">{title}</DialogTitle>
++          <DialogDescription className="text-center">
++            {description}
++          </DialogDescription>
++        </DialogHeader>
++
++        <form onSubmit={handleSubmit} className="space-y-4">
++          <div className="space-y-2">
++            <Label htmlFor="pin" className="sr-only">
++              PIN
++            </Label>
++            <Input
++              id="pin"
++              type="password"
++              inputMode="numeric"
++              pattern="[0-9]*"
++              autoFocus
++              className="text-center text-2xl tracking-widest"
++              maxLength={6}
++              value={pin}
++              onChange={(e) => setPin(e.target.value)}
++              placeholder="••••"
++            />
++          </div>
++
++          {error && (
++            <div className="flex items-center gap-2 text-sm text-destructive justify-center bg-destructive/10 p-2 rounded">
++              <AlertCircle className="size-4" />
++              <span>{error}</span>
++            </div>
++          )}
++
++          <DialogFooter className="sm:justify-between">
++            <Button type="button" variant="ghost" onClick={onClose}>
++              Cancelar
++            </Button>
++            <Button type="submit" disabled={isLoading || pin.length < 4} className="bg-orange-600 hover:bg-orange-700">
++              {isLoading ? "Validando..." : "Autorizar"}
++            </Button>
++          </DialogFooter>
++        </form>
++      </DialogContent>
++    </Dialog>
++  );
++}
+diff --git a/src/components/commerce/dynamic-sections/hero-carousel.tsx b/src/components/commerce/dynamic-sections/hero-carousel.tsx
+index b64920c..31055c5 100644
+--- a/src/components/commerce/dynamic-sections/hero-carousel.tsx
++++ b/src/components/commerce/dynamic-sections/hero-carousel.tsx
+@@ -110,7 +110,13 @@ export function HeroCarousel({
+               >
+                 {/* Background Image (Static to dictate height naturally without cropping if natural) */}
+                 {bg_url ? (
+-                  <picture className={heightMode === "natural" ? "block w-full" : "absolute inset-0 block w-full h-full"}>
++                  <picture
++                    className={
++                      heightMode === "natural"
++                        ? "block w-full"
++                        : "absolute inset-0 block w-full h-full"
++                    }
++                  >
+                     <source media="(max-width: 640px)" srcSet={mobile_bg_url} />
+                     <img
+                       src={bg_url}
+diff --git a/src/components/commerce/product-card.tsx b/src/components/commerce/product-card.tsx
+index d9a892c..d2dbca1 100644
+--- a/src/components/commerce/product-card.tsx
++++ b/src/components/commerce/product-card.tsx
+@@ -28,6 +28,7 @@ export function ProductCard({
+     <Link
+       to="/produto/$slug"
+       params={{ slug: product.slug }}
++      search={product.variantId ? { v: product.variantId } : undefined}
+       className={cn("group flex flex-col gap-3 rounded-xl focus-visible:outline-none", className)}
+     >
+       {/* Image Container */}
+@@ -107,7 +108,7 @@ export function ProductCard({
+       <div className="space-y-1">
+         {product.brand ? <p className="eyebrow text-muted-foreground">{product.brand}</p> : null}
+         <h3 className="line-clamp-2 text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+-          {product.title}
++          {product.title} {product.variantName ? `— ${product.variantName}` : ""}
+         </h3>
+         <PriceDisplay
+           amountCents={product.priceCents}
+diff --git a/src/routeTree.gen.ts b/src/routeTree.gen.ts
+index 21df9af..5223e75 100644
+--- a/src/routeTree.gen.ts
++++ b/src/routeTree.gen.ts
+@@ -2426,3 +2426,13 @@ const rootRouteChildren: RootRouteChildren = {
+ export const routeTree = rootRouteImport
+   ._addFileChildren(rootRouteChildren)
+   ._addFileTypes<FileRouteTypes>()
++
++import type { getRouter } from './router.tsx'
++import type { startInstance } from './start.ts'
++declare module '@tanstack/react-start' {
++  interface Register {
++    ssr: true
++    router: Awaited<ReturnType<typeof getRouter>>
++    config: Awaited<ReturnType<typeof startInstance.getOptions>>
++  }
++}
+diff --git a/src/routes/_store.produto.$slug.tsx b/src/routes/_store.produto.$slug.tsx
+index c1171d4..3e87186 100644
+--- a/src/routes/_store.produto.$slug.tsx
++++ b/src/routes/_store.produto.$slug.tsx
+@@ -178,6 +178,11 @@ function SizeGuideDialog({
+ }
+ 
+ export const Route = createFileRoute("/_store/produto/$slug")({
++  validateSearch: (search: Record<string, unknown>): { v?: string } => {
++    return {
++      v: search.v as string | undefined, // variant ID
++    };
++  },
+   head: ({ loaderData }) => {
+     const product = (loaderData as any)?.productResult as ProductDetailDTO;
+     if (!product || !product.id) {
+@@ -313,9 +318,21 @@ function ProductContent({
+ 
+   const router = useRouter();
+ 
++  const search = Route.useSearch();
++
++  // Encontra a variação selecionada pela URL (BFF Catalog Explosion) ou fallback
++  const initialVariant = useMemo(() => {
++    if (search.v) {
++      const match = product.variants.find((v: VariantDTO) => v.id === search.v);
++      if (match) return match;
++    }
++    const hasStock = product.variants.filter((v: VariantDTO) => v.availableQty > 0);
++    return hasStock.length > 0 ? hasStock[0] : product.variants[0];
++  }, [product.variants, search.v]);
++
+   // Initialize selected attributes with the first variant's attributes
+   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>(
+-    product.variants.length > 0 ? product.variants[0].attributes : {},
++    initialVariant?.attributes || {},
+   );
+   const [isAdding, setIsAdding] = useState(false);
+   const [activeMedia, setActiveMedia] = useState<ProductMediaDTO | null>(coverImage);
+diff --git a/src/routes/_store.tsx b/src/routes/_store.tsx
+index 7c33755..4736a94 100644
+--- a/src/routes/_store.tsx
++++ b/src/routes/_store.tsx
+@@ -135,11 +135,11 @@ function StoreLayout() {
+         type="application/ld+json"
+         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+       />
+-      <PublicHeader 
+-        menuItems={headerMenu} 
+-        storeName={storeName} 
+-        logoUrl={logoUrl} 
+-        hideNameWithLogo={storeData?.settings?.hideNameWithLogo === true} 
++      <PublicHeader
++        menuItems={headerMenu}
++        storeName={storeName}
++        logoUrl={logoUrl}
++        hideNameWithLogo={storeData?.settings?.hideNameWithLogo === true}
+       />
+       <main className="@container flex-1 pb-20 md:pb-0">
+         <Outlet />
+diff --git a/src/services/admin-catalog.functions.ts b/src/services/admin-catalog.functions.ts
+index 4936bba..771e1a0 100644
+--- a/src/services/admin-catalog.functions.ts
++++ b/src/services/admin-catalog.functions.ts
+@@ -868,6 +868,9 @@ export async function batchUpsertVariantMatrixHandler(input: {
+     original_stock?: number;
+     image_url?: string | null;
+     status?: string;
++    allow_backorder?: boolean;
++    backorder_lead_time_days?: number;
++    requires_payment_for_backorder?: boolean;
+   }[];
+ }) {
+   const db = getServerClient();
+@@ -877,7 +880,7 @@ export async function batchUpsertVariantMatrixHandler(input: {
+   const { store_id } = await getServerIdentity();
+   if (!store_id) throw new Error("Acesso não autorizado.");
+ 
+-  const { data, error } = await db.rpc("batch_upsert_variant_matrix_v4", {
++  const { data, error } = await db.rpc("batch_upsert_variant_matrix_v5", {
+     store_id_param: store_id,
+     product_id_param: input.product_id,
+     matrix: input.matrix,
+@@ -906,8 +909,11 @@ export const batchUpsertVariantMatrix = createServerFn({ method: "POST" })
+           cost_cents: z.number().int().min(0).optional().nullable(),
+           weight_kg: z.number().min(0).optional().nullable(),
+           ean: z.string().optional().nullable(),
+-          image_url: z.string().url().optional().nullable(),
+-          status: z.string().optional(),
++          image_url: z.string().nullable().optional(),
++          status: z.enum(["active", "inactive", "archived"]).optional(),
++          allow_backorder: z.boolean().optional(),
++          backorder_lead_time_days: z.number().int().min(0).optional(),
++          requires_payment_for_backorder: z.boolean().optional(),
+         }),
+       ),
+     }),
+diff --git a/src/services/cart.functions.ts b/src/services/cart.functions.ts
+index c3ff220..794bcac 100644
+--- a/src/services/cart.functions.ts
++++ b/src/services/cart.functions.ts
+@@ -152,7 +152,7 @@ export async function fetchCartDTO(identity: {
+   const rawItems = (cart.cart_items || []) as unknown as CartItemRaw[];
+   const items = rawItems
+     .filter((item) => item && item.product_variants && item.product_variants.product)
+-    .filter((item) => item.product_variants.status === 'active')
++    .filter((item) => item.product_variants.status === "active")
+     .map((item) => {
+       const variant = item.product_variants;
+       const product = variant.product;
+diff --git a/src/services/catalog.functions.ts b/src/services/catalog.functions.ts
+index f5dba90..42c2d2d 100644
+--- a/src/services/catalog.functions.ts
++++ b/src/services/catalog.functions.ts
+@@ -34,14 +34,13 @@ import type {
+ import { resolveTenantStoreId } from "@/lib/tenant";
+ 
+ /**
+- * Helper to map Supabase joined row into ProductCardDTO,
+- * applying business rules for out-of-stock and effective price.
++ * Helper to map Supabase joined row into ProductCardDTO(s).
++ * Explodes product variations into distinct cards based on the primary attribute (e.g., 'Cor').
+  */
+-function mapProductCardDTO(row: any): ProductCardDTO {
++function explodeProductToCards(row: any): ProductCardDTO[] {
+   const mediaList = Array.isArray(row.product_media || row.media)
+     ? [...(row.product_media || row.media)].sort((a, b) => a.sort_order - b.sort_order)
+     : [];
+-  const cover = mediaList[0] ?? null;
+ 
+   const basePrice = row.price_cents ?? row.priceCents;
+   const compareAt = row.compare_at_cents ?? row.compareAtCents ?? null;
+@@ -49,47 +48,102 @@ function mapProductCardDTO(row: any): ProductCardDTO {
+   const variants = Array.isArray(row.product_variants || row.variants)
+     ? row.product_variants || row.variants
+     : [];
+-
+   const activeVariants = variants.filter((v: any) => v.status === "active");
+ 
+-  let isOutOfStock = true;
+-  let displayPrice = basePrice;
+-
+-  if (activeVariants.length > 0) {
+-    const totalAvailable = activeVariants.reduce(
+-      (sum: number, v: any) => sum + Math.max(0, v.stock_on_hand || 0),
+-      0,
+-    );
+-    isOutOfStock = totalAvailable <= 0;
++  const buildStandardCard = (
++    variantsToConsider: any[],
++    cover: any,
++    hover: any,
++    variantId?: string,
++    variantName?: string,
++  ): ProductCardDTO => {
++    let isOutOfStock = true;
++    let displayPrice = basePrice;
++
++    if (variantsToConsider.length > 0) {
++      const totalAvailable = variantsToConsider.reduce(
++        (sum: number, v: any) => sum + Math.max(0, v.stock_on_hand || 0),
++        0,
++      );
++      isOutOfStock = totalAvailable <= 0;
+ 
+-    const variantsForPrice =
+-      totalAvailable > 0
+-        ? activeVariants.filter((v: any) => Math.max(0, v.stock_on_hand || 0) > 0)
+-        : activeVariants;
++      const variantsForPrice =
++        totalAvailable > 0
++          ? variantsToConsider.filter((v: any) => Math.max(0, v.stock_on_hand || 0) > 0)
++          : variantsToConsider;
+ 
+-    if (variantsForPrice.length > 0) {
+-      const minPrice = Math.min(
+-        ...variantsForPrice.map((v: any) => v.price_override_cents ?? basePrice),
+-      );
+-      if (minPrice < displayPrice) {
+-        displayPrice = minPrice;
++      if (variantsForPrice.length > 0) {
++        const minPrice = Math.min(
++          ...variantsForPrice.map((v: any) => v.price_override_cents ?? basePrice),
++        );
++        if (minPrice < displayPrice) {
++          displayPrice = minPrice;
++        }
+       }
+     }
+-  }
+ 
+-  return {
+-    id: row.id,
+-    slug: row.slug,
+-    title: row.title,
+-    brand: row.brand ?? null,
+-    priceCents: displayPrice,
+-    compareAtCents: compareAt,
+-    coverUrl: cover?.url ?? null,
+-    coverAlt: cover?.alt ?? null,
+-    hoverUrl: mediaList[1]?.url ?? null,
+-    isOutOfStock,
+-    publishedAt: row.published_at ?? null,
++    return {
++      id: row.id,
++      slug: row.slug,
++      title: row.title,
++      brand: row.brand ?? null,
++      priceCents: displayPrice,
++      compareAtCents: compareAt,
++      coverUrl: cover?.url ?? null,
++      coverAlt: cover?.alt ?? null,
++      hoverUrl: hover?.url ?? null,
++      isOutOfStock,
++      publishedAt: row.published_at ?? null,
++      variantId,
++      variantName,
++    };
+   };
++
++  if (activeVariants.length === 0) {
++    return [buildStandardCard([], mediaList[0] ?? null, mediaList[1] ?? null)];
++  }
++
++  // Find primary grouping attribute (prioritize 'Cor' / 'Color', else fallback to first)
++  let groupingKey: string | null = null;
++  const firstVariantAttrs = activeVariants[0].attributes;
++  if (firstVariantAttrs) {
++    const keys = Object.keys(firstVariantAttrs);
++    if (keys.length > 0) {
++      groupingKey =
++        keys.find((k) => k.toLowerCase() === "cor" || k.toLowerCase() === "color") || keys[0];
++    }
++  }
++
++  // If no attributes to group by, return a single card
++  if (!groupingKey) {
++    return [buildStandardCard(activeVariants, mediaList[0] ?? null, mediaList[1] ?? null)];
++  }
++
++  const groups = new Map<string, any[]>();
++  for (const v of activeVariants) {
++    const val = v.attributes?.[groupingKey];
++    if (val === undefined || val === null) continue;
++    const cleanVal = String(val).trim();
++    if (!groups.has(cleanVal)) groups.set(cleanVal, []);
++    groups.get(cleanVal)!.push(v);
++  }
++
++  if (groups.size === 0) {
++    return [buildStandardCard(activeVariants, mediaList[0] ?? null, mediaList[1] ?? null)];
++  }
++
++  const cards: ProductCardDTO[] = [];
++  for (const [groupVal, groupVariants] of groups.entries()) {
++    const variantIdsInGroup = new Set(groupVariants.map((v) => v.id));
++    const groupMedia = mediaList.filter((m) => m.variant_id && variantIdsInGroup.has(m.variant_id));
++    const cover = groupMedia[0] || mediaList[0] || null;
++    const hover = groupMedia[1] || mediaList[1] || null;
++    const mainVariant = groupVariants.find((v) => (v.stock_on_hand || 0) > 0) || groupVariants[0];
++
++    cards.push(buildStandardCard(groupVariants, cover, hover, mainVariant.id, groupVal));
++  }
++
++  return cards;
+ }
+ 
+ // ---------------------------------------------------------------------------
+@@ -183,7 +237,7 @@ export const listPublishedProducts = createServerFn({ method: "GET" })
+         return { status: "empty" };
+       }
+ 
+-      let products: ProductCardDTO[] = data.map(mapProductCardDTO);
++      let products: ProductCardDTO[] = data.flatMap(explodeProductToCards);
+ 
+       // Post-map sort for price (uses effective price from variant, not DB price_cents)
+       if (params.sort === "price_asc") {
+@@ -412,7 +466,8 @@ export const searchProducts = createServerFn({ method: "GET" })
+ 
+       // If FTS returns results, use them
+       if (!ftsError && ftsData && ftsData.length > 0) {
+-        return ftsData.map(mapProductCardDTO);
++        const results: ProductCardDTO[] = ftsData.flatMap(explodeProductToCards);
++        return results;
+       }
+ 
+       // Stage 2: Trigram fallback — match across title, brand, description
+@@ -436,7 +491,8 @@ export const searchProducts = createServerFn({ method: "GET" })
+         return [];
+       }
+ 
+-      return trigramData.map(mapProductCardDTO);
++      const results: ProductCardDTO[] = trigramData.flatMap(explodeProductToCards);
++      return results;
+     } catch (e: any) {
+       throw new Error(e.message || "Erro desconhecido");
+     }
+@@ -507,7 +563,7 @@ export const getProductsByCollection = createServerFn({ method: "GET" })
+       if (error) throw new Error(error.message);
+       if (!data || data.length === 0) return [];
+ 
+-      const mapped: ProductCardDTO[] = data.map(mapProductCardDTO);
++      const mapped: ProductCardDTO[] = data.flatMap(explodeProductToCards);
+ 
+       return mapped;
+     } catch (e: any) {
+@@ -545,7 +601,7 @@ export const getPromotionalProducts = createServerFn({ method: "GET" }).handler(
+     );
+     if (discountedData.length === 0) return [];
+ 
+-    const mapped: ProductCardDTO[] = discountedData.map(mapProductCardDTO);
++    const mapped: ProductCardDTO[] = discountedData.flatMap(explodeProductToCards);
+ 
+     return mapped;
+   } catch (e: any) {
+diff --git a/src/services/onboarding.functions.ts b/src/services/onboarding.functions.ts
+index 70d59ed..6103854 100644
+--- a/src/services/onboarding.functions.ts
++++ b/src/services/onboarding.functions.ts
+@@ -50,7 +50,7 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview>
+         )
+         .eq("id", storeId)
+         .single();
+-      
++
+       const { data: theme } = await db
+         .from("theme_settings")
+         .select("logo_url, favicon_url")
+@@ -154,7 +154,12 @@ export async function getOnboardingStatusHandler(): Promise<OnboardingOverview>
+   } else {
+     const s = storeRes.data;
+     const hasLogo = Boolean(
+-      s?.logo_url || s?.settings?.logoUrl || s?.settings?.logo_url || s?.settings?.faviconUrl || s?.theme_settings?.logo_url || s?.theme_settings?.favicon_url,
++      s?.logo_url ||
++      s?.settings?.logoUrl ||
++      s?.settings?.logo_url ||
++      s?.settings?.faviconUrl ||
++      s?.theme_settings?.logo_url ||
++      s?.theme_settings?.favicon_url,
+     );
+     steps.push({
+       id: "logo",
+diff --git a/src/types/catalog.ts b/src/types/catalog.ts
+index f9ee9bb..2d6d2ba 100644
+--- a/src/types/catalog.ts
++++ b/src/types/catalog.ts
+@@ -69,6 +69,10 @@ export interface ProductCardDTO {
+   isOutOfStock?: boolean;
+   /** ISO timestamp — used to derive "Novo" badge (< 7 days). */
+   publishedAt?: string | null;
++  /** Specific variant ID if this card represents an exploded variant. */
++  variantId?: string;
++  /** Sub-title/variation name (e.g. "Azul") if exploded. */
++  variantName?: string;
+ }
+ 
+ // ---------------------------------------------------------------------------
+@@ -106,6 +110,10 @@ export interface VariantDTO {
+   widthCm?: number | null;
+   heightCm?: number | null;
+   lengthCm?: number | null;
++  /** Backorder Settings */
++  allowBackorder?: boolean;
++  backorderLeadTimeDays?: number;
++  requiresPaymentForBackorder?: boolean;
+ }
+ 
+ export interface ProductDetailDTO {
+diff --git a/supabase/migrations/20260730100000_advanced_backorders_pos_acl.sql b/supabase/migrations/20260730100000_advanced_backorders_pos_acl.sql
+new file mode 100644
+index 0000000..5dc1b1b
+--- /dev/null
++++ b/supabase/migrations/20260730100000_advanced_backorders_pos_acl.sql
+@@ -0,0 +1,271 @@
++-- ============================================================================
++-- Hr Shoes Commerce — Migration 20260730100000: Advanced Backorders, POS & ACL
++-- ============================================================================
++-- 1. Backorder Support (product_variants)
++-- 2. POS Settings (manager override config)
++-- 3. Advanced RBAC (profiles)
++
++BEGIN;
++
++-- ============================================================================
++-- 1. BACKORDERS & INVENTORY
++-- ============================================================================
++ALTER TABLE public.product_variants
++ADD COLUMN IF NOT EXISTS allow_backorder BOOLEAN DEFAULT false,
++ADD COLUMN IF NOT EXISTS backorder_lead_time_days INTEGER DEFAULT 0,
++ADD COLUMN IF NOT EXISTS requires_payment_for_backorder BOOLEAN DEFAULT true;
++
++-- ============================================================================
++-- 2. PROFILES (ACL & POS PIN)
++-- ============================================================================
++ALTER TABLE public.profiles
++ADD COLUMN IF NOT EXISTS acl_permissions JSONB DEFAULT '[]'::jsonb,
++ADD COLUMN IF NOT EXISTS pos_pin_code TEXT DEFAULT NULL;
++
++-- ============================================================================
++-- 3. POS SETTINGS
++-- ============================================================================
++CREATE TABLE IF NOT EXISTS public.pos_settings (
++  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
++  store_id UUID NOT NULL REFERENCES public.stores(id) ON DELETE CASCADE,
++  require_pin_for_void BOOLEAN DEFAULT true,
++  require_pin_for_discount BOOLEAN DEFAULT true,
++  max_discount_without_pin DECIMAL(5,2) DEFAULT 10.00,
++  require_pin_for_refund BOOLEAN DEFAULT true,
++  created_at TIMESTAMPTZ DEFAULT NOW(),
++  updated_at TIMESTAMPTZ DEFAULT NOW(),
++  CONSTRAINT uk_pos_settings_store UNIQUE (store_id)
++);
++
++ALTER TABLE public.pos_settings ENABLE ROW LEVEL SECURITY;
++
++CREATE POLICY "pos_settings_read_staff" ON public.pos_settings
++  FOR SELECT USING (public.is_store_staff(store_id));
++
++CREATE POLICY "pos_settings_write_owner" ON public.pos_settings
++  FOR ALL USING (
++    EXISTS (
++      SELECT 1 FROM public.profiles
++      WHERE id = auth.uid() AND store_id = pos_settings.store_id AND role IN ('owner', 'admin')
++    )
++  );
++
++CREATE OR REPLACE FUNCTION public.batch_upsert_variant_matrix_v5(
++  store_id_param uuid,
++  product_id_param uuid,
++  matrix jsonb
++)
++RETURNS jsonb
++LANGUAGE plpgsql
++SECURITY DEFINER
++AS $$
++DECLARE
++  v_product_exists boolean;
++  v_item jsonb;
++  v_sku text;
++  v_sku_suffix text;
++  v_variant_id uuid;
++  v_current_stock integer;
++  v_original_stock integer;
++  v_new_stock integer;
++  v_diff integer;
++  v_media_id uuid;
++  v_now timestamptz := now();
++  v_count integer := 0;
++  v_processed_ids uuid[] := '{}';
++BEGIN
++  -- 1. Validar Identidade e Multi-tenancy
++  SELECT EXISTS (
++    SELECT 1 FROM public.products 
++    WHERE id = product_id_param AND store_id = store_id_param
++  ) INTO v_product_exists;
++
++  IF NOT v_product_exists THEN
++    RAISE EXCEPTION 'Produto não encontrado ou não pertence a esta loja.';
++  END IF;
++
++  -- 2. Processar a Matriz em Lote Atômicamente
++  FOR v_item IN SELECT jsonb_array_elements(matrix)
++  LOOP
++    v_variant_id := NULL;
++    v_current_stock := 0;
++    v_diff := 0;
++
++    -- Tentar encontrar variante existente por ID
++    IF v_item->>'id' IS NOT NULL AND (v_item->>'id') <> '' AND (v_item->>'id') <> 'null' THEN
++      SELECT id, COALESCE(stock_on_hand, 0) INTO v_variant_id, v_current_stock
++      FROM public.product_variants
++      WHERE id = (v_item->>'id')::uuid AND product_id = product_id_param
++      LIMIT 1;
++    END IF;
++
++    -- Tentar encontrar variante por SKU (fallback)
++    IF v_variant_id IS NULL AND v_item->>'sku' IS NOT NULL AND (v_item->>'sku') <> '' AND (v_item->>'sku') <> 'null' THEN
++      SELECT id, COALESCE(stock_on_hand, 0) INTO v_variant_id, v_current_stock
++      FROM public.product_variants
++      WHERE product_id = product_id_param AND sku = (v_item->>'sku')
++      LIMIT 1;
++    END IF;
++
++    -- Gerar SKU caso não exista na entrada
++    IF v_item->>'sku' IS NULL OR v_item->>'sku' = '' OR v_item->>'sku' = 'null' THEN
++      SELECT string_agg(upper(substring(value, 1, 3)), '-') INTO v_sku_suffix
++      FROM jsonb_each_text(v_item->'attributes');
++
++      v_sku := 'SKU-' || upper(substring(product_id_param::text, 1, 8)) || '-' || COALESCE(v_sku_suffix, 'VAR-' || v_count);
++    ELSE
++      v_sku := v_item->>'sku';
++    END IF;
++
++    -- Concorrência de Estoque
++    v_new_stock := COALESCE(NULLIF(v_item->>'stock', '')::integer, 0);
++    IF v_item ? 'original_stock' AND v_item->>'original_stock' IS NOT NULL AND v_item->>'original_stock' <> 'null' THEN
++      v_original_stock := (v_item->>'original_stock')::integer;
++      v_diff := v_new_stock - v_original_stock;
++    ELSE
++      v_diff := v_new_stock - COALESCE(v_current_stock, 0);
++    END IF;
++
++    IF v_variant_id IS NOT NULL THEN
++      -- Atualiza variante existente na prateleira
++      UPDATE public.product_variants
++      SET 
++        sku = COALESCE(v_sku, sku),
++        price_override_cents = CASE 
++          WHEN v_item->>'price_override_cents' IS NULL OR v_item->>'price_override_cents' = 'null' OR v_item->>'price_override_cents' = '' 
++          THEN NULL 
++          ELSE (v_item->>'price_override_cents')::integer 
++        END,
++        cost_cents = CASE 
++          WHEN v_item->>'cost_cents' IS NULL OR v_item->>'cost_cents' = 'null' OR v_item->>'cost_cents' = '' 
++          THEN NULL 
++          ELSE (v_item->>'cost_cents')::integer 
++        END,
++        weight_kg = CASE 
++          WHEN v_item->>'weight_kg' IS NULL OR v_item->>'weight_kg' = 'null' OR v_item->>'weight_kg' = '' 
++          THEN NULL 
++          ELSE (v_item->>'weight_kg')::numeric(10,3) 
++        END,
++        ean = CASE 
++          WHEN v_item->>'ean' IS NULL OR v_item->>'ean' = 'null' OR v_item->>'ean' = '' 
++          THEN NULL 
++          ELSE v_item->>'ean'
++        END,
++        allow_backorder = COALESCE((v_item->>'allow_backorder')::boolean, allow_backorder, false),
++        backorder_lead_time_days = COALESCE((v_item->>'backorder_lead_time_days')::integer, backorder_lead_time_days, 0),
++        requires_payment_for_backorder = COALESCE((v_item->>'requires_payment_for_backorder')::boolean, requires_payment_for_backorder, true),
++        attributes = COALESCE(v_item->'attributes', attributes),
++        stock_on_hand = stock_on_hand + v_diff,
++        status = COALESCE(v_item->>'status', 'active'),
++        updated_at = v_now
++      WHERE id = v_variant_id;
++    ELSE
++      -- Cria nova variante já com saldo canônico
++      INSERT INTO public.product_variants (
++        product_id,
++        sku,
++        price_override_cents,
++        cost_cents,
++        weight_kg,
++        ean,
++        allow_backorder,
++        backorder_lead_time_days,
++        requires_payment_for_backorder,
++        attributes,
++        stock_on_hand,
++        status,
++        created_at,
++        updated_at
++      ) VALUES (
++        product_id_param,
++        v_sku,
++        CASE 
++          WHEN v_item->>'price_override_cents' IS NULL OR v_item->>'price_override_cents' = 'null' OR v_item->>'price_override_cents' = '' 
++          THEN NULL 
++          ELSE (v_item->>'price_override_cents')::integer 
++        END,
++        CASE 
++          WHEN v_item->>'cost_cents' IS NULL OR v_item->>'cost_cents' = 'null' OR v_item->>'cost_cents' = '' 
++          THEN NULL 
++          ELSE (v_item->>'cost_cents')::integer 
++        END,
++        CASE 
++          WHEN v_item->>'weight_kg' IS NULL OR v_item->>'weight_kg' = 'null' OR v_item->>'weight_kg' = '' 
++          THEN NULL 
++          ELSE (v_item->>'weight_kg')::numeric(10,3) 
++        END,
++        CASE 
++          WHEN v_item->>'ean' IS NULL OR v_item->>'ean' = 'null' OR v_item->>'ean' = '' 
++          THEN NULL 
++          ELSE v_item->>'ean'
++        END,
++        COALESCE((v_item->>'allow_backorder')::boolean, false),
++        COALESCE((v_item->>'backorder_lead_time_days')::integer, 0),
++        COALESCE((v_item->>'requires_payment_for_backorder')::boolean, true),
++        v_item->'attributes',
++        v_new_stock,
++        COALESCE(v_item->>'status', 'active'),
++        v_now,
++        v_now
++      ) RETURNING id INTO v_variant_id;
++    END IF;
++
++    v_processed_ids := array_append(v_processed_ids, v_variant_id);
++
++    -- 3. Mídia
++    IF v_item->>'image_url' IS NOT NULL AND (v_item->>'image_url') <> '' AND (v_item->>'image_url') <> 'null' THEN
++      SELECT id INTO v_media_id FROM public.product_media 
++      WHERE product_id = product_id_param AND variant_id = v_variant_id AND url = v_item->>'image_url' 
++      LIMIT 1;
++
++      IF v_media_id IS NULL THEN
++        INSERT INTO public.product_media (product_id, variant_id, url)
++        VALUES (product_id_param, v_variant_id, v_item->>'image_url');
++      END IF;
++    END IF;
++
++    -- 4. Stock Movement
++    IF v_diff <> 0 THEN
++      INSERT INTO public.stock_movements (
++        store_id,
++        variant_id,
++        qty_change,
++        reason,
++        reference_type
++      ) VALUES (
++        store_id_param,
++        v_variant_id,
++        v_diff,
++        'manual_adjustment',
++        'manual'
++      );
++    END IF;
++
++    v_count := v_count + 1;
++  END LOOP;
++
++  -- 5. Lidar com Zumbis (Variantes removidas da UI viram archived)
++  IF array_length(v_processed_ids, 1) > 0 THEN
++    UPDATE public.product_variants
++    SET status = 'archived', updated_at = v_now
++    WHERE product_id = product_id_param
++      AND id != ALL(v_processed_ids)
++      AND status != 'archived';
++  END IF;
++
++  RETURN jsonb_build_object(
++    'success', true,
++    'variants_processed', v_count,
++    'archived_missing', true
++  );
++EXCEPTION WHEN OTHERS THEN
++  RETURN jsonb_build_object(
++    'success', false,
++    'error', SQLERRM,
++    'detail', SQLSTATE
++  );
++END;
++$$;
++
++COMMIT;
++ 
+diff --git a/wrangler.toml b/wrangler.toml
+index a9b486e..b8f6f47 100644
+--- a/wrangler.toml
++++ b/wrangler.toml
+@@ -1,4 +1,4 @@
+-name = "hrshoes"
++name = "lojapiloto"
+ compatibility_date = "2024-04-05"
+ compatibility_flags = ["nodejs_compat"]
+ pages_build_output_dir = "dist"

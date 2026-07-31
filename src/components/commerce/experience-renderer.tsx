@@ -5,6 +5,27 @@ import { cn } from "@/lib/utils";
 import { HeroCarousel } from "./dynamic-sections/hero-carousel";
 import { RichText } from "./dynamic-sections/rich-text";
 
+class BlockErrorBoundary extends React.Component<{ children: React.ReactNode; blockType: string }, { hasError: boolean; error: Error | null }> {
+  constructor(props: { children: React.ReactNode; blockType: string }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 border-2 border-red-500 bg-red-50 text-red-900 rounded-md m-2">
+          <strong>Erro no bloco: {this.props.blockType}</strong>
+          <p className="text-sm mt-1">{this.state.error?.message || "Erro desconhecido ao renderizar este bloco."}</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 import { BentoGrid } from "./dynamic-sections/bento-grid";
 import { CountdownTimer } from "./dynamic-sections/countdown-timer";
 import { StoriesRing } from "./dynamic-sections/stories-ring";
@@ -377,24 +398,26 @@ function ExperienceNodeRenderer({
 
   return wrapInteractive(
     <TrackView nodeId={node.id} blockType={node.block_type}>
-      <Component
-        // ── Canonical: Pass the full content object ─────────────────────────
-        content={content}
-        // ── Legacy Compat: Spread content fields as flat props ──────────────
-        {...content}
-        // ── Extra canonical props ───────────────────────────────────────────
-        node_id={node.id}
-        block_type={node.block_type}
-        design_tokens={designTokens}
-        layout_rules={layoutRules}
-        data_bindings={node.data_bindings}
-        action_bindings={node.action_bindings}
-        isEditing={isEditing}
-        // ── Dynamic data ────────────────────────────────────────────────────
-        resolvedProducts={resolvedProducts}
-        resolvedReviews={resolvedReviews}
-        {...storeProfileProps}
-      />
+      <BlockErrorBoundary blockType={node.block_type}>
+        <Component
+          // ── Canonical: Pass the full content object ─────────────────────────
+          content={content}
+          // ── Legacy Compat: Spread content fields as flat props ──────────────
+          {...content}
+          // ── Extra canonical props ───────────────────────────────────────────
+          node_id={node.id}
+          block_type={node.block_type}
+          design_tokens={designTokens}
+          layout_rules={layoutRules}
+          data_bindings={node.data_bindings}
+          action_bindings={node.action_bindings}
+          isEditing={isEditing}
+          // ── Dynamic data ────────────────────────────────────────────────────
+          resolvedProducts={resolvedProducts || []}
+          resolvedReviews={resolvedReviews || []}
+          {...storeProfileProps}
+        />
+      </BlockErrorBoundary>
     </TrackView>,
   );
 }
